@@ -567,7 +567,7 @@ function VACIO(){return{v:3,personas:{a:'M',b:'J'},pins:{a:null,b:null},reparto:
            {id:uid(),nombre:'Cuenta corriente',bloque:'b',tipo:'corriente',saldoInicial:0,reserva:false},
            {id:uid(),nombre:'Ahorros',bloque:'b',tipo:'ahorros',saldoInicial:0,reserva:false}],
   fijos:[],deudas:[],movs:[],metas:[],activos:[],notas:[],proyectos:[],pendientes:[],base:[],
-  visitas:{},abrioContable:false}}
+  visitas:{},abrioContable:false,rachaMirarMax:0,carinos:0}}
 
 function migrar(d){
   if(!d)return null;
@@ -581,6 +581,8 @@ function migrar(d){
   if(!d.reparto)d.reparto={a:50,b:50};
   if(!d.visitas)d.visitas={};
   if(d.abrioContable===undefined)d.abrioContable=false;
+  if(d.rachaMirarMax===undefined)d.rachaMirarMax=0;
+  if(d.carinos===undefined)d.carinos=0;
   if(d.v<3){
     d.cuentas.forEach(function(c){if(c.reserva===undefined)c.reserva=false});
     d.fijos.forEach(function(f){if(f.esencial===undefined)f.esencial=true});
@@ -1089,13 +1091,28 @@ function juego(c){
    ['📈','En verde','Cerraste el mes con saldo a favor',c.queda>0&&HOY.getDate()>20],
    ['🧾','Ordenada','Etiquetaste algo para la renta',Object.keys(c.renta).length>0],
    ['👀','Sin miedo','Entraste 3 días seguidos solo a mirar',rachaMirar>=3],
-   ['🔓','Te animaste','Abriste la Zona contable por primera vez',!!D.abrioContable]];
+   ['🔓','Te animaste','Abriste la Zona contable por primera vez',!!D.abrioContable],
+   ['🐖','Chanchi creció','60 días distintos cuidando tus cuentas',Object.keys(D.visitas||{}).length>=60],
+   ['❤️','Mejores amigos','Acariciaste a Chanchi 20 veces',(D.carinos||0)>=20]];
   return {racha:racha,rachaMirar:rachaMirar,pts:pts,nivel:nivel,nombre:NIVELES[nivel-1],
     prog:pct(pts-previo,sigue-previo),faltan:Math.max(0,sigue-pts),medallas:medallas,
     ganadas:medallas.filter(function(m){return m[3]}).length}
 }
 /* Chanchi: no mide si la plata está bien o mal, solo si volviste a mirar.
-   La idea es que revisar las cuentas nunca se sienta como un examen. */
+   La idea es que revisar las cuentas nunca se sienta como un examen.
+   Tiene dos memorias distintas, como un Tamagotchi:
+   - el ÁNIMO de hoy (rachaMirar) sube y baja, se puede perder sin drama.
+   - la ETAPA de crecimiento (días distintos en toda su vida) nunca retrocede,
+     así te ausentes una semana. El cariño acumulado tampoco se pierde nunca:
+     no hay forma de que Chanchi "se muera" o "se enferme" por descuido.
+*/
+function etapaChanchi(diasTotales){
+  if(diasTotales<3)return{e:'🥚',n:'Huevito'};
+  if(diasTotales<15)return{e:'🐽',n:'Cochinito bebé'};
+  if(diasTotales<60)return{e:'🐷',n:'Chanchi joven'};
+  if(diasTotales<180)return{e:'🐖',n:'Chanchi grande'};
+  return{e:'👑',n:'Chanchi sabio'}
+}
 function chanchi(rachaMirar){
   if(rachaMirar<=0)return{e:'😴',t:'Chanchi está dormido',m:'Ábreme aunque sea solo a mirar, sin anotar nada. Eso ya cuenta.'};
   if(rachaMirar<3)return{e:'🙂',t:'Chanchi te saluda',m:'Viniste. Eso ya es más de lo que hace la mayoría.'};
@@ -1106,7 +1123,12 @@ function chanchi(rachaMirar){
 function marcarVisita(){
   var hoy=toISO(HOY);
   if(!D.visitas)D.visitas={};
-  if(!D.visitas[hoy]){D.visitas[hoy]=true;save(D)}
+  if(!D.visitas[hoy]){
+    D.visitas[hoy]=true;
+    var actual=rachaDesde(D.visitas);
+    if(!D.rachaMirarMax||actual>D.rachaMirarMax)D.rachaMirarMax=actual;
+    save(D)
+  }
 }
 
 /* ===== piezas ===== */
@@ -1203,10 +1225,14 @@ function vInicio(c){
      c.autonomiaCol.toFixed(1).replace('.',',')+' meses</div>':'')+
    regla(c.autonomia,'Cobertura de '+ANIO+' con lo libre')+'</div>';
 
-  var ch=chanchi(juego(c).rachaMirar);
-  h+='<div class="card" style="margin-top:12px;display:flex;align-items:center;gap:13px">'+
-   '<div style="font-size:30px;line-height:1">🐷'+ch.e+'</div>'+
-   '<div class="grow"><h3 style="margin-bottom:2px">'+esc(ch.t)+'</h3><p class="sub" style="margin:0">'+esc(ch.m)+'</p></div></div>';
+  var jgTop=juego(c), ch=chanchi(jgTop.rachaMirar), et=etapaChanchi(Object.keys(D.visitas||{}).length);
+  h+='<div class="card" style="margin-top:12px">'+
+   '<div style="display:flex;align-items:center;gap:13px">'+
+   '<div style="font-size:30px;line-height:1">'+et.e+ch.e+'</div>'+
+   '<div class="grow"><h3 style="margin-bottom:2px">'+esc(ch.t)+'</h3><p class="sub" style="margin:0">'+esc(ch.m)+'</p></div></div>'+
+   '<p class="mini" style="margin:10px 0 0">'+esc(et.n)+' · tu récord es '+(D.rachaMirarMax||0)+' día'+((D.rachaMirarMax||0)===1?'':'s')+' seguidos mirando'+
+   ((D.carinos||0)>0?' · '+D.carinos+' cariños':'')+'</p>'+
+   '<button class="btn ghost sm" style="margin-top:10px" data-a="acariciar">🤍 Acariciar a Chanchi</button></div>';
 
   var listo={saldo:c.disponible!==0,fijos:c.fijos.length>0,movs:c.movs.length>0,meta:c.metas.length>0};
   var hechos=(listo.saldo?1:0)+(listo.fijos?1:0)+(listo.movs?1:0)+(listo.meta?1:0);
@@ -2604,6 +2630,11 @@ document.addEventListener('click',function(e){
     referencia:'',convenio:'',tasa:'',notas:'',__mas:false});return}
   if(a==='expdeuda'){DEXP[id]=!DEXP[id];render();return}
   if(a==='ocultarguia'){D.guiaOculta=true;commit();return}
+  if(a==='acariciar'){
+    D.carinos=(D.carinos||0)+1;save(D);
+    var msgs=['Gracias por venir 🐷','Chanchi está feliz de verte','Un día más sin esconderte de tus cuentas',
+      'Eso, así se hace','Chanchi te quiere, no te juzga','Mirar no da miedo, ¿cierto?'];
+    avisar(msgs[Math.floor(Math.random()*msgs.length)]);return}
   if(a==='pegarcorreo'){abrir('correo','Leer una alerta del banco',{texto:'',leido:null});return}
   if(a==='leercorreo'){
     var L=leerCorreo(F.texto||'');
