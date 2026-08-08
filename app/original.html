@@ -1029,13 +1029,9 @@ function cerrarSesion(){
 function chk(r){
   if(r.ok)return r.status===204?null:r.json().catch(function(){return null});
   return r.text().then(function(t){
-    var msg=t;
-    try{var j=JSON.parse(t);msg=j.message||j.error_description||j.msg||j.hint||t}catch(e){}
-    if(r.status===401||/jwt|row-level security/i.test(msg||'')){
-      SESION.token='';guardarSesion();
-      throw new Error('Tu sesión venció o quedó incompleta. Sal y vuelve a entrar con tu correo y clave — no perdiste nada.')
-    }
-    throw new Error('Error '+r.status+': '+(msg||'sin detalle'))
+    var msg=t,code='';
+    try{var j=JSON.parse(t);msg=j.message||j.error_description||j.msg||j.hint||t;code=j.code||''}catch(e){}
+    throw new Error('Error '+r.status+(code?' ('+code+')':'')+': '+(msg||'sin detalle'))
   })
 }
 function cargarMisEspacios(){
@@ -2845,7 +2841,9 @@ document.addEventListener('click',function(e){
     crearCasa(ccNombre.trim()).then(function(res){
       SESION.estado='ok';CODIGO_NUEVO=res.codigo;
       return cargarMisEspacios()
-    }).then(function(){render()}).catch(function(e){SESION.estado='error';SESION.error=String(e.message||e);render()});
+    }).then(function(){render()}).catch(function(e){SESION.estado='error';
+      SESION.error=String(e.message||e)+' [sesión: token='+(SESION.token?'sí('+SESION.token.length+')':'no')+
+        ', usuario='+(SESION.usuarioId?'sí':'no')+']';render()});
     return}
   if(a==='hacerunirse'){
     var codVal=(document.getElementById('fCodigo')||{}).value||'';
