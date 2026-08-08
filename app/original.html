@@ -567,7 +567,7 @@ function VACIO(){return{v:3,personas:{a:'M',b:'J'},pins:{a:null,b:null},reparto:
            {id:uid(),nombre:'Cuenta corriente',bloque:'b',tipo:'corriente',saldoInicial:0,reserva:false},
            {id:uid(),nombre:'Ahorros',bloque:'b',tipo:'ahorros',saldoInicial:0,reserva:false}],
   fijos:[],deudas:[],movs:[],metas:[],activos:[],notas:[],proyectos:[],pendientes:[],base:[],
-  visitas:{},abrioContable:false,rachaMirarMax:0,carinos:0}}
+  visitas:{a:{},b:{},casa:{}},abrioContable:false,rachaMirarMax:{a:0,b:0,casa:0},carinos:{a:0,b:0,casa:0}}}
 
 function migrar(d){
   if(!d)return null;
@@ -579,10 +579,16 @@ function migrar(d){
   ['metas','activos','notas','cuentas','fijos','deudas','movs','proyectos','pendientes','base'].forEach(function(k){if(!d[k])d[k]=[]});
   if(!d.pins)d.pins={a:null,b:null};
   if(!d.reparto)d.reparto={a:50,b:50};
-  if(!d.visitas)d.visitas={};
   if(d.abrioContable===undefined)d.abrioContable=false;
-  if(d.rachaMirarMax===undefined)d.rachaMirarMax=0;
-  if(d.carinos===undefined)d.carinos=0;
+  // visitas/rachaMirarMax/carinos pasaron de ser un solo valor a uno por bloque (a/b/casa)
+  if(!d.visitas||!d.visitas.a||!d.visitas.b||!d.visitas.casa){
+    var vieja=(d.visitas&&typeof d.visitas==='object')?d.visitas:{};
+    d.visitas={a:vieja.a||{},b:vieja.b||{},casa:vieja.casa||{}};
+  }
+  if(!d.rachaMirarMax||typeof d.rachaMirarMax!=='object'){d.rachaMirarMax={a:0,b:0,casa:0}}
+  else{['a','b','casa'].forEach(function(k){if(!d.rachaMirarMax[k])d.rachaMirarMax[k]=0})}
+  if(!d.carinos||typeof d.carinos!=='object'){d.carinos={a:0,b:0,casa:0}}
+  else{['a','b','casa'].forEach(function(k){if(!d.carinos[k])d.carinos[k]=0})}
   if(d.v<3){
     d.cuentas.forEach(function(c){if(c.reserva===undefined)c.reserva=false});
     d.fijos.forEach(function(f){if(f.esencial===undefined)f.esencial=true});
@@ -1072,7 +1078,7 @@ function juego(c){
   var dias={};
   D.movs.filter(function(m){return viva(m)&&!m.ajuste}).forEach(function(m){dias[m.fecha]=1});
   var racha=rachaDesde(dias);
-  var rachaMirar=rachaDesde(D.visitas||{});
+  var rachaMirar=rachaDesde((D.visitas&&D.visitas[B])||{});
   var pagados=0;D.fijos.forEach(function(f){for(var k in (f.pagos||{}))if(f.pagos[k])pagados++});
   var abonos=D.movs.filter(function(m){return m.metaId&&viva(m)}).length;
   var conc=D.movs.filter(function(m){return m.ajuste}).length;
@@ -1092,20 +1098,31 @@ function juego(c){
    ['🧾','Ordenada','Etiquetaste algo para la renta',Object.keys(c.renta).length>0],
    ['👀','Sin miedo','Entraste 3 días seguidos solo a mirar',rachaMirar>=3],
    ['🔓','Te animaste','Abriste la Zona contable por primera vez',!!D.abrioContable],
-   ['🐖','Chanchi creció','60 días distintos cuidando tus cuentas',Object.keys(D.visitas||{}).length>=60],
-   ['❤️','Mejores amigos','Acariciaste a Chanchi 20 veces',(D.carinos||0)>=20]];
+   ['🐖','Chanchi creció','60 días distintos cuidando este bloque',Object.keys((D.visitas&&D.visitas[B])||{}).length>=60],
+   ['❤️','Mejores amigos','Acariciaste a Chanchi 20 veces',((D.carinos&&D.carinos[B])||0)>=20]];
   return {racha:racha,rachaMirar:rachaMirar,pts:pts,nivel:nivel,nombre:NIVELES[nivel-1],
     prog:pct(pts-previo,sigue-previo),faltan:Math.max(0,sigue-pts),medallas:medallas,
     ganadas:medallas.filter(function(m){return m[3]}).length}
 }
 /* Chanchi: no mide si la plata está bien o mal, solo si volviste a mirar.
    La idea es que revisar las cuentas nunca se sienta como un examen.
-   Tiene dos memorias distintas, como un Tamagotchi:
+   Cada persona tiene el suyo (uno para "a", uno para "b"). Tiene dos
+   memorias distintas, como un Tamagotchi:
    - el ÁNIMO de hoy (rachaMirar) sube y baja, se puede perder sin drama.
-   - la ETAPA de crecimiento (días distintos en toda su vida) nunca retrocede,
-     así te ausentes una semana. El cariño acumulado tampoco se pierde nunca:
-     no hay forma de que Chanchi "se muera" o "se enferme" por descuido.
+   - la ETAPA de crecimiento (días cuidándolo + meses aportando a la casa)
+     nunca retrocede, así te ausentes una semana. El cariño acumulado
+     tampoco se pierde nunca: no hay forma de que Chanchi "se muera" o
+     "se enferme" por descuido.
+   Cuando los dos Chanchis de la pareja llevan varios meses de aportes a
+   la casa, entre los dos tienen un Chanchito (ver bebeNacido más abajo).
 */
+function mesesAportados(persona){
+  var meses={};
+  D.movs.filter(function(m){
+    return m.bloque==='casa'&&m.tipo==='ingreso'&&m.categoria!=='reembolso'&&m.de===persona&&viva(m)
+  }).forEach(function(m){meses[m.fecha.slice(0,7)]=1});
+  return Object.keys(meses).length
+}
 function etapaChanchi(diasTotales){
   if(diasTotales<3)return{e:'🥚',n:'Huevito'};
   if(diasTotales<15)return{e:'🐽',n:'Cochinito bebé'};
@@ -1113,6 +1130,10 @@ function etapaChanchi(diasTotales){
   if(diasTotales<180)return{e:'🐖',n:'Chanchi grande'};
   return{e:'👑',n:'Chanchi sabio'}
 }
+function crecimiento(persona){
+  return Object.keys((D.visitas&&D.visitas[persona])||{}).length + mesesAportados(persona)*5
+}
+function bebeNacido(){return mesesAportados('a')>=3&&mesesAportados('b')>=3}
 function chanchi(rachaMirar){
   if(rachaMirar<=0)return{e:'😴',t:'Chanchi está dormido',m:'Ábreme aunque sea solo a mirar, sin anotar nada. Eso ya cuenta.'};
   if(rachaMirar<3)return{e:'🙂',t:'Chanchi te saluda',m:'Viniste. Eso ya es más de lo que hace la mayoría.'};
@@ -1120,13 +1141,15 @@ function chanchi(rachaMirar){
   if(rachaMirar<30)return{e:'🔥',t:'Chanchi está que arde',m:rachaMirar+' días seguidos mirando de frente tu plata.'};
   return{e:'🌟',t:'Chanchi brilla',m:'Un mes entero sin esconderte de tus cuentas. Esto ya es tuyo.'}
 }
-function marcarVisita(){
+function marcarVisita(bloque){
   var hoy=toISO(HOY);
-  if(!D.visitas)D.visitas={};
-  if(!D.visitas[hoy]){
-    D.visitas[hoy]=true;
-    var actual=rachaDesde(D.visitas);
-    if(!D.rachaMirarMax||actual>D.rachaMirarMax)D.rachaMirarMax=actual;
+  if(!D.visitas)D.visitas={a:{},b:{},casa:{}};
+  if(!D.visitas[bloque])D.visitas[bloque]={};
+  if(!D.visitas[bloque][hoy]){
+    D.visitas[bloque][hoy]=true;
+    var actual=rachaDesde(D.visitas[bloque]);
+    if(!D.rachaMirarMax)D.rachaMirarMax={a:0,b:0,casa:0};
+    if(!D.rachaMirarMax[bloque]||actual>D.rachaMirarMax[bloque])D.rachaMirarMax[bloque]=actual;
     save(D)
   }
 }
@@ -1225,14 +1248,34 @@ function vInicio(c){
      c.autonomiaCol.toFixed(1).replace('.',',')+' meses</div>':'')+
    regla(c.autonomia,'Cobertura de '+ANIO+' con lo libre')+'</div>';
 
-  var jgTop=juego(c), ch=chanchi(jgTop.rachaMirar), et=etapaChanchi(Object.keys(D.visitas||{}).length);
-  h+='<div class="card" style="margin-top:12px">'+
-   '<div style="display:flex;align-items:center;gap:13px">'+
-   '<div style="font-size:30px;line-height:1">'+et.e+ch.e+'</div>'+
-   '<div class="grow"><h3 style="margin-bottom:2px">'+esc(ch.t)+'</h3><p class="sub" style="margin:0">'+esc(ch.m)+'</p></div></div>'+
-   '<p class="mini" style="margin:10px 0 0">'+esc(et.n)+' · tu récord es '+(D.rachaMirarMax||0)+' día'+((D.rachaMirarMax||0)===1?'':'s')+' seguidos mirando'+
-   ((D.carinos||0)>0?' · '+D.carinos+' cariños':'')+'</p>'+
-   '<button class="btn ghost sm" style="margin-top:10px" data-a="acariciar">🤍 Acariciar a Chanchi</button></div>';
+  if(casa){
+    var etA=etapaChanchi(crecimiento('a')), etB=etapaChanchi(crecimiento('b')), nace=bebeNacido();
+    h+='<div class="card" style="margin-top:12px">'+
+     '<h3 style="margin-bottom:2px">🏠 Los Chanchis de la casa</h3>'+
+     '<p class="sub" style="margin:0 0 12px">Cada quien alimenta el suyo aportando a la cuenta común</p>'+
+     '<div style="display:flex;gap:10px">'+
+      '<div style="flex:1;text-align:center;background:#FAFAFB;border-radius:14px;padding:12px 6px">'+
+       '<div style="font-size:28px">'+etA.e+'</div><div class="t" style="margin-top:4px;font-size:12.5px">'+esc(D.personas.a)+'</div>'+
+       '<div class="mini" style="margin-top:0">'+esc(etA.n)+'</div></div>'+
+      '<div style="flex:1;text-align:center;background:#FAFAFB;border-radius:14px;padding:12px 6px">'+
+       '<div style="font-size:28px">'+etB.e+'</div><div class="t" style="margin-top:4px;font-size:12.5px">'+esc(D.personas.b)+'</div>'+
+       '<div class="mini" style="margin-top:0">'+esc(etB.n)+'</div></div></div>'+
+     (nace
+       ?'<div class="note" style="margin-top:12px">🐷🍼 Después de meses cuidando la casa entre los dos, tienen un Chanchito — es de los dos.</div>'
+       :'<p class="mini" style="margin-top:12px">Cuando los dos hayan aportado a la casa unos meses más, nace un Chanchito para los dos.</p>')+
+     '</div>';
+  }else{
+    var jgTop=juego(c), ch=chanchi(jgTop.rachaMirar), et=etapaChanchi(crecimiento(B));
+    var rm=(D.rachaMirarMax&&D.rachaMirarMax[B])||0, ca=(D.carinos&&D.carinos[B])||0;
+    h+='<div class="card" style="margin-top:12px">'+
+     '<div style="display:flex;align-items:center;gap:13px">'+
+     '<div style="font-size:30px;line-height:1">'+et.e+ch.e+'</div>'+
+     '<div class="grow"><h3 style="margin-bottom:2px">'+esc(ch.t)+'</h3><p class="sub" style="margin:0">'+esc(ch.m)+'</p></div></div>'+
+     '<p class="mini" style="margin:10px 0 0">'+esc(et.n)+' · tu récord es '+rm+' día'+(rm===1?'':'s')+' seguidos mirando'+
+     (mesesAportados(B)>0?' · '+mesesAportados(B)+' mes'+(mesesAportados(B)===1?'':'es')+' aportando a la casa':'')+
+     (ca>0?' · '+ca+' cariños':'')+'</p>'+
+     '<button class="btn ghost sm" style="margin-top:10px" data-a="acariciar">🤍 Acariciar a Chanchi</button></div>';
+  }
 
   var listo={saldo:c.disponible!==0,fijos:c.fijos.length>0,movs:c.movs.length>0,meta:c.metas.length>0};
   var hechos=(listo.saldo?1:0)+(listo.fijos?1:0)+(listo.movs?1:0)+(listo.meta?1:0);
@@ -2413,6 +2456,7 @@ function render(){
   var root=document.getElementById('root');
   if(VIEW==='portal'){root.innerHTML=vPortal();document.getElementById('modal').innerHTML=sheetHTML();return}
   if(VIEW==='pin'){root.innerHTML=vPin();document.getElementById('modal').innerHTML='';return}
+  marcarVisita(B);
   var c=calc(B);
   var body=
    TAB==='inicio'?vInicio(c): TAB==='plata'?vPlata(c): TAB==='movs'?vMovsCajon(c):
@@ -2631,7 +2675,8 @@ document.addEventListener('click',function(e){
   if(a==='expdeuda'){DEXP[id]=!DEXP[id];render();return}
   if(a==='ocultarguia'){D.guiaOculta=true;commit();return}
   if(a==='acariciar'){
-    D.carinos=(D.carinos||0)+1;save(D);
+    if(!D.carinos)D.carinos={a:0,b:0,casa:0};
+    D.carinos[B]=(D.carinos[B]||0)+1;save(D);
     var msgs=['Gracias por venir 🐷','Chanchi está feliz de verte','Un día más sin esconderte de tus cuentas',
       'Eso, así se hace','Chanchi te quiere, no te juzga','Mirar no da miedo, ¿cierto?'];
     avisar(msgs[Math.floor(Math.random()*msgs.length)]);return}
@@ -2838,7 +2883,6 @@ var entro=capturarSesion();
 setInterval(function(){if(conectado()&&!SHEET&&VIEW!=='pin')traerHogar()},20000);
 load(function(d){
   D=migrar(d)||VACIO();
-  marcarVisita();
   render();
   setTimeout(revisarAlertas,1200);
   if(nubeLista()&&NUBE.token){TAB=entro?'nube':TAB;setTimeout(traerHogar,300)}
