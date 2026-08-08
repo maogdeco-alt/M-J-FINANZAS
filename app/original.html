@@ -1031,6 +1031,10 @@ function chk(r){
   return r.text().then(function(t){
     var msg=t;
     try{var j=JSON.parse(t);msg=j.message||j.error_description||j.msg||j.hint||t}catch(e){}
+    if(r.status===401||/jwt|row-level security/i.test(msg||'')){
+      SESION.token='';guardarSesion();
+      throw new Error('Tu sesión venció o quedó incompleta. Sal y vuelve a entrar con tu correo y clave — no perdiste nada.')
+    }
     throw new Error('Error '+r.status+': '+(msg||'sin detalle'))
   })
 }
@@ -3174,6 +3178,15 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&SHEET)cerra
 cargarSesion();
 var entro=capturarSesion();
 if(entro==='recovery'){VIEW='nuevaclave';render()}
+else if(entro===true&&!SESION.usuarioId){
+  /* venimos de abrir el enlace de confirmación de correo: el hash trae el
+     token pero no el usuario — hay que pedirlo antes de seguir */
+  render();
+  api('/auth/v1/user').then(chk).then(function(u){
+    if(u&&u.id){SESION.usuarioId=u.id;SESION.correo=u.email||SESION.correo;guardarSesion()}
+    arrancarSesion()
+  }).catch(function(){SESION.estado='error';SESION.error='No se pudo completar tu sesión. Entra con tu correo y clave.';render()})
+}
 else if(autenticado()){arrancarSesion()}
 else{render()}
 })();
