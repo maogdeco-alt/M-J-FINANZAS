@@ -60,6 +60,9 @@ font-size:12.5px;font-weight:500;white-space:nowrap;transition:.18s}
 .rail button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:none;border:0;
 padding:10px 13px;border-radius:12px;color:var(--gris);font-size:14px;font-weight:500}
 .rail button[aria-current="true"]{background:#fff;color:var(--negro);box-shadow:0 1px 2px rgba(10,10,11,.05)}
+.rail-t{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris);font-weight:600;
+margin:16px 13px 6px;padding-top:14px;border-top:1px solid var(--linea)}
+.rail-t:first-child{margin-top:0;padding-top:0;border-top:0}
 .navbar{position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;background:rgba(255,255,255,.94);
 backdrop-filter:blur(18px);border-top:1px solid var(--linea);padding:7px 2px calc(7px + env(safe-area-inset-bottom))}
 .navbar button{flex:1;background:none;border:0;padding:5px 2px;color:#B4B4BC;display:flex;flex-direction:column;
@@ -1907,7 +1910,7 @@ function vPagos(c){
   var al=alertasActivas(B).length, sb=SUB||'fijos';
   var h='<div class="screen"><div class="cabecera"><h2 class="dsp">📅 Pagos</h2>'+
    '<p>Lo que hay que pagar y cuándo</p></div>'+
-   seg(sb,[['fijos','Fijos'],['deudas','Deudas'],['alertas','Avisos'+(al?' ('+al+')':'')]])+'</div>';
+   seg(sb,[['fijos','Fijos'],['deudas','Deudas y tarjetas'],['alertas','Avisos'+(al?' ('+al+')':'')]])+'</div>';
   return h+(sb==='deudas'?vDeudas(c):sb==='alertas'?vAlertas(c):vFijos(c))
 }
 function vMas(c){
@@ -2447,10 +2450,16 @@ function compararExtracto(cuentaId,txt){
 /* ===== render ===== */
 var NAV=[['inicio','Hoy','🏠'],['plata','Mi plata','💰'],['movs','Movimientos','🔁'],['pagos','Pagos','📅'],['mas','Más','⋯']];
 function railItems(){
-  var r=[['inicio','🏠 Hoy'],['plata','💰 Mi plata'],['movs','🔁 Movimientos'],['pagos','📅 Pagos'],
-         ['anio','📆 El año'],['entre','⚖️ Entre nosotros'],['proyectos','🧩 Proyectos']];
-  if(!esCasa())r.push(['notas','📝 Pendientes']);
-  return r.concat([['contable','🧾 Zona contable'],['nube','📧 Avisos'],['ajustes','⚙️ Ajustes']])
+  // mismo orden que en el celular: lo diario primero, luego lo ocasional,
+  // y al final, aparte, lo técnico — para que el computador cuente la
+  // misma historia que el celular en vez de una lista plana de 11 botones.
+  var ocasional=[['anio','📆 El año'],['entre','⚖️ Entre nosotros'],['proyectos','🧩 Proyectos']];
+  if(!esCasa())ocasional.push(['notas','📝 Pendientes']);
+  return [
+    {t:'',items:[['inicio','🏠 Hoy'],['plata','💰 Mi plata'],['movs','🔁 Movimientos'],['pagos','📅 Pagos']]},
+    {t:'De vez en cuando',items:ocasional},
+    {t:'Técnico (no es obligatorio entrar aquí)',items:[['contable','🧾 Zona contable'],['nube','📧 Avisos'],['ajustes','⚙️ Ajustes']]}
+  ]
 }
 function render(){
   var root=document.getElementById('root');
@@ -2469,11 +2478,13 @@ function render(){
    '<div class="mark"><div class="seal">'+(esCasa()?'J<em>&amp;</em>M':esc(nomB(B)).slice(0,2).toUpperCase())+'</div>'+
    '<div class="nm"><b>'+esc(esCasa()?'La casa':nomB(B))+'</b><span>'+nomMes(MESK)+'</span></div></div>'+
    '<div class="saldo"><b>'+moneyK(c.libre)+'</b><span>Libre</span></div></div></div>'+
-   '<div class="wrap"><nav class="rail">'+railItems().map(function(n){
-     return '<button data-a="tab" data-v="'+n[0]+'" aria-current="'+(TAB===n[0])+'">'+n[1]+'</button>'}).join('')+
+   '<div class="wrap"><nav class="rail">'+railItems().map(function(g){
+     return (g.t?'<div class="rail-t">'+g.t+'</div>':'')+g.items.map(function(n){
+       return '<button data-a="tab" data-v="'+n[0]+'" aria-current="'+(TAB===n[0])+'">'+n[1]+'</button>'}).join('')
+   }).join('')+
    '<button class="salir-rail" data-a="portal">Salir del bloque</button></nav><main>'+body+'</main></div>'+
-   '<div class="fabs"><button class="fab gasto" data-a="exp" data-v="gasto">− Gasto</button>'+
-   '<button class="fab ingreso" data-a="exp" data-v="ingreso">＋ Ingreso</button></div>'+
+   '<div class="fabs"><button class="fab gasto" data-a="exp" data-v="gasto">− Agregar gasto</button>'+
+   '<button class="fab ingreso" data-a="exp" data-v="ingreso">＋ Agregar ingreso</button></div>'+
    '<nav class="navbar">'+NAV.map(function(n){
      var act=n[0]==='mas'
        ?['mas','contable','concilia','anulados','anio','entre','proyectos','notas','renta','nube','ajustes'].indexOf(TAB)>=0
