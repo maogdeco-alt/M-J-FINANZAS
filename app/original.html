@@ -1023,9 +1023,20 @@ function cerrarSesion(){
 }
 
 /* ===== espacios: tu cuenta personal + las Casas a las que perteneces ===== */
+/* Revisa toda respuesta de la nube: si algo falló, arma un mensaje de error
+   legible (con el código y el motivo real que dio Supabase) en vez de
+   dejarlo pasar en silencio y romper más adelante con un error confuso. */
+function chk(r){
+  if(r.ok)return r.status===204?null:r.json().catch(function(){return null});
+  return r.text().then(function(t){
+    var msg=t;
+    try{var j=JSON.parse(t);msg=j.message||j.error_description||j.msg||j.hint||t}catch(e){}
+    throw new Error('Error '+r.status+': '+(msg||'sin detalle'))
+  })
+}
 function cargarMisEspacios(){
   return api('/rest/v1/miembros_espacio?usuario_id=eq.'+SESION.usuarioId+'&select=rol,slot,espacios(id,nombre,tipo)')
-   .then(function(r){return r.json()})
+   .then(chk)
    .then(function(rows){
      MIS_ESPACIOS=(rows||[]).filter(function(r){return r.espacios}).map(function(r){
        return {id:r.espacios.id,nombre:r.espacios.nombre,tipo:r.espacios.tipo,rol:r.rol,slot:r.slot}});
@@ -1042,22 +1053,28 @@ function generarCodigo(){
 function crearCasa(nombre){
   return api('/rest/v1/espacios',{method:'POST',headers:{'Prefer':'return=representation'},
     body:JSON.stringify({tipo:'casa',nombre:nombre})})
-   .then(function(r){return r.json()})
+   .then(chk)
    .then(function(esp){
+     if(!esp||!esp[0])throw new Error('No se pudo crear la Casa (no llegó respuesta).');
      var espId=esp[0].id;
      return api('/rest/v1/miembros_espacio',{method:'POST',
        body:JSON.stringify({espacio_id:espId,usuario_id:SESION.usuarioId,slot:'a',rol:'propietario'})})
+      .then(chk)
       .then(function(){
         var blob=VACIO_CASA(SESION.nombre,'Tu pareja o familiar');
         return api('/rest/v1/espacios_datos',{method:'POST',body:JSON.stringify({espacio_id:espId,estado:blob})})
       })
+      .then(chk)
       .then(function(){
         var codigo=generarCodigo();
         return api('/rest/v1/codigos_casa',{method:'POST',headers:{'Prefer':'return=representation'},
           body:JSON.stringify({codigo:codigo,nombre_casa:nombre,espacio_id:espId,creado_por:SESION.usuarioId})})
       })
-      .then(function(r){return r.json()})
-      .then(function(c){return {espacioId:espId,codigo:c[0].codigo}})
+      .then(chk)
+      .then(function(c){
+        if(!c||!c[0])throw new Error('La Casa quedó creada, pero no se pudo generar el código. Entra a Ajustes → Mi cuenta para generar uno.');
+        return {espacioId:espId,codigo:c[0].codigo}
+      })
    })
 }
 function unirseConCodigo(codigo){
@@ -1065,20 +1082,22 @@ function unirseConCodigo(codigo){
   return api('/rest/v1/codigos_casa?codigo=eq.'+encodeURIComponent(cod)+'&estado=eq.pendiente',
     {method:'PATCH',headers:{'Prefer':'return=representation'},
      body:JSON.stringify({estado:'usado',usado_por:SESION.usuarioId,usado_en:new Date().toISOString()})})
-   .then(function(r){return r.json()})
+   .then(chk)
    .then(function(rows){
      if(!rows||!rows.length)throw new Error('Ese código no existe, ya se usó, o es tuyo.');
      var espId=rows[0].espacio_id;
      return api('/rest/v1/miembros_espacio',{method:'POST',
        body:JSON.stringify({espacio_id:espId,usuario_id:SESION.usuarioId,slot:'b',rol:'miembro'})})
+      .then(chk)
       .then(function(){return api('/rest/v1/espacios_datos?espacio_id=eq.'+espId+'&select=estado')})
-      .then(function(r){return r.json()})
+      .then(chk)
       .then(function(rows2){
         var estado=rows2&&rows2[0]&&rows2[0].estado&&Object.keys(rows2[0].estado).length
           ?rows2[0].estado:VACIO_CASA('Tu pareja o familiar',SESION.nombre);
         if(estado.personas)estado.personas.b=SESION.nombre;
         return api('/rest/v1/espacios_datos?espacio_id=eq.'+espId,{method:'PATCH',body:JSON.stringify({estado:estado})})
       })
+      .then(chk)
       .then(function(){return espId})
    })
 }
@@ -1089,8 +1108,8 @@ function generarCodigoParaCasa(espId,nombre){
   var codigo=generarCodigo();
   return api('/rest/v1/codigos_casa',{method:'POST',headers:{'Prefer':'return=representation'},
     body:JSON.stringify({codigo:codigo,nombre_casa:nombre,espacio_id:espId,creado_por:SESION.usuarioId})})
-   .then(function(r){return r.json()})
-   .then(function(c){return c[0].codigo})
+   .then(chk)
+   .then(function(c){return c&&c[0]?c[0].codigo:''})
 }
 /* Registra un movimiento directo en TU Casa (no en tu espacio personal) —
    para el "¿es tuyo o de la Casa?" al anotar un gasto desde tu bloque
@@ -1102,12 +1121,12 @@ function registrarEnCasa(mv){
   var casa=misCasas()[0];
   if(!casa)return Promise.reject(new Error('No tienes ninguna Casa todavía.'));
   return api('/rest/v1/espacios_datos?espacio_id=eq.'+casa.id+'&select=estado')
-   .then(function(r){return r.json()})
+   .then(chk)
    .then(function(rows){
      var estado=rows&&rows[0]&&rows[0].estado&&Object.keys(rows[0].estado).length?rows[0].estado:VACIO_CASA('—','—');
      estado.movs=estado.movs||[];estado.movs.push(mv);estado.actualizado=new Date().toISOString();
      return api('/rest/v1/espacios_datos?espacio_id=eq.'+casa.id,{method:'PATCH',body:JSON.stringify({estado:estado})})
-   })
+   }).then(chk)
 }
 /* ===== arranque tras iniciar sesión: cargar espacios, migrar datos de
    prueba locales a tu espacio personal si aplica, e ir al portal ===== */
@@ -1118,7 +1137,7 @@ function arrancarSesion(){
     var local=localGet();
     if(local&&local.movs&&local.movs.length){
       return api('/rest/v1/espacios_datos?espacio_id=eq.'+personal.id+'&select=estado')
-       .then(function(r){return r.json()})
+       .then(chk)
        .then(function(rows){
          var vacioEnLaNube=!rows||!rows[0]||!rows[0].estado||!Object.keys(rows[0].estado).length;
          if(!vacioEnLaNube)return;
