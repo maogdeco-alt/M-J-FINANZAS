@@ -1253,6 +1253,30 @@ function vInicio(c){
      c.autonomiaCol.toFixed(1).replace('.',',')+' meses</div>':'')+
    regla(c.autonomia,'Cobertura de '+ANIO+' con lo libre')+'</div>';
 
+  /* alertas y pagos cercanos: van primero que todo — lo urgente no puede
+     quedar debajo de tarjetas decorativas o de la guía de primeros pasos */
+  var np=D.pendientes.filter(function(p){return p.estado==='pendiente'}).length;
+  if(np)h+='<button class="banner" data-a="ir" data-v="movs:bandeja"><span class="bn">'+np+'</span><div>'+
+   '<b>'+(np===1?'Un gasto por clasificar':np+' gastos por clasificar')+'</b>'+
+   '<i>Llegaron del banco · toca para decir de quién son</i></div><span class="bm">📥</span></button>';
+
+  var asv=alertaSaldo(c);
+  if(asv)h+='<button class="banner rosa" data-a="ir" data-v="pagos:alertas"><span class="bn">!</span><div>'+
+   '<b>La plata no alcanza para terminar el mes</b>'+
+   '<i>Faltan '+money(asv.falta)+' para cubrir '+asv.restan+' días más</i></div>'+
+   '<span class="bm mono">'+moneyK(c.libre)+'</span></button>';
+  var al=alertasActivas(B);
+  if(al.length){
+    var urge=al.some(function(p){return p.dias<=0});
+    h+='<button class="banner'+(urge?' rosa':'')+'" data-a="ir" data-v="pagos:alertas"><span class="bn">'+(urge?'!':al.length)+'</span><div>'+
+     '<b>'+(urge
+       ?(al.length===1?'¡Un pago vencido o que vence hoy!':'¡'+al.length+' pagos vencidos o por vencer hoy!')
+       :(al.length===1?'Un pago por vencer':al.length+' pagos por vencer'))+'</b>'+
+     '<i>'+al.slice(0,3).map(function(p){return esc(p.nombre)+(p.dias<0?' vencido':p.dias===0?' hoy':' en '+p.dias+'d')}).join(' · ')+'</i>'+
+     '</div><span class="bm mono">'+moneyK(al.reduce(function(s,p){return s+p.monto},0))+'</span></button>'}
+  if(!np&&!asv&&!al.length)
+   h+='<div class="mini" style="margin-top:2px">✅ Vas al día — no tienes pagos urgentes ni nada por clasificar ahora mismo.</div>';
+
   if(casa){
     var etA=etapaChanchi(crecimiento('a')), etB=etapaChanchi(crecimiento('b')), nace=bebeNacido();
     h+='<div class="card" style="margin-top:12px">'+
@@ -1297,23 +1321,6 @@ function vInicio(c){
         '" data-v="'+(p[4]==='__gasto'?'gasto':p[4])+'">'+
         '<span class="ge">'+(p[1]?'✅':p[2])+'</span><span class="gl">'+p[3]+'</span>'+
         '<span class="gf">'+(p[1]?'':'›')+'</span></button>'}).join('')+'</div>'}
-
-  var np=D.pendientes.filter(function(p){return p.estado==='pendiente'}).length;
-  if(np)h+='<button class="banner" data-a="ir" data-v="movs:bandeja"><span class="bn">'+np+'</span><div>'+
-   '<b>'+(np===1?'Un gasto por clasificar':np+' gastos por clasificar')+'</b>'+
-   '<i>Llegaron del banco · toca para decir de quién son</i></div><span class="bm">📥</span></button>';
-
-  var asv=alertaSaldo(c);
-  if(asv)h+='<button class="banner rosa" data-a="ir" data-v="pagos:alertas"><span class="bn">!</span><div>'+
-   '<b>La plata no alcanza para terminar el mes</b>'+
-   '<i>Faltan '+money(asv.falta)+' para cubrir '+asv.restan+' días más</i></div>'+
-   '<span class="bm mono">'+moneyK(c.libre)+'</span></button>';
-  var al=alertasActivas(B);
-  if(al.length){
-    h+='<button class="banner" data-a="ir" data-v="pagos:alertas"><span class="bn">'+al.length+'</span><div>'+
-     '<b>'+(al.length===1?'Un pago por vencer':al.length+' pagos por vencer')+'</b>'+
-     '<i>'+al.slice(0,3).map(function(p){return esc(p.nombre)+(p.dias<=0?' hoy':' en '+p.dias+'d')}).join(' · ')+'</i>'+
-     '</div><span class="bm mono">'+moneyK(al.reduce(function(s,p){return s+p.monto},0))+'</span></button>'}
 
   h+='<div class="grid c3">'+
    '<div class="card"><h3>Entró</h3><p class="sub">'+nomMes(MESK)+'</p><div class="big mono">'+money(c.ingresoMes)+'</div>'+
