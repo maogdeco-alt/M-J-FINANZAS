@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CASA · Prototipo multiusuario</title>
+<meta name="theme-color" content="#0A0A0B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--negro:#0A0A0B;--gris:#8A8A93;--gris2:#5C5C64;--linea:#EAEAEE;--papel:#F5F5F6;--hueso:#FFFFFF;
+--rosa:#F9C7D8;--rosa-suave:#FDEEF4;--rosa-fuerte:#D4577F;--r:20px}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--papel);color:var(--negro);font-family:'Inter Tight',system-ui,sans-serif;
+-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.45;letter-spacing:-.01em}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit;font-size:16px}
+.mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;font-weight:300;letter-spacing:-.03em}
+.dsp{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;letter-spacing:-.035em}
+.wrap{max-width:640px;margin:0 auto;padding:18px 18px 100px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 0}
+.mark{display:flex;align-items:center;gap:10px}
+.seal{width:32px;height:32px;border-radius:10px;background:var(--negro);color:#fff;display:flex;align-items:center;
+justify-content:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:12px}
+.seal em{font-style:normal;color:var(--rosa)}
+.perfil{display:flex;align-items:center;gap:8px;background:#fff;border:0;border-radius:999px;padding:6px 12px 6px 6px;
+box-shadow:inset 0 0 0 1px var(--linea);font-size:12.5px;font-weight:600}
+.av{width:24px;height:24px;border-radius:50%;background:var(--rosa-suave);color:var(--rosa-fuerte);display:flex;
+align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.card{background:var(--hueso);border-radius:var(--r);padding:18px;margin-bottom:12px}
+.card h3{margin:0 0 3px;font-size:14px;font-weight:700;letter-spacing:-.01em}
+.card .sub{font-size:11.5px;color:var(--gris);margin:0 0 12px}
+.btn{border:0;border-radius:999px;padding:11px 18px;font-size:13.5px;font-weight:600;background:var(--negro);
+color:#fff;letter-spacing:-.01em}
+.btn.ghost{background:#fff;box-shadow:inset 0 0 0 1px var(--linea);color:var(--negro)}
+.btn.sm{padding:8px 14px;font-size:12px}
+.btn.rosa{background:var(--rosa-fuerte);color:#fff}
+.btn.block{display:block;width:100%;text-align:center}
+.f{margin-bottom:14px}
+.f label{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris);
+margin-bottom:7px;font-weight:600}
+.inp{width:100%;padding:12px 13px;border:0;box-shadow:inset 0 0 0 1px var(--linea);border-radius:14px;
+background:#FAFAFB;color:var(--negro)}
+.row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--linea)}
+.row:last-child{border-bottom:0}
+.grow{flex:1;min-width:0}
+.t{font-size:14px;font-weight:600}
+.s{font-size:11px;color:var(--gris);margin-top:2px}
+.amt{font-size:14px;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.pos{color:var(--rosa-fuerte)}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:var(--rosa-fuerte);
+background:var(--rosa-suave);padding:4px 10px;border-radius:999px}
+.hero{background:var(--negro);color:#fff;border-radius:22px;padding:20px 20px;margin-bottom:14px}
+.hero .lbl{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--rosa);font-weight:600}
+.hero h1{font-family:'Bricolage Grotesque',sans-serif;font-size:24px;margin:8px 0 4px;letter-spacing:-.03em}
+.hero p{color:rgba(255,255,255,.55);font-size:12px;margin:0}
+.tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto}
+.tab{border:0;background:#fff;box-shadow:inset 0 0 0 1px var(--linea);color:var(--gris2);padding:8px 14px;
+border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.tab[aria-pressed="true"]{background:var(--negro);color:#fff;box-shadow:none}
+.empty{text-align:center;padding:26px 10px;color:var(--gris);font-size:12.5px}
+.veil{position:fixed;inset:0;background:rgba(10,10,11,.5);z-index:50;display:flex;align-items:flex-end;
+justify-content:center;backdrop-filter:blur(3px)}
+.sheet{background:#fff;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;border-radius:24px 24px 0 0;
+padding:22px 20px 30px}
+.sheet h3{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;margin:0 0 16px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:var(--negro);
+color:#fff;padding:11px 18px;border-radius:999px;font-size:12.5px;font-weight:500;max-width:88vw;text-align:center}
+.nota{background:var(--rosa-suave);border-radius:14px;padding:12px 14px;font-size:11.5px;color:var(--rosa-fuerte);
+line-height:1.5;margin-bottom:14px}
+.miembros{display:flex;gap:-6px;margin-top:8px}
+.mchip{display:inline-flex;align-items:center;gap:5px;background:#F3F3F5;border-radius:999px;padding:4px 10px 4px 4px;
+font-size:11px;font-weight:600;margin-right:6px;margin-top:6px}
+.mchip .av{width:18px;height:18px;font-size:9px}
+.link{background:none;border:0;color:var(--rosa-fuerte);font-weight:600;font-size:12px;padding:0}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="modal"></div>
+<script>
+(function(){
+"use strict";
+var KEY='jm:proto:casa:v1';
+function uid(){return Math.random().toString(36).slice(2,9)}
+var nf=new Intl.NumberFormat('es-CO');
+function money(n){var v=Math.round(Number(n)||0);return (v<0?'−':'')+'$ '+nf.format(Math.abs(v))}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function iniciales(n){return (n||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w[0]}).join('').toUpperCase()}
+
+function VACIO(){return{usuarios:[],sesion:null,espacios:[],miembros:[],invitaciones:[],movs:[],prestamos:[]}}
+function cargar(){try{var s=localStorage.getItem(KEY);return s?JSON.parse(s):VACIO()}catch(e){return VACIO()}}
+function guardar(){try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}}
+var D=cargar();
+
+function usuarioActual(){return D.usuarios.filter(function(u){return u.id===D.sesion})[0]||null}
+function espacioPersonal(uid_){var e=D.espacios.filter(function(e){return e.tipo==='personal'&&e.dueno===uid_})[0];
+  if(!e){e={id:uid(),tipo:'personal',nombre:'Personal',dueno:uid_};D.espacios.push(e)}
+  return e}
+function casasDe(uid_){
+  var idsMiembro=D.miembros.filter(function(m){return m.usuarioId===uid_}).map(function(m){return m.espacioId});
+  return D.espacios.filter(function(e){return e.tipo==='casa'&&idsMiembro.indexOf(e.id)>-1})}
+function miembrosDe(espId){
+  return D.miembros.filter(function(m){return m.espacioId===espId}).map(function(m){
+    var u=D.usuarios.filter(function(x){return x.id===m.usuarioId})[0];
+    return {usuarioId:m.usuarioId,nombre:u?u.nombre:'—',rol:m.rol}})}
+function invitacionesPendientesPara(correo){
+  return D.invitaciones.filter(function(i){return i.paraCorreo===correo&&i.estado==='pendiente'})}
+function movsDe(espId){return D.movs.filter(function(m){return m.espacioId===espId}).sort(function(a,b){return b.fecha<a.fecha?-1:1})}
+function saldoDe(espId){var s=0;movsDe(espId).forEach(function(m){s+=m.tipo==='ingreso'?m.monto:-m.monto});return s}
+function prestamosDe(espId){return D.prestamos.filter(function(p){return p.espacioId===espId})}
+function saldoEntre(espId,uA,uB){
+  var s=0;
+  prestamosDe(espId).forEach(function(p){
+    if(p.deUsuarioId===uA&&p.paraUsuarioId===uB)s+=p.monto;
+    if(p.deUsuarioId===uB&&p.paraUsuarioId===uA)s-=p.monto});
+  return s /* positivo: B le debe a A */
+}
+
+/* ===== vistas ===== */
+var VIEW='portal', SHEET=null, CASA_ID=null, CASA_TAB='movs', TOAST='', F={};
+
+function sello(){return '<div class="mark"><div class="seal">C<em>&amp;</em></div></div>'}
+
+function vLogin(){
+  var h='<div class="wrap"><div class="topbar">'+sello()+'</div>'+
+   '<div class="hero"><div class="lbl">Bienvenido</div><h1 class="dsp">Cada quien con su cuenta</h1>'+
+   '<p>Entra con tu perfil, o crea uno nuevo. Esto simula el login independiente por persona.</p></div>';
+  if(D.usuarios.length){
+    h+='<div class="card"><h3>Perfiles en este dispositivo</h3><p class="sub">Solo para probar el prototipo — en la app real cada quien entra con su propio correo, desde su propio celular.</p>';
+    D.usuarios.forEach(function(u){
+      h+='<div class="row"><div class="av" style="width:30px;height:30px;font-size:12px">'+esc(iniciales(u.nombre))+'</div>'+
+       '<div class="grow"><div class="t">'+esc(u.nombre)+'</div><div class="s">'+esc(u.correo)+'</div></div>'+
+       (invitacionesPendientesPara(u.correo).length?'<span class="pill">'+invitacionesPendientesPara(u.correo).length+' invitación</span>':'')+
+       '<button class="btn ghost sm" data-a="entrar" data-id="'+u.id+'">Entrar</button></div>'});
+    h+='</div>'
+  }
+  h+='<button class="btn block" data-a="nuevoUsuario">+ Crear un perfil nuevo</button></div>';
+  return h
+}
+
+function vPortal(){
+  var u=usuarioActual(), esp=espacioPersonal(u.id), casas=casasDe(u.id);
+  var invs=invitacionesPendientesPara(u.correo);
+  var h='<div class="wrap"><div class="topbar">'+sello()+
+   '<button class="perfil" data-a="cambiarUsuario"><span class="av">'+esc(iniciales(u.nombre))+'</span>'+esc(u.nombre)+'</button></div>';
+  if(invs.length){
+    h+='<div class="nota">Tienes '+invs.length+' invitación'+(invs.length>1?'es':'')+' para unirte a una CASA. '+
+     '<button class="link" data-a="verInvitaciones">Ver ahora →</button></div>'
+  }
+  h+='<div class="card" data-a="abrirEspacio" data-id="'+esp.id+'" style="cursor:pointer">'+
+   '<h3>👤 Tu espacio personal</h3><p class="sub">Solo tú lo ves</p>'+
+   '<div class="amt" style="font-size:22px">'+money(saldoDe(esp.id))+'</div></div>';
+  h+='<h3 class="dsp" style="margin:22px 0 4px">CASA</h3><p class="sub" style="margin:0 0 12px">Espacios compartidos con tu pareja o familia</p>';
+  if(!casas.length){
+    h+='<div class="card empty"><p>Todavía no tienes ninguna CASA.</p>'+
+     '<button class="btn sm" data-a="crearCasa">Crear una CASA</button></div>'
+  }else{
+    casas.forEach(function(c){
+      var mm=miembrosDe(c.id);
+      h+='<div class="card" data-a="abrirCasa" data-id="'+c.id+'" style="cursor:pointer">'+
+       '<h3>🏠 '+esc(c.nombre)+'</h3><p class="sub">'+mm.map(function(m){return esc(m.nombre)}).join(' · ')+'</p>'+
+       '<div class="amt" style="font-size:22px">'+money(saldoDe(c.id))+'</div></div>'
+    });
+    h+='<button class="btn ghost block" data-a="crearCasa">+ Crear otra CASA</button>'
+  }
+  h+='</div>';
+  return h
+}
+
+function vInvitaciones(){
+  var u=usuarioActual(), invs=invitacionesPendientesPara(u.correo);
+  var h='<div class="wrap"><div class="topbar"><button class="btn ghost sm" data-a="volverPortal">← Volver</button></div>'+
+   '<h1 class="dsp" style="font-size:22px;margin:6px 0 4px">Invitaciones</h1><p class="sub" style="margin:0 0 16px">Para unirte a una CASA con alguien</p>';
+  if(!invs.length)h+='<div class="card empty"><p>No tienes invitaciones pendientes.</p></div>';
+  invs.forEach(function(i){
+    var de=D.usuarios.filter(function(x){return x.id===i.deUsuarioId})[0];
+    h+='<div class="card"><h3>🏠 '+esc(i.casaNombre)+'</h3><p class="sub">Te invitó '+esc(de?de.nombre:'—')+'</p>'+
+     '<div style="display:flex;gap:8px;margin-top:8px">'+
+     '<button class="btn sm" data-a="aceptarInv" data-id="'+i.id+'">Aceptar</button>'+
+     '<button class="btn ghost sm" data-a="rechazarInv" data-id="'+i.id+'">Rechazar</button></div></div>'
+  });
+  h+='</div>';
+  return h
+}
+
+function vEspacioPersonal(espId){
+  var h='<div class="wrap"><div class="topbar"><button class="btn ghost sm" data-a="volverPortal">← Volver</button></div>'+
+   '<h1 class="dsp" style="font-size:22px;margin:6px 0 2px">Tu espacio personal</h1>'+
+   '<div class="amt" style="font-size:30px;margin:8px 0 16px">'+money(saldoDe(espId))+'</div>'+
+   '<button class="btn" data-a="nuevoMov" data-esp="'+espId+'">+ Registrar movimiento</button>'+
+   '<div class="card" style="margin-top:16px"><h3>Movimientos</h3>';
+  var ms=movsDe(espId);
+  if(!ms.length)h+='<div class="empty"><p>Aún no hay movimientos.</p></div>';
+  ms.forEach(function(m){
+    h+='<div class="row"><div class="grow"><div class="t">'+esc(m.desc)+'</div><div class="s">'+esc(m.fecha)+'</div></div>'+
+     '<div class="amt '+(m.tipo==='ingreso'?'pos':'')+'">'+(m.tipo==='ingreso'?'+':'−')+' '+money(m.monto)+'</div></div>'
+  });
+  h+='</div></div>';
+  return h
+}
+
+function vCasa(espId){
+  var esp=D.espacios.filter(function(e){return e.id===espId})[0];
+  var mm=miembrosDe(espId), u=usuarioActual();
+  var h='<div class="wrap"><div class="topbar"><button class="btn ghost sm" data-a="volverPortal">← Volver</button></div>'+
+   '<h1 class="dsp" style="font-size:24px;margin:6px 0 2px">🏠 '+esc(esp.nombre)+'</h1>'+
+   '<p class="s" style="margin:0 0 12px">'+mm.map(function(m){return esc(m.nombre)}).join(' · ')+'</p>'+
+   '<div class="amt" style="font-size:30px;margin:0 0 14px">'+money(saldoDe(espId))+'</div>'+
+   '<div style="display:flex;gap:8px;margin-bottom:16px">'+
+   '<button class="btn sm" data-a="nuevoMov" data-esp="'+espId+'">+ Movimiento</button>'+
+   '<button class="btn ghost sm" data-a="invitarACasa" data-id="'+espId+'">+ Invitar a alguien</button></div>'+
+   '<div class="tabs">'+
+   '<button class="tab" aria-pressed="'+(CASA_TAB==='movs')+'" data-a="casaTab" data-v="movs">Movimientos</button>'+
+   '<button class="tab" aria-pressed="'+(CASA_TAB==='entre')+'" data-a="casaTab" data-v="entre">Entre nosotros</button>'+
+   '</div>';
+  if(CASA_TAB==='movs'){
+    h+='<div class="card"><h3>Movimientos de la CASA</h3>';
+    var ms=movsDe(espId);
+    if(!ms.length)h+='<div class="empty"><p>Aún no hay movimientos.</p></div>';
+    ms.forEach(function(m){
+      var au=D.usuarios.filter(function(x){return x.id===m.usuarioId})[0];
+      h+='<div class="row"><div class="grow"><div class="t">'+esc(m.desc)+'</div>'+
+       '<div class="s">'+esc(au?au.nombre:'—')+' · '+esc(m.fecha)+'</div></div>'+
+       '<div class="amt '+(m.tipo==='ingreso'?'pos':'')+'">'+(m.tipo==='ingreso'?'+':'−')+' '+money(m.monto)+'</div></div>'
+    });
+    h+='</div>'
+  }else{
+    h+='<div class="nota">Aquí se llevan las platas que se prestan entre los miembros de esta CASA — sin cuentas raras, solo quién le debe a quién.</div>';
+    h+='<button class="btn" data-a="nuevoPrestamo" data-esp="'+espId+'">+ Registrar un préstamo</button>';
+    h+='<div class="card" style="margin-top:14px"><h3>Saldos entre miembros</h3>';
+    var pares=[];
+    for(var i=0;i<mm.length;i++)for(var j=i+1;j<mm.length;j++)pares.push([mm[i],mm[j]]);
+    if(!pares.length)h+='<div class="empty"><p>Se necesita más de un miembro.</p></div>';
+    pares.forEach(function(pr){
+      var s=saldoEntre(espId,pr[0].usuarioId,pr[1].usuarioId);
+      var txt = s===0?esc(pr[0].nombre)+' y '+esc(pr[1].nombre)+' están a paz y salvo':
+        (s>0? esc(pr[1].nombre)+' le debe a '+esc(pr[0].nombre) : esc(pr[0].nombre)+' le debe a '+esc(pr[1].nombre));
+      h+='<div class="row"><div class="grow"><div class="t">'+txt+'</div></div>'+
+       '<div class="amt">'+money(Math.abs(s))+'</div></div>'
+    });
+    h+='</div>';
+    h+='<div class="card"><h3>Historial de préstamos</h3>';
+    var ps=prestamosDe(espId);
+    if(!ps.length)h+='<div class="empty"><p>Aún no hay préstamos registrados.</p></div>';
+    ps.forEach(function(p){
+      var de=D.usuarios.filter(function(x){return x.id===p.deUsuarioId})[0],
+          para=D.usuarios.filter(function(x){return x.id===p.paraUsuarioId})[0];
+      h+='<div class="row"><div class="grow"><div class="t">'+esc(de?de.nombre:'—')+' le prestó a '+esc(para?para.nombre:'—')+'</div>'+
+       '<div class="s">'+esc(p.motivo||'Sin motivo')+' · '+esc(p.fecha)+'</div></div><div class="amt">'+money(p.monto)+'</div></div>'
+    });
+    h+='</div>'
+  }
+  h+='</div>';
+  return h
+}
+
+/* ===== hojas (modales) ===== */
+function vSheetNuevoUsuario(){
+  return '<div class="veil" data-a="cerrar"><div class="sheet" onclick="event.stopPropagation()">'+
+   '<h3>Crear un perfil</h3>'+
+   '<div class="f"><label>Nombre</label><input class="inp" id="fNombre" placeholder="Ej. Mao"></div>'+
+   '<div class="f"><label>Correo</label><input class="inp" id="fCorreo" placeholder="tucorreo@ejemplo.com"></div>'+
+   '<button class="btn block" data-a="guardarUsuario">Crear y entrar</button></div></div>'
+}
+function vSheetCrearCasa(){
+  var u=usuarioActual();
+  var otros=D.usuarios.filter(function(x){return x.id!==u.id});
+  var h='<div class="veil" data-a="cerrar"><div class="sheet" onclick="event.stopPropagation()">'+
+   '<h3>Crear una CASA</h3>'+
+   '<div class="f"><label>Nombre de la CASA</label><input class="inp" id="fCasaNombre" placeholder="Ej. La casa, La familia..."></div>'+
+   '<div class="f"><label>¿A quién invitas? (opcional, puedes invitar luego)</label>';
+  if(!otros.length)h+='<p class="s">Aún no hay otros perfiles creados en este dispositivo. Puedes crear la CASA e invitar después por correo.</p>';
+  otros.forEach(function(o){h+='<div class="mchip"><span class="av">'+esc(iniciales(o.nombre))+'</span>'+esc(o.nombre)+
+    '<input type="checkbox" data-inv="'+o.id+'" style="margin-left:4px"></div>'});
+  h+='</div><div class="f"><label>O invita por correo</label><input class="inp" id="fCasaCorreo" placeholder="correo@ejemplo.com (si no tiene perfil aún)"></div>'+
+   '<button class="btn block" data-a="guardarCasa">Crear CASA</button></div></div>';
+  return h
+}
+function vSheetInvitar(espId){
+  var esp=D.espacios.filter(function(e){return e.id===espId})[0];
+  return '<div class="veil" data-a="cerrar"><div class="sheet" onclick="event.stopPropagation()">'+
+   '<h3>Invitar a "'+esc(esp.nombre)+'"</h3>'+
+   '<div class="f"><label>Correo de la persona</label><input class="inp" id="fInvCorreo" placeholder="correo@ejemplo.com"></div>'+
+   '<p class="s" style="margin-bottom:14px">Si ya tiene un perfil en este dispositivo, le va a llegar la invitación a su bandeja apenas entre. Si no, la invitación queda esperando a que se registre con ese correo.</p>'+
+   '<button class="btn block" data-a="guardarInvitacion" data-id="'+espId+'">Enviar invitación</button></div></div>'
+}
+function vSheetMov(espId){
+  return '<div class="veil" data-a="cerrar"><div class="sheet" onclick="event.stopPropagation()">'+
+   '<h3>Nuevo movimiento</h3>'+
+   '<div class="f"><label>Tipo</label><div style="display:flex;gap:8px">'+
+   '<button class="btn ghost sm" data-a="tipoMov" data-v="gasto" aria-pressed="'+(F.tipo!=='ingreso')+'">Gasto</button>'+
+   '<button class="btn ghost sm" data-a="tipoMov" data-v="ingreso" aria-pressed="'+(F.tipo==='ingreso')+'">Ingreso</button></div></div>'+
+   '<div class="f"><label>Monto</label><input class="inp" id="fMonto" inputmode="numeric" placeholder="0"></div>'+
+   '<div class="f"><label>Descripción</label><input class="inp" id="fDesc" placeholder="Ej. Mercado del mes"></div>'+
+   '<button class="btn block" data-a="guardarMov" data-esp="'+espId+'">Guardar</button></div></div>'
+}
+function vSheetPrestamo(espId){
+  var mm=miembrosDe(espId), u=usuarioActual();
+  var h='<div class="veil" data-a="cerrar"><div class="sheet" onclick="event.stopPropagation()">'+
+   '<h3>Registrar un préstamo</h3><div class="f"><label>¿Quién prestó?</label><select class="inp" id="fDe">';
+  mm.forEach(function(m){h+='<option value="'+m.usuarioId+'"'+(m.usuarioId===u.id?' selected':'')+'>'+esc(m.nombre)+'</option>'});
+  h+='</select></div><div class="f"><label>¿A quién?</label><select class="inp" id="fPara">';
+  mm.forEach(function(m){h+='<option value="'+m.usuarioId+'"'+(m.usuarioId!==u.id?' selected':'')+'>'+esc(m.nombre)+'</option>'});
+  h+='</select></div><div class="f"><label>Monto</label><input class="inp" id="fPMonto" inputmode="numeric" placeholder="0"></div>'+
+   '<div class="f"><label>Motivo (opcional)</label><input class="inp" id="fPMotivo" placeholder="Ej. Mercado, arriendo..."></div>'+
+   '<button class="btn block" data-a="guardarPrestamo" data-esp="'+espId+'">Guardar préstamo</button></div></div>';
+  return h
+}
+
+/* ===== render ===== */
+function render(){
+  var root=document.getElementById('root'), modal=document.getElementById('modal');
+  var u=usuarioActual();
+  if(!u){root.innerHTML=vLogin()}
+  else if(VIEW==='portal')root.innerHTML=vPortal();
+  else if(VIEW==='invitaciones')root.innerHTML=vInvitaciones();
+  else if(VIEW==='personal')root.innerHTML=vEspacioPersonal(CASA_ID);
+  else if(VIEW==='casa')root.innerHTML=vCasa(CASA_ID);
+  var m='';
+  if(SHEET==='nuevoUsuario')m=vSheetNuevoUsuario();
+  else if(SHEET==='crearCasa')m=vSheetCrearCasa();
+  else if(SHEET==='invitar')m=vSheetInvitar(CASA_ID);
+  else if(SHEET==='mov')m=vSheetMov(F.espId);
+  else if(SHEET==='prestamo')m=vSheetPrestamo(F.espId);
+  if(TOAST)m+='<div class="toast">'+esc(TOAST)+'</div>';
+  modal.innerHTML=m;
+}
+
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-a]'); if(!t)return;
+  var a=t.dataset.a, v=t.dataset.v, id=t.dataset.id, esp=t.dataset.esp;
+  TOAST='';
+  if(a==='cerrar'&&e.target===t){SHEET=null;render();return}
+  if(a==='nuevoUsuario'){SHEET='nuevoUsuario';render();return}
+  if(a==='guardarUsuario'){
+    var nombre=document.getElementById('fNombre').value.trim()||'Sin nombre';
+    var correo=document.getElementById('fCorreo').value.trim()||(nombre.toLowerCase()+'@casa.demo');
+    var nu={id:uid(),nombre:nombre,correo:correo};D.usuarios.push(nu);D.sesion=nu.id;espacioPersonal(nu.id);
+    guardar();SHEET=null;VIEW='portal';render();return}
+  if(a==='entrar'){D.sesion=id;guardar();VIEW='portal';render();return}
+  if(a==='cambiarUsuario'){D.sesion=null;guardar();render();return}
+  if(a==='volverPortal'){VIEW='portal';SHEET=null;render();return}
+  if(a==='verInvitaciones'){VIEW='invitaciones';render();return}
+  if(a==='abrirEspacio'){VIEW='personal';CASA_ID=id;render();return}
+  if(a==='abrirCasa'){VIEW='casa';CASA_ID=id;CASA_TAB='movs';render();return}
+  if(a==='casaTab'){CASA_TAB=v;render();return}
+  if(a==='crearCasa'){SHEET='crearCasa';render();return}
+  if(a==='guardarCasa'){
+    var u=usuarioActual();
+    var nombre=document.getElementById('fCasaNombre').value.trim()||'CASA';
+    var correo=(document.getElementById('fCasaCorreo').value||'').trim();
+    var checks=document.querySelectorAll('[data-inv]');
+    var casaId=uid();
+    D.espacios.push({id:casaId,tipo:'casa',nombre:nombre});
+    D.miembros.push({espacioId:casaId,usuarioId:u.id,rol:'propietario'});
+    checks.forEach(function(c){
+      if(c.checked){
+        var otroId=c.dataset.inv, otro=D.usuarios.filter(function(x){return x.id===otroId})[0];
+        D.invitaciones.push({id:uid(),espacioId:casaId,casaNombre:nombre,deUsuarioId:u.id,paraCorreo:otro.correo,estado:'pendiente'})
+      }});
+    if(correo)D.invitaciones.push({id:uid(),espacioId:casaId,casaNombre:nombre,deUsuarioId:u.id,paraCorreo:correo,estado:'pendiente'});
+    guardar();SHEET=null;VIEW='casa';CASA_ID=casaId;render();return}
+  if(a==='invitarACasa'){CASA_ID=id;SHEET='invitar';render();return}
+  if(a==='guardarInvitacion'){
+    var u=usuarioActual();
+    var correo=document.getElementById('fInvCorreo').value.trim();
+    var esp=D.espacios.filter(function(e){return e.id===id})[0];
+    if(correo){D.invitaciones.push({id:uid(),espacioId:id,casaNombre:esp.nombre,deUsuarioId:u.id,paraCorreo:correo,estado:'pendiente'});
+      guardar();TOAST='Invitación enviada a '+correo}
+    SHEET=null;render();return}
+  if(a==='aceptarInv'){
+    var inv=D.invitaciones.filter(function(i){return i.id===id})[0];
+    inv.estado='aceptada';
+    D.miembros.push({espacioId:inv.espacioId,usuarioId:D.sesion,rol:'miembro'});
+    guardar();VIEW='casa';CASA_ID=inv.espacioId;render();return}
+  if(a==='rechazarInv'){
+    var inv2=D.invitaciones.filter(function(i){return i.id===id})[0];inv2.estado='rechazada';guardar();render();return}
+  if(a==='nuevoMov'){F={espId:esp,tipo:'gasto'};SHEET='mov';render();return}
+  if(a==='tipoMov'){F.tipo=v;render();return}
+  if(a==='guardarMov'){
+    var u3=usuarioActual();
+    var monto=Number((document.getElementById('fMonto').value||'').replace(/\D/g,''))||0;
+    var desc=document.getElementById('fDesc').value.trim()||'Sin descripción';
+    if(monto>0){D.movs.push({id:uid(),espacioId:esp,usuarioId:u3.id,tipo:F.tipo||'gasto',monto:monto,desc:desc,
+      fecha:new Date().toISOString().slice(0,10)});guardar()}
+    SHEET=null;render();return}
+  if(a==='nuevoPrestamo'){F={espId:esp};SHEET='prestamo';render();return}
+  if(a==='guardarPrestamo'){
+    var de=document.getElementById('fDe').value, para=document.getElementById('fPara').value;
+    var monto2=Number((document.getElementById('fPMonto').value||'').replace(/\D/g,''))||0;
+    var motivo=document.getElementById('fPMotivo').value.trim();
+    if(monto2>0&&de!==para){D.prestamos.push({id:uid(),espacioId:esp,deUsuarioId:de,paraUsuarioId:para,monto:monto2,
+      motivo:motivo,fecha:new Date().toISOString().slice(0,10),estado:'pendiente'});guardar()}
+    SHEET=null;render();return}
+});
+
+render();
+})();
+</script>
+</body>
+</html>
