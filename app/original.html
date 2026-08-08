@@ -185,6 +185,10 @@ background:var(--rosa-suave);padding:4px 9px;border-radius:999px;font-weight:600
 .pd{width:11px;height:11px;border-radius:50%;background:var(--linea);transition:.2s}
 .pd.on{background:var(--negro);transform:scale(1.15)}
 .pin-err{font-size:11.5px;color:var(--rosa-fuerte);margin-bottom:16px;font-weight:500}
+.spin{display:inline-block;width:15px;height:15px;border-radius:50%;border:2px solid var(--linea);
+border-top-color:var(--rosa-fuerte);animation:sp .7s linear infinite;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.err{color:var(--rosa-fuerte);font-size:12px;margin:10px 0 0}
 .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .keypad button{background:#fff;border:0;border-radius:18px;padding:17px 0;font-size:20px;font-weight:500;
 font-family:'JetBrains Mono',monospace;color:var(--negro)}
@@ -430,19 +434,35 @@ text-align:center;opacity:.5}
 (function(){
 "use strict";
 
-/* ===== almacenamiento ===== */
+/* ===== almacenamiento =====
+   Antes: un solo blob compartido por dispositivo/hogar.
+   Ahora: cada ESPACIO (tu cuenta personal, o cada Casa a la que perteneces)
+   tiene su propio blob en la nube (tabla espacios_datos). Localmente se
+   sigue guardando un respaldo (para poder abrir sin internet y para migrar
+   tus datos de prueba a tu primer espacio personal). */
 var KEY='jm:cuentas:v4';
 function localGet(){try{var s=localStorage.getItem(KEY)||localStorage.getItem('jm:cuentas:v3')||localStorage.getItem('jm:cuentas:v2');return s?JSON.parse(s):null}catch(e){return null}}
 function load(cb){
-  try{ if(window.storage&&window.storage.get){
-    window.storage.get(KEY).then(function(r){cb(r&&r.value?JSON.parse(r.value):localGet())})
-      .catch(function(){cb(localGet())});return } }catch(e){}
+  if(autenticado()&&ESPACIO_ACTUAL){
+    api('/rest/v1/espacios_datos?espacio_id=eq.'+ESPACIO_ACTUAL+'&select=estado')
+     .then(function(r){return r.json()})
+     .then(function(rows){
+       var remoto=rows&&rows[0]&&rows[0].estado&&Object.keys(rows[0].estado).length?rows[0].estado:null;
+       cb(remoto)
+     }).catch(function(){cb(null)});
+    return
+  }
   cb(localGet())
 }
+var guardarT=null;
 function save(d){
-  var s=JSON.stringify(d);
-  try{ if(window.storage&&window.storage.set){window.storage.set(KEY,s).catch(function(){})} }catch(e){}
-  try{ localStorage.setItem(KEY,s) }catch(e){}
+  try{ localStorage.setItem(KEY,JSON.stringify(d)) }catch(e){}
+  if(!autenticado()||!ESPACIO_ACTUAL)return;
+  clearTimeout(guardarT);
+  guardarT=setTimeout(function(){
+    api('/rest/v1/espacios_datos?espacio_id=eq.'+ESPACIO_ACTUAL,{method:'PATCH',
+      body:JSON.stringify({estado:d,actualizado:new Date().toISOString()})}).catch(function(){})
+  },1200)
 }
 
 /* ===== utilidades ===== */
@@ -572,6 +592,23 @@ function VACIO(){return{v:3,personas:{a:'M',b:'J'},pins:{a:null,b:null},reparto:
   fijos:[],deudas:[],movs:[],metas:[],activos:[],notas:[],proyectos:[],pendientes:[],base:[],
   visitas:{a:{},b:{},casa:{}},abrioContable:false,rachaMirarMax:{a:0,b:0,casa:0},carinos:{a:0,b:0,casa:0},
   fuentesIngreso:[]}}
+/* espacio personal: un solo bloque ("a"), nada de casa/pareja — es tuyo y de nadie más */
+function VACIO_PERSONAL(nombre){
+  var d=VACIO();
+  d.personas={a:nombre||'Yo',b:''};
+  d.cuentas=[{id:uid(),nombre:'Cuenta corriente',bloque:'a',tipo:'corriente',saldoInicial:0,reserva:false},
+             {id:uid(),nombre:'Ahorros',bloque:'a',tipo:'ahorros',saldoInicial:0,reserva:false}];
+  return d
+}
+/* espacio Casa: los dos "casilleros" a/b, ahora mapeados a dos cuentas reales
+   (quien la crea y quien entra con el código), no a un PIN de dispositivo */
+function VACIO_CASA(nombreA,nombreB){
+  var d=VACIO();
+  d.personas={a:nombreA||'—',b:nombreB||'—'};
+  d.cuentas=[{id:uid(),nombre:'Cuenta conjunta',bloque:'casa',tipo:'corriente',saldoInicial:0,reserva:false},
+             {id:uid(),nombre:'Bolsillo común',bloque:'casa',tipo:'bolsillo',saldoInicial:0,reserva:true}];
+  return d
+}
 
 function migrar(d){
   if(!d)return null;
@@ -693,9 +730,9 @@ function DEMO(){
 }
 
 /* ===== estado ===== */
-var D=null, VIEW='portal', B='casa', TAB='inicio', SHEET=null, F={};
-var ABIERTO={a:false,b:false}, PIN={buf:'',stage:'',err:'',destino:null,temp:''};
-var FMES=MESK, FTIPO='todos', ATIPO='gasto', AMES=MESK, SUB='', EXPL={}, MSG='', DEXP={}, SIM={}, TOAST='', toastT=null, PENDIENTE=null;
+var D=null, VIEW='portal', B='a', TAB='inicio', SHEET=null, F={};
+var AUTH_MODO='login', CODIGO_NUEVO='';
+var FMES=MESK, FTIPO='todos', ATIPO='gasto', AMES=MESK, SUB='', EXPL={}, MSG='', DEXP={}, SIM={}, TOAST='', toastT=null;
 
 function nomB(b){return b==='casa'?'La casa':b==='a'?D.personas.a:D.personas.b}
 function esCasa(){return B==='casa'}
@@ -905,19 +942,25 @@ function calc(b){
    porCobrar:porCobrar,porPagar:porPagar,queda:ingresoMes-gastoMes}
 }
 
-/* ===== nube (Supabase por REST, sin librerías) ===== */
-var NKEY='jm:nube';
-var NUBE={url:'',key:'',hogar:'',token:'',refresh:'',correo:'',estado:''};
-function cargarNube(){try{var s=localStorage.getItem(NKEY);if(s)NUBE=JSON.parse(s)}catch(e){}}
-function guardarNube(){try{localStorage.setItem(NKEY,JSON.stringify(NUBE))}catch(e){}}
-function nubeLista(){return !!(NUBE.url&&NUBE.key)}
-function conectado(){return !!(nubeLista()&&NUBE.token&&NUBE.hogar)}
+/* ===== sesión (Supabase Auth por REST, sin librerías) =====
+   Cada persona se registra con su correo y su contraseña — cuenta 100%
+   individual, ya no un PIN local compartido. Al entrar, se cargan los
+   "espacios" a los que pertenece: su espacio personal (siempre uno, privado)
+   y cero o más Casas (compartidas, por ahora de a dos, unidas por un código
+   corto que genera quien la crea). */
+var SKEY='jm:sesion';
+var SESION={url:'',key:'',token:'',refresh:'',usuarioId:'',correo:'',nombre:'',estado:'',error:''};
+var MIS_ESPACIOS=[], ESPACIO_ACTUAL=null, MI_SLOT='a';
+function cargarSesion(){try{var s=localStorage.getItem(SKEY);if(s)SESION=JSON.parse(s)}catch(e){}}
+function guardarSesion(){try{localStorage.setItem(SKEY,JSON.stringify(SESION))}catch(e){}}
+function sesionLista(){return !!(SESION.url&&SESION.key)}
+function autenticado(){return !!(sesionLista()&&SESION.token)}
 function api(path,opts){
   opts=opts||{};
-  var h={'apikey':NUBE.key,'Content-Type':'application/json'};
-  if(NUBE.token)h['Authorization']='Bearer '+NUBE.token;
+  var h={'apikey':SESION.key,'Content-Type':'application/json'};
+  if(SESION.token)h['Authorization']='Bearer '+SESION.token;
   if(opts.headers)for(var k in opts.headers)h[k]=opts.headers[k];
-  return fetch(NUBE.url.replace(/\/$/,'')+path,{method:opts.method||'GET',headers:h,body:opts.body})
+  return fetch(SESION.url.replace(/\/$/,'')+path,{method:opts.method||'GET',headers:h,body:opts.body})
 }
 function capturarSesion(){
   try{
@@ -925,61 +968,181 @@ function capturarSesion(){
     if(h.indexOf('access_token=')<0)return false;
     var p={};h.replace(/^#/,'').split('&').forEach(function(x){var q=x.split('=');p[q[0]]=decodeURIComponent(q[1]||'')});
     if(!p.access_token)return false;
-    NUBE.token=p.access_token;NUBE.refresh=p.refresh_token||'';guardarNube();
+    SESION.token=p.access_token;SESION.refresh=p.refresh_token||'';guardarSesion();
     try{history.replaceState(null,'',location.pathname+location.search)}catch(e){location.hash=''}
-    return true
+    return p.type==='recovery'?'recovery':true
   }catch(e){return false}
 }
-function enviarEnlace(correo){
-  NUBE.correo=correo;guardarNube();
-  NUBE.estado='enviando';render();
-  api('/auth/v1/otp',{method:'POST',body:JSON.stringify({email:correo,create_user:true,
-    options:{email_redirect_to:location.origin+location.pathname}})})
-   .then(function(r){NUBE.estado=r.ok?'enviado':'error';guardarNube();render()})
-   .catch(function(){NUBE.estado='error';render()})
-}
-function traerHogar(){
-  if(!nubeLista()||!NUBE.token)return;
-  NUBE.estado='sincronizando';render();
-  api('/rest/v1/hogares?select=id,estado,correos,actualizado&limit=1')
-   .then(function(r){return r.json()})
-   .then(function(j){
-     if(Array.isArray(j)&&j.length){
-       NUBE.hogar=j[0].id;guardarNube();
-       var rem=j[0].estado;
-       if(rem&&rem.movs&&(!D.actualizado||(j[0].actualizado||'')>(D.actualizado||''))){
-         D=migrar(rem);save(D)}
-       else subirHogar();
-       NUBE.estado='ok';render()
+function registrar(correo,clave,nombre){
+  SESION.error='';SESION.estado='cargando';render();
+  api('/auth/v1/signup',{method:'POST',body:JSON.stringify({email:correo,password:clave,
+    data:{nombre:nombre},options:{email_redirect_to:location.origin+location.pathname}})})
+   .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
+   .then(function(res){
+     if(!res.ok){SESION.estado='error';
+       SESION.error=(res.j&&(res.j.msg||res.j.error_description||res.j.error))||'No se pudo crear la cuenta.';
+       render();return}
+     if(res.j.access_token){
+       SESION.token=res.j.access_token;SESION.refresh=res.j.refresh_token||'';
+       SESION.usuarioId=res.j.user&&res.j.user.id;SESION.correo=correo;SESION.nombre=nombre;
+       SESION.estado='ok';guardarSesion();arrancarSesion()
      }else{
-       api('/rest/v1/hogares',{method:'POST',headers:{'Prefer':'return=representation'},
-         body:JSON.stringify({estado:D,correos:NUBE.correo?[NUBE.correo]:[]})})
-        .then(function(r){return r.json()})
-        .then(function(k){if(k&&k[0]){NUBE.hogar=k[0].id;NUBE.estado='ok';guardarNube();
-          api('/rest/v1/miembros',{method:'POST',body:JSON.stringify({hogar:k[0].id})}).catch(function(){});
-          render()}})
+       SESION.estado='revisa-correo';SESION.correo=correo;guardarSesion();render()
      }
-   }).catch(function(){NUBE.estado='error';render()})
+   }).catch(function(){SESION.estado='error';SESION.error='No se pudo conectar.';render()})
 }
-var subirT=null;
-function subirHogar(){
-  if(!conectado())return;
-  clearTimeout(subirT);
-  subirT=setTimeout(function(){
-    D.actualizado=new Date().toISOString();
-    api('/rest/v1/hogares?id=eq.'+NUBE.hogar,{method:'PATCH',
-      body:JSON.stringify({estado:D,actualizado:D.actualizado})}).catch(function(){})
-  },1500)
+function iniciarSesion(correo,clave){
+  SESION.error='';SESION.estado='cargando';render();
+  api('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email:correo,password:clave})})
+   .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
+   .then(function(res){
+     if(!res.ok){SESION.estado='error';
+       SESION.error=(res.j&&(res.j.error_description||res.j.msg))||'Correo o clave incorrectos.';
+       render();return}
+     SESION.token=res.j.access_token;SESION.refresh=res.j.refresh_token||'';
+     SESION.usuarioId=res.j.user&&res.j.user.id;SESION.correo=correo;SESION.estado='ok';guardarSesion();
+     arrancarSesion()
+   }).catch(function(){SESION.estado='error';SESION.error='No se pudo conectar.';render()})
 }
-function unirseHogar(codigo){
-  api('/rest/v1/miembros',{method:'POST',body:JSON.stringify({hogar:codigo})})
-   .then(function(){NUBE.hogar=codigo;guardarNube();traerHogar()}).catch(function(){NUBE.estado='error';render()})
+function recuperarClave(correo){
+  SESION.error='';SESION.estado='cargando';render();
+  api('/auth/v1/recover',{method:'POST',body:JSON.stringify({email:correo,
+    options:{redirect_to:location.origin+location.pathname}})})
+   .then(function(){SESION.estado='recuperar-enviado';render()})
+   .catch(function(){SESION.estado='error';SESION.error='No se pudo enviar el correo.';render()})
 }
-function guardarCorreos(txt){
-  var arr=txt.split(/[,;\s]+/).filter(function(x){return x.indexOf('@')>0});
-  if(!conectado())return;
-  api('/rest/v1/hogares?id=eq.'+NUBE.hogar,{method:'PATCH',body:JSON.stringify({correos:arr})})
-   .then(function(){NUBE.estado='ok';MSG='Correos guardados.';render()}).catch(function(){})
+function ponerNuevaClave(clave){
+  SESION.error='';SESION.estado='cargando';render();
+  api('/auth/v1/user',{method:'PUT',body:JSON.stringify({password:clave})})
+   .then(function(r){if(!r.ok)throw 0;SESION.estado='ok';guardarSesion();arrancarSesion()})
+   .catch(function(){SESION.estado='error';SESION.error='No se pudo cambiar la clave. Pide el enlace de nuevo.';render()})
+}
+function cerrarSesion(){
+  SESION={url:SESION.url,key:SESION.key,token:'',refresh:'',usuarioId:'',correo:'',nombre:'',estado:'',error:''};
+  guardarSesion();MIS_ESPACIOS=[];ESPACIO_ACTUAL=null;D=null;VIEW='portal';render()
+}
+
+/* ===== espacios: tu cuenta personal + las Casas a las que perteneces ===== */
+function cargarMisEspacios(){
+  return api('/rest/v1/miembros_espacio?usuario_id=eq.'+SESION.usuarioId+'&select=rol,slot,espacios(id,nombre,tipo)')
+   .then(function(r){return r.json()})
+   .then(function(rows){
+     MIS_ESPACIOS=(rows||[]).filter(function(r){return r.espacios}).map(function(r){
+       return {id:r.espacios.id,nombre:r.espacios.nombre,tipo:r.espacios.tipo,rol:r.rol,slot:r.slot}});
+     return MIS_ESPACIOS
+   })
+}
+function miEspacioPersonal(){return MIS_ESPACIOS.filter(function(e){return e.tipo==='personal'})[0]}
+function misCasas(){return MIS_ESPACIOS.filter(function(e){return e.tipo==='casa'})}
+function generarCodigo(){
+  var abc='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',s='';
+  for(var i=0;i<6;i++)s+=abc[Math.floor(Math.random()*abc.length)];
+  return s
+}
+function crearCasa(nombre){
+  return api('/rest/v1/espacios',{method:'POST',headers:{'Prefer':'return=representation'},
+    body:JSON.stringify({tipo:'casa',nombre:nombre})})
+   .then(function(r){return r.json()})
+   .then(function(esp){
+     var espId=esp[0].id;
+     return api('/rest/v1/miembros_espacio',{method:'POST',
+       body:JSON.stringify({espacio_id:espId,usuario_id:SESION.usuarioId,slot:'a',rol:'propietario'})})
+      .then(function(){
+        var blob=VACIO_CASA(SESION.nombre,'Tu pareja o familiar');
+        return api('/rest/v1/espacios_datos',{method:'POST',body:JSON.stringify({espacio_id:espId,estado:blob})})
+      })
+      .then(function(){
+        var codigo=generarCodigo();
+        return api('/rest/v1/codigos_casa',{method:'POST',headers:{'Prefer':'return=representation'},
+          body:JSON.stringify({codigo:codigo,nombre_casa:nombre,espacio_id:espId,creado_por:SESION.usuarioId})})
+      })
+      .then(function(r){return r.json()})
+      .then(function(c){return {espacioId:espId,codigo:c[0].codigo}})
+   })
+}
+function unirseConCodigo(codigo){
+  var cod=(codigo||'').trim().toUpperCase();
+  return api('/rest/v1/codigos_casa?codigo=eq.'+encodeURIComponent(cod)+'&estado=eq.pendiente',
+    {method:'PATCH',headers:{'Prefer':'return=representation'},
+     body:JSON.stringify({estado:'usado',usado_por:SESION.usuarioId,usado_en:new Date().toISOString()})})
+   .then(function(r){return r.json()})
+   .then(function(rows){
+     if(!rows||!rows.length)throw new Error('Ese código no existe, ya se usó, o es tuyo.');
+     var espId=rows[0].espacio_id;
+     return api('/rest/v1/miembros_espacio',{method:'POST',
+       body:JSON.stringify({espacio_id:espId,usuario_id:SESION.usuarioId,slot:'b',rol:'miembro'})})
+      .then(function(){return api('/rest/v1/espacios_datos?espacio_id=eq.'+espId+'&select=estado')})
+      .then(function(r){return r.json()})
+      .then(function(rows2){
+        var estado=rows2&&rows2[0]&&rows2[0].estado&&Object.keys(rows2[0].estado).length
+          ?rows2[0].estado:VACIO_CASA('Tu pareja o familiar',SESION.nombre);
+        if(estado.personas)estado.personas.b=SESION.nombre;
+        return api('/rest/v1/espacios_datos?espacio_id=eq.'+espId,{method:'PATCH',body:JSON.stringify({estado:estado})})
+      })
+      .then(function(){return espId})
+   })
+}
+/* Generar un código adicional para una Casa que ya existe (por si el
+   primero se perdió o venció sin usarse). Solo sirve mientras la Casa
+   tenga cupo — hoy, mientras no tenga ya sus dos personas. */
+function generarCodigoParaCasa(espId,nombre){
+  var codigo=generarCodigo();
+  return api('/rest/v1/codigos_casa',{method:'POST',headers:{'Prefer':'return=representation'},
+    body:JSON.stringify({codigo:codigo,nombre_casa:nombre,espacio_id:espId,creado_por:SESION.usuarioId})})
+   .then(function(r){return r.json()})
+   .then(function(c){return c[0].codigo})
+}
+/* Registra un movimiento directo en TU Casa (no en tu espacio personal) —
+   para el "¿es tuyo o de la Casa?" al anotar un gasto desde tu bloque
+   personal. Personal y Casa son espacios separados (cada uno con su propio
+   blob), así que no basta con guardar local: hay que ir a buscar el blob de
+   la Casa y sumarlo ahí. Si tienes más de una Casa, por ahora usa la primera
+   — abrir esto a elegir cuál queda para una siguiente vuelta. */
+function registrarEnCasa(mv){
+  var casa=misCasas()[0];
+  if(!casa)return Promise.reject(new Error('No tienes ninguna Casa todavía.'));
+  return api('/rest/v1/espacios_datos?espacio_id=eq.'+casa.id+'&select=estado')
+   .then(function(r){return r.json()})
+   .then(function(rows){
+     var estado=rows&&rows[0]&&rows[0].estado&&Object.keys(rows[0].estado).length?rows[0].estado:VACIO_CASA('—','—');
+     estado.movs=estado.movs||[];estado.movs.push(mv);estado.actualizado=new Date().toISOString();
+     return api('/rest/v1/espacios_datos?espacio_id=eq.'+casa.id,{method:'PATCH',body:JSON.stringify({estado:estado})})
+   })
+}
+/* ===== arranque tras iniciar sesión: cargar espacios, migrar datos de
+   prueba locales a tu espacio personal si aplica, e ir al portal ===== */
+function arrancarSesion(){
+  cargarMisEspacios().then(function(){
+    var personal=miEspacioPersonal();
+    if(!personal){SESION.estado='error';SESION.error='No se pudo preparar tu cuenta. Intenta de nuevo en un momento.';render();return}
+    var local=localGet();
+    if(local&&local.movs&&local.movs.length){
+      return api('/rest/v1/espacios_datos?espacio_id=eq.'+personal.id+'&select=estado')
+       .then(function(r){return r.json()})
+       .then(function(rows){
+         var vacioEnLaNube=!rows||!rows[0]||!rows[0].estado||!Object.keys(rows[0].estado).length;
+         if(!vacioEnLaNube)return;
+         var migrado=migrar(local);
+         return api('/rest/v1/espacios_datos?espacio_id=eq.'+personal.id,{method:'PATCH',
+           body:JSON.stringify({estado:migrado,actualizado:new Date().toISOString()})})
+          .then(function(){MSG='Tus datos de prueba quedaron guardados en tu espacio personal.'})
+       }).then(function(){irAPortal()})
+    }
+    irAPortal()
+  }).catch(function(){SESION.estado='error';SESION.error='No se pudo cargar tu cuenta.';render()})
+}
+function irAPortal(){VIEW='portal';SHEET=null;ESPACIO_ACTUAL=null;D=null;render()}
+function abrirEspacio(espId,cb){
+  var esp=MIS_ESPACIOS.filter(function(e){return e.id===espId})[0];
+  if(!esp)return;
+  ESPACIO_ACTUAL=espId;B=esp.tipo==='casa'?'casa':'a';MI_SLOT=esp.slot||'a';
+  TAB='inicio';VIEW='cargando';render();
+  load(function(d){
+    D=migrar(d)||(esp.tipo==='casa'?VACIO_CASA(SESION.nombre,'—'):VACIO_PERSONAL(SESION.nombre));
+    VIEW='block';
+    if(cb)cb();else render();
+    setTimeout(revisarAlertas,1200)
+  })
 }
 
 /* ===== próximos pagos ===== */
@@ -1060,10 +1223,9 @@ function pedirNotif(){
 }
 function revisarAlertas(){
   try{
-    if(!D.alertas||!D.alertas.notif||typeof Notification==='undefined'||Notification.permission!=='granted')return;
+    if(!D||!D.alertas||!D.alertas.notif||typeof Notification==='undefined'||Notification.permission!=='granted')return;
     var hoyk=toISO(HOY);if(D.alertas.ultimo===hoyk)return;
-    var bl=['casa'].concat(ABIERTO.a?['a']:[]).concat(ABIERTO.b?['b']:[]);
-    var t=[];bl.forEach(function(b){alertasActivas(b).forEach(function(p){t.push(p)})});
+    var t=alertasActivas(B);
     if(!t.length)return;
     var txt=t.slice(0,4).map(function(p){return p.nombre+' '+money(p.monto)+(p.dias<=0?' (hoy)':' en '+p.dias+'d')}).join(' · ');
     new Notification('J&M Cuentas · '+t.length+' pago'+(t.length>1?'s':'')+' por vencer',{body:txt});
@@ -1174,7 +1336,7 @@ function explica(id,txt){var on=!!EXPL[id];
    (on?'<div class="note" style="margin-top:10px">'+txt+'</div>':'')}
 function kv(k,v){return '<div class="kv"><span>'+k+'</span><b class="mono">'+v+'</b></div>'}
 var EMOTAB={bandeja:'📥',anio:'📆',aportes:'🤝',patrimonio:'🏛️',metas:'🎯',entre:'⚖️',renta:'🧾',notas:'📝',
- cuentas:'💳',alertas:'🔔',nube:'📧',analisis:'📊',proyectos:'🧩'};
+ cuentas:'💳',alertas:'🔔',nube:'👤',analisis:'📊',proyectos:'🧩'};
 function entrada(tab,t,v,p){return '<button class="entrada" data-a="ir" data-v="'+tab+'"><div><div class="et">'+(EMOTAB[tab]||'')+' '+t+
  '</div><div class="ep">'+p+'</div></div><div class="ev mono">'+v+'</div></button>'}
 function barra2(a,b,la,lb){
@@ -1204,38 +1366,83 @@ function filaFijo(p,acc){
 
 /* ===== portal ===== */
 function vPortal(){
-  var cc=calc('casa'), ca=calc('a'), cb=calc('b');
-  var tj=function(b,c){
-    var ab=b==='casa'||ABIERTO[b], sin=b!=='casa'&&!D.pins[b];
-    return '<div class="pcard'+(b==='casa'?' pcard-casa':'')+'">'+
-     '<button class="pc-abrir" data-a="entrar" data-v="'+b+'">'+
-      '<div class="pc-top"><span class="pc-tag">'+(b==='casa'?'🏠 Cuenta común':'👤 Cuenta personal')+'</span>'+
-      (b==='casa'?'':'<span class="pc-lock">'+(ab?'Abierta':sin?'Sin clave':'🔒 Con clave')+'</span>')+'</div>'+
-      '<div class="pc-nom">'+esc(nomB(b))+'</div>'+
-      '<div class="pc-num mono">'+(ab?moneyK(c.libre):'•  •  •  •')+'</div>'+
-      '<div class="pc-pie">'+(ab?(b==='casa'?'Vive con '+moneyK(cc.costoMes)+' al mes':'Patrimonio '+moneyK(c.patrimonio))
-        :'Toca para entrar')+'</div></button>'+
-     '<div class="pc-acc">'+
-      '<button class="pq gasto" data-a="qreg" data-b="'+b+'" data-t="gasto">💸 Anotar gasto</button>'+
-      '<button class="pq" data-a="qreg" data-b="'+b+'" data-t="ingreso">💰 Ingreso</button>'+
-     '</div></div>'};
-  return '<div class="portal"><div class="p-head"><div class="seal big">J<em>&amp;</em>M</div>'+
-   '<h1 class="dsp">Cuentas</h1><p>Tres bloques separados. Uno para la casa, uno para cada quien.</p></div>'+
-   '<div class="pgrid">'+tj('casa',cc)+tj('a',ca)+tj('b',cb)+'</div>'+
-   '<div class="p-pie"><button class="btn ghost sm" data-a="tabajustes">Ajustes generales</button></div></div>'
+  var personal=miEspacioPersonal(), casas=misCasas();
+  var h='<div class="portal"><div class="p-head"><div class="seal big">J<em>&amp;</em>M</div>'+
+   '<h1 class="dsp">Cuentas</h1><p>'+esc(SESION.correo||'')+'</p></div><div class="pgrid">';
+  if(personal)h+='<div class="pcard"><button class="pc-abrir" data-a="entrar" data-v="'+personal.id+'">'+
+   '<div class="pc-top"><span class="pc-tag">👤 Cuenta personal</span></div>'+
+   '<div class="pc-nom">Tu espacio</div><div class="pc-pie">Solo tú lo ves y lo controlas</div></button>'+
+   '<div class="pc-acc"><button class="pq gasto" data-a="qreg" data-v="'+personal.id+'" data-t="gasto">💸 Anotar gasto</button>'+
+   '<button class="pq" data-a="qreg" data-v="'+personal.id+'" data-t="ingreso">💰 Ingreso</button></div></div>';
+  casas.forEach(function(cs){
+    h+='<div class="pcard pcard-casa"><button class="pc-abrir" data-a="entrar" data-v="'+cs.id+'">'+
+     '<div class="pc-top"><span class="pc-tag">🏠 Casa</span></div>'+
+     '<div class="pc-nom">'+esc(cs.nombre)+'</div><div class="pc-pie">Toca para entrar</div></button>'+
+     '<div class="pc-acc"><button class="pq gasto" data-a="qreg" data-v="'+cs.id+'" data-t="gasto">💸 Anotar gasto</button>'+
+     '<button class="pq" data-a="qreg" data-v="'+cs.id+'" data-t="ingreso">💰 Ingreso</button></div></div>'
+  });
+  h+='</div><div class="p-pie" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">'+
+   '<button class="btn ghost sm" data-a="abrirCrearCasa">+ Crear una Casa</button>'+
+   '<button class="btn ghost sm" data-a="abrirUnirseCasa">Unirme con un código</button>'+
+   '<button class="btn ghost sm" data-a="tabajustes">Mi cuenta</button></div></div>';
+  return h
 }
-function vPin(){
-  var b=PIN.destino, crear=!D.pins[b];
-  var t=crear?(PIN.stage==='confirmar'?'Repite la clave':'Crea una clave de 4 números'):'Clave de '+esc(nomB(b));
-  var dots='';for(var i=0;i<4;i++)dots+='<span class="pd'+(PIN.buf.length>i?' on':'')+'"></span>';
-  var k='';[1,2,3,4,5,6,7,8,9].forEach(function(n){k+='<button data-a="pin" data-v="'+n+'">'+n+'</button>'});
-  k+='<button class="ghosty" data-a="pinsalir">Salir</button><button data-a="pin" data-v="0">0</button><button class="ghosty" data-a="pinborrar">←</button>';
+function vCargando(){
   return '<div class="pinwrap"><div class="pin-in"><div class="seal big">J<em>&amp;</em>M</div>'+
-   '<h2 class="dsp">'+t+'</h2><p class="pin-sub">'+(crear?'Queda guardada en este dispositivo. Separa los bloques, no es una caja fuerte.':'Solo para entrar a este bloque.')+'</p>'+
-   '<div class="pdots">'+dots+'</div>'+(PIN.err?'<div class="pin-err">'+PIN.err+'</div>':'')+
-   '<div class="keypad">'+k+'</div></div></div>'
+   '<p class="pin-sub" style="margin-top:14px"><span class="spin"></span> Cargando…</p></div></div>'
 }
-
+function vConexion(){
+  return '<div class="portal"><div class="p-head"><div class="seal big">J<em>&amp;</em>M</div>'+
+   '<h1 class="dsp">Conectar</h1><p>Pega la URL y la llave pública (anon) del proyecto de Supabase donde corriste el script de instalación.</p></div>'+
+   '<div class="card"><div class="f"><label>URL del proyecto</label>'+
+   '<input class="inp" data-bindn="url" value="'+esc(SESION.url)+'" placeholder="https://xxxx.supabase.co"></div>'+
+   '<div class="f" style="margin-bottom:0"><label>Llave pública (anon)</label>'+
+   '<input class="inp" data-bindn="key" value="'+esc(SESION.key)+'" placeholder="eyJhbGci…"></div></div>'+
+   '<div class="p-pie"><button class="btn" data-a="guardarconexion">Guardar y continuar</button></div></div>'
+}
+function vAuth(){
+  var h='<div class="portal"><div class="p-head"><div class="seal big">J<em>&amp;</em>M</div>'+
+   '<h1 class="dsp">'+(AUTH_MODO==='registro'?'Crear tu cuenta':AUTH_MODO==='recuperar'?'Recuperar clave':'Bienvenido')+'</h1>'+
+   '<p>'+(AUTH_MODO==='registro'?'Correo y contraseña, solo tuyos — cada quien la suya.':
+     AUTH_MODO==='recuperar'?'Te mandamos un enlace para poner una nueva.':'Entra con tu correo y tu contraseña.')+'</p></div>';
+  if(SESION.estado==='revisa-correo'){
+    return h+'<div class="card"><h3>Revisa tu correo</h3><p class="sub">Te mandamos un enlace a '+esc(SESION.correo)+
+     ' para confirmar tu cuenta. Ábrelo desde este mismo dispositivo y vuelve a entrar con tu clave.</p>'+
+     '<button class="btn ghost sm" data-a="authmodo" data-v="login">Ir a entrar</button></div></div>'
+  }
+  if(SESION.estado==='recuperar-enviado'){
+    return h+'<div class="card"><h3>Revisa tu correo</h3><p class="sub">Te mandamos un enlace para poner una nueva contraseña.</p>'+
+     '<button class="btn ghost sm" data-a="authmodo" data-v="login">Volver a entrar</button></div></div>'
+  }
+  h+='<div class="card">';
+  if(AUTH_MODO==='registro')h+='<div class="f"><label>Tu nombre</label><input class="inp" id="fNombre" placeholder="Como quieres que te vean"></div>';
+  h+='<div class="f"><label>Correo</label><input class="inp" type="email" id="fCorreo" placeholder="tucorreo@ejemplo.com"></div>';
+  if(AUTH_MODO!=='recuperar')h+='<div class="f" style="margin-bottom:0"><label>Contraseña</label>'+
+   '<input class="inp" type="password" id="fClave" placeholder="Mínimo 6 caracteres"></div>';
+  h+='</div>';
+  if(SESION.error)h+='<div class="err" style="text-align:center">'+esc(SESION.error)+'</div>';
+  h+='<div class="p-pie">';
+  if(AUTH_MODO==='registro')h+='<button class="btn" data-a="hacerregistro"'+(SESION.estado==='cargando'?' disabled':'')+'>'+
+    (SESION.estado==='cargando'?'Creando…':'Crear cuenta')+'</button>'+
+   '<button class="btn ghost sm" data-a="authmodo" data-v="login">Ya tengo cuenta</button>';
+  else if(AUTH_MODO==='recuperar')h+='<button class="btn" data-a="hacerrecuperar"'+(SESION.estado==='cargando'?' disabled':'')+'>Enviar enlace</button>'+
+   '<button class="btn ghost sm" data-a="authmodo" data-v="login">Volver</button>';
+  else h+='<button class="btn" data-a="hacerlogin"'+(SESION.estado==='cargando'?' disabled':'')+'>'+
+    (SESION.estado==='cargando'?'Entrando…':'Entrar')+'</button>'+
+   '<button class="btn ghost sm" data-a="authmodo" data-v="registro">Crear una cuenta</button>'+
+   '<button class="btn ghost sm" data-a="authmodo" data-v="recuperar">Olvidé mi contraseña</button>';
+  h+='</div></div>';
+  return h
+}
+function vNuevaClave(){
+  var h='<div class="portal"><div class="p-head"><div class="seal big">J<em>&amp;</em>M</div>'+
+   '<h1 class="dsp">Nueva contraseña</h1><p>Pon una contraseña nueva para tu cuenta.</p></div>'+
+   '<div class="card"><div class="f" style="margin-bottom:0"><label>Contraseña nueva</label>'+
+   '<input class="inp" type="password" id="fClaveNueva" placeholder="Mínimo 6 caracteres"></div></div>';
+  if(SESION.error)h+='<div class="err" style="text-align:center">'+esc(SESION.error)+'</div>';
+  h+='<div class="p-pie"><button class="btn" data-a="hacernuevaclave"'+(SESION.estado==='cargando'?' disabled':'')+'>Guardar</button></div></div>';
+  return h
+}
 /* ===== pantallas ===== */
 function vInicio(c){
   var casa=esCasa();
@@ -1763,13 +1970,8 @@ function vAlertas(c){
    '<div class="mini">Al ritmo de gasto de este mes ('+money(as.ritmo)+' al día) más lo fijo que falta pagar ('+money(as.fijosPend)+'), '+
    'necesitarías '+money(as.proyectado)+' y tienes '+money(c.libre)+' libres. Con ese ritmo alcanzas unos '+as.alcanza+' días más.</div></div>';
 
-  h+='<div class="sect"><div><h2 class="dsp">Que me avisen aunque la app esté cerrada</h2><p>Tres formas, y funcionan distinto</p></div></div>'+
-   '<div class="grid c2"><div class="card"><h3>Correo · el que funciona siempre</h3>'+
-   '<p class="sub">'+(conectado()?'Conectado. Revisión diaria activa.':'Requiere conectar la nube una vez')+'</p>'+
-   '<div class="acciones"><button class="btn sm" data-a="ir" data-v="nube">'+(conectado()?'Ver la conexión':'Configurar avisos por correo')+'</button></div>'+
-   '<div class="mini">Un servidor revisa las cuentas cada mañana y les escribe si hay pagos por vencer, cuotas vencidas '+
-   'o si la plata libre no alcanza para terminar el mes. No necesita que nadie abra nada.</div></div>'+
-   '<div class="card"><h3>Calendario · sin servidor</h3>'+
+  h+='<div class="sect"><div><h2 class="dsp">Que me avisen aunque la app esté cerrada</h2><p>Dos formas, y funcionan distinto</p></div></div>'+
+   '<div class="grid c2"><div class="card"><h3>Calendario · sin servidor</h3>'+
    '<p class="sub">Descarga un archivo .ics y ábrelo en tu calendario</p>'+
    '<div class="acciones"><button class="btn sm" data-a="ics" data-v="'+B+'">Descargar este bloque</button>'+
    (esCasa()?'<button class="btn ghost sm" data-a="ics" data-v="todos">Descargar todo</button>':'')+'</div>'+
@@ -1780,7 +1982,7 @@ function vAlertas(c){
    '<div class="acciones"><button class="btn '+(D.alertas.notif?'ghost ':'')+'sm" data-a="pedirnotif">'+
    (D.alertas.notif?'Activadas ✓':'Activar notificaciones')+'</button></div>'+
    '<div class="mini">Solo funcionan mientras esta página esté abierta en el navegador. Sirven como recordatorio del día, '+
-   'no reemplazan el calendario. Cuando conectemos Supabase se podrán enviar sin tener la app abierta.</div></div></div>';
+   'no reemplazan el calendario.</div></div></div>';
 
   var A=D.alertas, DIAS=[['1','Lunes'],['2','Martes'],['3','Miércoles'],['4','Jueves'],['5','Viernes'],['6','Sábado'],['0','Domingo']];
   h+='<div class="card" style="margin-top:12px"><h3>Cada cuánto quieren el reporte</h3>'+
@@ -2055,71 +2257,38 @@ function vAnalisis(c){
 }
 
 function vNube(c){
-  var est=NUBE.estado;
   var h='<div class="screen"><div class="hero"><div class="wm">J&amp;M</div>'+
-   '<div class="hero-lbl">Avisos por correo</div>'+
-   '<p class="hero-frase">'+(conectado()
-     ?'Conectado. El servidor revisa las cuentas cada mañana y les escribe si hay algo por pagar.'
-     :'Para que los avisos lleguen con la app cerrada hace falta conectar la nube una sola vez.')+'</p></div>';
+   '<div class="hero-lbl">Mi cuenta</div>'+
+   '<p class="hero-frase">'+esc(SESION.correo||'')+'</p></div>';
 
-  if(!nubeLista()){
-    h+='<div class="card" style="margin-top:14px"><h3>Paso 1 · Conectar el proyecto</h3>'+
-     '<p class="sub">Están en Supabase → Project Settings → API</p>'+
-     '<div class="f"><label>URL del proyecto</label><input class="inp" data-bindn="url" value="'+esc(NUBE.url)+'" placeholder="https://xxxx.supabase.co"></div>'+
-     '<div class="f"><label>Clave pública (anon)</label><input class="inp" data-bindn="key" value="'+esc(NUBE.key)+'" placeholder="eyJhbGci…"></div>'+
-     '<button class="btn sm" data-a="savenube">Guardar</button>'+
-     '<div class="note" style="margin-top:14px">La clave anon es pública por diseño: no da acceso a nada sin iniciar sesión. '+
-     'El paso a paso completo está en la guía que viene junto a este archivo.</div></div></div>';
-    return h}
+  h+='<div class="card" style="margin-top:14px"><h3>Cambiar contraseña</h3>'+
+   '<div class="f" style="margin-bottom:0"><label>Contraseña nueva</label>'+
+   '<input class="inp" type="password" id="fClaveCuenta" placeholder="Mínimo 6 caracteres"></div>'+
+   '<button class="btn ghost sm" style="margin-top:12px" data-a="cambiarclave">Guardar contraseña</button></div>';
 
-  if(!NUBE.token){
-    h+='<div class="card" style="margin-top:14px"><h3>Paso 2 · Entrar con tu correo</h3>'+
-     '<p class="sub">Te llega un enlace, lo abres y quedas dentro. Sin contraseñas.</p>'+
-     '<div class="f"><label>Tu correo</label><input class="inp" type="email" data-bindn="correo" value="'+esc(NUBE.correo)+'" placeholder="tu@correo.com"></div>'+
-     '<button class="btn sm" data-a="enlace"'+(NUBE.correo.indexOf('@')>0?'':' disabled')+'>Enviar enlace de acceso</button>'+
-     (est==='enviando'?'<div class="mini">Enviando…</div>':'')+
-     (est==='enviado'?'<div class="mini">Revisa tu correo y abre el enlace desde este mismo dispositivo.</div>':'')+
-     (est==='error'?'<div class="mini" style="color:var(--rosa-fuerte)">No se pudo. Revisa la URL y la clave.</div>':'')+
-     '<div style="margin-top:14px"><button class="btn ghost sm" data-a="borrarnube">Cambiar de proyecto</button></div></div></div>';
-    return h}
+  if(esCasa())h+='<div class="card" style="margin-top:14px"><h3>Invitar a esta Casa</h3>'+
+   '<p class="sub">Genera un código y compártelo con quien quieres que se una — solo sirve mientras la Casa tenga cupo (dos personas por ahora).</p>'+
+   '<button class="btn sm" data-a="generarcodigo">Generar código</button>'+
+   (CODIGO_NUEVO?'<div class="codigo mono" style="margin-top:12px">'+esc(CODIGO_NUEVO)+'</div>':'')+'</div>';
 
-  h+='<div class="grid c2"><div class="card"><h3>Sesión</h3><p class="sub">'+esc(NUBE.correo||'Sesión activa')+'</p>'+
-   '<div class="big mono" style="font-size:20px">'+(conectado()?'Conectado':'Sin hogar')+'</div>'+
-   '<div class="acciones" style="margin-top:12px"><button class="btn ghost sm" data-a="sincronizar">Sincronizar ahora</button>'+
-   '<button class="btn danger sm" data-a="salirnube">Cerrar sesión</button></div>'+
-   (est==='sincronizando'?'<div class="mini">Sincronizando…</div>':est==='ok'?'<div class="mini">Al día.</div>':
-    est==='error'?'<div class="mini" style="color:var(--rosa-fuerte)">Hubo un problema al sincronizar.</div>':'')+'</div>'+
-   '<div class="card"><h3>Código del hogar</h3><p class="sub">Para que la otra persona entre a las mismas cuentas</p>'+
-   '<div class="codigo mono">'+esc(NUBE.hogar||'—')+'</div>'+
-   '<div class="f" style="margin-top:12px"><label>O entra a un hogar existente</label>'+
-   '<input class="inp" data-bindn="codigo" value="" placeholder="Pega aquí el código"></div>'+
-   '<button class="btn ghost sm" data-a="unirse">Unirme a ese hogar</button></div></div>';
-
-  h+='<div class="card" style="margin-top:14px"><h3>¿A qué correos mandamos los avisos?</h3>'+
-   '<p class="sub">Separados por coma. Llega un resumen cada mañana solo si hay algo que avisar.</p>'+
-   '<div class="f"><label>Correos</label><input class="inp" data-bindn="correos" value="'+esc(NUBE.correo)+'" placeholder="ella@correo.com, el@correo.com"></div>'+
-   '<button class="btn sm" data-a="savecorreos">Guardar correos</button>'+
-   '<div class="note" style="margin-top:14px">El servidor revisa todos los días: pagos que vencen dentro de tus días de aviso, '+
-   'cuotas vencidas y si la plata libre no alcanza para terminar el mes. Si no hay nada, no te escribe.</div></div>'+
-   (MSG?'<div class="mini">'+MSG+'</div>':'')+'</div>';
-  return h
+  h+='<button class="btn danger" style="width:100%;margin-top:14px" data-a="salirsesion">Cerrar sesión</button>'+
+   (MSG?'<div class="mini" style="margin-top:10px">'+MSG+'</div>':'');
+  return h+'</div>'
 }
 
 function vAjustes(c){
   var h='<div class="screen"><div class="sect"><div><h2 class="dsp">Ajustes</h2><p>'+esc(nomB(B))+'</p></div></div>'+
    '<div class="entradas" style="margin-top:0">'+
    entrada('plata:cuentas','Cuentas y saldos',money(c.disponible),c.cuentas.length+' cuentas')+
-   entrada('nube','Avisos por correo',conectado()?'Activo':'Off','Reporte semanal y sincronización')+
+   entrada('nube','Mi cuenta',esc(SESION.correo||''),'Contraseña, cerrar sesión'+(esCasa()?', código de Casa':''))+
    '</div>';
-  if(!esCasa())h+='<div class="card" style="margin-top:14px"><h3>Clave de entrada</h3><p class="sub">Cuatro números para entrar a este bloque</p>'+
-   '<button class="btn ghost sm" data-a="cambiarpin">'+(D.pins[B]?'Cambiar la clave':'Poner una clave')+'</button></div>';
-  if(esCasa())h+='<div class="card" style="margin-top:14px"><h3>Nombres</h3><p class="sub">Cómo se llaman los bloques personales</p>'+
+  if(esCasa())h+='<div class="card" style="margin-top:14px"><h3>Nombres</h3><p class="sub">Cómo se llaman los dos en esta Casa</p>'+
    '<div class="f"><label>Persona A</label><input class="inp" data-bind="a" value="'+esc(D.personas.a)+'"></div>'+
-   '<div class="f" style="margin-bottom:0"><label>Persona B</label><input class="inp" data-bind="b" value="'+esc(D.personas.b)+'"></div></div>'+
-   '<div class="card" style="margin-top:14px"><h3>Respaldo</h3><p class="sub">Todo vive en este dispositivo hasta que conectemos Supabase</p>'+
+   '<div class="f" style="margin-bottom:0"><label>Persona B</label><input class="inp" data-bind="b" value="'+esc(D.personas.b)+'"></div></div>';
+  h+='<div class="card" style="margin-top:14px"><h3>Respaldo local</h3><p class="sub">Una copia adicional en este dispositivo, por si acaso</p>'+
    '<div class="acciones"><button class="btn ghost sm" data-a="export">Descargar respaldo</button>'+
    '<label class="btn ghost sm">Cargar respaldo<input type="file" accept="application/json" id="imp" style="display:none"></label>'+
-   '<button class="btn ghost sm" data-a="demo">Datos de ejemplo</button>'+
+   (esCasa()?'<button class="btn ghost sm" data-a="demo">Datos de ejemplo</button>':'')+
    '<button class="btn danger sm" data-a="reset">Empezar de cero</button></div>'+
    (MSG?'<div class="mini">'+MSG+'</div>':'')+'</div>';
   return h+'</div>'
@@ -2136,10 +2305,30 @@ function sheetHTML(){
   var b='';
   if(SHEET==='mas'){
     var items=esCasa()
-     ?[['bandeja','Bandeja de gastos'],['proyectos','Proyectos compartidos'],['analisis','Clasificación'],['alertas','Alertas de pago'],['nube','Avisos por correo'],['metas','Metas de la casa'],['aportes','Aportes del mes'],['entre','Entre nosotros'],['renta','Renta '+ANIO],['anio','El año'],['ajustes','Ajustes']]
-     :[['bandeja','Bandeja de gastos'],['proyectos','Proyectos compartidos'],['analisis','Clasificación'],['alertas','Alertas de pago'],['nube','Avisos por correo'],['metas','Mis metas'],['patrimonio','Patrimonio'],['notas','Pendientes y notas'],['entre','Entre nosotros'],['renta','Renta '+ANIO],['anio','El año'],['ajustes','Ajustes']];
+     ?[['bandeja','Bandeja de gastos'],['proyectos','Proyectos compartidos'],['analisis','Clasificación'],['alertas','Alertas de pago'],['nube','Mi cuenta'],['metas','Metas de la casa'],['aportes','Aportes del mes'],['entre','Entre nosotros'],['renta','Renta '+ANIO],['anio','El año'],['ajustes','Ajustes']]
+     :[['bandeja','Bandeja de gastos'],['proyectos','Proyectos compartidos'],['analisis','Clasificación'],['alertas','Alertas de pago'],['nube','Mi cuenta'],['metas','Mis metas'],['patrimonio','Patrimonio'],['notas','Pendientes y notas'],['entre','Entre nosotros'],['renta','Renta '+ANIO],['anio','El año'],['ajustes','Ajustes']];
     b=items.map(function(i){return '<button class="menu" data-a="tab" data-v="'+i[0]+'"><span>'+(EMOTAB[i[0]]||'•')+'</span>'+i[1]+'</button>'}).join('')+
      '<button class="menu salir" data-a="portal">Salir a la pantalla de inicio</button>'
+  }
+  if(SHEET==='crearcasa'){
+    if(CODIGO_NUEVO){
+      b='<div class="note">Listo. Comparte este código con quien quieres que se una:</div>'+
+       '<div class="codigo mono" style="margin-top:10px">'+esc(CODIGO_NUEVO)+'</div>'+
+       '<button class="btn" style="width:100%;margin-top:16px" data-a="cerrar">Listo</button>'
+    }else{
+      b='<div class="f" style="margin-bottom:0"><label>Nombre</label>'+
+       '<input class="inp" id="fCasaNombre" placeholder="Ej. Nuestra casa, La familia…" autofocus></div>'+
+       (SESION.error?'<div class="err">'+esc(SESION.error)+'</div>':'')+
+       '<div class="acc"><button class="btn ghost" data-a="cerrar">Cancelar</button>'+
+       '<button class="btn" data-a="hacercrearcasa"'+(SESION.estado==='cargando'?' disabled':'')+'>Crear</button></div>'
+    }
+  }
+  if(SHEET==='unirsecasa'){
+    b='<div class="f" style="margin-bottom:0"><label>Código</label>'+
+     '<input class="inp" id="fCodigo" placeholder="Ej. K7XQ2M" style="text-transform:uppercase" autofocus></div>'+
+     (SESION.error?'<div class="err">'+esc(SESION.error)+'</div>':'')+
+     '<div class="acc"><button class="btn ghost" data-a="cerrar">Cancelar</button>'+
+     '<button class="btn" data-a="hacerunirse"'+(SESION.estado==='cargando'?' disabled':'')+'>Unirme</button></div>'
   }
   if(SHEET==='exp'){
     var esG=F.tipo==='gasto', paso=F.paso||1;
@@ -2484,13 +2673,17 @@ function railItems(){
   return [
     {t:'',items:[['inicio','🏠 Hoy'],['plata','💰 Mi plata'],['movs','🔁 Movimientos'],['pagos','📅 Pagos']]},
     {t:'De vez en cuando',items:ocasional},
-    {t:'Técnico (no es obligatorio entrar aquí)',items:[['contable','🧾 Zona contable'],['nube','📧 Avisos'],['ajustes','⚙️ Ajustes']]}
+    {t:'Técnico (no es obligatorio entrar aquí)',items:[['contable','🧾 Zona contable'],['nube','👤 Mi cuenta'],['ajustes','⚙️ Ajustes']]}
   ]
 }
 function render(){
   var root=document.getElementById('root');
+  if(!sesionLista()){root.innerHTML=vConexion();document.getElementById('modal').innerHTML='';return}
+  if(VIEW==='nuevaclave'){root.innerHTML=vNuevaClave();document.getElementById('modal').innerHTML='';return}
+  if(!autenticado()){root.innerHTML=vAuth();document.getElementById('modal').innerHTML='';return}
+  if(VIEW==='cargando'){root.innerHTML=vCargando();document.getElementById('modal').innerHTML='';return}
   if(VIEW==='portal'){root.innerHTML=vPortal();document.getElementById('modal').innerHTML=sheetHTML();return}
-  if(VIEW==='pin'){root.innerHTML=vPin();document.getElementById('modal').innerHTML='';return}
+  if(!D){irAPortal();return}
   marcarVisita(B);
   var c=calc(B);
   var body=
@@ -2521,7 +2714,7 @@ function render(){
   var af=document.querySelector('.sheet [autofocus]');if(af)try{af.focus()}catch(e){}
   var imp=document.getElementById('imp');if(imp)imp.addEventListener('change',importar);
 }
-function commit(){save(D);subirHogar();render()}
+function commit(){save(D);render()}
 function avisar(t){TOAST=t;clearTimeout(toastT);render();
   toastT=setTimeout(function(){TOAST='';render()},2200)}
 function copiar(t){
@@ -2568,7 +2761,7 @@ document.addEventListener('input',function(e){
     if(SHEET==='conciliar'||SHEET==='base'){render();return}
   }
   if(t.dataset.bindf!==undefined){F[t.dataset.bindf]=t.type==='number'?Number(t.value)||0:t.value;toca=true}
-  if(t.dataset.bindn!==undefined){NUBE['_'+t.dataset.bindn]=t.value}
+  if(t.dataset.bindn!==undefined){SESION['_'+t.dataset.bindn]=t.value}
   if(toca){var btn=document.querySelector('.sheet .acc .btn:last-child');
     if(btn){if(okGuardar())btn.removeAttribute('disabled');else btn.setAttribute('disabled','')}}
 });
@@ -2583,37 +2776,68 @@ document.addEventListener('click',function(e){
   if(a==='veil'&&e.target!==el)return;
   if(a==='veil'||a==='cerrar'){cerrar();return}
 
-  if(a==='entrar'){
-    if(v==='casa'||ABIERTO[v]){B=v;TAB='inicio';VIEW='block';SHEET=null;render();return}
-    PIN={buf:'',stage:D.pins[v]?'':'crear',err:'',destino:v,temp:''};VIEW='pin';render();return}
-  if(a==='portal'){VIEW='portal';SHEET=null;F={};render();return}
-  if(a==='tabajustes'){B='casa';TAB='ajustes';VIEW='block';render();return}
-  if(a==='pinsalir'){VIEW='portal';render();return}
-  if(a==='pinborrar'){PIN.buf=PIN.buf.slice(0,-1);render();return}
-  if(a==='pin'){
-    PIN.buf+=v;PIN.err='';
-    if(PIN.buf.length===4){
-      var dd=PIN.destino;
-      if(PIN.stage==='crear'){PIN.temp=PIN.buf;PIN.buf='';PIN.stage='confirmar';render();return}
-      if(PIN.stage==='confirmar'){
-        if(PIN.buf===PIN.temp){D.pins[dd]=PIN.buf;ABIERTO[dd]=true;B=dd;TAB='inicio';VIEW='block';save(D);
-          if(PENDIENTE&&PENDIENTE.bloque===dd){var t2=PENDIENTE.tipo;PENDIENTE=null;
-            abrir('exp',(t2==='gasto'?'Anotar un gasto':'Anotar un ingreso'),
-              {tipo:t2,paso:1,monto:0,categoria:'',cuentaId:cuentaDe(dd),nota:'',todas:false,
-               grupo:t2==='gasto'?'hogar':'trabajo',clase:t2==='gasto'?'vital':'variable',
-               fuente:'',renta:'',porCuentaDe:'',proyectoId:null});return}
-          commit();return}
-        PIN.buf='';PIN.stage='crear';PIN.err='No coincidieron. Empieza otra vez.';render();return}
-      if(PIN.buf===D.pins[dd]){ABIERTO[dd]=true;B=dd;TAB='inicio';VIEW='block';
-        if(PENDIENTE&&PENDIENTE.bloque===dd){var tt=PENDIENTE.tipo;PENDIENTE=null;
-          abrir('exp',(tt==='gasto'?'Anotar un gasto':'Anotar un ingreso'),
-            {tipo:tt,paso:1,monto:0,categoria:'',cuentaId:cuentaDe(dd),nota:'',todas:false,
-             grupo:tt==='gasto'?'hogar':'trabajo',clase:tt==='gasto'?'vital':'variable',
-             fuente:'',renta:'',porCuentaDe:'',proyectoId:null});return}
-        render();return}
-      PIN.buf='';PIN.err='Clave incorrecta.';render();return}
-    render();return}
-  if(a==='cambiarpin'){D.pins[B]=null;ABIERTO[B]=true;PIN={buf:'',stage:'crear',err:'',destino:B,temp:''};VIEW='pin';save(D);render();return}
+  if(a==='entrar'){abrirEspacio(v);return}
+  if(a==='portal'){irAPortal();return}
+  if(a==='tabajustes'){var p=miEspacioPersonal();if(p)abrirEspacio(p.id,function(){TAB='nube';render()});return}
+
+  /* conexión al proyecto de Supabase (una sola vez, queda guardado en este navegador) */
+  if(a==='guardarconexion'){
+    SESION.url=SESION._url||SESION.url;SESION.key=SESION._key||SESION.key;guardarSesion();render();return}
+
+  /* sesión: entrar/crear cuenta/recuperar clave */
+  if(a==='authmodo'){AUTH_MODO=v;SESION.estado='';SESION.error='';render();return}
+  if(a==='hacerlogin'){
+    var lCorreo=(document.getElementById('fCorreo')||{}).value||'',lClave=(document.getElementById('fClave')||{}).value||'';
+    if(!lCorreo||!lClave)return;
+    iniciarSesion(lCorreo.trim(),lClave);return}
+  if(a==='hacerregistro'){
+    var rNombre=(document.getElementById('fNombre')||{}).value||'',rCorreo=(document.getElementById('fCorreo')||{}).value||'',
+        rClave=(document.getElementById('fClave')||{}).value||'';
+    if(!rNombre.trim()){SESION.estado='error';SESION.error='Falta tu nombre.';render();return}
+    if(!rCorreo||rClave.length<6){SESION.estado='error';SESION.error='La contraseña debe tener mínimo 6 caracteres.';render();return}
+    registrar(rCorreo.trim(),rClave,rNombre.trim());return}
+  if(a==='hacerrecuperar'){
+    var xCorreo=(document.getElementById('fCorreo')||{}).value||'';
+    if(!xCorreo)return;
+    recuperarClave(xCorreo.trim());return}
+  if(a==='hacernuevaclave'){
+    var nClave=(document.getElementById('fClaveNueva')||{}).value||'';
+    if(nClave.length<6){SESION.estado='error';SESION.error='Mínimo 6 caracteres.';render();return}
+    ponerNuevaClave(nClave);return}
+  if(a==='cambiarclave'){
+    var ccClave=(document.getElementById('fClaveCuenta')||{}).value||'';
+    if(ccClave.length<6){MSG='La contraseña debe tener mínimo 6 caracteres.';render();return}
+    api('/auth/v1/user',{method:'PUT',body:JSON.stringify({password:ccClave})})
+     .then(function(r){MSG=r.ok?'Contraseña actualizada.':'No se pudo cambiar.';render()})
+     .catch(function(){MSG='No se pudo cambiar.';render()});return}
+  if(a==='salirsesion'){cerrarSesion();return}
+
+  /* Casa: crear con código, o unirse con uno */
+  if(a==='abrirCrearCasa'){CODIGO_NUEVO='';SESION.error='';abrir('crearcasa','Crear una Casa',{});return}
+  if(a==='abrirUnirseCasa'){SESION.error='';abrir('unirsecasa','Unirme con un código',{});return}
+  if(a==='hacercrearcasa'){
+    var ccNombre=(document.getElementById('fCasaNombre')||{}).value||'';
+    if(!ccNombre.trim())return;
+    SESION.error='';SESION.estado='cargando';render();
+    crearCasa(ccNombre.trim()).then(function(res){
+      SESION.estado='ok';CODIGO_NUEVO=res.codigo;
+      return cargarMisEspacios()
+    }).then(function(){render()}).catch(function(e){SESION.estado='error';SESION.error=String(e.message||e);render()});
+    return}
+  if(a==='hacerunirse'){
+    var codVal=(document.getElementById('fCodigo')||{}).value||'';
+    if(!codVal.trim())return;
+    SESION.error='';SESION.estado='cargando';render();
+    unirseConCodigo(codVal).then(function(espId){
+      SESION.estado='ok';
+      return cargarMisEspacios().then(function(){SHEET=null;abrirEspacio(espId)})
+    }).catch(function(e){SESION.estado='error';SESION.error=String(e.message||e);render()});
+    return}
+  if(a==='generarcodigo'){
+    if(!esCasa())return;
+    var espActual=MIS_ESPACIOS.filter(function(e){return e.id===ESPACIO_ACTUAL})[0];
+    generarCodigoParaCasa(ESPACIO_ACTUAL,espActual?espActual.nombre:'Casa').then(function(cod){CODIGO_NUEVO=cod;render()});
+    return}
 
   if(a==='tab'){TAB=v;SHEET=null;F={};render();return}
   if(a==='mas'){TAB='mas';SUB='';render();return}
@@ -2658,25 +2882,22 @@ document.addEventListener('click',function(e){
   if(a==='expcasa'){F.porCuentaDe=v||'';render();return}
   if(a==='expfuente'){F.fuente=v;render();return}
   if(a==='expdetalle'){F.__t='Registrar';F.paso=null;SHEET='reg';F.fecha=F.fecha||toISO(HOY);
-    F.de=esCasa()?'a':null;render();return}
+    F.de=esCasa()?MI_SLOT:null;render();return}
   if(a==='qreg'){
-    var bl=el.dataset.b, tp=el.dataset.t;
-    if(bl==='casa'||ABIERTO[bl]){B=bl;TAB='inicio';VIEW='block';
+    var tp=el.dataset.t;
+    abrirEspacio(v,function(){
       abrir('exp',(tp==='gasto'?'Anotar un gasto':'Anotar un ingreso'),
-        {tipo:tp,paso:1,monto:0,categoria:'',cuentaId:cuentaDe(bl),nota:'',todas:false,
+        {tipo:tp,paso:1,monto:0,categoria:'',cuentaId:cuentaDe(B),nota:'',todas:false,
          grupo:tp==='gasto'?'hogar':'trabajo',clase:tp==='gasto'?'vital':'variable',
-         fuente:'',renta:'',porCuentaDe:'',proyectoId:null});return}
-    PENDIENTE={bloque:bl,tipo:tp};
-    PIN={buf:'',stage:D.pins[bl]?'':'crear',err:'',destino:bl,temp:''};VIEW='pin';render();return}
+         fuente:'',renta:'',porCuentaDe:'',proyectoId:null})
+    });return}
   if(a==='reg'){abrir('reg','Registrar',{tipo:'gasto',monto:0,grupo:'hogar',categoria:'casa',clase:'vital',nota:'',fuente:'',
-    cuentaId:cuentaDe(B),fecha:toISO(HOY),de:esCasa()?'a':null,renta:'',porCuentaDe:'',__mas:false});return}
+    cuentaId:cuentaDe(B),fecha:toISO(HOY),de:esCasa()?MI_SLOT:null,renta:'',porCuentaDe:'',__mas:false});return}
   if(a==='savereg'){
     var mv={id:uid(),fecha:F.fecha||toISO(HOY),tipo:F.tipo,monto:F.monto,categoria:F.categoria,nota:F.nota,clase:F.clase,
       grupo:F.grupo||grupoDe(F.categoria,F.tipo),fuente:(F.fuente||'').trim(),
       bloque:B,cuentaId:F.cuentaId,renta:F.renta||'',porCuentaDe:F.porCuentaDe||null,
       proyectoId:F.proyectoId||null,estado:'activa'};
-    if(mv.porCuentaDe)mv.saldado=false;
-    if(esCasa()&&F.tipo==='ingreso')mv.de=F.de||'otro';
     var ctaMv=D.cuentas.filter(function(x){return x.id===mv.cuentaId})[0];
     if(mv.tipo==='gasto'&&ctaMv&&(ctaMv.tipo==='tarjeta'||ctaMv.tipo==='credito')&&F.cuotasCompra>1)
       mv.nota=(mv.nota?mv.nota+' · ':'')+'a '+F.cuotasCompra+' cuotas';
@@ -2684,6 +2905,17 @@ document.addEventListener('click',function(e){
       if(!D.fuentesIngreso)D.fuentesIngreso=[];
       if(D.fuentesIngreso.indexOf(mv.fuente)<0){D.fuentesIngreso.unshift(mv.fuente);D.fuentesIngreso=D.fuentesIngreso.slice(0,12)}
     }
+    if(mv.tipo==='gasto'&&F.porCuentaDe==='casa'&&!esCasa()){
+      /* "es de la Casa" desde tu espacio personal: la Casa es otro espacio
+         (otro blob) — no basta con guardarlo local, hay que ir a sumarlo allá */
+      mv.bloque='casa';mv.de=MI_SLOT;mv.porCuentaDe=null;
+      SHEET=null;F={};render();
+      registrarEnCasa(mv).then(function(){avisar('Gasto anotado en la Casa · '+money(mv.monto))})
+       .catch(function(e){MSG=String(e.message||e);render()});
+      return
+    }
+    if(mv.porCuentaDe)mv.saldado=false;
+    if(esCasa()&&F.tipo==='ingreso')mv.de=F.de||MI_SLOT;
     D.movs.push(mv);SHEET=null;F={};commit();
     avisar((mv.tipo==='gasto'?'Gasto anotado · ':'Ingreso anotado · ')+money(mv.monto));return}
   if(a==='delmov'){D.movs=D.movs.filter(function(m){return m.id!==id});commit();return}
@@ -2904,13 +3136,6 @@ document.addEventListener('click',function(e){
   if(a==='edreparto'){abrir('reparto','Reparto de los gastos',{a:D.reparto.a});return}
   if(a==='savereparto'){var pa=Math.max(0,Math.min(100,F.a||0));D.reparto={a:pa,b:100-pa};SHEET=null;F={};commit();return}
 
-  if(a==='savenube'){NUBE.url=NUBE._url||NUBE.url;NUBE.key=NUBE._key||NUBE.key;NUBE.estado='';guardarNube();render();return}
-  if(a==='enlace'){enviarEnlace(NUBE._correo||NUBE.correo);return}
-  if(a==='borrarnube'){NUBE={url:'',key:'',hogar:'',token:'',refresh:'',correo:'',estado:''};guardarNube();render();return}
-  if(a==='sincronizar'){traerHogar();return}
-  if(a==='salirnube'){NUBE.token='';NUBE.refresh='';NUBE.hogar='';NUBE.estado='';guardarNube();render();return}
-  if(a==='unirse'){if(NUBE._codigo)unirseHogar(NUBE._codigo.trim());return}
-  if(a==='savecorreos'){guardarCorreos(NUBE._correos||NUBE.correo||'');return}
   if(a==='export'){bajar('jm-cuentas-'+toISO(HOY)+'.json',JSON.stringify(D,null,2),'application/json');return}
   if(a==='exportrenta'){
     var f=['Fecha;Bloque;Tipo;Concepto;Etiqueta;Monto'];
@@ -2919,20 +3144,19 @@ document.addEventListener('click',function(e){
       .forEach(function(m){f.push([m.fecha,nomB(m.bloque),m.tipo,(m.nota||catNom(m.categoria)).replace(/;/g,','),
         rentaNom(m.renta),m.monto].join(';'))});
     bajar('renta-'+ANIO+'-'+B+'.csv','\ufeff'+f.join('\n'),'text/csv');return}
-  if(a==='demo'){D=DEMO();ABIERTO={a:true,b:true};MSG='Datos de ejemplo cargados.';commit();return}
-  if(a==='reset'){if(confirm('Se borra todo y quedan en blanco. ¿Seguimos?')){D=VACIO();ABIERTO={a:false,b:false};MSG='Todo limpio.';commit()}return}
+  if(a==='demo'){D=DEMO();MSG='Datos de ejemplo cargados.';commit();return}
+  if(a==='reset'){if(confirm('Se borra todo y queda en blanco. ¿Seguimos?')){
+    D=esCasa()?VACIO_CASA(D.personas.a,D.personas.b):VACIO_PERSONAL(SESION.nombre||D.personas.a);
+    MSG='Todo limpio.';commit()}return}
 });
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&SHEET)cerrar()});
 
-cargarNube();
+/* ===== arranque ===== */
+cargarSesion();
 var entro=capturarSesion();
-setInterval(function(){if(conectado()&&!SHEET&&VIEW!=='pin')traerHogar()},20000);
-load(function(d){
-  D=migrar(d)||VACIO();
-  render();
-  setTimeout(revisarAlertas,1200);
-  if(nubeLista()&&NUBE.token){TAB=entro?'nube':TAB;setTimeout(traerHogar,300)}
-});
+if(entro==='recovery'){VIEW='nuevaclave';render()}
+else if(autenticado()){arrancarSesion()}
+else{render()}
 })();
 
 </script>
