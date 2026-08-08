@@ -570,7 +570,8 @@ function VACIO(){return{v:3,personas:{a:'M',b:'J'},pins:{a:null,b:null},reparto:
            {id:uid(),nombre:'Cuenta corriente',bloque:'b',tipo:'corriente',saldoInicial:0,reserva:false},
            {id:uid(),nombre:'Ahorros',bloque:'b',tipo:'ahorros',saldoInicial:0,reserva:false}],
   fijos:[],deudas:[],movs:[],metas:[],activos:[],notas:[],proyectos:[],pendientes:[],base:[],
-  visitas:{a:{},b:{},casa:{}},abrioContable:false,rachaMirarMax:{a:0,b:0,casa:0},carinos:{a:0,b:0,casa:0}}}
+  visitas:{a:{},b:{},casa:{}},abrioContable:false,rachaMirarMax:{a:0,b:0,casa:0},carinos:{a:0,b:0,casa:0},
+  fuentesIngreso:[]}}
 
 function migrar(d){
   if(!d)return null;
@@ -592,6 +593,7 @@ function migrar(d){
   else{['a','b','casa'].forEach(function(k){if(!d.rachaMirarMax[k])d.rachaMirarMax[k]=0})}
   if(!d.carinos||typeof d.carinos!=='object'){d.carinos={a:0,b:0,casa:0}}
   else{['a','b','casa'].forEach(function(k){if(!d.carinos[k])d.carinos[k]=0})}
+  if(!d.fuentesIngreso)d.fuentesIngreso=[];
   if(d.v<3){
     d.cuentas.forEach(function(c){if(c.reserva===undefined)c.reserva=false});
     d.fijos.forEach(function(f){if(f.esencial===undefined)f.esencial=true});
@@ -2176,8 +2178,23 @@ function sheetHTML(){
         b+='<div class="resumen"><div class="rl">Vas a guardar</div>'+
          '<div class="rt">'+(esG?'Salieron ':'Entraron ')+'<b class="mono">'+money(F.monto)+'</b></div>'+
          '<div class="rd">'+catEmo(F.categoria)+' '+catNom(F.categoria)+' · '+esc(cta?cta.nombre:'')+
-         ' · '+esc(nomB(B))+'</div></div>'+
-         '<div class="f" style="margin-top:12px"><label>Nota (opcional)</label>'+
+         ' · '+esc(nomB(B))+'</div></div>';
+        if(esG&&cta&&(cta.tipo==='tarjeta'||cta.tipo==='credito'))
+         b+='<div class="f" style="margin-top:12px"><label>¿A cuántas cuotas?</label>'+
+          '<input class="inp" type="number" min="1" data-bindf="cuotasCompra" value="'+(F.cuotasCompra||1)+'"></div>';
+        if(esG&&!esCasa())
+         b+='<div class="f" style="margin-top:12px"><label>¿Este gasto es tuyo o de la Casa?</label>'+
+          '<div class="opts"><button class="chip sm" data-a="expcasa" data-v="" aria-pressed="'+(!F.porCuentaDe)+'">Personal, mío</button>'+
+          '<button class="chip sm" data-a="expcasa" data-v="casa" aria-pressed="'+(F.porCuentaDe==='casa')+'">De la Casa</button></div>'+
+          (F.porCuentaDe==='casa'?'<p class="mini" style="margin-top:6px">Lo pagaste tú, pero es de la Casa — queda anotado en "Entre nosotros".</p>':'')+'</div>';
+        if(!esG){
+          var fuentes=D.fuentesIngreso||[];
+          b+='<div class="f" style="margin-top:12px"><label>¿De dónde vino? (opcional)</label>'+
+           (fuentes.length?'<div class="opts" style="margin-bottom:8px">'+fuentes.map(function(x){
+             return '<button class="chip sm" data-a="expfuente" data-v="'+esc(x)+'" aria-pressed="'+(F.fuente===x)+'">'+esc(x)+'</button>'}).join('')+'</div>':'')+
+           '<input class="inp" data-bindf="fuente" value="'+esc(F.fuente||'')+'" placeholder="Nombre de la empresa o de quién te la mandó"></div>';
+        }
+        b+='<div class="f" style="margin-top:12px"><label>Nota (opcional)</label>'+
          '<input class="inp" data-bindf="nota" value="'+esc(F.nota||'')+'" placeholder="Mercado de la semana…"></div>'+
          '<div class="acc"><button class="btn ghost" data-a="exppaso" data-v="2">Atrás</button>'+
          '<button class="btn" data-a="savereg">Guardar</button></div>'+
@@ -2195,6 +2212,8 @@ function sheetHTML(){
       chips('grupo',gruposDe(F.tipo))+'</div>'+
      '<div class="f"><label>Categoría</label>'+chips('categoria',catsDe(gr,F.tipo))+'</div>'+
      (F.tipo==='ingreso'?'<div class="f"><label>¿De quién o de qué fuente? (opcional)</label>'+
+      ((D.fuentesIngreso||[]).length?'<div class="opts" style="margin-bottom:8px">'+(D.fuentesIngreso||[]).map(function(x){
+        return '<button class="chip sm" data-a="expfuente" data-v="'+esc(x)+'" aria-pressed="'+(F.fuente===x)+'">'+esc(x)+'</button>'}).join('')+'</div>':'')+
       '<input class="inp" data-bindf="fuente" value="'+esc(F.fuente||'')+'" placeholder="Nombre del cliente, empresa, arrendatario…"></div>':'')+
      '<div class="f"><label>'+(F.tipo==='gasto'?'¿Es vital o se podría soltar?':'¿Con qué frecuencia entra?')+'</label>'+
       chips('clase',F.tipo==='gasto'?CLASE_G:CLASE_I)+'</div>'+
@@ -2629,6 +2648,8 @@ document.addEventListener('click',function(e){
   if(a==='expcat'){F.categoria=v;F.grupo=grupoDe(v,F.tipo);F.paso=3;
     if(!F.cuentaId)F.cuentaId=cuentaDe(B);render();return}
   if(a==='expcta'){F.cuentaId=v;render();return}
+  if(a==='expcasa'){F.porCuentaDe=v||'';render();return}
+  if(a==='expfuente'){F.fuente=v;render();return}
   if(a==='expdetalle'){F.__t='Registrar';F.paso=null;SHEET='reg';F.fecha=F.fecha||toISO(HOY);
     F.de=esCasa()?'a':null;render();return}
   if(a==='qreg'){
@@ -2649,6 +2670,13 @@ document.addEventListener('click',function(e){
       proyectoId:F.proyectoId||null,estado:'activa'};
     if(mv.porCuentaDe)mv.saldado=false;
     if(esCasa()&&F.tipo==='ingreso')mv.de=F.de||'otro';
+    var ctaMv=D.cuentas.filter(function(x){return x.id===mv.cuentaId})[0];
+    if(mv.tipo==='gasto'&&ctaMv&&(ctaMv.tipo==='tarjeta'||ctaMv.tipo==='credito')&&F.cuotasCompra>1)
+      mv.nota=(mv.nota?mv.nota+' · ':'')+'a '+F.cuotasCompra+' cuotas';
+    if(mv.tipo==='ingreso'&&mv.fuente){
+      if(!D.fuentesIngreso)D.fuentesIngreso=[];
+      if(D.fuentesIngreso.indexOf(mv.fuente)<0){D.fuentesIngreso.unshift(mv.fuente);D.fuentesIngreso=D.fuentesIngreso.slice(0,12)}
+    }
     D.movs.push(mv);SHEET=null;F={};commit();
     avisar((mv.tipo==='gasto'?'Gasto anotado · ':'Ingreso anotado · ')+money(mv.monto));return}
   if(a==='delmov'){D.movs=D.movs.filter(function(m){return m.id!==id});commit();return}
