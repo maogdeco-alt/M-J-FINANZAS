@@ -181,3 +181,23 @@ Esto no cambia el esquema propuesto en la sección 2/3, solo lo confirma y agreg
 
 Con respuestas a esto se puede pasar a definir el esquema SQL exacto (con políticas RLS) y
 el plan de implementación por fases.
+
+## 8. Implementación (v1, ya en el repo)
+
+Validado el prototipo, se implementó la versión conectada a Supabase:
+
+- `supabase/migrations/0001_init.sql` — esquema definitivo: `profiles`, `espacios`
+  (`personal`/`hogar`), `miembros_espacio`, `invitaciones`, `cuentas`, `movimientos`,
+  `prestamos_internos`, con políticas RLS y un trigger que crea el perfil + espacio
+  personal automáticamente al registrarse.
+- `app/hogar.html` — la app real: login por correo (magic link de Supabase Auth),
+  portal con espacio personal + Hogares, invitar por correo, bandeja de invitaciones,
+  movimientos por espacio, y "Entre nosotros" (préstamos internos) con saldo neto por
+  par de miembros. Igual que el prototipo original, la URL y la llave del proyecto de
+  Supabase se pegan dentro de la propia app (pantalla de "Configuración"), no van
+  quemadas en el código.
+
+El nombre de producto para el espacio compartido quedó como **"Hogar"** (no "CASA"),
+para que un Hogar pueda tener 2, 3 o más miembros sin distinguir "pareja" de "familia" —
+es el mismo concepto que ya usaba el prototipo original (tabla `hogares`), ahora
+normalizado.

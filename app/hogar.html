@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Hogar · J&amp;M Finanzas</title>
+<meta name="theme-color" content="#0A0A0B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--negro:#0A0A0B;--gris:#8A8A93;--gris2:#5C5C64;--linea:#EAEAEE;--papel:#F5F5F6;--hueso:#FFFFFF;
+--rosa:#F9C7D8;--rosa-suave:#FDEEF4;--rosa-fuerte:#D4577F;--r:20px}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--papel);color:var(--negro);font-family:'Inter Tight',system-ui,sans-serif;
+-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.45;letter-spacing:-.01em}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit;font-size:16px}
+.mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;font-weight:300;letter-spacing:-.03em}
+.dsp{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;letter-spacing:-.035em}
+.wrap{max-width:640px;margin:0 auto;padding:18px 18px 100px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 0}
+.mark{display:flex;align-items:center;gap:10px}
+.seal{width:32px;height:32px;border-radius:10px;background:var(--negro);color:#fff;display:flex;align-items:center;
+justify-content:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:12px}
+.seal em{font-style:normal;color:var(--rosa)}
+.perfil{display:flex;align-items:center;gap:8px;background:#fff;border:0;border-radius:999px;padding:6px 12px 6px 6px;
+box-shadow:inset 0 0 0 1px var(--linea);font-size:12.5px;font-weight:600}
+.av{width:24px;height:24px;border-radius:50%;background:var(--rosa-suave);color:var(--rosa-fuerte);display:flex;
+align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none}
+.card{background:var(--hueso);border-radius:var(--r);padding:18px;margin-bottom:12px}
+.card h3{margin:0 0 3px;font-size:14px;font-weight:700;letter-spacing:-.01em}
+.card .sub{font-size:11.5px;color:var(--gris);margin:0 0 12px}
+.btn{border:0;border-radius:999px;padding:11px 18px;font-size:13.5px;font-weight:600;background:var(--negro);
+color:#fff;letter-spacing:-.01em}
+.btn.ghost{background:#fff;box-shadow:inset 0 0 0 1px var(--linea);color:var(--negro)}
+.btn.sm{padding:8px 14px;font-size:12px}
+.btn.danger{background:var(--rosa-suave);color:var(--rosa-fuerte);box-shadow:none}
+.btn.block{display:block;width:100%;text-align:center}
+.btn[disabled]{opacity:.35}
+.f{margin-bottom:14px}
+.f label{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris);
+margin-bottom:7px;font-weight:600}
+.inp{width:100%;padding:12px 13px;border:0;box-shadow:inset 0 0 0 1px var(--linea);border-radius:14px;
+background:#FAFAFB;color:var(--negro)}
+.row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--linea)}
+.row:last-child{border-bottom:0}
+.grow{flex:1;min-width:0}
+.t{font-size:14px;font-weight:600}
+.s{font-size:11px;color:var(--gris);margin-top:2px}
+.amt{font-size:14px;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.pos{color:var(--rosa-fuerte)}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:var(--rosa-fuerte);
+background:var(--rosa-suave);padding:4px 10px;border-radius:999px}
+.hero{background:var(--negro);color:#fff;border-radius:22px;padding:20px 20px;margin-bottom:14px}
+.hero .lbl{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--rosa);font-weight:600}
+.hero h1{font-family:'Bricolage Grotesque',sans-serif;font-size:24px;margin:8px 0 4px;letter-spacing:-.03em}
+.hero p{color:rgba(255,255,255,.55);font-size:12px;margin:0}
+.tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto}
+.tab{border:0;background:#fff;box-shadow:inset 0 0 0 1px var(--linea);color:var(--gris2);padding:8px 14px;
+border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.tab[aria-pressed="true"]{background:var(--negro);color:#fff;box-shadow:none}
+.empty{text-align:center;padding:26px 10px;color:var(--gris);font-size:12.5px}
+.veil{position:fixed;inset:0;background:rgba(10,10,11,.5);z-index:50;display:flex;align-items:flex-end;
+justify-content:center;backdrop-filter:blur(3px)}
+.sheet{background:#fff;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;border-radius:24px 24px 0 0;
+padding:22px 20px 30px}
+.sheet h3{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;margin:0 0 16px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:var(--negro);
+color:#fff;padding:11px 18px;border-radius:999px;font-size:12.5px;font-weight:500;max-width:88vw;text-align:center}
+.nota{background:var(--rosa-suave);border-radius:14px;padding:12px 14px;font-size:11.5px;color:var(--rosa-fuerte);
+line-height:1.5;margin-bottom:14px}
+.mchip{display:inline-flex;align-items:center;gap:5px;background:#F3F3F5;border-radius:999px;padding:4px 10px 4px 4px;
+font-size:11px;font-weight:600;margin-right:6px;margin-top:6px}
+.mchip .av{width:18px;height:18px;font-size:9px}
+.link{background:none;border:0;color:var(--rosa-fuerte);font-weight:600;font-size:12px;padding:0}
+.spin{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--linea);
+border-top-color:var(--rosa-fuerte);animation:sp .7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.err{color:var(--rosa-fuerte);font-size:12px;margin:8px 0 0}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="modal"></div>
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   conexión a Supabase — el usuario pega la URL y la llave anon
+   de SU PROPIO proyecto. No hay nada quemado en el código.
+   ============================================================ */
+var NKEY='jm:hogar:nube';
+function nubeGet(){try{var s=localStorage.getItem(NKEY);return s?JSON.parse(s):{url:'',key:'',token:'',refresh:'',correo:''}}catch(e){return {url:'',key:'',token:'',refresh:'',correo:''}}}
+var NUBE=nubeGet();
+function nubeGuardar(){try{localStorage.setItem(NKEY,JSON.stringify(NUBE))}catch(e){}}
+function nubeLista(){return !!(NUBE.url&&NUBE.key)}
+function autenticado(){return !!(nubeLista()&&NUBE.token)}
+function api(path,opts){
+  opts=opts||{};
+  var h={'apikey':NUBE.key,'Content-Type':'application/json'};
+  if(NUBE.token)h['Authorization']='Bearer '+NUBE.token;
+  if(opts.headers)for(var k in opts.headers)h[k]=opts.headers[k];
+  return fetch(NUBE.url.replace(/\/$/,'')+path,{method:opts.method||'GET',headers:h,body:opts.body})
+   .then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||('HTTP '+r.status))});
+     var ct=r.headers.get('content-type')||'';return ct.indexOf('json')>-1?r.json():null})
+}
+function capturarSesion(){
+  try{
+    var h=location.hash||'';
+    if(h.indexOf('access_token=')<0)return false;
+    var p={};h.replace(/^#/,'').split('&').forEach(function(x){var q=x.split('=');p[q[0]]=decodeURIComponent(q[1]||'')});
+    if(!p.access_token)return false;
+    NUBE.token=p.access_token;NUBE.refresh=p.refresh_token||'';nubeGuardar();
+    try{history.replaceState(null,'',location.pathname+location.search)}catch(e){location.hash=''}
+    return true
+  }catch(e){return false}
+}
+function enviarEnlace(correo){
+  NUBE.correo=correo;nubeGuardar();
+  ESTADO.enviando=true;render();
+  api('/auth/v1/otp',{method:'POST',body:JSON.stringify({email:correo,create_user:true,
+    options:{email_redirect_to:location.origin+location.pathname}})})
+   .then(function(){ESTADO.enviando=false;ESTADO.enviado=true;render()})
+   .catch(function(e){ESTADO.enviando=false;ESTADO.error=String(e.message||e);render()})
+}
+function salir(){NUBE.token='';NUBE.refresh='';nubeGuardar();CACHE={};VIEW='portal';render()}
+
+var uid_=function(){return Math.random().toString(36).slice(2,9)};
+var nf=new Intl.NumberFormat('es-CO');
+function money(n){var v=Math.round(Number(n)||0);return (v<0?'−':'')+'$ '+nf.format(Math.abs(v))}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function iniciales(n){return (n||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w[0]}).join('').toUpperCase()}
+function enc(s){return encodeURIComponent(s)}
+
+/* ============================================================
+   estado en memoria (se recarga desde Supabase, no es fuente de verdad)
+   ============================================================ */
+var CACHE={perfil:null,espacios:[],invitaciones:[],hogarActual:null,miembros:[],movs:[],prestamos:[]};
+var VIEW='portal', SHEET=null, ESP_ID=null, TAB='movs', F={}, ESTADO={};
+
+function miUid(){
+  // el JWT trae el sub (uuid) codificado en base64; lo extraemos sin dependencias externas
+  try{var p=NUBE.token.split('.')[1];p=p.replace(/-/g,'+').replace(/_/g,'/');
+    while(p.length%4)p+='=';return JSON.parse(atob(p)).sub}catch(e){return null}
+}
+
+function asegurarPerfil(){
+  return api('/rest/v1/profiles?id=eq.'+miUid()+'&select=id,nombre,correo')
+   .then(function(rows){
+     if(rows&&rows.length){CACHE.perfil=rows[0];return CACHE.perfil}
+     // red de seguridad por si el trigger de la base de datos no corrió a tiempo
+     return api('/rest/v1/profiles',{method:'POST',headers:{'Prefer':'return=representation'},
+       body:JSON.stringify({id:miUid(),nombre:(NUBE.correo||'').split('@')[0],correo:NUBE.correo})})
+      .then(function(r){CACHE.perfil=r[0];return CACHE.perfil})
+   })
+}
+function cargarEspacios(){
+  return api('/rest/v1/miembros_espacio?usuario_id=eq.'+miUid()+'&estado=eq.activo&select=rol,espacios(id,nombre,tipo)')
+   .then(function(rows){CACHE.espacios=(rows||[]).map(function(r){return {id:r.espacios.id,nombre:r.espacios.nombre,tipo:r.espacios.tipo,rol:r.rol}});return CACHE.espacios})
+}
+function cargarInvitaciones(){
+  return api('/rest/v1/invitaciones?para_correo=eq.'+enc(NUBE.correo)+'&estado=eq.pendiente&select=id,espacio_id,de_usuario_id,espacios(nombre),de_usuario:profiles!invitaciones_de_usuario_id_fkey(nombre)')
+   .then(function(rows){CACHE.invitaciones=rows||[];return CACHE.invitaciones})
+   .catch(function(){CACHE.invitaciones=[];return []})
+}
+function cargarMiembros(espId){
+  return api('/rest/v1/miembros_espacio?espacio_id=eq.'+espId+'&estado=eq.activo&select=usuario_id,rol,profiles(nombre)')
+   .then(function(rows){CACHE.miembros=(rows||[]).map(function(r){return {usuarioId:r.usuario_id,rol:r.rol,nombre:r.profiles?r.profiles.nombre:'—'}});return CACHE.miembros})
+}
+function cargarMovs(espId){
+  return api('/rest/v1/movimientos?espacio_id=eq.'+espId+'&order=fecha.desc,creado_en.desc&select=id,tipo,monto,descripcion,fecha,usuario_id,profiles(nombre)')
+   .then(function(rows){CACHE.movs=rows||[];return CACHE.movs})
+}
+function cargarPrestamos(espId){
+  return api('/rest/v1/prestamos_internos?espacio_id=eq.'+espId+'&order=fecha.desc&select=*')
+   .then(function(rows){CACHE.prestamos=rows||[];return CACHE.prestamos})
+}
+function saldoDe(movs){var s=0;(movs||[]).forEach(function(m){s+=m.tipo==='ingreso'?Number(m.monto):-Number(m.monto)});return s}
+function saldoEntre(uA,uB){
+  var s=0;CACHE.prestamos.forEach(function(p){
+    if(p.de_usuario_id===uA&&p.para_usuario_id===uB)s+=Number(p.monto);
+    if(p.de_usuario_id===uB&&p.para_usuario_id===uA)s-=Number(p.monto)});
+  return s
+}
+
+function cargarPortal(){
+  ESTADO.cargando=true;render();
+  asegurarPerfil().then(cargarEspacios).then(cargarInvitaciones).then(function(){ESTADO.cargando=false;render()})
+   .catch(function(e){ESTADO.cargando=false;ESTADO.error=String(e.message||e);render()})
+}
+function abrirEspacio(id,tipo){
+  VIEW=tipo==='hogar'?'hogar':'personal';ESP_ID=id;TAB='movs';ESTADO.cargando=true;render();
+  var ps=[cargarMovs(id)];
+  if(tipo==='hogar'){ps.push(cargarMiembros(id));ps.push(cargarPrestamos(id))}
+  Promise.all(ps).then(function(){ESTADO.cargando=false;render()})
+}
+
+/* ============================================================
+   vistas
+   ============================================================ */
+function sello(){return '<div class="mark"><div class="seal">J<em>&amp;</em>M</div></div>'}
+
+function vConexion(){
+  var h='<div class="wrap"><div class="topbar">'+sello()+'</div>'+
+   '<div class="hero"><div class="lbl">Configuración</div><h1 class="dsp">Conecta tu proyecto</h1>'+
+   '<p>Pega la URL y la llave pública (anon) del proyecto de Supabase donde corriste el script de instalación.</p></div>'+
+   '<div class="card"><div class="f"><label>URL del proyecto</label>'+
+   '<input class="inp" id="fUrl" placeholder="https://xxxx.supabase.co" value="'+esc(NUBE.url)+'"></div>'+
+   '<div class="f" style="margin-bottom:0"><label>Llave pública (anon)</label>'+
+   '<input class="inp" id="fKey" placeholder="eyJhbGci…" value="'+esc(NUBE.key)+'"></div></div>'+
+   '<button class="btn block" data-a="guardarConexion">Guardar y continuar</button></div>';
+  return h
+}
+
+function vLogin(){
+  var h='<div class="wrap"><div class="topbar">'+sello()+
+   '<button class="btn ghost sm" data-a="reconfigurar">Cambiar proyecto</button></div>'+
+   '<div class="hero"><div class="lbl">Bienvenido</div><h1 class="dsp">Cada quien con su cuenta</h1>'+
+   '<p>Entra con tu correo. Te llega un enlace mágico — sin contraseñas que se te olviden.</p></div>';
+  if(ESTADO.enviado){
+    h+='<div class="card"><h3>Revisa tu correo</h3><p class="sub">Te enviamos un enlace a '+esc(NUBE.correo)+'. Ábrelo desde este mismo dispositivo para entrar.</p>'+
+     '<button class="btn ghost sm" data-a="reintentarEnvio">Usar otro correo</button></div>'
+  }else{
+    h+='<div class="card"><div class="f" style="margin-bottom:12px"><label>Tu correo</label>'+
+     '<input class="inp" id="fCorreo" placeholder="tucorreo@ejemplo.com" value="'+esc(NUBE.correo)+'"></div>'+
+     '<button class="btn block" data-a="enviarEnlace" '+(ESTADO.enviando?'disabled':'')+'>'+
+     (ESTADO.enviando?'<span class="spin"></span> Enviando…':'Enviarme el enlace')+'</button>'+
+     (ESTADO.error?'<div class="err">'+esc(ESTADO.error)+'</div>':'')+'</div>'
+  }
+  h+='</div>';
+  return h
+}
+
+function vPortal(){
+  var p=CACHE.perfil||{nombre:'—'};
+  var personal=CACHE.espacios.filter(function(e){return e.tipo==='personal'})[0];
+  var hogares=CACHE.espacios.filter(function(e){return e.tipo==='hogar'});
+  var h='<div class="wrap"><div class="topbar">'+sello()+
+   '<button class="perfil" data-a="menuPerfil"><span class="av">'+esc(iniciales(p.nombre))+'</span>'+esc(p.nombre)+'</button></div>';
+  if(CACHE.invitaciones.length){
+    h+='<div class="nota">Tienes '+CACHE.invitaciones.length+' invitación'+(CACHE.invitaciones.length>1?'es':'')+' para unirte a un Hogar. '+
+     '<button class="link" data-a="verInvitaciones">Ver ahora →</button></div>'
+  }
+  if(personal){
+    h+='<div class="card" data-a="abrirEspacio" data-id="'+personal.id+'" data-tipo="personal" style="cursor:pointer">'+
+     '<h3>👤 Tu espacio personal</h3><p class="sub">Solo tú lo ves y lo controlas</p></div>'
+  }
+  h+='<h3 class="dsp" style="margin:22px 0 4px">Hogar</h3><p class="sub" style="margin:0 0 12px">Cuentas en común, sin perder tu autonomía — puedes salir cuando quieras</p>';
+  if(ESTADO.cargando)h+='<div class="card empty"><span class="spin"></span></div>';
+  else if(!hogares.length){
+    h+='<div class="card empty"><p>Todavía no tienes ningún Hogar.</p>'+
+     '<button class="btn sm" data-a="crearHogar">Crear un Hogar</button></div>'
+  }else{
+    hogares.forEach(function(hg){
+      h+='<div class="card" data-a="abrirEspacio" data-id="'+hg.id+'" data-tipo="hogar" style="cursor:pointer">'+
+       '<h3>🏠 '+esc(hg.nombre)+'</h3><p class="sub">Toca para entrar</p></div>'
+    });
+    h+='<button class="btn ghost block" data-a="crearHogar">+ Crear otro Hogar</button>'
+  }
+  h+='</div>';
+  return h
+}
+
+function vInvitaciones(){
+  var h='<div class="wrap"><div class="topbar"><button class="btn ghost sm" data-a="volverPortal">← Volver</button></div>'+
+   '<h1 class="dsp" style="font-size:22px;margin:6px 0 4px">Invitaciones</h1><p class="sub" style="margin:0 0 16px">Para unirte a un Hogar con alguien</p>';
+  if(!CACHE.invitaciones.length)h+='<div class="card empty"><p>No tienes invitaciones pendientes.</p></div>';
+  CACHE.invitaciones.forEach(function(i){
+    var de=i.de_usuario?i.de_usuario.nombre:'alguien';
+    h+='<div class="card"><h3>🏠 '+esc(i.espacios?i.espacios.nombre:'Hogar')+'</h3><p class="sub">Te invitó '+esc(de)+'</p>'+
+     '<div style="display:flex;gap:8px;margin-top:8px">'+
+     '<button class="btn sm" data-a="aceptarInv" data-id="'+i.id+'" data-esp="'+i.espacio_id+'">Aceptar</button>'+
+     '<button class="btn ghost sm" data-a="rechazarInv" data-id="'+i.id+'">Rechazar</button></div></div>'
+  });
+  h+='</div>';
+  return h
+}
+
+function vEspacio(){
+  var esHogar=VIEW==='hogar', p=CACHE.perfil;
+  var h='<div class="wrap"><div class="topbar"><button class="btn ghost sm" data-a="volverPortal">← Volver</button></div>';
+  if(esHogar){
+    var hg=CACHE.espacios.filter(function(e){return e.id===ESP_ID})[0]||{nombre:'Hogar'};
+    h+='<h1 class="dsp" style="font-size:24px;margin:6px 0 2px">🏠 '+esc(hg.nombre)+'</h1>'+
+     '<p class="s" style="margin:0 0 12px">'+CACHE.miembros.map(function(m){return esc(m.nombre)}).join(' · ')+'</p>'
+  }else{
+    h+='<h1 class="dsp" style="font-size:22px;margin:6px 0 2px">Tu espacio personal</h1>'
+  }
+  h+='<div class="amt" style="font-size:30px;margin:0 0 14px">'+money(saldoDe(CACHE.movs))+'</div>'+
+   '<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">'+
+   '<button class="btn sm" data-a="nuevoMov">+ Movimiento</button>';
+  if(esHogar)h+='<button class="btn ghost sm" data-a="invitarAHogar">+ Invitar a alguien</button>'+
+   '<button class="btn danger sm" data-a="salirHogar">Salir de este Hogar</button>';
+  h+='</div>';
+  if(esHogar){
+    h+='<div class="tabs">'+
+     '<button class="tab" aria-pressed="'+(TAB==='movs')+'" data-a="tab" data-v="movs">Movimientos</button>'+
+     '<button class="tab" aria-pressed="'+(TAB==='entre')+'" data-a="tab" data-v="entre">Entre nosotros</button></div>'
+  }
+  if(!esHogar||TAB==='movs'){
+    h+='<div class="card"><h3>Movimientos</h3>';
+    if(ESTADO.cargando)h+='<div class="empty"><span class="spin"></span></div>';
+    else if(!CACHE.movs.length)h+='<div class="empty"><p>Aún no hay movimientos.</p></div>';
+    CACHE.movs.forEach(function(m){
+      h+='<div class="row"><div class="grow"><div class="t">'+esc(m.descripcion||'Sin descripción')+'</div>'+
+       '<div class="s">'+(esHogar?esc(m.profiles?m.profiles.nombre:'—')+' · ':'')+esc(m.fecha)+'</div></div>'+
+       '<div class="amt '+(m.tipo==='ingreso'?'pos':'')+'">'+(m.tipo==='ingreso'?'+':'−')+' '+money(m.monto)+'</div></div>'
+    });
+    h+='</div>'
+  }else{
+    h+='<div class="nota">Aquí se lleva la plata que se prestan entre los miembros de este Hogar — sin cuentas raras, solo quién le debe a quién.</div>';
+    h+='<button class="btn" data-a="nuevoPrestamo">+ Registrar un préstamo</button>';
+    h+='<div class="card" style="margin-top:14px"><h3>Saldos entre miembros</h3>';
+    var mm=CACHE.miembros, pares=[];
+    for(var i=0;i<mm.length;i++)for(var j=i+1;j<mm.length;j++)pares.push([mm[i],mm[j]]);
+    if(!pares.length)h+='<div class="empty"><p>Se necesita más de un miembro.</p></div>';
+    pares.forEach(function(pr){
+      var s=saldoEntre(pr[0].usuarioId,pr[1].usuarioId);
+      var txt=s===0?esc(pr[0].nombre)+' y '+esc(pr[1].nombre)+' están a paz y salvo':
+       (s>0?esc(pr[1].nombre)+' le debe a '+esc(pr[0].nombre):esc(pr[0].nombre)+' le debe a '+esc(pr[1].nombre));
+      h+='<div class="row"><div class="grow"><div class="t">'+txt+'</div></div><div class="amt">'+money(Math.abs(s))+'</div></div>'
+    });
+    h+='</div><div class="card"><h3>Historial de préstamos</h3>';
+    if(!CACHE.prestamos.length)h+='<div class="empty"><p>Aún no hay préstamos registrados.</p></div>';
+    CACHE.prestamos.forEach(function(pr){
+      var de=CACHE.miembros.filter(function(x){return x.usuarioId===pr.de_usuario_id})[0],
+          para=CACHE.miembros.filter(function(x){return x.usuarioId===pr.para_usuario_id})[0];
+      h+='<div class="row"><div class="grow"><div class="t">'+esc(de?de.nombre:'—')+' le prestó a '+esc(para?para.nombre:'—')+'</div>'+
+       '<div class="s">'+esc(pr.motivo||'Sin motivo')+' · '+esc(pr.fecha)+'</div></div><div class="amt">'+money(pr.monto)+'</div></div>'
+    });
+    h+='</div>'
+  }
+  h+='</div>';
+  return h
+}
+
+/* ===== hojas ===== */
+function vSheetCrearHogar(){
+  return '<div class="veil" data-a="cerrar"><div class="sheet" onclick="event.stopPropagation()">'+
+   '<h3>Crear un Hogar</h3>'+
+   '<div class="f"><label>Nombre</label><input class="inp" id="fHogarNombre" placeholder="Ej. La casa, La familia..."></div>'+
+   '<div class="f" style="margin-bottom:0"><label>Invita a alguien (opcional, puedes hacerlo después)</label>'+
+   '<input class="inp" id="fHogarCorreo" placeholder="correo@ejemplo.com"></div>'+
+   '<button class="btn block" data-a="guardarHogar" style="margin-top:16px">Crear Hogar</button></div></div>'
+}
+function vSheetInvitar(){
+  return '<div class="veil" data-a="cerrar"><div class="sheet" onclick="event.stopPropagation()">'+
+   '<h3>Invitar a alguien</h3>'+
+   '<div class="f"><label>Correo de la persona</label><input class="inp" id="fInvCorreo" placeholder="correo@ejemplo.com"></div>'+
+   '<p class="s" style="margin-bottom:14px">Cuando entre a la app con ese correo, va a ver la invitación esperándola en su bandeja.</p>'+
+   '<button class="btn block" data-a="guardarInvitacion">Enviar invitación</button></div></div>'
+}
+function vSheetMov(){
+  return '<div class="veil" data-a="cerrar"><div class="sheet" onclick="event.stopPropagation()">'+
+   '<h3>Nuevo movimiento</h3>'+
+   '<div class="f"><label>Tipo</label><div style="display:flex;gap:8px">'+
+   '<button class="btn ghost sm" data-a="tipoMov" data-v="gasto" aria-pressed="'+(F.tipo!=='ingreso')+'">Gasto</button>'+
+   '<button class="btn ghost sm" data-a="tipoMov" data-v="ingreso" aria-pressed="'+(F.tipo==='ingreso')+'">Ingreso</button></div></div>'+
+   '<div class="f"><label>Monto</label><input class="inp" id="fMonto" inputmode="numeric" placeholder="0"></div>'+
+   '<div class="f" style="margin-bottom:0"><label>Descripción</label><input class="inp" id="fDesc" placeholder="Ej. Mercado del mes"></div>'+
+   '<button class="btn block" data-a="guardarMov" style="margin-top:16px">Guardar</button></div></div>'
+}
+function vSheetPrestamo(){
+  var mm=CACHE.miembros, me=miUid();
+  var h='<div class="veil" data-a="cerrar"><div class="sheet" onclick="event.stopPropagation()">'+
+   '<h3>Registrar un préstamo</h3><div class="f"><label>¿Quién prestó?</label><select class="inp" id="fDe">';
+  mm.forEach(function(m){h+='<option value="'+m.usuarioId+'"'+(m.usuarioId===me?' selected':'')+'>'+esc(m.nombre)+'</option>'});
+  h+='</select></div><div class="f"><label>¿A quién?</label><select class="inp" id="fPara">';
+  mm.forEach(function(m){h+='<option value="'+m.usuarioId+'"'+(m.usuarioId!==me?' selected':'')+'>'+esc(m.nombre)+'</option>'});
+  h+='</select></div><div class="f"><label>Monto</label><input class="inp" id="fPMonto" inputmode="numeric" placeholder="0"></div>'+
+   '<div class="f" style="margin-bottom:0"><label>Motivo (opcional)</label><input class="inp" id="fPMotivo" placeholder="Ej. Mercado, arriendo..."></div>'+
+   '<button class="btn block" data-a="guardarPrestamo" style="margin-top:16px">Guardar préstamo</button></div></div>';
+  return h
+}
+function vMenuPerfil(){
+  var p=CACHE.perfil||{};
+  return '<div class="veil" data-a="cerrar"><div class="sheet" onclick="event.stopPropagation()">'+
+   '<h3>'+esc(p.nombre)+'</h3><p class="s" style="margin:-10px 0 16px">'+esc(p.correo)+'</p>'+
+   '<button class="btn danger block" data-a="salir">Cerrar sesión</button></div></div>'
+}
+
+/* ============================================================
+   render + eventos
+   ============================================================ */
+function render(){
+  var root=document.getElementById('root'), modal=document.getElementById('modal');
+  if(!nubeLista()){root.innerHTML=vConexion()}
+  else if(!autenticado()){root.innerHTML=vLogin()}
+  else if(VIEW==='invitaciones')root.innerHTML=vInvitaciones();
+  else if(VIEW==='personal'||VIEW==='hogar')root.innerHTML=vEspacio();
+  else root.innerHTML=vPortal();
+  var m='';
+  if(SHEET==='crearHogar')m=vSheetCrearHogar();
+  else if(SHEET==='invitar')m=vSheetInvitar();
+  else if(SHEET==='mov')m=vSheetMov();
+  else if(SHEET==='prestamo')m=vSheetPrestamo();
+  else if(SHEET==='menuPerfil')m=vMenuPerfil();
+  modal.innerHTML=m;
+}
+
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-a]'); if(!t)return;
+  var a=t.dataset.a, v=t.dataset.v, id=t.dataset.id, tipo=t.dataset.tipo, espDeInv=t.dataset.esp;
+  ESTADO.error='';
+
+  if(a==='guardarConexion'){
+    NUBE.url=document.getElementById('fUrl').value.trim();
+    NUBE.key=document.getElementById('fKey').value.trim();
+    nubeGuardar();render();return}
+  if(a==='reconfigurar'){NUBE.url='';NUBE.key='';nubeGuardar();render();return}
+  if(a==='enviarEnlace'){
+    var correo=document.getElementById('fCorreo').value.trim();
+    if(correo)enviarEnlace(correo);return}
+  if(a==='reintentarEnvio'){ESTADO.enviado=false;render();return}
+  if(a==='salir'){salir();return}
+  if(a==='cerrar'&&e.target===t){SHEET=null;render();return}
+  if(a==='menuPerfil'){SHEET='menuPerfil';render();return}
+  if(a==='volverPortal'){VIEW='portal';SHEET=null;cargarPortal();return}
+  if(a==='verInvitaciones'){VIEW='invitaciones';render();return}
+  if(a==='abrirEspacio'){abrirEspacio(id,tipo);return}
+  if(a==='tab'){TAB=v;render();return}
+  if(a==='crearHogar'){SHEET='crearHogar';render();return}
+  if(a==='guardarHogar'){
+    var nombre=document.getElementById('fHogarNombre').value.trim()||'Hogar';
+    var correo2=document.getElementById('fHogarCorreo').value.trim();
+    api('/rest/v1/espacios',{method:'POST',headers:{'Prefer':'return=representation'},
+      body:JSON.stringify({tipo:'hogar',nombre:nombre})})
+     .then(function(r){var espId=r[0].id;
+       return api('/rest/v1/miembros_espacio?on_conflict=espacio_id,usuario_id',{method:'POST',
+         headers:{'Prefer':'resolution=merge-duplicates'},
+         body:JSON.stringify({espacio_id:espId,usuario_id:miUid(),rol:'propietario',estado:'activo'})})
+        .then(function(){
+          if(correo2)return api('/rest/v1/invitaciones',{method:'POST',
+            body:JSON.stringify({espacio_id:espId,de_usuario_id:miUid(),para_correo:correo2})});
+        }).then(function(){return espId})
+     })
+     .then(function(espId){SHEET=null;return cargarEspacios().then(function(){abrirEspacio(espId,'hogar')})})
+     .catch(function(e){ESTADO.error=String(e.message||e);SHEET=null;render()});
+    return}
+  if(a==='invitarAHogar'){SHEET='invitar';render();return}
+  if(a==='guardarInvitacion'){
+    var correo3=document.getElementById('fInvCorreo').value.trim();
+    if(!correo3){SHEET=null;render();return}
+    api('/rest/v1/invitaciones',{method:'POST',
+      body:JSON.stringify({espacio_id:ESP_ID,de_usuario_id:miUid(),para_correo:correo3})})
+     .then(function(){SHEET=null;render()})
+     .catch(function(e){ESTADO.error=String(e.message||e);render()});
+    return}
+  if(a==='aceptarInv'){
+    api('/rest/v1/miembros_espacio?on_conflict=espacio_id,usuario_id',{method:'POST',
+      headers:{'Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify({espacio_id:espDeInv,usuario_id:miUid(),rol:'miembro',estado:'activo'})})
+     .then(function(){return api('/rest/v1/invitaciones?id=eq.'+id,{method:'PATCH',body:JSON.stringify({estado:'aceptada'})})})
+     .then(function(){return cargarInvitaciones()})
+     .then(function(){abrirEspacio(espDeInv,'hogar')})
+     .catch(function(e){ESTADO.error=String(e.message||e);render()});
+    return}
+  if(a==='rechazarInv'){
+    api('/rest/v1/invitaciones?id=eq.'+id,{method:'PATCH',body:JSON.stringify({estado:'rechazada'})})
+     .then(function(){return cargarInvitaciones()}).then(render);
+    return}
+  if(a==='nuevoMov'){F={tipo:'gasto'};SHEET='mov';render();return}
+  if(a==='tipoMov'){F.tipo=v;render();return}
+  if(a==='guardarMov'){
+    var monto=Number((document.getElementById('fMonto').value||'').replace(/\D/g,''))||0;
+    var desc=document.getElementById('fDesc').value.trim()||'Sin descripción';
+    if(monto<=0){SHEET=null;render();return}
+    api('/rest/v1/movimientos',{method:'POST',body:JSON.stringify({
+      espacio_id:ESP_ID,usuario_id:miUid(),tipo:F.tipo||'gasto',monto:monto,descripcion:desc})})
+     .then(function(){return cargarMovs(ESP_ID)})
+     .then(function(){SHEET=null;render()})
+     .catch(function(e){ESTADO.error=String(e.message||e);render()});
+    return}
+  if(a==='nuevoPrestamo'){SHEET='prestamo';render();return}
+  if(a==='guardarPrestamo'){
+    var de=document.getElementById('fDe').value, para=document.getElementById('fPara').value;
+    var monto2=Number((document.getElementById('fPMonto').value||'').replace(/\D/g,''))||0;
+    var motivo=document.getElementById('fPMotivo').value.trim();
+    if(monto2<=0||de===para){SHEET=null;render();return}
+    api('/rest/v1/prestamos_internos',{method:'POST',body:JSON.stringify({
+      espacio_id:ESP_ID,de_usuario_id:de,para_usuario_id:para,monto:monto2,motivo:motivo})})
+     .then(function(){return cargarPrestamos(ESP_ID)})
+     .then(function(){SHEET=null;render()})
+     .catch(function(e){ESTADO.error=String(e.message||e);render()});
+    return}
+  if(a==='salirHogar'){
+    if(!confirm('¿Seguro que quieres salir de este Hogar? Ya no vas a ver sus movimientos ni sus préstamos.'))return;
+    api('/rest/v1/miembros_espacio?espacio_id=eq.'+ESP_ID+'&usuario_id=eq.'+miUid(),
+      {method:'PATCH',body:JSON.stringify({estado:'salio'})})
+     .then(function(){VIEW='portal';cargarPortal()})
+     .catch(function(e){ESTADO.error=String(e.message||e);render()});
+    return}
+});
+
+/* ============================================================
+   arranque
+   ============================================================ */
+capturarSesion();
+if(autenticado())cargarPortal();else render();
+</script>
+</body>
+</html>
