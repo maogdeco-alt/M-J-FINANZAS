@@ -566,7 +566,8 @@ function VACIO(){return{v:3,personas:{a:'M',b:'J'},pins:{a:null,b:null},reparto:
            {id:uid(),nombre:'Ahorros',bloque:'a',tipo:'ahorros',saldoInicial:0,reserva:false},
            {id:uid(),nombre:'Cuenta corriente',bloque:'b',tipo:'corriente',saldoInicial:0,reserva:false},
            {id:uid(),nombre:'Ahorros',bloque:'b',tipo:'ahorros',saldoInicial:0,reserva:false}],
-  fijos:[],deudas:[],movs:[],metas:[],activos:[],notas:[],proyectos:[],pendientes:[],base:[]}}
+  fijos:[],deudas:[],movs:[],metas:[],activos:[],notas:[],proyectos:[],pendientes:[],base:[],
+  visitas:{},abrioContable:false}}
 
 function migrar(d){
   if(!d)return null;
@@ -578,6 +579,8 @@ function migrar(d){
   ['metas','activos','notas','cuentas','fijos','deudas','movs','proyectos','pendientes','base'].forEach(function(k){if(!d[k])d[k]=[]});
   if(!d.pins)d.pins={a:null,b:null};
   if(!d.reparto)d.reparto={a:50,b:50};
+  if(!d.visitas)d.visitas={};
+  if(d.abrioContable===undefined)d.abrioContable=false;
   if(d.v<3){
     d.cuentas.forEach(function(c){if(c.reserva===undefined)c.reserva=false});
     d.fijos.forEach(function(f){if(f.esencial===undefined)f.esencial=true});
@@ -1057,12 +1060,17 @@ function revisarAlertas(){
 
 /* ===== capa de juego: racha, nivel y medallas ===== */
 var NIVELES=['Aprendiz','Ordenado','Constante','Estratega','Dueño del cuento','Maestro'];
-function juego(c){
-  var dias={};
-  D.movs.filter(function(m){return viva(m)&&!m.ajuste}).forEach(function(m){dias[m.fecha]=1});
+function rachaDesde(dias){
   var racha=0, d=new Date(HOY);
   if(!dias[toISO(d)])d.setDate(d.getDate()-1);
   while(dias[toISO(d)]&&racha<400){racha++;d.setDate(d.getDate()-1)}
+  return racha
+}
+function juego(c){
+  var dias={};
+  D.movs.filter(function(m){return viva(m)&&!m.ajuste}).forEach(function(m){dias[m.fecha]=1});
+  var racha=rachaDesde(dias);
+  var rachaMirar=rachaDesde(D.visitas||{});
   var pagados=0;D.fijos.forEach(function(f){for(var k in (f.pagos||{}))if(f.pagos[k])pagados++});
   var abonos=D.movs.filter(function(m){return m.metaId&&viva(m)}).length;
   var conc=D.movs.filter(function(m){return m.ajuste}).length;
@@ -1079,10 +1087,26 @@ function juego(c){
    ['🏦','Libre','Saldaste una deuda por completo',D.deudas.some(function(x){return x.saldo<=0})],
    ['🛡️','Con colchón','Tienes plata congelada de reserva',c.reserva>0],
    ['📈','En verde','Cerraste el mes con saldo a favor',c.queda>0&&HOY.getDate()>20],
-   ['🧾','Ordenada','Etiquetaste algo para la renta',Object.keys(c.renta).length>0]];
-  return {racha:racha,pts:pts,nivel:nivel,nombre:NIVELES[nivel-1],
+   ['🧾','Ordenada','Etiquetaste algo para la renta',Object.keys(c.renta).length>0],
+   ['👀','Sin miedo','Entraste 3 días seguidos solo a mirar',rachaMirar>=3],
+   ['🔓','Te animaste','Abriste la Zona contable por primera vez',!!D.abrioContable]];
+  return {racha:racha,rachaMirar:rachaMirar,pts:pts,nivel:nivel,nombre:NIVELES[nivel-1],
     prog:pct(pts-previo,sigue-previo),faltan:Math.max(0,sigue-pts),medallas:medallas,
     ganadas:medallas.filter(function(m){return m[3]}).length}
+}
+/* Chanchi: no mide si la plata está bien o mal, solo si volviste a mirar.
+   La idea es que revisar las cuentas nunca se sienta como un examen. */
+function chanchi(rachaMirar){
+  if(rachaMirar<=0)return{e:'😴',t:'Chanchi está dormido',m:'Ábreme aunque sea solo a mirar, sin anotar nada. Eso ya cuenta.'};
+  if(rachaMirar<3)return{e:'🙂',t:'Chanchi te saluda',m:'Viniste. Eso ya es más de lo que hace la mayoría.'};
+  if(rachaMirar<7)return{e:'😊',t:'Chanchi está contento',m:'Ya casi es costumbre mirar tus cuentas sin miedo.'};
+  if(rachaMirar<30)return{e:'🔥',t:'Chanchi está que arde',m:rachaMirar+' días seguidos mirando de frente tu plata.'};
+  return{e:'🌟',t:'Chanchi brilla',m:'Un mes entero sin esconderte de tus cuentas. Esto ya es tuyo.'}
+}
+function marcarVisita(){
+  var hoy=toISO(HOY);
+  if(!D.visitas)D.visitas={};
+  if(!D.visitas[hoy]){D.visitas[hoy]=true;save(D)}
 }
 
 /* ===== piezas ===== */
@@ -1179,11 +1203,16 @@ function vInicio(c){
      c.autonomiaCol.toFixed(1).replace('.',',')+' meses</div>':'')+
    regla(c.autonomia,'Cobertura de '+ANIO+' con lo libre')+'</div>';
 
+  var ch=chanchi(juego(c).rachaMirar);
+  h+='<div class="card" style="margin-top:12px;display:flex;align-items:center;gap:13px">'+
+   '<div style="font-size:30px;line-height:1">🐷'+ch.e+'</div>'+
+   '<div class="grow"><h3 style="margin-bottom:2px">'+esc(ch.t)+'</h3><p class="sub" style="margin:0">'+esc(ch.m)+'</p></div></div>';
+
   var listo={saldo:c.disponible!==0,fijos:c.fijos.length>0,movs:c.movs.length>0,meta:c.metas.length>0};
   var hechos=(listo.saldo?1:0)+(listo.fijos?1:0)+(listo.movs?1:0)+(listo.meta?1:0);
   if(hechos<4&&!D.guiaOculta){
     h+='<div class="guia"><div class="gtop"><div><div class="gt">🚀 Primeros pasos</div>'+
-     '<div class="gs">'+hechos+' de 4 · en 10 minutos queda lista</div></div>'+
+     '<div class="gs">'+hechos+' de 4 · en 10 minutos queda lista, y ya sabes cuánto entra y cuánto sale antes de que se te olvide</div></div>'+
      '<button class="gx" data-a="ocultarguia">✕</button></div>'+
      '<div class="bar"><i style="width:'+(hechos/4*100)+'%"></i></div>'+
      [['saldo',listo.saldo,'💳','Pon cuánta plata tienes hoy','plata:cuentas'],
@@ -1835,7 +1864,9 @@ function vContable(c){
   var h='<div class="screen"><div class="cabecera"><h2 class="dsp">🧾 Zona contable</h2>'+
    '<p>Lo técnico, en una sola caja. Esto es lo que le pasas a tu contadora.</p></div>'+
    '<div class="note" style="margin-bottom:14px">No necesitas entrar aquí para usar la app. Todo lo de esta sección '+
-   'es para cuadrar con el banco o para la declaración de renta.</div>'+
+   'es para cuadrar con el banco o para la declaración de renta — ese trámite anual con la DIAN que mucha gente '+
+   'nunca supo que le tocaba. Si ganaste o gastaste ciertos montos en el año, puede que te toque, y aquí ya vas a '+
+   'tener casi todo organizado sin haber hecho nada extra.</div>'+
    '<div class="cajones">'+
    [['renta','🧾','Renta '+ANIO,'Lo etiquetado del año y descarga en CSV'],
     ['base','🏛️','Punto de partida','Las cinco casillas del Formulario 210'],
@@ -2484,7 +2515,9 @@ document.addEventListener('click',function(e){
   if(a==='ftipo'){FTIPO=v;render();return}
   if(a==='atipo'){ATIPO=v;render();return}
   if(a==='ames'){AMES=v;render();return}
-  if(a==='ir'){var pr=v.split(':');TAB=pr[0];SUB=pr[1]||'';SHEET=null;F={};render();return}
+  if(a==='ir'){var pr=v.split(':');TAB=pr[0];SUB=pr[1]||'';SHEET=null;F={};
+    if(pr[0]==='contable'&&!D.abrioContable){D.abrioContable=true;save(D)}
+    render();return}
   if(a==='sub'){SUB=v;render();return}
   if(a==='fmas'){F.__mas=!F.__mas;render();return}
   if(a==='fset'){F[el.dataset.k]=v;
@@ -2774,6 +2807,7 @@ var entro=capturarSesion();
 setInterval(function(){if(conectado()&&!SHEET&&VIEW!=='pin')traerHogar()},20000);
 load(function(d){
   D=migrar(d)||VACIO();
+  marcarVisita();
   render();
   setTimeout(revisarAlertas,1200);
   if(nubeLista()&&NUBE.token){TAB=entro?'nube':TAB;setTimeout(traerHogar,300)}
