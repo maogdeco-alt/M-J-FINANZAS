@@ -135,7 +135,37 @@ de menor fricción es:
 3. Notificaciones push (para invitaciones y avisos de pago) vía Supabase + un servicio como
    FCM/APNs, integrable después de tener la app empacada con Capacitor.
 
-## 6. Preguntas abiertas para definir el siguiente paso
+## 6. Ajuste de enfoque: "CASA" para familias desordenadas, no solo parejas
+
+Precisión importante sobre el propósito del producto: no es una app "para expertos en
+finanzas", es una app para **crear cultura financiera dentro de la familia** — pareja, o
+grupos de 3+ personas (ej. hermanos, roommates, papá/mamá con hijos adultos) que conviven o
+comparten gastos con desorden. Esto ajusta el modelo de la sección 2 así:
+
+- El espacio compartido se llama **"CASA"** en el producto (no "espacio compartido" a
+  secas). Es el nombre visible que ven todos sus miembros, sin importar si son 2 o más
+  personas.
+- `espacios.tipo='compartido'` **no** se limita a 2 miembros — `miembros_espacio` ya es una
+  tabla N:M, así que una CASA admite 2, 3 o más personas desde el mismo diseño, sin cambios
+  de esquema.
+- **Préstamos entre miembros / "cruzar cuentas"** es una funcionalidad nueva, propia de
+  CASA, distinta al reparto de gastos fijos que ya existía en el prototipo (`D.reparto`):
+  - Tabla `prestamos_internos`: `espacio_id`, `de_usuario_id`, `para_usuario_id`, `monto`,
+    `motivo`, `fecha`, `estado` (`pendiente`\|`saldado`\|`parcial`), `movimientos de abono`
+    (pagos parciales).
+  - Se refleja en un **"saldo entre nosotros"** por par de miembros dentro de la CASA (igual
+    en espíritu a la pantalla "Entre nosotros" que ya existe en el prototipo para A/B, pero
+    generalizada a cualquier par de miembros, no solo dos fijos).
+  - Pensado para lenguaje simple, no contable: "Juan le debe a Mao $120.000 del mercado del
+    5 de agosto" en vez de partidas dobles o jerga financiera.
+- El lenguaje de toda la CASA debe seguir esa lógica de "cultura financiera para todos", no
+  de experto: nombres de pantalla como "Entre nosotros", "Le prestaste a...", "Le debes
+  a...", evitando términos como "cuenta por cobrar" o "pasivo".
+
+Esto no cambia el esquema propuesto en la sección 2/3, solo lo confirma y agrega una tabla
+(`prestamos_internos`) para el cruce de cuentas informal entre miembros de una misma CASA.
+
+## 7. Preguntas abiertas para definir el siguiente paso
 
 1. **Invitación**: ¿por correo (como ya usa `enviarEnlace`), por buscar nombre de usuario, o
    por link/código compartible? ¿O varias opciones a la vez?
