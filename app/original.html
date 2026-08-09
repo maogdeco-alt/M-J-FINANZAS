@@ -1022,6 +1022,21 @@ function cerrarSesion(){
   guardarSesion();MIS_ESPACIOS=[];ESPACIO_ACTUAL=null;D=null;VIEW='portal';render()
 }
 
+/* Abre el token (JWT) y muestra qué trae por dentro — sin esto, no hay
+   forma de saber desde aquí si el problema es que la sesión no trae lo que
+   debería, o si Supabase la está rechazando a pesar de venir bien. */
+function decodeJWT(token){
+  try{
+    var p=token.split('.')[1];
+    p=p.replace(/-/g,'+').replace(/_/g,'/');
+    while(p.length%4)p+='=';
+    var j=JSON.parse(atob(p));
+    return 'role='+(j.role||'—')+' sub='+(j.sub?j.sub.slice(0,8)+'…':'—')+
+      ' aud='+(j.aud||'—')+' exp='+(j.exp?new Date(j.exp*1000).toLocaleTimeString():'—')+
+      ' (ahora: '+new Date().toLocaleTimeString()+')'
+  }catch(e){return 'no se pudo leer el token: '+e.message}
+}
+
 /* ===== espacios: tu cuenta personal + las Casas a las que perteneces ===== */
 /* Revisa toda respuesta de la nube: si algo falló, arma un mensaje de error
    legible (con el código y el motivo real que dio Supabase) en vez de
@@ -2842,8 +2857,7 @@ document.addEventListener('click',function(e){
       SESION.estado='ok';CODIGO_NUEVO=res.codigo;
       return cargarMisEspacios()
     }).then(function(){render()}).catch(function(e){SESION.estado='error';
-      SESION.error=String(e.message||e)+' [sesión: token='+(SESION.token?'sí('+SESION.token.length+')':'no')+
-        ', usuario='+(SESION.usuarioId?'sí':'no')+']';render()});
+      SESION.error=String(e.message||e)+' [JWT: '+(SESION.token?decodeJWT(SESION.token):'no hay token')+']';render()});
     return}
   if(a==='hacerunirse'){
     var codVal=(document.getElementById('fCodigo')||{}).value||'';
