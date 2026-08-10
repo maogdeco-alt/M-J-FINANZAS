@@ -13,18 +13,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
-  /* Paleta de taller de despacho: papel crudo, tinta cálida, verde
-     petróleo (overol de mecánico) como color de marca — evita el
-     crema+serif+terracota que ya se ve en todas partes. El rojo/ámbar
-     quedan reservados para estados (mora/por vencer), nunca para marca. */
+  /* Un solo acento vibrante e intencionado (bermellón de faro trasero /
+     chaleco de mecánico) reservado para marca y CTA — nunca para estado.
+     Los semánticos (rojo mora / ámbar por vencer / verde al día) quedan
+     libres de hue propio, sin competir con la marca. Sombras difusas para
+     que las superficies floten en vez de vivir pegadas al fondo. */
   --negro:#1B1812; --gris:#8C8271; --gris2:#5B5344; --linea:#E3DECE;
   --papel:#F1EEE3; --papel-2:#E8E3D3; --hueso:#FFFFFF; --fondo-input:#F8F6EE;
-  --acento:#1C6B51; --acento-ink:#124A38; --acento-suave:#E1EDE6;
+  --acento:#DD4B22; --acento-2:#B93A18; --acento-ink:#8A2C12; --acento-suave:#FBE4D8;
   --bronce:#96702E; --bronce-suave:#F1E7D1;
   --rojo:#9B3324; --rojo-suave:#F4E6DF;
   --ambar:#8C5A0C; --ambar-suave:#F3E7CD;
-  --verde:#1C6B51; --verde-suave:#E1EDE6;
+  --verde:#1F7A4F; --verde-suave:#E1EEE5;
   --r:10px; --r-sm:6px;
+  --sombra-sm:0 1px 2px rgba(27,20,14,.07);
+  --sombra-md:0 14px 28px -10px rgba(27,20,14,.20),0 2px 6px rgba(27,20,14,.06);
+  --sombra-lg:0 28px 56px -16px rgba(27,20,14,.28),0 6px 16px rgba(27,20,14,.09);
   --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
   --disp:'Fraunces','IBM Plex Sans',Georgia,serif;
   --mono:'IBM Plex Mono',ui-monospace,'SF Mono',monospace;
@@ -54,11 +58,14 @@ hr{border:0;border-top:1px solid var(--linea);margin:18px 0}
   display:flex;flex-direction:column;background:var(--hueso);overflow-y:auto;
 }
 .brand{padding:0 18px 24px;display:flex;align-items:center;gap:11px}
+.icono{display:inline-flex;flex:0 0 auto}
+.icono svg{width:100%;height:100%;display:block}
 .brand .seal{
   width:38px;height:38px;border-radius:50%;background:var(--negro);color:var(--papel);
-  display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 38px;
+  display:flex;align-items:center;justify-content:center;flex:0 0 38px;
   box-shadow:0 0 0 3px var(--hueso),0 0 0 4px var(--linea);
 }
+.brand .seal .icono{width:19px;height:19px}
 .brand .tx{min-width:0}
 .brand .mark{font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:-.015em;line-height:1.1;display:block}
 .brand .mark i{font-style:normal;color:var(--gris);padding:0 1px}
@@ -69,10 +76,10 @@ hr{border:0;border-top:1px solid var(--linea);margin:18px 0}
   padding:10px 12px;color:var(--gris2);font-size:13.5px;font-weight:500;letter-spacing:-.002em;
   display:flex;align-items:center;gap:11px;transition:background .14s,color .14s
 }
-.nav button .ic{font-size:15px;flex:0 0 auto;opacity:.85}
+.nav button .icono{width:17px;height:17px;opacity:.8}
+.nav button[aria-current="page"] .icono{opacity:1}
 .nav button:hover{background:var(--papel-2)}
 .nav button[aria-current="page"]{background:var(--negro);color:var(--papel);font-weight:600}
-.nav button[aria-current="page"] .ic{opacity:1}
 .rail-foot{margin-top:auto;padding:14px 12px 0}
 .rail-sep{border-top:1px solid var(--linea);margin:6px 12px 10px}
 .rail-btn{
@@ -92,7 +99,8 @@ hr{border:0;border-top:1px solid var(--linea);margin:18px 0}
 .topbar{display:none}
 
 /* ---------- type ---------- */
-h1{font-weight:600;font-size:29px;margin:0;letter-spacing:-.02em}
+h1{font-weight:600;font-size:31px;margin:0;letter-spacing:-.02em;display:flex;align-items:center;gap:12px}
+h1 .icono{width:26px;height:26px;color:var(--acento);flex:0 0 auto}
 h2{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--gris);margin:0 0 12px;font-weight:600;font-family:var(--sans)}
 h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(--gris);margin-right:8px;vertical-align:middle;opacity:.6}
 .eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);font-weight:600}
@@ -101,29 +109,54 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .section{margin-bottom:34px}
 
 /* ---------- Hoy: parte diario ---------- */
+.hoy-grid{display:grid;grid-template-columns:1.7fr 1fr;gap:22px;align-items:start;margin-bottom:26px}
+@media(max-width:900px){.hoy-grid{grid-template-columns:1fr}}
+
+/* el hero: el único ítem más urgente (o la calma), grande y aparte del resto */
+.hero-hoy{
+  border-radius:14px;padding:26px 28px;margin-bottom:14px;box-shadow:var(--sombra-lg);
+  position:relative;overflow:hidden;isolation:isolate;animation:heroIn .45s cubic-bezier(.22,.8,.32,1) both
+}
+@keyframes heroIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@keyframes rowIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.hero-hoy::after{
+  content:'';position:absolute;inset:0;z-index:-1;opacity:.9;
+  background:linear-gradient(135deg,var(--tinte,var(--acento-suave)) 0%,var(--hueso) 78%)
+}
+.hero-hoy.mora{--tinte:var(--rojo-suave)}
+.hero-hoy.due{--tinte:var(--ambar-suave)}
+.hero-hoy .eyebrow2{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--acento-2)}
+.hero-hoy.mora .eyebrow2{color:var(--rojo)}
+.hero-hoy.due .eyebrow2{color:var(--ambar)}
+.hero-hoy .titular{font-family:var(--disp);font-weight:600;font-size:27px;letter-spacing:-.015em;margin:9px 0 5px;line-height:1.22;text-wrap:balance}
+.hero-hoy .sub{font-size:12.5px;color:var(--gris2);font-weight:500}
+
 .hoy-vacio{
   background:var(--acento-suave);color:var(--acento-ink);border-radius:var(--r);
   padding:15px 18px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:10px
 }
-.hoy-feed{background:var(--hueso);border:1px solid var(--linea);border-radius:var(--r);overflow:hidden}
-.hoy-item{display:flex;align-items:baseline;gap:13px;padding:14px 18px;border-bottom:1px solid var(--linea);font-size:14.5px;line-height:1.55}
+.hoy-feed{background:var(--hueso);border:1px solid var(--linea);border-radius:var(--r);overflow:hidden;box-shadow:var(--sombra-sm)}
+.hoy-item{display:flex;align-items:baseline;gap:13px;padding:13px 18px;border-bottom:1px solid var(--linea);font-size:13.5px;line-height:1.5;animation:rowIn .3s ease both}
+.hoy-item:nth-child(1){animation-delay:.03s}.hoy-item:nth-child(2){animation-delay:.07s}
+.hoy-item:nth-child(3){animation-delay:.11s}.hoy-item:nth-child(4){animation-delay:.15s}
+.hoy-item:nth-child(5){animation-delay:.19s}.hoy-item:nth-child(n+6){animation-delay:.22s}
 .hoy-item:last-child{border-bottom:0}
 .hoy-item .punto{width:6px;height:6px;border-radius:50%;background:var(--linea);flex:0 0 6px;align-self:center}
 .hoy-item.mora .punto{background:var(--rojo)}
 .hoy-item.due .punto{background:var(--ambar)}
 .hoy-item .frase{flex:1;min-width:0;color:var(--gris2)}
 .hoy-item .frase b{color:var(--negro);font-weight:600}
-.hoy-item .frase .cif{font-family:var(--mono);font-weight:600;color:var(--negro)}
-.hoy-item.mora .frase .cif{color:var(--rojo)}
-.hoy-item.due .frase .cif{color:var(--ambar)}
-.hoy-item .cuando{flex:0 0 auto;font-size:11px;font-weight:600;letter-spacing:.03em;white-space:nowrap;color:var(--gris)}
+.cif{font-family:var(--mono);font-weight:600;color:var(--negro)}
+.cif.mora{color:var(--rojo)}
+.cif.due{color:var(--ambar)}
+.hoy-item .cuando{flex:0 0 auto;font-size:10.5px;font-weight:600;letter-spacing:.03em;white-space:nowrap;color:var(--gris)}
 .hoy-item.mora .cuando{color:var(--rojo)}
 .hoy-item.due .cuando{color:var(--ambar)}
 
 /* ---------- sentence form (signature) ---------- */
 .compose{
   border:1px solid var(--linea);background:var(--hueso);border-radius:var(--r);
-  padding:22px 24px;margin-bottom:26px
+  padding:22px 24px;margin-bottom:26px;box-shadow:var(--sombra-sm)
 }
 .compose .eyebrow{margin-bottom:8px;display:block}
 .compose .lead{
@@ -155,15 +188,18 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 
 /* ---------- buttons ---------- */
 .btn{
-  background:var(--negro);color:#fff;border:0;border-radius:999px;
+  background:linear-gradient(178deg,#242019,var(--negro));color:#fff;border:0;border-radius:999px;
   padding:11px 22px;cursor:pointer;font-size:13.5px;font-weight:600;letter-spacing:-.005em;
-  transition:opacity .14s,transform .05s;display:inline-flex;align-items:center;gap:7px
+  transition:box-shadow .16s ease,transform .12s ease;display:inline-flex;align-items:center;gap:7px;
+  box-shadow:var(--sombra-sm)
 }
-.btn:hover{opacity:.85}
-.btn:active{transform:scale(.98)}
+.btn:hover{box-shadow:var(--sombra-md);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.97)}
+@media(prefers-reduced-motion:reduce){.btn:hover,.btn:active{transform:none}}
 .btn.ghost{background:#fff;color:var(--negro);box-shadow:inset 0 0 0 1.5px var(--linea)}
-.btn.ghost:hover{box-shadow:inset 0 0 0 1.5px var(--negro);opacity:1}
-.btn.acento{background:var(--acento)}
+.btn.ghost:hover{box-shadow:inset 0 0 0 1.5px var(--negro),var(--sombra-sm)}
+.btn.acento{background:linear-gradient(178deg,var(--acento),var(--acento-2));box-shadow:var(--sombra-sm),0 0 0 1px rgba(221,75,34,.18)}
+.btn.acento:hover{box-shadow:var(--sombra-md),0 0 0 1px rgba(221,75,34,.24)}
 .btn.danger{background:var(--rojo)}
 .btn.sm{padding:7px 15px;font-size:12px}
 .btn.block{width:100%;justify-content:center}
@@ -171,7 +207,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .linkbtn{background:none;border:0;color:var(--acento);cursor:pointer;font-size:13px;font-weight:600;padding:4px 0;text-decoration:underline}
 
 /* ---------- resumen (estado de cuenta, no tarjetas sueltas) ---------- */
-.resumen{border:1px solid var(--linea);border-radius:var(--r);background:var(--hueso);padding:24px 26px}
+.resumen{border:1px solid var(--linea);border-radius:var(--r);background:var(--hueso);padding:24px 26px;box-shadow:var(--sombra-sm)}
 .resumen .hero{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;padding-bottom:20px;margin-bottom:18px;border-bottom:1px solid var(--linea)}
 .resumen .hero .num{font-family:var(--mono);font-weight:600;font-size:42px;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .resumen .hero .num.neg{color:var(--rojo)}
@@ -186,9 +222,20 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .resumen .item .val.neg{color:var(--rojo)}
 .resumen .item .note{font-size:10.5px;color:var(--gris);margin-top:2px}
 @media(max-width:600px){.resumen .item{flex:1 1 42%;border-left:0;padding-left:0}}
+/* variante angosta: para la columna lateral del Tablero — todo se apila
+   como una cuenta/recibo en vez de un renglón horizontal */
+.resumen.lateral .hero{flex-direction:column;align-items:flex-start;padding-bottom:16px;margin-bottom:14px}
+.resumen.lateral .hero .num{font-size:33px}
+.resumen.lateral .fila{flex-direction:column;gap:0}
+.resumen.lateral .item{flex:none;border-left:0;padding:9px 0;border-bottom:1px solid var(--linea);
+  display:flex;align-items:center;justify-content:space-between;gap:10px}
+.resumen.lateral .item:first-child{padding-top:0}
+.resumen.lateral .item:last-child{border-bottom:0;padding-bottom:0}
+.resumen.lateral .item .val{margin-top:0;font-size:15px}
+.resumen.lateral .item .note{display:none}
 
 /* ---------- ledger ---------- */
-.ledger-wrap{border:1px solid var(--linea);border-radius:var(--r);background:var(--hueso);overflow-x:auto}
+.ledger-wrap{border:1px solid var(--linea);border-radius:var(--r);background:var(--hueso);overflow-x:auto;box-shadow:var(--sombra-sm)}
 .ledger{width:100%;border-collapse:collapse;font-size:13.5px}
 .ledger th{
   text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
@@ -227,7 +274,12 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 
 /* ---------- forms / cards ---------- */
 .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:14px}
-.card{border:1px solid var(--linea);background:var(--hueso);padding:18px 20px;border-radius:var(--r)}
+.card{
+  border:1px solid var(--linea);background:var(--hueso);padding:18px 20px;border-radius:var(--r);
+  box-shadow:var(--sombra-sm);transition:box-shadow .18s ease,transform .18s ease
+}
+.card:hover{box-shadow:var(--sombra-md);transform:translateY(-2px)}
+@media(prefers-reduced-motion:reduce){.card:hover{transform:none}}
 .card h3{font-weight:700;font-size:18px;margin:0 0 3px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .card .meta{font-size:12.5px;color:var(--gris);font-weight:500}
 .card .figs{display:flex;gap:20px;margin-top:14px;padding-top:14px;border-top:1px solid var(--linea)}
@@ -235,7 +287,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .card .fig .v{font-family:var(--mono);font-size:16px;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500}
 .card .acts{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
 
-.form{border:1px solid var(--linea);background:var(--hueso);padding:20px 22px;margin-bottom:22px;border-radius:var(--r)}
+.form{border:1px solid var(--linea);background:var(--hueso);padding:20px 22px;margin-bottom:22px;border-radius:var(--r);box-shadow:var(--sombra-sm)}
 .form > h2{margin-bottom:4px}
 .form > .sub{font-size:12.5px;color:var(--gris);margin:0 0 16px;max-width:60ch}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:14px 16px}
@@ -314,9 +366,10 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .gate-brand{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:28px}
 .gate-brand .seal{
   width:54px;height:54px;border-radius:50%;background:var(--negro);color:var(--papel);
-  display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:center;margin-bottom:16px;
   box-shadow:0 0 0 4px var(--papel),0 0 0 5px var(--linea);
 }
+.gate-brand .seal .icono{width:27px;height:27px}
 .gate-brand .mark{font-family:var(--disp);font-weight:600;font-size:27px;letter-spacing:-.015em}
 .gate-brand .mark i{font-style:normal;color:var(--gris)}
 .gate-brand .sub{font-size:12.5px;letter-spacing:.04em;color:var(--gris);margin-top:5px;font-style:italic;font-family:var(--disp)}
@@ -337,8 +390,12 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .gate-help code{background:var(--papel);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:11px}
 .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px}
 @media(max-width:480px){.choice-grid{grid-template-columns:1fr}}
-.choice{background:var(--hueso);border:1.5px solid var(--linea);border-radius:var(--r);padding:18px 16px;cursor:pointer;text-align:left;transition:border-color .14s}
-.choice:hover{border-color:var(--negro)}
+.choice{
+  background:var(--hueso);border:1.5px solid var(--linea);border-radius:var(--r);padding:18px 16px;
+  cursor:pointer;text-align:left;transition:border-color .16s,box-shadow .16s,transform .16s;box-shadow:var(--sombra-sm)
+}
+.choice:hover{border-color:var(--acento);box-shadow:var(--sombra-md);transform:translateY(-2px)}
+@media(prefers-reduced-motion:reduce){.choice:hover{transform:none}}
 .choice .ic{font-size:22px;display:block;margin-bottom:9px}
 .choice b{display:block;font-family:var(--disp);font-size:15.5px;font-weight:600;margin-bottom:3px}
 .choice span{font-size:12px;color:var(--gris);line-height:1.4;display:block}
@@ -367,7 +424,8 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     position:sticky;top:0;background:var(--hueso);z-index:40
   }
   .topbar .brand{padding:0}
-  .topbar .brand .seal{width:32px;height:32px;font-size:14px;box-shadow:0 0 0 2px var(--hueso),0 0 0 3px var(--linea)}
+  .topbar .brand .seal{width:32px;height:32px;box-shadow:0 0 0 2px var(--hueso),0 0 0 3px var(--linea)}
+  .topbar .brand .seal .icono{width:16px;height:16px}
   .topbar .brand .mark{font-size:16px}
   .topbar .acts{display:flex;gap:6px}
   .icon-btn{background:none;border:0;color:var(--gris2);font-size:19px;padding:7px;border-radius:8px;cursor:pointer;line-height:1}
@@ -390,7 +448,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     flex:1;background:none;border:0;padding:9px 2px 10px;color:var(--gris);
     font-size:9.5px;font-weight:600;letter-spacing:.01em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px
   }
-  .tabbar button .ic{font-size:18px}
+  .tabbar button .icono{width:19px;height:19px}
   .tabbar button[aria-current="page"]{color:var(--negro)}
   .ledger{font-size:12.5px}
   .ledger td,.ledger th{padding:11px 8px}
@@ -410,7 +468,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 <div class="shell" id="appShell" hidden>
   <aside class="rail">
     <div class="brand">
-      <span class="seal">🏍️</span>
+      <span class="seal"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="17" r="3"/><circle cx="17.5" cy="17" r="3"/><path d="M6.5 17l3-7h3.5l2.5 4h2M9.5 10h3"/></svg></span></span>
       <span class="tx">
         <span class="mark">MA<i>|</i>OG</span>
         <span class="sub" id="negLabel">Control de flota</span>
@@ -420,14 +478,14 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <div class="rail-foot">
       <div class="sync-line" id="syncLine"><span class="dot"></span><span id="syncState">—</span><button id="refrescar" title="Traer los últimos cambios">🔄 Actualizar</button></div>
       <div class="rail-sep"></div>
-      <button class="rail-btn" id="ajustesBtn">⚙️ <span>Ajustes</span></button>
+      <button class="rail-btn" id="ajustesBtn"><span class="icono" style="width:15px;height:15px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span> <span>Ajustes</span></button>
       <button class="rail-btn" id="exportBtn">📥 <span>Exportar a Excel</span></button>
       <button class="rail-btn warn" id="salirBtn">🚪 <span>Cerrar sesión</span></button>
     </div>
   </aside>
 
   <header class="topbar">
-    <span class="brand"><span class="seal">🏍️</span><span class="mark">MA<i>|</i>OG</span></span>
+    <span class="brand"><span class="seal"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="17" r="3"/><circle cx="17.5" cy="17" r="3"/><path d="M6.5 17l3-7h3.5l2.5 4h2M9.5 10h3"/></svg></span></span><span class="mark">MA<i>|</i>OG</span></span>
     <span class="acts">
       <button class="icon-btn" id="refrescarM" title="Actualizar">🔄</button>
       <button class="icon-btn" id="ajustesBtnM" title="Ajustes">⚙️</button>
@@ -442,13 +500,20 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       <div class="head">
         <div>
           <span class="eyebrow" id="todayLabel" style="display:block;margin-bottom:4px"></span>
-          <h1>🧭 Tablero</h1>
+          <h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.25"/><path d="M12 12L15.3 8.2"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg></span>Tablero</h1>
         </div>
       </div>
 
-      <div class="section">
-        <h2>Hoy</h2>
-        <div id="avisos"></div>
+      <div class="hoy-grid">
+        <div>
+          <h2>Hoy</h2>
+          <div id="heroHoy"></div>
+          <div id="avisos"></div>
+        </div>
+        <div>
+          <h2>Resumen</h2>
+          <div id="kpis"></div>
+        </div>
       </div>
 
       <div class="compose">
@@ -476,11 +541,6 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       </div>
 
       <div class="section">
-        <h2>Resumen</h2>
-        <div id="kpis"></div>
-      </div>
-
-      <div class="section">
         <h2>Quién está al día</h2>
         <div id="condStatus"></div>
       </div>
@@ -498,7 +558,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <!-- ============ PAGOS ============ -->
     <section class="view" id="v-pagos">
       <div class="head">
-        <div><h1>💵 Pagos</h1><p>Cada entrada de dinero, de la más reciente a la más antigua.</p></div>
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6.5" width="18" height="11" rx="2.5"/><circle cx="12" cy="12" r="2.4"/><path d="M6.2 9v.01M17.8 15v.01"/></svg></span>Pagos</h1><p>Cada entrada de dinero, de la más reciente a la más antigua.</p></div>
       </div>
       <div id="pagosList"></div>
     </section>
@@ -506,7 +566,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <!-- ============ GASTOS ============ -->
     <section class="view" id="v-gastos">
       <div class="head">
-        <div><h1>🧾 Gastos</h1><p>Lo que sale. Marque si lo asume el negocio o si se le cobra al conductor.</p></div>
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v16.5l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3V3z"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4"/></svg></span>Gastos</h1><p>Lo que sale. Marque si lo asume el negocio o si se le cobra al conductor.</p></div>
       </div>
       <div class="form">
         <div class="fgrid">
@@ -527,7 +587,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <!-- ============ CUENTAS ============ -->
     <section class="view" id="v-cuentas">
       <div class="head">
-        <div><h1>📊 Cuentas</h1><p>Cuánto falta para librar la inversión y en qué se está yendo la plata.</p></div>
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V14M4 20h16M9.5 20V9.5M15 20v-6.5"/></svg></span>Cuentas</h1><p>Cuánto falta para librar la inversión y en qué se está yendo la plata.</p></div>
       </div>
 
       <div class="section">
@@ -566,7 +626,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <!-- ============ CONDUCTORES ============ -->
     <section class="view" id="v-conductores">
       <div class="head">
-        <div><h1>🪪 Conductores</h1><p>La ficha completa de cada uno. Regístrelos como candidatos mientras los verifica.</p></div>
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16a8 8 0 0 1 16 0v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1z"/><path d="M4.5 15.5h15"/></svg></span>Conductores</h1><p>La ficha completa de cada uno. Regístrelos como candidatos mientras los verifica.</p></div>
       </div>
       <div class="form">
         <div class="fgrid">
@@ -598,7 +658,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <!-- ============ VEHÍCULOS ============ -->
     <section class="view" id="v-vehiculos">
       <div class="head">
-        <div><h1>🏍️ Vehículos</h1><p>Los datos que no cambian y las fechas que hay que vigilar.</p></div>
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="17" r="3"/><circle cx="17.5" cy="17" r="3"/><path d="M6.5 17l3-7h3.5l2.5 4h2M9.5 10h3"/></svg></span>Vehículos</h1><p>Los datos que no cambian y las fechas que hay que vigilar.</p></div>
       </div>
       <div class="form">
         <div class="fgrid">
@@ -630,7 +690,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <!-- ============ AJUSTES ============ -->
     <section class="view" id="v-ajustes">
       <div class="head">
-        <div><h1>⚙️ Ajustes</h1><p>Tu negocio, los dueños y la cuenta donde reciben los pagos.</p></div>
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span>Ajustes</h1><p>Tu negocio, los dueños y la cuenta donde reciben los pagos.</p></div>
       </div>
 
       <div class="section form" id="negocioBox">
@@ -739,9 +799,22 @@ const CATS = ['Cambio de aceite y filtro','Llantas','Frenos y pastillas','Kit de
               'SOAT','Tecnomecánica','Seguro','Multa o comparendo','Grúa o patios',
               'Parqueadero','GPS','Otro','Abono a deuda o compra de moto'];
 const CAT_DEUDA = 'Abono a deuda o compra de moto';
-const VIEWS = [['tablero','Tablero','Inicio','🧭'],['pagos','Pagos','Pagos','💵'],['gastos','Gastos','Gastos','🧾'],
-               ['cuentas','Cuentas','Cuentas','📊'],['conductores','Conductores','Cond.','🪪'],
-               ['vehiculos','Vehículos','Motos','🏍️']];
+const VIEWS = [['tablero','Tablero','Inicio'],['pagos','Pagos','Pagos'],['gastos','Gastos','Gastos'],
+               ['cuentas','Cuentas','Cuentas'],['conductores','Conductores','Cond.'],
+               ['vehiculos','Vehículos','Motos']];
+/* Iconografía propia — trazo consistente (1.6, extremos y uniones
+   redondeadas), en vez de emoji o un set de iconos genérico. Heredan el
+   color por currentColor, así que un solo lugar (color del botón/h1)
+   controla su estado activo/inactivo. */
+const ICONS = {
+  tablero: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.25"/><path d="M12 12L15.3 8.2"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>',
+  pagos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6.5" width="18" height="11" rx="2.5"/><circle cx="12" cy="12" r="2.4"/><path d="M6.2 9v.01M17.8 15v.01"/></svg>',
+  gastos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v16.5l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3V3z"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4"/></svg>',
+  cuentas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V14M4 20h16M9.5 20V9.5M15 20v-6.5"/></svg>',
+  conductores: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16a8 8 0 0 1 16 0v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1z"/><path d="M4.5 15.5h15"/></svg>',
+  vehiculos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="17" r="3"/><circle cx="17.5" cy="17" r="3"/><path d="M6.5 17l3-7h3.5l2.5 4h2M9.5 10h3"/></svg>',
+  ajustes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg>',
+};
 
 /* =========================================================
    Sesión — Supabase Auth por REST, sin librerías. Cada quien se
@@ -1079,10 +1152,10 @@ function renderKPIs(){
     ['Conductores activos', String(S.conductores.filter(esActivo).length), candidatos?candidatos+' en proceso':''],
   ];
   $('kpis').innerHTML = `
-    <div class="resumen">
+    <div class="resumen lateral">
       <div class="hero">
         <div class="num ${k.utilidad<0?'neg':''}">${money(k.utilidad)}</div>
-        <div class="tx"><b>Utilidad neta</b><span>${k.inversion ? (r.pct*100).toFixed(1)+'% de la inversión recuperada' : 'Registre la inversión en Vehículos para ver el avance'}</span></div>
+        <div class="tx"><b>Utilidad neta</b><span>${k.inversion ? (r.pct*100).toFixed(1)+'% de la inversión recuperada' : 'Registre la inversión en Vehículos'}</span></div>
       </div>
       <div class="fila">${filas.map(([l,v,n,neg])=>`
         <div class="item"><div class="lbl">${esc(l)}</div><div class="val ${neg?'neg':''}">${v}</div>${n?`<div class="note">${esc(n)}</div>`:''}</div>`).join('')}
@@ -1100,7 +1173,26 @@ function chip(rotulo, iso){
 /* El parte del día: une vencimientos de documentos Y conductores en mora
    de pago en una sola lista ordenada por urgencia, redactada como frases
    (no como tarjetas de cifra suelta). Lo que se debe siempre encabeza la
-   lista — afecta la caja hoy, no en N días. */
+   lista — afecta la caja hoy, no en N días. El primero se saca aparte
+   como el hero del Tablero; el resto queda en la lista compacta. */
+function renderHeroHoy(items){
+  const el = $('heroHoy');
+  if(!el) return;
+  if(!items.length){
+    el.innerHTML = `<div class="hero-hoy">
+      <span class="eyebrow2">Hoy</span>
+      <div class="titular">Todo al día ✅</div>
+      <div class="sub">Nada urgente por ahora — los próximos vencimientos y pagos pendientes van a aparecer aquí.</div>
+    </div>`;
+    return;
+  }
+  const top = items[0];
+  el.innerHTML = `<div class="hero-hoy ${top.tier}">
+      <span class="eyebrow2">${top.tier==='mora' ? 'Necesita atención' : 'Se viene'}</span>
+      <div class="titular">${top.frase}</div>
+      <div class="sub">${esc(top.cuando)}</div>
+    </div>`;
+}
 function renderAvisos(){
   const items = [];
   S.motos.forEach(m=>{
@@ -1108,8 +1200,8 @@ function renderAvisos(){
       const d = diasPara(f);
       if(d !== null && d <= 30){
         const frase = d < 0
-          ? `${q} de <b>${esc(m.placa)}</b> <span class="cif">venció hace ${-d} d</span>`
-          : `${q} de <b>${esc(m.placa)}</b> vence <span class="cif">en ${d} d</span>`;
+          ? `${q} de <b>${esc(m.placa)}</b> <span class="cif mora">venció hace ${-d} d</span>`
+          : `${q} de <b>${esc(m.placa)}</b> vence <span class="cif due">en ${d} d</span>`;
         items.push({ orden:d, tier: d<0?'mora':'due', frase, cuando: fmtDate(f) });
       }
     });
@@ -1118,8 +1210,8 @@ function renderAvisos(){
     const dl = diasPara(c.licVence);
     if(dl !== null && dl <= 30){
       const frase = dl < 0
-        ? `Licencia de <b>${esc(c.nombre)}</b> <span class="cif">venció hace ${-dl} d</span>`
-        : `Licencia de <b>${esc(c.nombre)}</b> vence <span class="cif">en ${dl} d</span>`;
+        ? `Licencia de <b>${esc(c.nombre)}</b> <span class="cif mora">venció hace ${-dl} d</span>`
+        : `Licencia de <b>${esc(c.nombre)}</b> vence <span class="cif due">en ${dl} d</span>`;
       items.push({ orden:dl, tier: dl<0?'mora':'due', frase, cuando: fmtDate(c.licVence) });
     }
     if(c.inicio){
@@ -1127,29 +1219,27 @@ function renderAvisos(){
       const df = diasPara(fin);
       if(df !== null && df <= 10){
         const frase = df < 0
-          ? `El mes de contrato de <b>${esc(c.nombre)}</b> <span class="cif">venció hace ${-df} d</span>`
-          : `El mes de contrato de <b>${esc(c.nombre)}</b> vence <span class="cif">en ${df} d</span>`;
+          ? `El mes de contrato de <b>${esc(c.nombre)}</b> <span class="cif mora">venció hace ${-df} d</span>`
+          : `El mes de contrato de <b>${esc(c.nombre)}</b> vence <span class="cif due">en ${df} d</span>`;
         items.push({ orden:df, tier: df<0?'mora':'due', frase, cuando: fmtDate(fin) });
       }
     }
     const e = estadoConductor(c);
     if(e.saldo < 0){
       const m = motoById(c.motoId);
-      const frase = `<b>${esc(c.nombre)}</b> debe <span class="cif">${money(-e.saldo)}</span>${m?' de la '+esc(m.placa):''}`;
+      const frase = `<b>${esc(c.nombre)}</b> debe <span class="cif mora">${money(-e.saldo)}</span>${m?' de la '+esc(m.placa):''}`;
       items.push({ orden:-100000-(-e.saldo), tier:'mora', frase, cuando: `${e.dias} d de uso` });
     }
   });
-  if(!items.length){
-    $('avisos').innerHTML = `<div class="hoy-vacio">✅ Todo al día — nada urgente por ahora.</div>`;
-    return;
-  }
   items.sort((a,b)=>a.orden-b.orden);
-  $('avisos').innerHTML = `<div class="hoy-feed">${items.map(it=>`
+  renderHeroHoy(items);
+  const resto = items.slice(1);
+  $('avisos').innerHTML = resto.length ? `<div class="hoy-feed">${resto.map(it=>`
     <div class="hoy-item ${it.tier}">
       <span class="punto"></span>
       <span class="frase">${it.frase}</span>
       <span class="cuando">${it.cuando}</span>
-    </div>`).join('')}</div>`;
+    </div>`).join('')}</div>` : '';
 }
 function renderCuentas(){
   const r = recuperacion();
@@ -1424,10 +1514,10 @@ function go(v){
   if(v==='ajustes'){ renderNegocioPanel(); $('codigoBox').innerHTML=''; }
   window.scrollTo({top:0});
 }
-$('nav').innerHTML = VIEWS.map(([v,t,_,ic],i)=>
-  `<button data-view="${v}" ${i===0?'aria-current="page"':''}><span class="ic">${ic}</span>${t}</button>`).join('');
-$('tabbar').innerHTML = VIEWS.map(([v,t,c,ic],i)=>
-  `<button data-view="${v}" ${i===0?'aria-current="page"':''}><span class="ic">${ic}</span>${c||t}</button>`).join('');
+$('nav').innerHTML = VIEWS.map(([v,t],i)=>
+  `<button data-view="${v}" ${i===0?'aria-current="page"':''}><span class="icono">${ICONS[v]}</span>${t}</button>`).join('');
+$('tabbar').innerHTML = VIEWS.map(([v,t,c],i)=>
+  `<button data-view="${v}" ${i===0?'aria-current="page"':''}><span class="icono">${ICONS[v]}</span>${c||t}</button>`).join('');
 document.addEventListener('click', e=>{
   const b = e.target.closest('[data-view]');
   if(b) go(b.dataset.view);
@@ -2468,7 +2558,7 @@ let NEG_MODO = '';
 function pantallaConectar(){
   $('gate').innerHTML = `
     <div class="gate-card">
-      <div class="gate-brand"><span class="seal">🏍️</span><span class="mark">MA<i>|</i>OG</span><span class="sub">Control de flota</span></div>
+      <div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span><span class="sub">Control de flota</span></div>
       <div class="gate-panel">
         <h3>🔌 Conecta tu base de datos</h3>
         <p class="sub">Una sola vez. Pega los datos de tu proyecto de Supabase — quedan guardados en este navegador.</p>
@@ -2507,7 +2597,7 @@ function pantallaSesion(estadoExtra){
   const modo = AUTH_MODO;
   $('gate').innerHTML = `
     <div class="gate-card">
-      <div class="gate-brand"><span class="seal">🏍️</span><span class="mark">MA<i>|</i>OG</span><span class="sub">Control de flota</span></div>
+      <div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span><span class="sub">Control de flota</span></div>
       <div class="gate-panel">
         ${modo!=='recuperar' ? `
         <div class="gate-tabs">
@@ -2569,7 +2659,7 @@ function pantallaNegocio(){
   if(NEG_MODO==='unirse') return pantallaNegocioUnirse();
   $('gate').innerHTML = `
     <div class="gate-card" style="max-width:460px">
-      <div class="gate-brand"><span class="seal">🏍️</span><span class="mark">MA<i>|</i>OG</span><span class="sub">Hola, ${esc(SESION.nombre)} 👋</span></div>
+      <div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span><span class="sub">Hola, ${esc(SESION.nombre)} 👋</span></div>
       <div class="gate-panel">
         <h3>🚀 Empecemos</h3>
         <p class="sub">¿Vas a crear el negocio, o alguien ya te compartió un código?</p>
@@ -2587,7 +2677,7 @@ function pantallaNegocio(){
 function pantallaNegocioCrear(){
   $('gate').innerHTML = `
     <div class="gate-card">
-      <div class="gate-brand"><span class="seal">🏍️</span><span class="mark">MA<i>|</i>OG</span></div>
+      <div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span></div>
       <div class="gate-panel">
         <h3>➕ Crear tu negocio</h3>
         <p class="sub">Ponle un nombre — puede ser el mismo que ya usan, o cualquier otro.</p>
@@ -2612,7 +2702,7 @@ function pantallaNegocioCrear(){
 function mostrarCodigoInicial(codigo){
   $('gate').innerHTML = `
     <div class="gate-card">
-      <div class="gate-brand"><span class="seal">🏍️</span><span class="mark">MA<i>|</i>OG</span></div>
+      <div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span></div>
       <div class="gate-panel">
         <h3>🎉 ¡Listo!</h3>
         <p class="sub">Comparte este código con tu pareja — con él se une a este mismo negocio. Sirve una sola vez y también lo puedes ver luego en Ajustes.</p>
@@ -2630,7 +2720,7 @@ function mostrarCodigoInicial(codigo){
 function pantallaNegocioUnirse(){
   $('gate').innerHTML = `
     <div class="gate-card">
-      <div class="gate-brand"><span class="seal">🏍️</span><span class="mark">MA<i>|</i>OG</span></div>
+      <div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span></div>
       <div class="gate-panel">
         <h3>🔑 Unirme con un código</h3>
         <p class="sub">Pega el código de 6 letras que te compartieron.</p>
@@ -2655,7 +2745,7 @@ function pantallaNegocioUnirse(){
   document.querySelector('[data-back]').addEventListener('click', ()=>{ NEG_MODO=''; AUTH_ERROR=''; pantallaNegocio(); });
 }
 function pantallaCargando(msg){
-  $('gate').innerHTML = `<div class="gate-card" style="text-align:center"><div class="gate-brand"><span class="seal">🏍️</span><span class="mark">MA<i>|</i>OG</span></div><div class="spinner"></div><p style="color:var(--gris);font-size:13.5px;margin-top:14px">${esc(msg||'Cargando…')}</p></div>`;
+  $('gate').innerHTML = `<div class="gate-card" style="text-align:center"><div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span></div><div class="spinner"></div><p style="color:var(--gris);font-size:13.5px;margin-top:14px">${esc(msg||'Cargando…')}</p></div>`;
 }
 
 async function mostrarApp(){
