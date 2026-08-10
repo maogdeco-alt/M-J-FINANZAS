@@ -317,6 +317,26 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
   padding:10px 11px;font-size:14.5px;border-radius:var(--r-sm)
 }
 .f input:focus,.f select:focus{border-color:var(--acento);outline:none;background:#fff}
+/* Secciones "más detalles" plegables — lo esencial queda a la vista y lo
+   que solo hace falta para el contrato se guarda un clic más adentro, sin
+   quitar ningún campo. <details> nativo: funciona sin JS, accesible con
+   teclado y lector de pantalla, y no cambia nada de cómo se guardan los
+   campos (siguen teniendo su mismo id). */
+.fold{margin-top:16px;border-top:1px dashed var(--linea);padding-top:14px}
+.fold summary{
+  cursor:pointer;font-size:12.5px;font-weight:700;color:var(--gris2);
+  list-style:none;display:flex;align-items:center;gap:8px;user-select:none
+}
+.fold summary::-webkit-details-marker{display:none}
+.fold summary .car{
+  width:0;height:0;flex:0 0 auto;border-left:5px solid var(--gris);
+  border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .15s
+}
+.fold[open] summary .car{transform:rotate(90deg)}
+.fold summary:hover{color:var(--negro)}
+.fold summary:hover .car{border-left-color:var(--negro)}
+.fold > .fgrid,.fold > .sub{margin-top:14px}
+@media(prefers-reduced-motion:reduce){.fold summary .car{transition:none}}
 .form .acts{margin-top:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 
 .empty{border:1.5px dashed var(--linea);border-radius:var(--r);padding:32px 24px;text-align:center;color:var(--gris)}
@@ -670,22 +690,27 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <div class="f"><label for="cNombre">Nombre completo</label><input id="cNombre" placeholder="Juan Pérez"></div>
           <div class="f"><label for="cCedula">Cédula</label><input id="cCedula" inputmode="numeric"></div>
           <div class="f"><label for="cTel">Teléfono</label><input id="cTel" inputmode="tel"></div>
-          <div class="f"><label for="cLic">Licencia A2 N.º</label><input id="cLic"></div>
-          <div class="f"><label for="cLicVence">Vence la licencia</label><input type="date" id="cLicVence"></div>
-          <div class="f"><label for="cSalud">EPS y ARL</label>
-            <select id="cSalud"><option>Sin verificar</option><option>Verificadas</option><option>No tiene</option></select></div>
-          <div class="f"><label for="cParq">Parqueadero de pernocta</label><input id="cParq" placeholder="Dirección verificada"></div>
-          <div class="f"><label for="cRef">Referencia</label><input id="cRef" placeholder="Nombre y teléfono"></div>
           <div class="f"><label for="cEstado">Estado</label>
             <select id="cEstado"><option>Candidato</option><option>Activo</option><option>Retirado</option></select></div>
           <div class="f"><label for="cMoto">Moto asignada</label><select id="cMoto"></select></div>
           <div class="f"><label for="cInicio">Inicio del contrato</label><input type="date" id="cInicio"></div>
           <div class="f"><label for="cDep">Depósito recibido</label><input id="cDep" inputmode="numeric" placeholder="$150.000"></div>
-          <div class="f"><label for="cDir">Dirección de residencia</label><input id="cDir"></div>
-          <div class="f"><label for="cCiudad">Ciudad</label><input id="cCiudad" placeholder="Ibagué"></div>
-          <div class="f"><label for="cCorreo">Correo electrónico</label><input id="cCorreo" inputmode="email"></div>
-          <div class="f"><label for="cEmer">Contacto de emergencia</label><input id="cEmer" placeholder="Nombre, parentesco y teléfono"></div>
+          <div class="f"><label for="cLic">Licencia A2 N.º</label><input id="cLic"></div>
+          <div class="f"><label for="cLicVence">Vence la licencia</label><input type="date" id="cLicVence"></div>
         </div>
+        <details class="fold">
+          <summary><span class="car"></span>Más detalles — para el contrato y la verificación</summary>
+          <div class="fgrid">
+            <div class="f"><label for="cSalud">EPS y ARL</label>
+              <select id="cSalud"><option>Sin verificar</option><option>Verificadas</option><option>No tiene</option></select></div>
+            <div class="f"><label for="cParq">Parqueadero de pernocta</label><input id="cParq" placeholder="Dirección verificada"></div>
+            <div class="f"><label for="cRef">Referencia</label><input id="cRef" placeholder="Nombre y teléfono"></div>
+            <div class="f"><label for="cDir">Dirección de residencia</label><input id="cDir"></div>
+            <div class="f"><label for="cCiudad">Ciudad</label><input id="cCiudad" placeholder="Ibagué"></div>
+            <div class="f"><label for="cCorreo">Correo electrónico</label><input id="cCorreo" inputmode="email"></div>
+            <div class="f"><label for="cEmer">Contacto de emergencia</label><input id="cEmer" placeholder="Nombre, parentesco y teléfono"></div>
+          </div>
+        </details>
         <div class="acts"><button class="btn" id="cSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Guardar conductor</button>
           <span class="hint" style="margin-left:0">Solo el nombre es obligatorio.</span></div>
       </div>
@@ -706,18 +731,24 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <div class="f"><label for="mTecno">Vence la tecnomecánica</label><input type="date" id="mTecno"></div>
           <div class="f"><label for="mProp">Dueño</label><select id="mProp"></select></div>
           <div class="f"><label for="mValor">Valor comercial</label><input id="mValor" inputmode="numeric" placeholder="para el contrato"></div>
-          <div class="f"><label for="vMarca">Marca</label><input id="vMarca" placeholder="Bajaj"></div>
-          <div class="f"><label for="vLinea">Línea</label><input id="vLinea" placeholder="Pulsar NS 160"></div>
-          <div class="f"><label for="vCC">Cilindraje</label><input id="vCC" inputmode="numeric" placeholder="160"></div>
-          <div class="f"><label for="vColor">Color</label><input id="vColor"></div>
-          <div class="f"><label for="vMotor">N.º de motor</label><input id="vMotor"></div>
-          <div class="f"><label for="vChasis">N.º de chasis</label><input id="vChasis"></div>
-          <div class="f"><label for="vTarjeta">Tarjeta de propiedad</label><input id="vTarjeta"></div>
-          <div class="f"><label for="vKm">Kilometraje de entrega</label><input id="vKm" inputmode="numeric"></div>
-          <div class="f"><label for="vSoatNum">SOAT N.º</label><input id="vSoatNum"></div>
-          <div class="f"><label for="vRtmNum">Tecnomecánica N.º</label><input id="vRtmNum"></div>
-          <div class="f"><label for="vAseg">Aseguradora</label><input id="vAseg"></div>
         </div>
+        <details class="fold">
+          <summary><span class="car"></span>Más detalles — para el contrato</summary>
+          <p class="sub">Marca y línea se llenan solas a partir de "Marca y línea" de arriba — ajústelas aquí solo si necesita que queden distintas en el contrato.</p>
+          <div class="fgrid">
+            <div class="f"><label for="vMarca">Marca</label><input id="vMarca" placeholder="Bajaj"></div>
+            <div class="f"><label for="vLinea">Línea</label><input id="vLinea" placeholder="Pulsar NS 160"></div>
+            <div class="f"><label for="vCC">Cilindraje</label><input id="vCC" inputmode="numeric" placeholder="160"></div>
+            <div class="f"><label for="vColor">Color</label><input id="vColor"></div>
+            <div class="f"><label for="vMotor">N.º de motor</label><input id="vMotor"></div>
+            <div class="f"><label for="vChasis">N.º de chasis</label><input id="vChasis"></div>
+            <div class="f"><label for="vTarjeta">Tarjeta de propiedad</label><input id="vTarjeta"></div>
+            <div class="f"><label for="vKm">Kilometraje de entrega</label><input id="vKm" inputmode="numeric"></div>
+            <div class="f"><label for="vSoatNum">SOAT N.º</label><input id="vSoatNum"></div>
+            <div class="f"><label for="vRtmNum">Tecnomecánica N.º</label><input id="vRtmNum"></div>
+            <div class="f"><label for="vAseg">Aseguradora</label><input id="vAseg"></div>
+          </div>
+        </details>
         <div class="acts"><button class="btn" id="mSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Guardar vehículo</button>
           <span class="hint" style="margin-left:0">Placa y canon son lo único obligatorio.</span></div>
       </div>
@@ -779,6 +810,10 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         </div>
         <div class="acts"><button class="btn" id="dSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="15" height="16" rx="2"/><path d="M8 4v5h7V4"/><path d="M7.5 20v-6h9v6"/></svg></span> Guardar datos</button>
           <span class="hint" style="margin-left:0">Se usan para llenar los contratos.</span></div>
+      </div>
+
+      <div class="section" style="text-align:center">
+        <button class="linkbtn" id="salirBtnAjustes"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4.5H7A1.5 1.5 0 0 0 5.5 6v12A1.5 1.5 0 0 0 7 19.5h6"/><path d="M11 12h9M17 8.3l3.3 3.7-3.3 3.7"/></svg></span> Cerrar sesión</button>
       </div>
     </section>
 
@@ -1047,6 +1082,11 @@ async function cargarMiembros(){
 let S = null;
 let ready = false;
 let sincronizando = false;
+/* Modo demo: se activa desde "Explorar con datos de ejemplo" en la
+   pantalla de conectar. Con esto en true, nada se guarda ni se manda a
+   ningún lado — todas las pantallas y botones funcionan igual, pero sobre
+   datos de muestra que viven solo en la memoria del navegador. */
+let DEMO = false;
 const KEY = () => 'maog:flota:datos:' + (NEGOCIO ? NEGOCIO.id : 'x');
 
 function vacio(){ return { motos:[], conductores:[], pagos:[], gastos:[], config:{} }; }
@@ -1085,6 +1125,7 @@ async function load(){
 }
 async function save(){
   S.actualizado = new Date().toISOString();
+  if(DEMO) return;
   try{ localStorage.setItem(KEY(), JSON.stringify(S)); }catch(e){ toast('No se pudo guardar en este equipo.', true); }
   if(!sincronizando){
     sincronizando = true;
@@ -1094,6 +1135,7 @@ async function save(){
   }
 }
 async function refrescar(manual){
+  if(DEMO){ if(manual) toast('Estás en modo demo — no hay ninguna nube con la que sincronizar.'); return; }
   if(!ready || !NEGOCIO) return;
   try{
     const remoto = await nubeLeer();
@@ -1211,7 +1253,7 @@ function renderSelects(){
   if(bk.diaPago) $('bDia').value = bk.diaPago;
   if(!$('gCat').options.length) $('gCat').innerHTML = CATS.map(c=>`<option>${esc(c)}</option>`).join('');
   updateHint();
-  const nl = $('negLabel'); if(nl) nl.textContent = NEGOCIO ? NEGOCIO.nombre : 'Control de flota';
+  const nl = $('negLabel'); if(nl) nl.textContent = DEMO ? 'Datos de ejemplo' : (NEGOCIO ? NEGOCIO.nombre : 'Control de flota');
   const nt = $('negNombreTx'); if(nt) nt.textContent = NEGOCIO ? '"'+NEGOCIO.nombre+'"' : 'tu negocio';
 }
 function renderKPIs(){
@@ -1566,6 +1608,14 @@ function renderCond(){
 async function renderNegocioPanel(){
   const box = $('miembrosList');
   if(!box) return;
+  if(DEMO){
+    box.innerHTML = (S.config.duenos||[]).map(d=>`
+      <div class="miembro-row">
+        <span class="av">${esc((d.nombre||'?').slice(0,1).toUpperCase())}</span>
+        <span class="nm"><b>${esc(d.nombre||'—')}</b><span>correo de ejemplo · propietario/a</span></span>
+      </div>`).join('') || `<p style="font-size:13px;color:var(--gris)">(datos de ejemplo)</p>`;
+    return;
+  }
   box.innerHTML = `<div class="spinner" style="margin:16px auto"></div>`;
   try{
     const ms = await cargarMiembros();
@@ -1599,12 +1649,21 @@ document.addEventListener('click', e=>{
 });
 $('ajustesBtn').addEventListener('click', ()=>go('ajustes'));
 $('ajustesBtnM').addEventListener('click', ()=>go('ajustes'));
-$('salirBtn').addEventListener('click', async ()=>{
+async function salirDeLaApp(){
+  if(DEMO){ location.reload(); return; }
   if(await confirmar('Cerrar sesión', '¿Seguro que quiere salir? Puede volver a entrar con su correo y contraseña cuando quiera.')) cerrarSesion();
-});
+}
+$('salirBtn').addEventListener('click', salirDeLaApp);
+$('salirBtnAjustes').addEventListener('click', salirDeLaApp);
 $('refrescar').addEventListener('click', ()=>refrescar(true));
 $('refrescarM').addEventListener('click', ()=>refrescar(true));
 $('verCodigoBtn').addEventListener('click', async ()=>{
+  if(DEMO){
+    $('codigoBox').innerHTML = `
+      <p style="font-size:12.5px;color:var(--gris);margin:14px 0 0">Así se ve — en modo demo no se genera un código real.</p>
+      <div class="codigo-grande">DEMO42</div>`;
+    return;
+  }
   $('codigoBox').innerHTML = `<div class="spinner" style="margin:16px auto"></div>`;
   try{
     const cod = await generarCodigoParaNegocio();
@@ -1632,6 +1691,7 @@ function renderReporteToggle(){
 }
 $('reporteActivoChk').addEventListener('change', async e=>{
   const val = e.target.checked;
+  if(DEMO){ NEGOCIO.reporteActivo = val; toast(val ? 'Reporte activado' : 'Reporte desactivado'); return; }
   e.target.disabled = true;
   try{
     await chk(await api('/rest/v1/negocios?id=eq.'+NEGOCIO.id, { method:'PATCH', body: JSON.stringify({ reporte_activo: val }) }));
@@ -1697,8 +1757,24 @@ $('mSave').addEventListener('click', async ()=>{
   await save(); renderAll();
   ['mPlaca','mRef','mCanon','mValor','mSoat','mTecno','vMarca','vLinea','vCC','vColor',
    'vMotor','vChasis','vTarjeta','vKm','vSoatNum','vRtmNum','vAseg'].forEach(i=>$(i).value='');
+  mRefAutoSync = true;
   toast(`Moto ${placa} agregada`);
 });
+/* Marca y Línea (para el contrato) se llenan solas a partir de "Marca y
+   línea" mientras el usuario no las haya tocado a mano — así no hay que
+   escribir el mismo dato dos veces, pero se puede corregir si el reparto
+   automático no queda como debe ir en el contrato. */
+let mRefAutoSync = true;
+function autoLlenarMarcaLinea(){
+  if(!mRefAutoSync) return;
+  const sinAnio = $('mRef').value.trim().replace(/\s*[·-]\s*\d{4}\s*$/, '').trim();
+  const partes = sinAnio.split(/\s+/).filter(Boolean);
+  $('vMarca').value = partes[0] || '';
+  $('vLinea').value = partes.slice(1).join(' ');
+}
+$('mRef').addEventListener('input', autoLlenarMarcaLinea);
+$('vMarca').addEventListener('input', ()=>{ mRefAutoSync = false; });
+$('vLinea').addEventListener('input', ()=>{ mRefAutoSync = false; });
 $('cSave').addEventListener('click', async ()=>{
   const nombre = $('cNombre').value.trim();
   if(!nombre) return toast('Escriba el nombre del conductor.', true);
@@ -1740,7 +1816,12 @@ $('dSave').addEventListener('click', async ()=>{
   await save(); renderAll(); toast('Nombres guardados');
 });
 document.addEventListener('click', async e=>{
-  const t = e.target;
+  /* .closest() y no e.target a secas: los botones ahora llevan un ícono
+     SVG adentro, y un clic que caiga sobre el ícono reporta el <svg>
+     como e.target, no el <button> con el data-* — sin esto, tocar el
+     ícono (en vez del texto) no hacía nada. */
+  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto]');
+  if(!t) return;
   if(t.dataset.contrato) return generarContrato(t.dataset.contrato);
   const rm = async (arr, id, msg) => { S[arr] = S[arr].filter(x=>x.id!==id); await save(); renderAll(); toast(msg); };
   if(t.dataset.delCond){
@@ -1753,8 +1834,14 @@ document.addEventListener('click', async e=>{
     if(n && !(await confirmar('Eliminar moto', `Hay ${n} conductor(es) con esta moto asignada. ¿Eliminarla de todos modos?`))) return;
     return rm('motos', t.dataset.delMoto, 'Moto eliminada');
   }
-  if(t.dataset.delPago)  return rm('pagos', t.dataset.delPago, 'Pago eliminado');
-  if(t.dataset.delGasto) return rm('gastos', t.dataset.delGasto, 'Gasto eliminado');
+  if(t.dataset.delPago){
+    if(!(await confirmar('Eliminar pago', 'Este pago se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
+    return rm('pagos', t.dataset.delPago, 'Pago eliminado');
+  }
+  if(t.dataset.delGasto){
+    if(!(await confirmar('Eliminar gasto', 'Este gasto se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
+    return rm('gastos', t.dataset.delGasto, 'Gasto eliminado');
+  }
   if(t.dataset.toggleGasto){
     const g = S.gastos.find(x=>x.id===t.dataset.toggleGasto);
     if(g){ g.recuperado = !g.recuperado; await save(); renderAll();
@@ -2605,6 +2692,9 @@ $('docCerrar').addEventListener('click', cerrarDoc);
    Exportar a Excel
    ========================================================= */
 function exportXLSX(){
+  if(typeof XLSX === 'undefined'){
+    return toast('No se pudo cargar la herramienta de Excel. Revise su conexión a internet e intente de nuevo.', true);
+  }
   const wb = XLSX.utils.book_new();
   const k = kpis();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
@@ -2652,6 +2742,68 @@ let AUTH_ERROR = '';
 let AUTH_CARGANDO = false;
 let NEG_MODO = '';
 
+/* =========================================================
+   Modo demo — datos de muestra para explorar la app entera sin crear
+   ningún proyecto de Supabase. No toca la sesión real ni el navegador:
+   save()/refrescar()/las llamadas a la nube quedan cortadas arriba
+   (buscar "if(DEMO)"). Salir de la demo recarga la página, así que
+   nunca deja nada pegado de una sesión real.
+   ========================================================= */
+function datosDemo(){
+  const hoy = new Date();
+  const iso = d => d.toISOString().slice(0,10);
+  const haceDias = n => { const d = new Date(hoy); d.setDate(d.getDate()-n); return iso(d); };
+  const enDias = n => { const d = new Date(hoy); d.setDate(d.getDate()+n); return iso(d); };
+  return {
+    motos: [
+      { id:'d-m1', placa:'ABC12D', ref:'Bajaj Pulsar NS 160 · 2024', canon:35000, valorCompra:9500000,
+        soat:enDias(12), tecno:enDias(200), propietario:'Mao', creadoPor:'Mao',
+        contrato:{ marca:'Bajaj', linea:'Pulsar NS 160', cc:'160' } },
+      { id:'d-m2', placa:'XYZ98A', ref:'AKT NKD 125 · 2023', canon:28000, valorCompra:7200000,
+        soat:enDias(-5), tecno:enDias(60), propietario:'Gina', creadoPor:'Gina',
+        contrato:{ marca:'AKT', linea:'NKD 125', cc:'125' } },
+      { id:'d-m3', placa:'JKL45B', ref:'Yamaha FZ 2.0 · 2024', canon:32000, valorCompra:8800000,
+        soat:enDias(80), tecno:enDias(150), propietario:'Mao', creadoPor:'Mao',
+        contrato:{ marca:'Yamaha', linea:'FZ 2.0', cc:'150' } },
+    ],
+    conductores: [
+      { id:'d-c1', nombre:'Juan Pérez', cedula:'1234567890', tel:'3001234567', licencia:'A2-00123',
+        licVence:enDias(20), salud:'Verificadas', estado:'Activo', motoId:'d-m1', inicio:haceDias(10),
+        deposito:150000, ciudad:'Ibagué', creadoPor:'Mao' },
+      { id:'d-c2', nombre:'Carlos Ruiz', cedula:'998877665', tel:'3007654321', estado:'Activo',
+        motoId:'d-m2', inicio:haceDias(35), deposito:150000, ciudad:'Ibagué', creadoPor:'Gina' },
+      { id:'d-c3', nombre:'Diana Gómez', cedula:'445566778', tel:'3009988776', estado:'Candidato',
+        deposito:0, ciudad:'Ibagué', creadoPor:'Mao' },
+    ],
+    pagos: [
+      { id:'d-p1', condId:'d-c1', dias:7, valor:245000, fecha:haceDias(0), medio:'Nequi', creadoPor:'Gina' },
+      { id:'d-p2', condId:'d-c2', dias:7, valor:150000, fecha:haceDias(3), medio:'Efectivo', creadoPor:'Mao' },
+      { id:'d-p3', condId:'d-c1', dias:7, valor:245000, fecha:haceDias(7), medio:'Transferencia', creadoPor:'Mao' },
+    ],
+    gastos: [
+      { id:'d-g1', fecha:haceDias(15), motoId:'d-m1', cat:'Cambio de aceite y filtro', desc:'Aceite 20W50',
+        valor:45000, cargo:'Empresa', recuperado:false, creadoPor:'Mao' },
+      { id:'d-g2', fecha:haceDias(2), motoId:'d-m2', cat:'Multa o comparendo', desc:'Comparendo por parqueo',
+        valor:20000, cargo:'Conductor', recuperado:false, creadoPor:'Gina' },
+    ],
+    config: {
+      duenos:[{ nombre:'Mao', cedula:'1000000001', ciudad:'Ibagué' }, { nombre:'Gina', cedula:'1000000002', ciudad:'Ibagué' }],
+      inversionExtra:300000, bTipo:'Nequi', bBanco:'', bCuenta:'', cfgLav:'', cfgLavDir:'', bDia:'lunes'
+    }
+  };
+}
+function entrarModoDemo(){
+  DEMO = true;
+  NEGOCIO = { id:'demo', nombre:'MA|OG', reporteActivo:false, reporteUltimoEnvio:null };
+  S = datosDemo();
+  ready = true;
+  $('gate').hidden = true; $('appShell').hidden = false;
+  $('qFecha').value = todayISO(); $('gFecha').value = todayISO(); $('cInicio').value = todayISO();
+  [$('salirBtn'), $('salirBtnAjustes')].forEach(b=>{ if(b) b.lastElementChild.textContent = 'Salir de la demo'; });
+  go('tablero'); renderAll();
+  toast('Estás viendo datos de ejemplo — nada de esto se guarda en ningún lado.');
+}
+
 function pantallaConectar(){
   $('gate').innerHTML = `
     <div class="gate-card">
@@ -2667,8 +2819,12 @@ function pantallaConectar(){
           ¿Todavía no tienes el proyecto? Sigue los pasos de <code>flota/README.md</code> en el repositorio:
           crear el proyecto en supabase.com y correr el script SQL una sola vez.
         </p>
+        <p class="gate-foot" style="margin-top:2px">
+          <button class="linkbtn" id="verDemoBtn"><span class="icono">${ICONS.tablero}</span> Explorar con datos de ejemplo</button>
+        </p>
       </div>
     </div>`;
+  $('verDemoBtn').addEventListener('click', entrarModoDemo);
   $('cnGuardar').addEventListener('click', async ()=>{
     const url = $('cnUrl').value.trim().replace(/\/+$/,'');
     const key = $('cnKey').value.trim();
