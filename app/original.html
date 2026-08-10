@@ -2816,7 +2816,17 @@ document.addEventListener('click',function(e){
 
   /* conexión al proyecto de Supabase (una sola vez, queda guardado en este navegador) */
   if(a==='guardarconexion'){
-    SESION.url=SESION._url||SESION.url;SESION.key=SESION._key||SESION.key;guardarSesion();render();return}
+    var nuevaUrl=(SESION._url||SESION.url||'').trim(), nuevaKey=SESION._key||SESION.key;
+    var cambioDeProyecto=SESION.url&&nuevaUrl&&SESION.url.trim()!==nuevaUrl;
+    SESION.url=nuevaUrl;SESION.key=nuevaKey;
+    if(cambioDeProyecto){
+      /* estás conectando a un proyecto distinto — el token que tenías es de
+         otro proyecto y ahí no sirve para nada; hay que entrar de nuevo */
+      SESION.token='';SESION.refresh='';SESION.usuarioId='';SESION.correo='';SESION.nombre='';
+      MIS_ESPACIOS=[];ESPACIO_ACTUAL=null;D=null;
+      MSG='Conectado a un proyecto nuevo — entra con tu correo y clave de ese proyecto.'
+    }
+    guardarSesion();render();return}
 
   /* sesión: entrar/crear cuenta/recuperar clave */
   if(a==='authmodo'){AUTH_MODO=v;SESION.estado='';SESION.error='';render();return}
