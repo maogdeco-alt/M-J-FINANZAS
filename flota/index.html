@@ -60,12 +60,14 @@ hr{border:0;border-top:1px solid var(--linea);margin:18px 0}
 .brand{padding:0 16px 22px;display:flex;align-items:center;gap:12px}
 .icono{display:inline-flex;flex:0 0 auto}
 .icono svg{width:100%;height:100%;display:block}
+.seal-mark{font-family:var(--disp);font-weight:700;letter-spacing:-.02em;display:inline-flex;align-items:baseline;line-height:1}
+.seal-mark i{font-style:normal;font-weight:400;opacity:.6;padding:0 1px}
 .brand .seal{
-  width:46px;height:46px;border-radius:50%;background:var(--negro);color:var(--papel);
+  width:46px;height:46px;border-radius:50%;background:linear-gradient(178deg,var(--acento),var(--acento-2));color:var(--papel);
   display:flex;align-items:center;justify-content:center;flex:0 0 46px;
-  box-shadow:0 0 0 3px var(--hueso),0 0 0 4px var(--linea);
+  box-shadow:0 0 0 3px var(--hueso),0 0 0 4px var(--linea),0 4px 10px -4px rgba(221,75,34,.5);
 }
-.brand .seal .icono{width:24px;height:24px}
+.brand .seal .seal-mark{font-size:17px}
 .brand .tx{min-width:0}
 .brand .mark{font-family:var(--disp);font-weight:600;font-size:21px;letter-spacing:-.015em;line-height:1.1;display:block}
 .brand .mark i{font-style:normal;color:var(--gris);padding:0 1px}
@@ -99,8 +101,9 @@ hr{border:0;border-top:1px solid var(--linea);margin:18px 0}
 .sync-line{display:flex;align-items:center;gap:6px;padding:7px 12px;font-size:11px;color:var(--gris)}
 .sync-line .dot{width:5px;height:5px;border-radius:50%;background:var(--acento);flex:0 0 5px}
 .sync-line.mal .dot{background:var(--rojo)}
-.sync-line button{background:none;border:0;color:var(--gris);cursor:pointer;padding:0;font-size:11px;text-decoration:underline;margin-left:auto}
-.sync-line button:hover{color:var(--negro)}
+.sync-line button{background:none;border:0;color:var(--gris);cursor:pointer;padding:0;font-size:11px;margin-left:auto;display:inline-flex;align-items:center;gap:4px}
+.sync-line button .icono{width:12px;height:12px;flex:0 0 12px}
+.sync-line button:hover{color:var(--negro);text-decoration:underline}
 
 .main{flex:1;min-width:0;padding:32px 36px 90px;max-width:1180px}
 .topbar{display:none}
@@ -135,7 +138,8 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .hero-hoy .eyebrow2{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--acento-2)}
 .hero-hoy.mora .eyebrow2{color:var(--rojo)}
 .hero-hoy.due .eyebrow2{color:var(--ambar)}
-.hero-hoy .titular{font-family:var(--disp);font-weight:600;font-size:27px;letter-spacing:-.015em;margin:9px 0 5px;line-height:1.22;text-wrap:balance}
+.hero-hoy .titular{font-family:var(--disp);font-weight:600;font-size:27px;letter-spacing:-.015em;margin:9px 0 5px;line-height:1.22;text-wrap:balance;display:flex;align-items:center;gap:10px}
+.hero-hoy .titular .icono{width:24px;height:24px;color:var(--verde);flex:0 0 24px}
 .hero-hoy .sub{font-size:12.5px;color:var(--gris2);font-weight:500}
 
 .hoy-vacio{
@@ -211,7 +215,10 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .btn.sm{padding:7px 15px;font-size:12px}
 .btn.block{width:100%;justify-content:center}
 .btn:disabled{opacity:.4;cursor:not-allowed}
-.linkbtn{background:none;border:0;color:var(--acento);cursor:pointer;font-size:13px;font-weight:600;padding:4px 0;text-decoration:underline}
+.btn .icono{width:15px;height:15px;flex:0 0 15px}
+.btn.sm .icono{width:13px;height:13px;flex:0 0 13px}
+.linkbtn{background:none;border:0;color:var(--acento);cursor:pointer;font-size:13px;font-weight:600;padding:4px 0;text-decoration:underline;display:inline-flex;align-items:center;gap:5px}
+.linkbtn .icono{width:13px;height:13px;flex:0 0 13px}
 .linkbtn:active{opacity:.6}
 
 /* ---------- resumen (estado de cuenta, no tarjetas sueltas) ---------- */
@@ -263,6 +270,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 }
 .rowdel:hover{color:var(--rojo);background:var(--rojo-suave)}
 .rowdel:active{color:var(--rojo);background:var(--rojo-suave);transform:scale(.9)}
+.rowdel .icono{width:16px;height:16px;display:block}
 @media(prefers-reduced-motion:reduce){.rowdel:active{transform:none}}
 .tag{
   font-size:10.5px;font-weight:700;letter-spacing:.02em;
@@ -292,6 +300,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .card:active{box-shadow:var(--sombra-sm);transform:scale(.99)}
 @media(prefers-reduced-motion:reduce){.card:hover,.card:active{transform:none}}
 .card h3{font-weight:700;font-size:18px;margin:0 0 3px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h3 .icono{width:17px;height:17px;color:var(--acento);flex:0 0 17px}
 .card .meta{font-size:12.5px;color:var(--gris);font-weight:500}
 .card .figs{display:flex;gap:20px;margin-top:14px;padding-top:14px;border-top:1px solid var(--linea)}
 .card .fig .k{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);font-weight:700}
@@ -311,17 +320,18 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .form .acts{margin-top:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 
 .empty{border:1.5px dashed var(--linea);border-radius:var(--r);padding:32px 24px;text-align:center;color:var(--gris)}
-.empty .ic{font-size:26px;display:block;margin-bottom:8px}
+.empty .ic{width:28px;height:28px;display:inline-flex;margin-bottom:10px}
 .empty strong{display:block;font-family:var(--disp);font-size:17px;color:var(--negro);font-weight:700;margin-bottom:5px}
 
 .toast{
   position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(6px);
   background:var(--negro);color:#fff;padding:12px 22px;font-size:13.5px;font-weight:600;
   border-radius:999px;z-index:80;box-shadow:0 10px 34px rgba(10,10,11,.28);opacity:0;pointer-events:none;
-  transition:opacity .22s,transform .22s;max-width:90vw
+  transition:opacity .22s,transform .22s;max-width:90vw;display:inline-flex;align-items:center;gap:7px
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.bad{background:var(--rojo)}
+.toast .icono{width:15px;height:15px;flex:0 0 15px}
 
 .scrim{
   position:fixed;inset:0;background:rgba(20,18,15,.5);z-index:70;
@@ -345,6 +355,8 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
   gap:14px;padding:14px 20px;background:var(--negro);color:#fff;
   font-size:12.5px;letter-spacing:.02em;font-weight:600;flex-wrap:wrap
 }
+.docbar #docTitulo{display:inline-flex;align-items:center;gap:7px}
+.docbar #docTitulo .icono{width:15px;height:15px;flex:0 0 15px}
 .docacts{display:flex;gap:8px;flex-wrap:wrap}
 .docacts .btn.ghost{background:rgba(255,255,255,.08);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22)}
 .docpaper{background:#fff;color:#111;padding:46px 52px;margin:22px 14px 0;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
@@ -376,16 +388,17 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .gate-card{width:100%;max-width:400px}
 .gate-brand{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:28px}
 .gate-brand .seal{
-  width:64px;height:64px;border-radius:50%;background:var(--negro);color:var(--papel);
+  width:64px;height:64px;border-radius:50%;background:linear-gradient(178deg,var(--acento),var(--acento-2));color:var(--papel);
   display:flex;align-items:center;justify-content:center;margin-bottom:16px;
-  box-shadow:0 0 0 4px var(--papel),0 0 0 5px var(--linea);
+  box-shadow:0 0 0 4px var(--papel),0 0 0 5px var(--linea),0 6px 16px -6px rgba(221,75,34,.55);
 }
-.gate-brand .seal .icono{width:32px;height:32px}
+.gate-brand .seal .seal-mark{font-size:25px}
 .gate-brand .mark{font-family:var(--disp);font-weight:600;font-size:29px;letter-spacing:-.015em}
 .gate-brand .mark i{font-style:normal;color:var(--gris)}
 .gate-brand .sub{font-size:12.5px;letter-spacing:.04em;color:var(--gris);margin-top:5px;font-style:italic;font-family:var(--disp)}
 .gate-panel{background:var(--hueso);border:1px solid var(--linea);border-radius:14px;padding:28px 26px;box-shadow:0 1px 2px rgba(27,24,18,.03)}
-.gate-panel h3{font-weight:600;font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+.gate-panel h3{font-weight:600;font-size:20px;margin:0 0 4px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.gate-panel h3 .icono{width:19px;height:19px;color:var(--acento);flex:0 0 19px}
 .gate-panel .sub{font-size:13px;color:var(--gris2);margin:0 0 18px;line-height:1.5}
 .gate .f{margin-bottom:13px}
 .gate .f label{display:block;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--gris);margin-bottom:6px;font-weight:700}
@@ -393,6 +406,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .gate .f input:focus{border-color:var(--acento);outline:none;background:#fff}
 .gate-error{background:var(--rojo-suave);color:var(--rojo);border-radius:var(--r-sm);padding:11px 13px;font-size:13px;font-weight:600;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
 .gate-ok{background:var(--acento-suave);color:var(--acento-ink);border-radius:var(--r-sm);padding:13px;font-size:13.5px;font-weight:600;margin-bottom:6px;display:flex;gap:8px;align-items:flex-start;line-height:1.5}
+.gate-error .icono,.gate-ok .icono{width:16px;height:16px;flex:0 0 16px;margin-top:1px}
 .gate-tabs{display:flex;background:var(--papel);border-radius:999px;padding:4px;margin-bottom:18px;gap:2px}
 .gate-tabs button{flex:1;border:0;background:none;padding:9px;border-radius:999px;font-size:13px;font-weight:600;color:var(--gris);cursor:pointer}
 .gate-tabs button[aria-pressed="true"]{background:#fff;color:var(--negro);box-shadow:0 1px 3px rgba(27,24,18,.09)}
@@ -408,7 +422,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .choice:hover{border-color:var(--acento);box-shadow:var(--sombra-md);transform:translateY(-2px)}
 .choice:active{border-color:var(--acento);box-shadow:var(--sombra-sm);transform:scale(.98)}
 @media(prefers-reduced-motion:reduce){.choice:hover,.choice:active{transform:none}}
-.choice .ic{font-size:22px;display:block;margin-bottom:9px}
+.choice .ic{width:23px;height:23px;display:inline-flex;margin-bottom:10px;color:var(--acento)}
 .choice b{display:block;font-family:var(--disp);font-size:15.5px;font-weight:600;margin-bottom:3px}
 .choice span{font-size:12px;color:var(--gris);line-height:1.4;display:block}
 .codigo-grande{
@@ -436,8 +450,8 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     position:sticky;top:0;background:var(--hueso);z-index:40
   }
   .topbar .brand{padding:0}
-  .topbar .brand .seal{width:38px;height:38px;box-shadow:0 0 0 2px var(--hueso),0 0 0 3px var(--linea)}
-  .topbar .brand .seal .icono{width:19px;height:19px}
+  .topbar .brand .seal{width:38px;height:38px;box-shadow:0 0 0 2px var(--hueso),0 0 0 3px var(--linea),0 3px 8px -3px rgba(221,75,34,.5)}
+  .topbar .brand .seal .seal-mark{font-size:15px}
   .topbar .brand .mark{font-size:18px}
   .topbar .acts{display:flex;gap:4px}
   .icon-btn{
@@ -447,6 +461,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
   }
   .icon-btn:hover{background:var(--papel-2)}
   .icon-btn:active{background:var(--papel-2);transform:scale(.94)}
+  .icon-btn .icono{width:21px;height:21px}
   @media(prefers-reduced-motion:reduce){.icon-btn:active{transform:none}}
   .main{padding:18px 16px 96px;max-width:none}
   h1{font-size:25px}
@@ -490,7 +505,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 <div class="shell" id="appShell" hidden>
   <aside class="rail">
     <div class="brand">
-      <span class="seal"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="17" r="3"/><circle cx="17.5" cy="17" r="3"/><path d="M6.5 17l3-7h3.5l2.5 4h2M9.5 10h3"/></svg></span></span>
+      <span class="seal"><span class="seal-mark">M<i>|</i>G</span></span>
       <span class="tx">
         <span class="mark">MA<i>|</i>OG</span>
         <span class="sub" id="negLabel">Control de flota</span>
@@ -498,20 +513,20 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     </div>
     <nav class="nav" id="nav"></nav>
     <div class="rail-foot">
-      <div class="sync-line" id="syncLine"><span class="dot"></span><span id="syncState">—</span><button id="refrescar" title="Traer los últimos cambios">🔄 Actualizar</button></div>
+      <div class="sync-line" id="syncLine"><span class="dot"></span><span id="syncState">—</span><button id="refrescar" title="Traer los últimos cambios"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.5-4.7M20 12a8 8 0 0 1-14.5 4.7"/><path d="M18.5 3v4.5H14M5.5 21v-4.5H10"/></svg></span> Actualizar</button></div>
       <div class="rail-sep"></div>
       <button class="rail-btn" id="ajustesBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span><span>Ajustes</span></button>
-      <button class="rail-btn" id="exportBtn">📥 <span>Exportar a Excel</span></button>
-      <button class="rail-btn warn" id="salirBtn">🚪 <span>Cerrar sesión</span></button>
+      <button class="rail-btn" id="exportBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11.5M8 12l4 4 4-4"/><path d="M4.5 17.5v2A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg></span><span>Exportar a Excel</span></button>
+      <button class="rail-btn warn" id="salirBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4.5H7A1.5 1.5 0 0 0 5.5 6v12A1.5 1.5 0 0 0 7 19.5h6"/><path d="M11 12h9M17 8.3l3.3 3.7-3.3 3.7"/></svg></span><span>Cerrar sesión</span></button>
     </div>
   </aside>
 
   <header class="topbar">
-    <span class="brand"><span class="seal"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="17" r="3"/><circle cx="17.5" cy="17" r="3"/><path d="M6.5 17l3-7h3.5l2.5 4h2M9.5 10h3"/></svg></span></span><span class="mark">MA<i>|</i>OG</span></span>
+    <span class="brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span></span>
     <span class="acts">
-      <button class="icon-btn" id="refrescarM" title="Actualizar">🔄</button>
-      <button class="icon-btn" id="ajustesBtnM" title="Ajustes">⚙️</button>
-      <button class="icon-btn" id="exportBtnM" title="Exportar a Excel">📥</button>
+      <button class="icon-btn" id="refrescarM" title="Actualizar"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.5-4.7M20 12a8 8 0 0 1-14.5 4.7"/><path d="M18.5 3v4.5H14M5.5 21v-4.5H10"/></svg></span></button>
+      <button class="icon-btn" id="ajustesBtnM" title="Ajustes"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span></button>
+      <button class="icon-btn" id="exportBtnM" title="Exportar a Excel"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11.5M8 12l4 4 4-4"/><path d="M4.5 17.5v2A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg></span></button>
     </span>
   </header>
 
@@ -539,7 +554,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       </div>
 
       <div class="compose">
-        <span class="eyebrow">💵 Registrar un pago</span>
+        <span class="eyebrow">Registrar un pago</span>
         <div class="lead">
           <span>Recibí</span>
           <input class="w-money" id="qValor" inputmode="numeric" placeholder="$0" aria-label="Valor recibido">
@@ -557,7 +572,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
               <option>Nequi</option><option>Daviplata</option><option>Otro</option>
             </select>
           </div>
-          <button class="btn acento" id="qSave">✅ Registrar pago</button>
+          <button class="btn acento" id="qSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span> Registrar pago</button>
           <span class="hint" id="qHint"></span>
         </div>
       </div>
@@ -601,7 +616,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
             <select id="gCargo"><option>Empresa</option><option>Conductor</option></select>
           </div>
         </div>
-        <div class="acts"><button class="btn" id="gSave">➕ Registrar gasto</button></div>
+        <div class="acts"><button class="btn" id="gSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Registrar gasto</button></div>
       </div>
       <div id="gastosList"></div>
     </section>
@@ -641,7 +656,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         <div class="fgrid">
           <div class="f"><label for="invExtra">Inversión adicional</label><input id="invExtra" inputmode="numeric" placeholder="$0"></div>
         </div>
-        <div class="acts"><button class="btn" id="invSave">💾 Guardar</button></div>
+        <div class="acts"><button class="btn" id="invSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="15" height="16" rx="2"/><path d="M8 4v5h7V4"/><path d="M7.5 20v-6h9v6"/></svg></span> Guardar</button></div>
       </div>
     </section>
 
@@ -671,7 +686,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <div class="f"><label for="cCorreo">Correo electrónico</label><input id="cCorreo" inputmode="email"></div>
           <div class="f"><label for="cEmer">Contacto de emergencia</label><input id="cEmer" placeholder="Nombre, parentesco y teléfono"></div>
         </div>
-        <div class="acts"><button class="btn" id="cSave">➕ Guardar conductor</button>
+        <div class="acts"><button class="btn" id="cSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Guardar conductor</button>
           <span class="hint" style="margin-left:0">Solo el nombre es obligatorio.</span></div>
       </div>
       <div class="grid2" id="condList"></div>
@@ -703,7 +718,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <div class="f"><label for="vRtmNum">Tecnomecánica N.º</label><input id="vRtmNum"></div>
           <div class="f"><label for="vAseg">Aseguradora</label><input id="vAseg"></div>
         </div>
-        <div class="acts"><button class="btn" id="mSave">➕ Guardar vehículo</button>
+        <div class="acts"><button class="btn" id="mSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Guardar vehículo</button>
           <span class="hint" style="margin-left:0">Placa y canon son lo único obligatorio.</span></div>
       </div>
       <div class="grid2" id="motosList"></div>
@@ -720,7 +735,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         <p class="sub">Quiénes tienen acceso a <span id="negNombreTx">este negocio</span>.</p>
         <div id="miembrosList"></div>
         <div class="acts">
-          <button class="btn ghost sm" id="verCodigoBtn">🔗 Generar código de invitación</button>
+          <button class="btn ghost sm" id="verCodigoBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="9" width="9" height="6" rx="3"/><rect x="11.8" y="9" width="9" height="6" rx="3"/></svg></span> Generar código de invitación</button>
         </div>
         <div id="codigoBox"></div>
       </div>
@@ -750,7 +765,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <div class="f"><label for="bDia">Día de pago semanal</label>
             <select id="bDia"><option>lunes</option><option>martes</option><option>miércoles</option><option>jueves</option><option>viernes</option><option>sábado</option><option>domingo</option></select></div>
         </div>
-        <div class="acts"><button class="btn" id="dSave">💾 Guardar datos</button>
+        <div class="acts"><button class="btn" id="dSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="15" height="16" rx="2"/><path d="M8 4v5h7V4"/><path d="M7.5 20v-6h9v6"/></svg></span> Guardar datos</button>
           <span class="hint" style="margin-left:0">Se usan para llenar los contratos.</span></div>
       </div>
     </section>
@@ -764,12 +779,12 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 <div class="scrim" id="docScrim">
   <div class="docsheet">
     <div class="docbar">
-      <span id="docTitulo">📄 Contrato</span>
+      <span id="docTitulo"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5H13.5L18 8V19.5A1.5 1.5 0 0 1 16.5 21H7.5A1.5 1.5 0 0 1 6 19.5V5A1.5 1.5 0 0 1 7 3.5Z"/><path d="M13.5 3.5V8H18"/><path d="M9 12.5H15M9 15.8H15"/></svg></span> Contrato</span>
       <span class="docacts">
-        <button class="btn sm" id="docImprimir">🖨️ Imprimir o PDF</button>
-        <button class="btn ghost sm" id="docCopiar">📋 Copiar</button>
-        <button class="btn ghost sm" id="docBajar">⬇️ Descargar</button>
-        <button class="btn ghost sm" id="docCerrar">✕ Cerrar</button>
+        <button class="btn sm" id="docImprimir"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8.5V4.2h10v4.3"/><rect x="4.3" y="8.5" width="15.4" height="7.7" rx="1.5"/><path d="M7 13.8h10v6.9H7z"/></svg></span> Imprimir o PDF</button>
+        <button class="btn ghost sm" id="docCopiar"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="7.2" width="11.5" height="13.3" rx="1.8"/><path d="M4.5 15.5V5.8A1.8 1.8 0 0 1 6.3 4H14"/></svg></span> Copiar</button>
+        <button class="btn ghost sm" id="docBajar"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11.5M8 12l4 4 4-4"/><path d="M4.5 17.5v2A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg></span> Descargar</button>
+        <button class="btn ghost sm" id="docCerrar"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span> Cerrar</button>
       </span>
     </div>
     <div class="docpaper"><div id="docCuerpo"></div></div>
@@ -802,7 +817,8 @@ const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<'
 
 function toast(msg, bad){
   const t = $('toast');
-  t.textContent = (bad?'⚠️ ':'✅ ') + msg; t.className = 'toast show' + (bad?' bad':'');
+  t.innerHTML = '<span class="icono">'+(bad?ICONS.alerta:ICONS.check)+'</span><span>'+esc(msg)+'</span>';
+  t.className = 'toast show' + (bad?' bad':'');
   clearTimeout(t._t); t._t = setTimeout(()=>t.className='toast', 2800);
 }
 function confirmar(titulo, texto){
@@ -836,6 +852,28 @@ const ICONS = {
   conductores: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16a8 8 0 0 1 16 0v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1z"/><path d="M4.5 15.5h15"/></svg>',
   vehiculos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="17" r="3"/><circle cx="17.5" cy="17" r="3"/><path d="M6.5 17l3-7h3.5l2.5 4h2M9.5 10h3"/></svg>',
   ajustes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg>',
+  /* Set 2 — mismo trazo (1.6, extremos y uniones redondeadas), para
+     reemplazar los emoji que quedaban en botones y estados ("de Paint"
+     porque cada celular los dibuja distinto). */
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15M9.5 7V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v2M6.5 7l.9 12.1a2 2 0 0 0 2 1.9h5.2a2 2 0 0 0 2-1.9L17.5 7"/><path d="M10 11v6M14 11v6"/></svg>',
+  refrescar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.5-4.7M20 12a8 8 0 0 1-14.5 4.7"/><path d="M18.5 3v4.5H14M5.5 21v-4.5H10"/></svg>',
+  salir: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4.5H7A1.5 1.5 0 0 0 5.5 6v12A1.5 1.5 0 0 0 7 19.5h6"/><path d="M11 12h9M17 8.3l3.3 3.7-3.3 3.7"/></svg>',
+  descargar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11.5M8 12l4 4 4-4"/><path d="M4.5 17.5v2A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg>',
+  documento: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5H13.5L18 8V19.5A1.5 1.5 0 0 1 16.5 21H7.5A1.5 1.5 0 0 1 6 19.5V5A1.5 1.5 0 0 1 7 3.5Z"/><path d="M13.5 3.5V8H18"/><path d="M9 12.5H15M9 15.8H15"/></svg>',
+  llave: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.8" cy="15.5" r="3.2"/><path d="M10 13.3L17.5 5.8"/><path d="M14.7 8.6l2 2M16.9 6.4l2 2"/></svg>',
+  correo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4.3 7l7.7 6 7.7-6"/></svg>',
+  alerta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.3L21 19.2H3Z"/><path d="M12 10v4M12 16.9v.01"/></svg>',
+  enlace: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="9" width="9" height="6" rx="3"/><rect x="11.8" y="9" width="9" height="6" rx="3"/></svg>',
+  copiar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="7.2" width="11.5" height="13.3" rx="1.8"/><path d="M4.5 15.5V5.8A1.8 1.8 0 0 1 6.3 4H14"/></svg>',
+  imprimir: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8.5V4.2h10v4.3"/><rect x="4.3" y="8.5" width="15.4" height="7.7" rx="1.5"/><path d="M7 13.8h10v6.9H7z"/></svg>',
+  cerrar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  guardar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="15" height="16" rx="2"/><path d="M8 4v5h7V4"/><path d="M7.5 20v-6h9v6"/></svg>',
+  calendario: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 9.7h16M8 3.5v3.4M16 3.5v3.4"/></svg>',
+  grafica: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 12V4M12 12l6.9 4"/></svg>',
+  persona: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.3 20v-1.3a6.7 6.7 0 0 1 13.4 0V20"/></svg>',
+  enchufe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5v5.5M15 3.5v5.5"/><path d="M6.5 9h11v3.2a5.5 5.5 0 0 1-11 0V9Z"/><path d="M12 17.7V21"/></svg>',
 };
 
 /* =========================================================
@@ -1203,7 +1241,7 @@ function renderHeroHoy(items){
   if(!items.length){
     el.innerHTML = `<div class="hero-hoy">
       <span class="eyebrow2">Hoy</span>
-      <div class="titular">Todo al día ✅</div>
+      <div class="titular"><span class="icono">${ICONS.check}</span> Todo al día</div>
       <div class="sub">Nada urgente por ahora — los próximos vencimientos y pagos pendientes van a aparecer aquí.</div>
     </div>`;
     return;
@@ -1314,7 +1352,7 @@ function renderCuentas(){
     ? `<div class="ledger-wrap"><table class="ledger"><thead><tr><th>Mes</th><th class="num">Ingresos</th>
        <th class="num">Gastos</th><th class="num">Utilidad</th><th class="num">Acumulado</th></tr></thead>
        <tbody>${filas}</tbody></table></div>`
-    : `<div class="empty"><span class="ic">📆</span>Sin movimientos este año.</div>`;
+    : `<div class="empty"><span class="ic icono">${ICONS.calendario}</span>Sin movimientos este año.</div>`;
 
   const porCat = {};
   S.gastos.filter(g=>g.cargo==='Empresa' && g.cat!==CAT_DEUDA)
@@ -1330,14 +1368,14 @@ function renderCuentas(){
           <td class="num" style="color:var(--gris)">${(v/tot*100).toFixed(0)}%</td></tr>`).join('')}
        <tr><td><strong>Total</strong></td><td></td>
            <td class="num money"><strong>${money(tot)}</strong></td><td></td></tr></tbody></table></div>`
-    : `<div class="empty"><span class="ic">🥧</span>Todavía no hay gastos del negocio.</div>`;
+    : `<div class="empty"><span class="ic icono">${ICONS.grafica}</span>Todavía no hay gastos del negocio.</div>`;
 
   const e = $('invExtra');
   if(e && document.activeElement !== e)
     e.value = (S.config && S.config.inversionExtra) ? money(S.config.inversionExtra) : '';
 }
 function renderPropietarios(){
-  if(!S.motos.length){ $('propList').innerHTML = `<div class="empty"><span class="ic">🤝</span>Registre motos para ver cuánto le corresponde a cada dueño.</div>`; return; }
+  if(!S.motos.length){ $('propList').innerHTML = `<div class="empty"><span class="ic icono">${ICONS.cuentas}</span>Registre motos para ver cuánto le corresponde a cada dueño.</div>`; return; }
   const grupos = {};
   S.motos.forEach(m=>{
     const p = m.propietario || 'Sin asignar';
@@ -1365,12 +1403,12 @@ function renderPropietarios(){
 }
 function renderCondStatus(){
   if(!S.conductores.length){
-    $('condStatus').innerHTML = `<div class="empty"><span class="ic">👥</span><strong>Todavía no hay conductores</strong>
+    $('condStatus').innerHTML = `<div class="empty"><span class="ic icono">${ICONS.conductores}</span><strong>Todavía no hay conductores</strong>
       Agregue la moto y luego el conductor en Vehículos y Conductores.</div>`; return;
   }
   const activos = S.conductores.filter(esActivo);
   if(!activos.length){
-    $('condStatus').innerHTML = `<div class="empty"><span class="ic">🏍️</span><strong>Ningún conductor con moto asignada</strong>
+    $('condStatus').innerHTML = `<div class="empty"><span class="ic icono">${ICONS.vehiculos}</span><strong>Ningún conductor con moto asignada</strong>
       Los candidatos aparecen abajo, en Conductores.</div>`; return;
   }
   const rows = activos.map(c=>{
@@ -1408,7 +1446,7 @@ function renderChart(){
 }
 function renderPagos(){
   if(!S.pagos.length){
-    $('pagosList').innerHTML = `<div class="empty"><span class="ic">💵</span><strong>Sin pagos registrados</strong>
+    $('pagosList').innerHTML = `<div class="empty"><span class="ic icono">${ICONS.pagos}</span><strong>Sin pagos registrados</strong>
       Registre el primero desde el tablero.</div>`; return;
   }
   const rows = [...S.pagos].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).map(p=>{
@@ -1421,7 +1459,7 @@ function renderPagos(){
       <td class="hide-s num">${p.dias}</td>
       <td class="num money">${money(p.valor)}</td>
       <td class="num money ${dif<0?'neg':''}">${dif===0?'—':money(dif)}</td>
-      <td class="num"><button class="rowdel" data-del-pago="${p.id}" aria-label="Eliminar pago">🗑️</button></td>
+      <td class="num"><button class="rowdel" data-del-pago="${p.id}" aria-label="Eliminar pago"><span class="icono">${ICONS.trash}</span></button></td>
     </tr>`;
   }).join('');
   $('pagosList').innerHTML = `<div class="ledger-wrap"><table class="ledger">
@@ -1431,7 +1469,7 @@ function renderPagos(){
 }
 function renderGastos(){
   if(!S.gastos.length){
-    $('gastosList').innerHTML = `<div class="empty"><span class="ic">🧾</span><strong>Sin gastos registrados</strong>
+    $('gastosList').innerHTML = `<div class="empty"><span class="ic icono">${ICONS.gastos}</span><strong>Sin gastos registrados</strong>
       Anote el SOAT, los mantenimientos y los comparendos aquí.</div>`; return;
   }
   const rows = [...S.gastos].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).map(g=>{
@@ -1445,9 +1483,9 @@ function renderGastos(){
         ? '<span class="tag">Empresa</span>'
         : (pend ? '<span class="tag due">Por cobrar</span>' : '<span class="tag ok">Recuperado</span>')}</td>
       <td class="num">${g.cargo==='Conductor'
-        ? `<button class="btn ghost sm" data-toggle-gasto="${g.id}">${g.recuperado?'Marcar pendiente':'✅ Marcar cobrado'}</button>`
+        ? `<button class="btn ghost sm" data-toggle-gasto="${g.id}">${g.recuperado?'Marcar pendiente':'<span class="icono">'+ICONS.check+'</span> Marcar cobrado'}</button>`
         : ''}</td>
-      <td class="num"><button class="rowdel" data-del-gasto="${g.id}" aria-label="Eliminar gasto">🗑️</button></td>
+      <td class="num"><button class="rowdel" data-del-gasto="${g.id}" aria-label="Eliminar gasto"><span class="icono">${ICONS.trash}</span></button></td>
     </tr>`;
   }).join('');
   $('gastosList').innerHTML = `<div class="ledger-wrap"><table class="ledger">
@@ -1456,7 +1494,7 @@ function renderGastos(){
 }
 function renderMotos(){
   if(!S.motos.length){
-    $('motosList').innerHTML = `<div class="empty"><span class="ic">🏍️</span><strong>Todavía no hay motos</strong>
+    $('motosList').innerHTML = `<div class="empty"><span class="ic icono">${ICONS.vehiculos}</span><strong>Todavía no hay motos</strong>
       Empiece por aquí: agregue la placa y el canon diario.</div>`; return;
   }
   $('motosList').innerHTML = S.motos.map(m=>{
@@ -1465,7 +1503,7 @@ function renderMotos(){
     const gas = S.gastos.filter(g=>g.motoId===m.id&&g.cargo==='Empresa').reduce((a,g)=>a+g.valor,0);
     const pct = m.valorCompra ? (rec/m.valorCompra*100).toFixed(1)+'%' : '—';
     return `<div class="card">
-      <h3>🏍️ ${esc(m.placa)}</h3>
+      <h3><span class="icono">${ICONS.vehiculos}</span> ${esc(m.placa)}</h3>
       <div class="meta">${esc(m.ref||'—')} · ${money(m.canon)}/día</div>
       <div class="meta" style="margin-top:8px;display:flex;gap:7px;flex-wrap:wrap">
         ${chip('SOAT', m.soat)} ${chip('Tecnomecánica', m.tecno)}
@@ -1476,7 +1514,7 @@ function renderMotos(){
         <div class="fig"><div class="k">Gastos</div><div class="v">${money(gas)}</div></div>
         <div class="fig"><div class="k">Inversión</div><div class="v">${pct}</div></div>
       </div>
-      <div class="acts"><button class="btn ghost sm" data-del-moto="${m.id}">🗑️ Eliminar</button></div>
+      <div class="acts"><button class="btn ghost sm" data-del-moto="${m.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button></div>
     </div>`;
   }).join('');
 }
@@ -1489,7 +1527,7 @@ function renderCond(){
               : est==='Candidato' ? '<span class="tag due">Candidato</span>'
               : '<span class="tag">Retirado</span>';
     return `<div class="card">
-      <h3>🧑 ${esc(c.nombre)} ${tag}</h3>
+      <h3><span class="icono">${ICONS.persona}</span> ${esc(c.nombre)} ${tag}</h3>
       <div class="meta">${m?esc(m.placa):'sin moto asignada'} · C.C. ${esc(c.cedula||'—')} · ${esc(c.tel||'—')}</div>
       <div class="meta" style="margin-top:6px;font-size:11.5px;color:var(--gris);line-height:1.6">
         Licencia ${esc(c.licencia||'—')}${c.licVence?' · vence '+fmtDate(c.licVence):''}<br>
@@ -1505,8 +1543,8 @@ function renderCond(){
         <div class="fig"><div class="k">Depósito</div><div class="v">${money(c.deposito)}</div></div>
       </div>
       <div class="acts">
-        ${c.motoId ? `<button class="btn sm" data-contrato="${c.id}">📄 Generar contrato</button>` : ''}
-        <button class="btn ghost sm" data-del-cond="${c.id}">🗑️ Eliminar</button></div>
+        ${c.motoId ? `<button class="btn sm" data-contrato="${c.id}"><span class="icono">${ICONS.documento}</span> Generar contrato</button>` : ''}
+        <button class="btn ghost sm" data-del-cond="${c.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button></div>
     </div>`;
   }).join('');
 }
@@ -1558,7 +1596,7 @@ $('verCodigoBtn').addEventListener('click', async ()=>{
     $('codigoBox').innerHTML = `
       <p style="font-size:12.5px;color:var(--gris);margin:14px 0 0">Compártalo con quien se va a unir. Sirve una sola vez.</p>
       <div class="codigo-grande">${esc(cod)}</div>
-      <button class="btn ghost sm block" id="copiarCodigoBtn">📋 Copiar código</button>`;
+      <button class="btn ghost sm block" id="copiarCodigoBtn"><span class="icono">${ICONS.copiar}</span> Copiar código</button>`;
     $('copiarCodigoBtn').addEventListener('click', async ()=>{
       try{ await navigator.clipboard.writeText(cod); toast('Código copiado'); }
       catch(e){ prompt('Copie este código:', cod); }
@@ -2477,7 +2515,7 @@ function generarContrato(condId){
   const d = datosContrato(c);
   let cuerpo = TPL_CONTRATO;
   Object.keys(d).forEach(k=>{ cuerpo = cuerpo.split('{{'+k+'}}').join(d[k]); });
-  $('docTitulo').textContent = `📄 Contrato · ${c.nombre}`;
+  $('docTitulo').innerHTML = '<span class="icono">'+ICONS.documento+'</span> Contrato · '+esc(c.nombre);
   $('docCuerpo').innerHTML = cuerpo;
   $('docScrim').classList.add('on');
   document.body.classList.add('imprimiendo');
@@ -2580,14 +2618,14 @@ let NEG_MODO = '';
 function pantallaConectar(){
   $('gate').innerHTML = `
     <div class="gate-card">
-      <div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span><span class="sub">Control de flota</span></div>
+      <div class="gate-brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span><span class="sub">Control de flota</span></div>
       <div class="gate-panel">
-        <h3>🔌 Conecta tu base de datos</h3>
+        <h3><span class="icono">${ICONS.enchufe}</span> Conecta tu base de datos</h3>
         <p class="sub">Una sola vez. Pega los datos de tu proyecto de Supabase — quedan guardados en este navegador.</p>
-        ${AUTH_ERROR?`<div class="gate-error">⚠️ <span>${esc(AUTH_ERROR)}</span></div>`:''}
+        ${AUTH_ERROR?`<div class="gate-error"><span class="icono">${ICONS.alerta}</span><span>${esc(AUTH_ERROR)}</span></div>`:''}
         <div class="f"><label for="cnUrl">URL del proyecto</label><input id="cnUrl" placeholder="https://xxxx.supabase.co" value="${esc(SESION.url)}"></div>
         <div class="f"><label for="cnKey">Clave pública (anon)</label><input id="cnKey" placeholder="eyJhbGciOi..." value="${esc(SESION.key)}"></div>
-        <button class="btn block" id="cnGuardar">${AUTH_CARGANDO?'Conectando…':'🔌 Conectar'}</button>
+        <button class="btn block" id="cnGuardar">${AUTH_CARGANDO?'Conectando…':'<span class="icono">'+ICONS.enchufe+'</span> Conectar'}</button>
         <p class="gate-help">
           ¿Todavía no tienes el proyecto? Sigue los pasos de <code>flota/README.md</code> en el repositorio:
           crear el proyecto en supabase.com y correr el script SQL una sola vez.
@@ -2619,7 +2657,7 @@ function pantallaSesion(estadoExtra){
   const modo = AUTH_MODO;
   $('gate').innerHTML = `
     <div class="gate-card">
-      <div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span><span class="sub">Control de flota</span></div>
+      <div class="gate-brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span><span class="sub">Control de flota</span></div>
       <div class="gate-panel">
         ${modo!=='recuperar' ? `
         <div class="gate-tabs">
@@ -2628,10 +2666,10 @@ function pantallaSesion(estadoExtra){
         </div>`:''}
         ${modo==='entrar' ? `<h3>👋 Hola de nuevo</h3><p class="sub">Entra con tu correo y tu contraseña.</p>` : ''}
         ${modo==='crear' ? `<h3>✨ Crear tu cuenta</h3><p class="sub">Cuenta 100% tuya — correo y contraseña propios.</p>` : ''}
-        ${modo==='recuperar' ? `<h3>🔑 Recuperar clave</h3><p class="sub">Te enviamos un enlace a tu correo para poner una nueva.</p>` : ''}
-        ${estadoExtra==='revisa-correo' ? `<div class="gate-ok">📬 <span>Cuenta creada. Revisa tu correo y confirma para poder entrar.</span></div>` : ''}
-        ${estadoExtra==='recuperar-enviado' ? `<div class="gate-ok">📬 <span>Listo, revisa tu correo para poner una clave nueva.</span></div>` : ''}
-        ${AUTH_ERROR?`<div class="gate-error">⚠️ <span>${esc(AUTH_ERROR)}</span></div>`:''}
+        ${modo==='recuperar' ? `<h3><span class="icono">${ICONS.llave}</span> Recuperar clave</h3><p class="sub">Te enviamos un enlace a tu correo para poner una nueva.</p>` : ''}
+        ${estadoExtra==='revisa-correo' ? `<div class="gate-ok"><span class="icono">${ICONS.correo}</span><span>Cuenta creada. Revisa tu correo y confirma para poder entrar.</span></div>` : ''}
+        ${estadoExtra==='recuperar-enviado' ? `<div class="gate-ok"><span class="icono">${ICONS.correo}</span><span>Listo, revisa tu correo para poner una clave nueva.</span></div>` : ''}
+        ${AUTH_ERROR?`<div class="gate-error"><span class="icono">${ICONS.alerta}</span><span>${esc(AUTH_ERROR)}</span></div>`:''}
         ${modo==='crear' ? `<div class="f"><label for="fNombre">Tu nombre</label><input id="fNombre" placeholder="Nombre y apellido"></div>` : ''}
         <div class="f"><label for="fCorreo">Correo</label><input id="fCorreo" type="email" inputmode="email" placeholder="tucorreo@ejemplo.com"></div>
         ${modo!=='recuperar' ? `<div class="f"><label for="fClave">Contraseña</label><input id="fClave" type="password" placeholder="mínimo 6 caracteres"></div>` : ''}
@@ -2681,16 +2719,16 @@ function pantallaNegocio(){
   if(NEG_MODO==='unirse') return pantallaNegocioUnirse();
   $('gate').innerHTML = `
     <div class="gate-card" style="max-width:460px">
-      <div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span><span class="sub">Hola, ${esc(SESION.nombre)} 👋</span></div>
+      <div class="gate-brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span><span class="sub">Hola, ${esc(SESION.nombre)} 👋</span></div>
       <div class="gate-panel">
         <h3>🚀 Empecemos</h3>
         <p class="sub">¿Vas a crear el negocio, o alguien ya te compartió un código?</p>
-        ${AUTH_ERROR?`<div class="gate-error">⚠️ <span>${esc(AUTH_ERROR)}</span></div>`:''}
+        ${AUTH_ERROR?`<div class="gate-error"><span class="icono">${ICONS.alerta}</span><span>${esc(AUTH_ERROR)}</span></div>`:''}
         <div class="choice-grid">
-          <button class="choice" data-neg="crear"><span class="ic">➕</span><b>Crear un negocio</b><span>Eres el primero en entrar. Vas a generar un código para tu pareja.</span></button>
-          <button class="choice" data-neg="unirse"><span class="ic">🔑</span><b>Unirme con un código</b><span>Tu pareja ya creó el negocio y te compartió un código de 6 letras.</span></button>
+          <button class="choice" data-neg="crear"><span class="ic icono">${ICONS.plus}</span><b>Crear un negocio</b><span>Eres el primero en entrar. Vas a generar un código para tu pareja.</span></button>
+          <button class="choice" data-neg="unirse"><span class="ic icono">${ICONS.llave}</span><b>Unirme con un código</b><span>Tu pareja ya creó el negocio y te compartió un código de 6 letras.</span></button>
         </div>
-        <p class="gate-foot"><button class="linkbtn" id="salirDeAuth">🚪 Cerrar sesión</button></p>
+        <p class="gate-foot"><button class="linkbtn" id="salirDeAuth"><span class="icono">${ICONS.salir}</span> Cerrar sesión</button></p>
       </div>
     </div>`;
   document.querySelectorAll('[data-neg]').forEach(b=>b.addEventListener('click', ()=>{ NEG_MODO=b.dataset.neg; AUTH_ERROR=''; pantallaNegocio(); }));
@@ -2699,13 +2737,13 @@ function pantallaNegocio(){
 function pantallaNegocioCrear(){
   $('gate').innerHTML = `
     <div class="gate-card">
-      <div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span></div>
+      <div class="gate-brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span></div>
       <div class="gate-panel">
-        <h3>➕ Crear tu negocio</h3>
+        <h3><span class="icono">${ICONS.plus}</span> Crear tu negocio</h3>
         <p class="sub">Ponle un nombre — puede ser el mismo que ya usan, o cualquier otro.</p>
-        ${AUTH_ERROR?`<div class="gate-error">⚠️ <span>${esc(AUTH_ERROR)}</span></div>`:''}
+        ${AUTH_ERROR?`<div class="gate-error"><span class="icono">${ICONS.alerta}</span><span>${esc(AUTH_ERROR)}</span></div>`:''}
         <div class="f"><label for="negNombre">Nombre del negocio</label><input id="negNombre" placeholder="MA|OG" value="MA|OG"></div>
-        <button class="btn block" id="negCrearBtn">${AUTH_CARGANDO?'Creando…':'✅ Crear negocio'}</button>
+        <button class="btn block" id="negCrearBtn">${AUTH_CARGANDO?'Creando…':'<span class="icono">'+ICONS.check+'</span> Crear negocio'}</button>
         <p class="gate-foot"><button class="linkbtn" data-back="1">← Volver</button></p>
       </div>
     </div>`;
@@ -2724,12 +2762,12 @@ function pantallaNegocioCrear(){
 function mostrarCodigoInicial(codigo){
   $('gate').innerHTML = `
     <div class="gate-card">
-      <div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span></div>
+      <div class="gate-brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span></div>
       <div class="gate-panel">
         <h3>🎉 ¡Listo!</h3>
         <p class="sub">Comparte este código con tu pareja — con él se une a este mismo negocio. Sirve una sola vez y también lo puedes ver luego en Ajustes.</p>
         <div class="codigo-grande">${esc(codigo)}</div>
-        <button class="btn ghost block" id="copiarInicialBtn" style="margin-bottom:10px">📋 Copiar código</button>
+        <button class="btn ghost block" id="copiarInicialBtn" style="margin-bottom:10px"><span class="icono">${ICONS.copiar}</span> Copiar código</button>
         <button class="btn block" id="entrarBtn">Entrar a la app →</button>
       </div>
     </div>`;
@@ -2742,13 +2780,13 @@ function mostrarCodigoInicial(codigo){
 function pantallaNegocioUnirse(){
   $('gate').innerHTML = `
     <div class="gate-card">
-      <div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span></div>
+      <div class="gate-brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span></div>
       <div class="gate-panel">
-        <h3>🔑 Unirme con un código</h3>
+        <h3><span class="icono">${ICONS.llave}</span> Unirme con un código</h3>
         <p class="sub">Pega el código de 6 letras que te compartieron.</p>
-        ${AUTH_ERROR?`<div class="gate-error">⚠️ <span>${esc(AUTH_ERROR)}</span></div>`:''}
+        ${AUTH_ERROR?`<div class="gate-error"><span class="icono">${ICONS.alerta}</span><span>${esc(AUTH_ERROR)}</span></div>`:''}
         <div class="f"><label for="negCodigo">Código</label><input id="negCodigo" placeholder="AB12CD" style="text-transform:uppercase;letter-spacing:.14em;font-family:var(--mono);font-size:20px;text-align:center"></div>
-        <button class="btn block" id="negUnirseBtn">${AUTH_CARGANDO?'Uniendo…':'✅ Unirme'}</button>
+        <button class="btn block" id="negUnirseBtn">${AUTH_CARGANDO?'Uniendo…':'<span class="icono">'+ICONS.check+'</span> Unirme'}</button>
         <p class="gate-foot"><button class="linkbtn" data-back="1">← Volver</button></p>
       </div>
     </div>`;
@@ -2767,7 +2805,7 @@ function pantallaNegocioUnirse(){
   document.querySelector('[data-back]').addEventListener('click', ()=>{ NEG_MODO=''; AUTH_ERROR=''; pantallaNegocio(); });
 }
 function pantallaCargando(msg){
-  $('gate').innerHTML = `<div class="gate-card" style="text-align:center"><div class="gate-brand"><span class="seal"><span class="icono">${ICONS.vehiculos}</span></span><span class="mark">MA<i>|</i>OG</span></div><div class="spinner"></div><p style="color:var(--gris);font-size:13.5px;margin-top:14px">${esc(msg||'Cargando…')}</p></div>`;
+  $('gate').innerHTML = `<div class="gate-card" style="text-align:center"><div class="gate-brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span></div><div class="spinner"></div><p style="color:var(--gris);font-size:13.5px;margin-top:14px">${esc(msg||'Cargando…')}</p></div>`;
 }
 
 async function mostrarApp(){
