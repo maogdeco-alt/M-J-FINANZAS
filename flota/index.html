@@ -9,20 +9,25 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%8D%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
-  --negro:#0A0A0B; --gris:#8A8A93; --gris2:#5C5C64; --linea:#EAEAEE;
-  --papel:#F5F5F6; --hueso:#FFFFFF; --fondo-input:#FAFAFA;
-  --acento:#0E7C74; --acento-suave:#E1F1EF;
-  --rojo:#C0392B; --rojo-suave:#FBEAE8;
-  --ambar:#AD7A0A; --ambar-suave:#FBF1DA;
-  --verde:#227A4E; --verde-suave:#E7F5EE;
-  --r:16px; --r-sm:12px;
-  --sans:'Inter Tight',system-ui,-apple-system,'Segoe UI',sans-serif;
-  --disp:'Bricolage Grotesque','Inter Tight',sans-serif;
-  --mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+  /* Paleta de taller de despacho: papel crudo, tinta cálida, verde
+     petróleo (overol de mecánico) como color de marca — evita el
+     crema+serif+terracota que ya se ve en todas partes. El rojo/ámbar
+     quedan reservados para estados (mora/por vencer), nunca para marca. */
+  --negro:#1B1812; --gris:#8C8271; --gris2:#5B5344; --linea:#E3DECE;
+  --papel:#F1EEE3; --papel-2:#E8E3D3; --hueso:#FFFFFF; --fondo-input:#F8F6EE;
+  --acento:#1C6B51; --acento-ink:#124A38; --acento-suave:#E1EDE6;
+  --bronce:#96702E; --bronce-suave:#F1E7D1;
+  --rojo:#9B3324; --rojo-suave:#F4E6DF;
+  --ambar:#8C5A0C; --ambar-suave:#F3E7CD;
+  --verde:#1C6B51; --verde-suave:#E1EDE6;
+  --r:10px; --r-sm:6px;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --disp:'Fraunces','IBM Plex Sans',Georgia,serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',monospace;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
@@ -34,78 +39,86 @@ body{
 }
 button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 input,select{font-size:16px}
-:focus-visible{outline:2px solid var(--acento);outline-offset:2px;border-radius:6px}
+:focus-visible{outline:2px solid var(--acento);outline-offset:2px;border-radius:4px}
 h1,h2,h3{font-family:var(--disp)}
+h1,h3{text-wrap:balance}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
-a{color:var(--acento)}
+a{color:var(--acento-ink)}
 hr{border:0;border-top:1px solid var(--linea);margin:18px 0}
 
 /* ---------- shell ---------- */
 .shell{display:flex;min-height:100vh}
 .rail{
-  width:224px;flex:0 0 224px;border-right:1px solid var(--linea);
-  padding:22px 0 18px;position:sticky;top:0;height:100vh;
+  width:226px;flex:0 0 226px;border-right:1px solid var(--linea);
+  padding:24px 0 18px;position:sticky;top:0;height:100vh;
   display:flex;flex-direction:column;background:var(--hueso);overflow-y:auto;
 }
-.brand{padding:2px 18px 22px;display:flex;align-items:center;gap:10px}
+.brand{padding:0 18px 24px;display:flex;align-items:center;gap:11px}
 .brand .seal{
-  width:38px;height:38px;border-radius:12px;background:var(--negro);color:#fff;
-  display:flex;align-items:center;justify-content:center;font-size:19px;flex:0 0 38px;
+  width:38px;height:38px;border-radius:50%;background:var(--negro);color:var(--papel);
+  display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 38px;
+  box-shadow:0 0 0 3px var(--hueso),0 0 0 4px var(--linea);
 }
 .brand .tx{min-width:0}
-.brand .mark{font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:-.02em;line-height:1.1;display:block}
+.brand .mark{font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:-.015em;line-height:1.1;display:block}
 .brand .mark i{font-style:normal;color:var(--gris);padding:0 1px}
-.brand .sub{display:block;margin-top:2px;font-size:10px;letter-spacing:.08em;color:var(--gris);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nav{display:flex;flex-direction:column;gap:2px;padding:6px 12px}
+.brand .sub{display:block;margin-top:3px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav{display:flex;flex-direction:column;gap:1px;padding:8px 12px}
 .nav button{
-  background:none;border:0;text-align:left;cursor:pointer;border-radius:12px;
-  padding:11px 13px;color:var(--gris2);font-size:14px;font-weight:600;letter-spacing:-.005em;
+  background:none;border:0;text-align:left;cursor:pointer;border-radius:8px;
+  padding:10px 12px;color:var(--gris2);font-size:13.5px;font-weight:500;letter-spacing:-.002em;
   display:flex;align-items:center;gap:11px;transition:background .14s,color .14s
 }
-.nav button .ic{font-size:16px;flex:0 0 auto}
-.nav button:hover{background:var(--papel);color:var(--negro)}
-.nav button[aria-current="page"]{background:var(--negro);color:#fff}
+.nav button .ic{font-size:15px;flex:0 0 auto;opacity:.85}
+.nav button:hover{background:var(--papel-2)}
+.nav button[aria-current="page"]{background:var(--negro);color:var(--papel);font-weight:600}
+.nav button[aria-current="page"] .ic{opacity:1}
 .rail-foot{margin-top:auto;padding:14px 12px 0}
 .rail-sep{border-top:1px solid var(--linea);margin:6px 12px 10px}
 .rail-btn{
   display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;
-  border-radius:12px;padding:9px 13px;color:var(--gris2);font-size:12.5px;font-weight:600;
+  border-radius:8px;padding:9px 12px;color:var(--gris2);font-size:12.5px;font-weight:500;
   cursor:pointer;text-align:left
 }
-.rail-btn:hover{background:var(--papel);color:var(--negro)}
+.rail-btn:hover{background:var(--papel-2);color:var(--negro)}
 .rail-btn.warn:hover{background:var(--rojo-suave);color:var(--rojo)}
-.sync-line{display:flex;align-items:center;gap:6px;padding:7px 13px;font-size:11px;color:var(--gris)}
-.sync-line .dot{width:6px;height:6px;border-radius:50%;background:var(--verde);flex:0 0 6px}
+.sync-line{display:flex;align-items:center;gap:6px;padding:7px 12px;font-size:11px;color:var(--gris)}
+.sync-line .dot{width:5px;height:5px;border-radius:50%;background:var(--acento);flex:0 0 5px}
 .sync-line.mal .dot{background:var(--rojo)}
 .sync-line button{background:none;border:0;color:var(--gris);cursor:pointer;padding:0;font-size:11px;text-decoration:underline;margin-left:auto}
 .sync-line button:hover{color:var(--negro)}
 
-.main{flex:1;min-width:0;padding:30px 34px 90px;max-width:1180px}
+.main{flex:1;min-width:0;padding:32px 36px 90px;max-width:1180px}
 .topbar{display:none}
 
 /* ---------- type ---------- */
-h1{font-weight:700;font-size:26px;margin:0;letter-spacing:-.03em}
-h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris);margin:0 0 12px;font-weight:700}
+h1{font-weight:600;font-size:29px;margin:0;letter-spacing:-.02em}
+h2{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--gris);margin:0 0 12px;font-weight:600;font-family:var(--sans)}
+h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(--gris);margin-right:8px;vertical-align:middle;opacity:.6}
 .eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);font-weight:600}
-.head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:22px;flex-wrap:wrap}
-.head p{margin:5px 0 0;color:var(--gris);font-size:13.5px}
-.section{margin-bottom:32px}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:24px;flex-wrap:wrap}
+.head p{margin:6px 0 0;color:var(--gris2);font-size:13.5px;font-style:italic;font-family:var(--disp)}
+.section{margin-bottom:34px}
 
-/* ---------- avisos urgentes ---------- */
-.avisos-top{margin-bottom:22px}
-.aviso-ok{
-  background:var(--verde-suave);color:var(--verde);border-radius:var(--r);
-  padding:14px 18px;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px
+/* ---------- Hoy: parte diario ---------- */
+.hoy-vacio{
+  background:var(--acento-suave);color:var(--acento-ink);border-radius:var(--r);
+  padding:15px 18px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:10px
 }
-.aviso-card{background:var(--hueso);border:1px solid var(--linea);border-radius:var(--r);overflow:hidden}
-.aviso-row{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--linea)}
-.aviso-row:last-child{border-bottom:0}
-.aviso-row .ic{font-size:18px;flex:0 0 auto}
-.aviso-row .tx{flex:1;min-width:0}
-.aviso-row .tx b{font-weight:600;font-size:13.5px}
-.aviso-row .tx span{display:block;font-size:12px;color:var(--gris);margin-top:1px}
-.aviso-row.mora{background:var(--rojo-suave)}
-.aviso-row.due{background:var(--ambar-suave)}
+.hoy-feed{background:var(--hueso);border:1px solid var(--linea);border-radius:var(--r);overflow:hidden}
+.hoy-item{display:flex;align-items:baseline;gap:13px;padding:14px 18px;border-bottom:1px solid var(--linea);font-size:14.5px;line-height:1.55}
+.hoy-item:last-child{border-bottom:0}
+.hoy-item .punto{width:6px;height:6px;border-radius:50%;background:var(--linea);flex:0 0 6px;align-self:center}
+.hoy-item.mora .punto{background:var(--rojo)}
+.hoy-item.due .punto{background:var(--ambar)}
+.hoy-item .frase{flex:1;min-width:0;color:var(--gris2)}
+.hoy-item .frase b{color:var(--negro);font-weight:600}
+.hoy-item .frase .cif{font-family:var(--mono);font-weight:600;color:var(--negro)}
+.hoy-item.mora .frase .cif{color:var(--rojo)}
+.hoy-item.due .frase .cif{color:var(--ambar)}
+.hoy-item .cuando{flex:0 0 auto;font-size:11px;font-weight:600;letter-spacing:.03em;white-space:nowrap;color:var(--gris)}
+.hoy-item.mora .cuando{color:var(--rojo)}
+.hoy-item.due .cuando{color:var(--ambar)}
 
 /* ---------- sentence form (signature) ---------- */
 .compose{
@@ -157,17 +170,22 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
 .btn:disabled{opacity:.4;cursor:not-allowed}
 .linkbtn{background:none;border:0;color:var(--acento);cursor:pointer;font-size:13px;font-weight:600;padding:4px 0;text-decoration:underline}
 
-/* ---------- KPI ---------- */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.kpi{padding:18px 20px;border:1px solid var(--linea);border-radius:var(--r);background:var(--hueso)}
-.kpi .ic{font-size:18px;display:block;margin-bottom:10px}
-.kpi .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);font-weight:700}
-.kpi .val{
-  font-family:var(--mono);font-weight:500;font-size:26px;line-height:1.2;margin-top:7px;
-  letter-spacing:-.02em;font-variant-numeric:tabular-nums
-}
-.kpi .val.neg{color:var(--rojo)}
-.kpi .note{font-size:11.5px;color:var(--gris);margin-top:5px;font-weight:500}
+/* ---------- resumen (estado de cuenta, no tarjetas sueltas) ---------- */
+.resumen{border:1px solid var(--linea);border-radius:var(--r);background:var(--hueso);padding:24px 26px}
+.resumen .hero{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;padding-bottom:20px;margin-bottom:18px;border-bottom:1px solid var(--linea)}
+.resumen .hero .num{font-family:var(--mono);font-weight:600;font-size:42px;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.resumen .hero .num.neg{color:var(--rojo)}
+.resumen .hero .tx{padding-bottom:5px}
+.resumen .hero .tx b{display:block;font-size:12.5px;font-weight:600;color:var(--negro);letter-spacing:-.005em}
+.resumen .hero .tx span{font-size:12px;color:var(--gris)}
+.resumen .fila{display:flex;flex-wrap:wrap;gap:18px 0}
+.resumen .item{flex:1 1 148px;padding:0 22px;border-left:1px solid var(--linea)}
+.resumen .item:first-child{border-left:0;padding-left:0}
+.resumen .item .lbl{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--gris);font-weight:700}
+.resumen .item .val{font-family:var(--mono);font-weight:600;font-size:18px;margin-top:6px;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.resumen .item .val.neg{color:var(--rojo)}
+.resumen .item .note{font-size:10.5px;color:var(--gris);margin-top:2px}
+@media(max-width:600px){.resumen .item{flex:1 1 42%;border-left:0;padding-left:0}}
 
 /* ---------- ledger ---------- */
 .ledger-wrap{border:1px solid var(--linea);border-radius:var(--r);background:var(--hueso);overflow-x:auto}
@@ -248,7 +266,7 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
 }
 .scrim.on{display:flex}
 .dialog{
-  width:100%;max-width:360px;background:var(--hueso);border-radius:20px;padding:26px 24px;
+  width:100%;max-width:360px;background:var(--hueso);border-radius:14px;padding:26px 24px;
   box-shadow:0 20px 60px rgba(10,10,11,.25)
 }
 .dialog h4{font-weight:700;font-size:20px;margin:0 0 6px;letter-spacing:-.01em}
@@ -266,7 +284,7 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
 }
 .docacts{display:flex;gap:8px;flex-wrap:wrap}
 .docacts .btn.ghost{background:rgba(255,255,255,.08);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22)}
-.docpaper{background:#fff;color:#111;padding:46px 52px;margin:22px 14px 0;border-radius:14px}
+.docpaper{background:#fff;color:#111;padding:46px 52px;margin:22px 14px 0;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
 .docpaper #docCuerpo{
   font-family:Cambria,Georgia,serif;font-size:11.5px;line-height:1.5;text-align:justify
 }
@@ -291,38 +309,43 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
 @keyframes in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 
 /* ---------- pantallas de acceso ---------- */
-.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px}
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px;background:var(--papel)}
 .gate-card{width:100%;max-width:400px}
-.gate-brand{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:26px}
-.gate-brand .seal{width:52px;height:52px;border-radius:16px;background:var(--negro);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:14px}
-.gate-brand .mark{font-family:var(--disp);font-weight:800;font-size:26px;letter-spacing:-.02em}
+.gate-brand{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:28px}
+.gate-brand .seal{
+  width:54px;height:54px;border-radius:50%;background:var(--negro);color:var(--papel);
+  display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px;
+  box-shadow:0 0 0 4px var(--papel),0 0 0 5px var(--linea);
+}
+.gate-brand .mark{font-family:var(--disp);font-weight:600;font-size:27px;letter-spacing:-.015em}
 .gate-brand .mark i{font-style:normal;color:var(--gris)}
-.gate-brand .sub{font-size:13px;color:var(--gris);margin-top:4px}
-.gate-panel{background:var(--hueso);border:1px solid var(--linea);border-radius:20px;padding:26px 24px;box-shadow:0 1px 3px rgba(10,10,11,.04)}
-.gate-panel h3{font-weight:700;font-size:19px;margin:0 0 4px;letter-spacing:-.01em}
-.gate-panel .sub{font-size:13px;color:var(--gris);margin:0 0 18px;line-height:1.5}
+.gate-brand .sub{font-size:12.5px;letter-spacing:.04em;color:var(--gris);margin-top:5px;font-style:italic;font-family:var(--disp)}
+.gate-panel{background:var(--hueso);border:1px solid var(--linea);border-radius:14px;padding:28px 26px;box-shadow:0 1px 2px rgba(27,24,18,.03)}
+.gate-panel h3{font-weight:600;font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+.gate-panel .sub{font-size:13px;color:var(--gris2);margin:0 0 18px;line-height:1.5}
 .gate .f{margin-bottom:13px}
 .gate .f label{display:block;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--gris);margin-bottom:6px;font-weight:700}
 .gate .f input{width:100%;background:var(--fondo-input);border:1px solid var(--linea);padding:11px 13px;font-size:15px;border-radius:var(--r-sm)}
 .gate .f input:focus{border-color:var(--acento);outline:none;background:#fff}
-.gate-error{background:var(--rojo-suave);color:var(--rojo);border-radius:12px;padding:11px 13px;font-size:13px;font-weight:600;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
-.gate-ok{background:var(--verde-suave);color:var(--verde);border-radius:12px;padding:13px;font-size:13.5px;font-weight:600;margin-bottom:6px;display:flex;gap:8px;align-items:flex-start;line-height:1.5}
+.gate-error{background:var(--rojo-suave);color:var(--rojo);border-radius:var(--r-sm);padding:11px 13px;font-size:13px;font-weight:600;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
+.gate-ok{background:var(--acento-suave);color:var(--acento-ink);border-radius:var(--r-sm);padding:13px;font-size:13.5px;font-weight:600;margin-bottom:6px;display:flex;gap:8px;align-items:flex-start;line-height:1.5}
 .gate-tabs{display:flex;background:var(--papel);border-radius:999px;padding:4px;margin-bottom:18px;gap:2px}
 .gate-tabs button{flex:1;border:0;background:none;padding:9px;border-radius:999px;font-size:13px;font-weight:600;color:var(--gris);cursor:pointer}
-.gate-tabs button[aria-pressed="true"]{background:#fff;color:var(--negro);box-shadow:0 1px 3px rgba(10,10,11,.09)}
+.gate-tabs button[aria-pressed="true"]{background:#fff;color:var(--negro);box-shadow:0 1px 3px rgba(27,24,18,.09)}
 .gate-foot{text-align:center;margin-top:16px;font-size:12.5px;color:var(--gris)}
 .gate-help{font-size:12px;color:var(--gris);line-height:1.6;margin-top:16px}
-.gate-help code{background:var(--papel);padding:1px 6px;border-radius:6px;font-family:var(--mono);font-size:11px}
+.gate-help code{background:var(--papel);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:11px}
 .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px}
 @media(max-width:480px){.choice-grid{grid-template-columns:1fr}}
-.choice{background:var(--hueso);border:1.5px solid var(--linea);border-radius:16px;padding:18px 16px;cursor:pointer;text-align:left;transition:border-color .14s}
+.choice{background:var(--hueso);border:1.5px solid var(--linea);border-radius:var(--r);padding:18px 16px;cursor:pointer;text-align:left;transition:border-color .14s}
 .choice:hover{border-color:var(--negro)}
-.choice .ic{font-size:24px;display:block;margin-bottom:8px}
-.choice b{display:block;font-size:14.5px;font-weight:700;margin-bottom:3px}
+.choice .ic{font-size:22px;display:block;margin-bottom:9px}
+.choice b{display:block;font-family:var(--disp);font-size:15.5px;font-weight:600;margin-bottom:3px}
 .choice span{font-size:12px;color:var(--gris);line-height:1.4;display:block}
 .codigo-grande{
-  font-family:var(--mono);font-size:32px;font-weight:600;letter-spacing:.12em;text-align:center;
-  background:var(--papel);border-radius:14px;padding:18px;margin:14px 0;color:var(--negro)
+  font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:.14em;text-align:center;
+  background:var(--fondo-input);border:1px dashed var(--linea);border-radius:var(--r-sm);
+  padding:16px;margin:14px 0;color:var(--negro)
 }
 .miembro-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--linea)}
 .miembro-row:last-child{border-bottom:0}
@@ -335,9 +358,6 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ---------- mobile ---------- */
-@media (max-width:860px){
-  .kpis{grid-template-columns:repeat(2,1fr)}
-}
 @media (max-width:720px){
   .shell{flex-direction:column}
   .rail{display:none}
@@ -347,18 +367,20 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
     position:sticky;top:0;background:var(--hueso);z-index:40
   }
   .topbar .brand{padding:0}
-  .topbar .brand .seal{width:32px;height:32px;font-size:16px;border-radius:10px}
+  .topbar .brand .seal{width:32px;height:32px;font-size:14px;box-shadow:0 0 0 2px var(--hueso),0 0 0 3px var(--linea)}
   .topbar .brand .mark{font-size:16px}
   .topbar .acts{display:flex;gap:6px}
-  .icon-btn{background:none;border:0;color:var(--gris2);font-size:19px;padding:7px;border-radius:10px;cursor:pointer;line-height:1}
-  .icon-btn:hover{background:var(--papel)}
+  .icon-btn{background:none;border:0;color:var(--gris2);font-size:19px;padding:7px;border-radius:8px;cursor:pointer;line-height:1}
+  .icon-btn:hover{background:var(--papel-2)}
   .main{padding:18px 16px 92px;max-width:none}
-  h1{font-size:22px}
+  h1{font-size:23px}
   .compose{padding:16px}
   .compose .lead{font-size:18px;line-height:2.15}
   .compose input,.compose select{font-size:18px}
   .w-money{width:122px}
-  .kpi .val{font-size:22px}
+  .resumen{padding:20px}
+  .resumen .hero .num{font-size:32px}
+  .resumen .item{flex:1 1 42%;border-left:0;padding-left:0}
   .tabbar{
     position:fixed;left:0;right:0;bottom:0;display:flex;
     border-top:1px solid var(--linea);background:var(--hueso);z-index:50;
@@ -374,7 +396,6 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
   .ledger td,.ledger th{padding:11px 8px}
   .hide-s{display:none}
   .choice-grid{grid-template-columns:1fr}
-  .kpis{grid-template-columns:repeat(2,1fr)}
 }
 @media (min-width:721px){.tabbar{display:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -421,12 +442,12 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
       <div class="head">
         <div>
           <span class="eyebrow" id="todayLabel" style="display:block;margin-bottom:4px"></span>
-          <h1>🏠 Tablero</h1>
+          <h1>🧭 Tablero</h1>
         </div>
       </div>
 
-      <div class="section avisos-top">
-        <h2>🔔 Por vencer</h2>
+      <div class="section">
+        <h2>Hoy</h2>
         <div id="avisos"></div>
       </div>
 
@@ -454,15 +475,18 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
         </div>
       </div>
 
-      <div class="kpis section" id="kpis"></div>
+      <div class="section">
+        <h2>Resumen</h2>
+        <div id="kpis"></div>
+      </div>
 
       <div class="section">
-        <h2>👥 Quién está al día</h2>
+        <h2>Quién está al día</h2>
         <div id="condStatus"></div>
       </div>
 
       <div class="section">
-        <h2>📈 Recaudo del año</h2>
+        <h2>Recaudo del año</h2>
         <div class="chart" id="chart"></div>
         <div class="chart-legend">
           <span><i style="background:var(--acento)"></i>Recaudado</span>
@@ -507,27 +531,27 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
       </div>
 
       <div class="section">
-        <h2>🎯 Recuperación de la inversión</h2>
+        <h2>Recuperación de la inversión</h2>
         <div id="recuperacion"></div>
       </div>
 
       <div class="section">
-        <h2>📆 Resultado mes a mes</h2>
+        <h2>Resultado mes a mes</h2>
         <div id="pyg"></div>
       </div>
 
       <div class="section">
-        <h2>🥧 En qué se va la plata</h2>
+        <h2>En qué se va la plata</h2>
         <div id="porCategoria"></div>
       </div>
 
       <div class="section">
-        <h2>🤝 Cuentas por dueño</h2>
+        <h2>Cuentas por dueño</h2>
         <div id="propList"></div>
       </div>
 
       <div class="section form" id="invBox">
-        <h2 style="margin-bottom:8px">➕ Otra inversión</h2>
+        <h2 style="margin-bottom:8px">Otra inversión</h2>
         <p class="sub">
           El valor de cada moto ya se toma de su ficha. Sume aquí lo demás que pusieron:
           papeles, GPS, cascos, accesorios.
@@ -542,7 +566,7 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
     <!-- ============ CONDUCTORES ============ -->
     <section class="view" id="v-conductores">
       <div class="head">
-        <div><h1>👥 Conductores</h1><p>La ficha completa de cada uno. Regístrelos como candidatos mientras los verifica.</p></div>
+        <div><h1>🪪 Conductores</h1><p>La ficha completa de cada uno. Regístrelos como candidatos mientras los verifica.</p></div>
       </div>
       <div class="form">
         <div class="fgrid">
@@ -610,7 +634,7 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
       </div>
 
       <div class="section form" id="negocioBox">
-        <h2 style="margin-bottom:8px">🤝 Tu negocio</h2>
+        <h2 style="margin-bottom:8px">Tu negocio</h2>
         <p class="sub">Quiénes tienen acceso a <span id="negNombreTx">este negocio</span>.</p>
         <div id="miembrosList"></div>
         <div class="acts">
@@ -620,7 +644,7 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
       </div>
 
       <div class="section form" id="duenosBox">
-        <h2 style="margin-bottom:8px">👤 Los dueños</h2>
+        <h2 style="margin-bottom:8px">Los dueños</h2>
         <p class="sub">
           Escriba los dos nombres una sola vez. Después, al registrar una moto, solo elige de quién es.
           Estos datos también se usan para llenar los contratos.
@@ -633,7 +657,7 @@ h2{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gris
           <div class="f"><label for="d2cc">Cédula</label><input id="d2cc" inputmode="numeric"></div>
           <div class="f"><label for="d2ciu">Expedida en</label><input id="d2ciu"></div>
         </div>
-        <h2 style="margin:22px 0 8px">🏦 Cuenta para recibir los pagos</h2>
+        <h2 style="margin:22px 0 8px">Cuenta para recibir los pagos</h2>
         <div class="fgrid">
           <div class="f"><label for="bTipo">Tipo de cuenta</label>
             <select id="bTipo"><option>Ahorros</option><option>Corriente</option><option>Nequi</option><option>Daviplata</option></select></div>
@@ -715,8 +739,8 @@ const CATS = ['Cambio de aceite y filtro','Llantas','Frenos y pastillas','Kit de
               'SOAT','Tecnomecánica','Seguro','Multa o comparendo','Grúa o patios',
               'Parqueadero','GPS','Otro','Abono a deuda o compra de moto'];
 const CAT_DEUDA = 'Abono a deuda o compra de moto';
-const VIEWS = [['tablero','Tablero','Inicio','🏠'],['pagos','Pagos','Pagos','💵'],['gastos','Gastos','Gastos','🧾'],
-               ['cuentas','Cuentas','Cuentas','📊'],['conductores','Conductores','Cond.','👥'],
+const VIEWS = [['tablero','Tablero','Inicio','🧭'],['pagos','Pagos','Pagos','💵'],['gastos','Gastos','Gastos','🧾'],
+               ['cuentas','Cuentas','Cuentas','📊'],['conductores','Conductores','Cond.','🪪'],
                ['vehiculos','Vehículos','Motos','🏍️']];
 
 /* =========================================================
@@ -1044,23 +1068,26 @@ function renderSelects(){
 }
 function renderKPIs(){
   const k = kpis();
-  const cards = [
-    ['💰','Total recaudado', money(k.recaudado), '', false],
-    ['🧾','Gastos del negocio', money(k.gastosEmp), '', false],
-    ['📈','Utilidad neta', money(k.utilidad), '', k.utilidad<0],
-    ['🎯','Falta para librar', k.inversion ? money(Math.max(k.inversion-k.utilidad,0)) : '—',
-      k.inversion ? (k.pct*100).toFixed(1)+'% recuperado de '+money(k.inversion) : 'registre la inversión', false],
-    ['⏳','Por cobrar a conductores', money(k.porCobrar), '', k.porCobrar>0],
-    ['⚠️','Conductores en mora', String(k.mora), k.mora? 'revise el detalle abajo':'todos al día', k.mora>0],
-    ['🏍️','Motos', String(S.motos.length), '', false],
-    ['👥','Conductores activos', String(S.conductores.filter(esActivo).length),
-      S.conductores.filter(c=>(c.estado||'')==='Candidato').length
-        ? S.conductores.filter(c=>(c.estado||'')==='Candidato').length + ' en proceso' : '', false],
+  const r = recuperacion();
+  const candidatos = S.conductores.filter(c=>(c.estado||'')==='Candidato').length;
+  const filas = [
+    ['Recaudado', money(k.recaudado), ''],
+    ['Gastos', money(k.gastosEmp), ''],
+    ['Falta para librar', k.inversion ? (r.libre ? 'Libre 🎉' : money(Math.max(k.inversion-k.utilidad,0))) : '—', ''],
+    ['Por cobrar', money(k.porCobrar), '', k.porCobrar>0],
+    ['Motos', String(S.motos.length), ''],
+    ['Conductores activos', String(S.conductores.filter(esActivo).length), candidatos?candidatos+' en proceso':''],
   ];
-  $('kpis').innerHTML = cards.map(([ic,l,v,n,neg])=>`
-    <div class="kpi"><span class="ic">${ic}</span><div class="lbl">${esc(l)}</div>
-      <div class="val ${neg?'neg':''}">${v}</div>
-      ${n?`<div class="note">${esc(n)}</div>`:''}</div>`).join('');
+  $('kpis').innerHTML = `
+    <div class="resumen">
+      <div class="hero">
+        <div class="num ${k.utilidad<0?'neg':''}">${money(k.utilidad)}</div>
+        <div class="tx"><b>Utilidad neta</b><span>${k.inversion ? (r.pct*100).toFixed(1)+'% de la inversión recuperada' : 'Registre la inversión en Vehículos para ver el avance'}</span></div>
+      </div>
+      <div class="fila">${filas.map(([l,v,n,neg])=>`
+        <div class="item"><div class="lbl">${esc(l)}</div><div class="val ${neg?'neg':''}">${v}</div>${n?`<div class="note">${esc(n)}</div>`:''}</div>`).join('')}
+      </div>
+    </div>`;
 }
 const diasPara = iso => iso ? dayDiff(todayISO(), iso) : null;
 function chip(rotulo, iso){
@@ -1070,48 +1097,74 @@ function chip(rotulo, iso){
   if(d <= 30) return `<span class="tag due">${esc(rotulo)}: ${d} d</span>`;
   return `<span class="tag ok">${esc(rotulo)}: ${fmtDate(iso)}</span>`;
 }
+/* El parte del día: une vencimientos de documentos Y conductores en mora
+   de pago en una sola lista ordenada por urgencia, redactada como frases
+   (no como tarjetas de cifra suelta). Lo que se debe siempre encabeza la
+   lista — afecta la caja hoy, no en N días. */
 function renderAvisos(){
-  const av = [];
+  const items = [];
   S.motos.forEach(m=>{
-    [['SOAT','🪪', m.soat], ['Tecnomecánica','🔧', m.tecno]].forEach(([q,ic,f])=>{
+    [['El SOAT', m.soat], ['La tecnomecánica', m.tecno]].forEach(([q,f])=>{
       const d = diasPara(f);
-      if(d !== null && d <= 30) av.push({ d, ic, qué:`${q} de ${m.placa}`, quién:m.propietario||'Sin asignar', fecha:f });
+      if(d !== null && d <= 30){
+        const frase = d < 0
+          ? `${q} de <b>${esc(m.placa)}</b> <span class="cif">venció hace ${-d} d</span>`
+          : `${q} de <b>${esc(m.placa)}</b> vence <span class="cif">en ${d} d</span>`;
+        items.push({ orden:d, tier: d<0?'mora':'due', frase, cuando: fmtDate(f) });
+      }
     });
   });
   S.conductores.filter(esActivo).forEach(c=>{
     const dl = diasPara(c.licVence);
-    if(dl !== null && dl <= 30)
-      av.push({ d:dl, ic:'🪪', qué:'Licencia A2', quién:c.nombre, fecha:c.licVence });
+    if(dl !== null && dl <= 30){
+      const frase = dl < 0
+        ? `Licencia de <b>${esc(c.nombre)}</b> <span class="cif">venció hace ${-dl} d</span>`
+        : `Licencia de <b>${esc(c.nombre)}</b> vence <span class="cif">en ${dl} d</span>`;
+      items.push({ orden:dl, tier: dl<0?'mora':'due', frase, cuando: fmtDate(c.licVence) });
+    }
     if(c.inicio){
       const fin = new Date(new Date(c.inicio+'T00:00:00').getTime() + 29*86400000).toISOString().slice(0,10);
       const df = diasPara(fin);
-      if(df !== null && df <= 10)
-        av.push({ d:df, ic:'📄', qué:'Vence el mes de contrato', quién:c.nombre, fecha:fin });
+      if(df !== null && df <= 10){
+        const frase = df < 0
+          ? `El mes de contrato de <b>${esc(c.nombre)}</b> <span class="cif">venció hace ${-df} d</span>`
+          : `El mes de contrato de <b>${esc(c.nombre)}</b> vence <span class="cif">en ${df} d</span>`;
+        items.push({ orden:df, tier: df<0?'mora':'due', frase, cuando: fmtDate(fin) });
+      }
+    }
+    const e = estadoConductor(c);
+    if(e.saldo < 0){
+      const m = motoById(c.motoId);
+      const frase = `<b>${esc(c.nombre)}</b> debe <span class="cif">${money(-e.saldo)}</span>${m?' de la '+esc(m.placa):''}`;
+      items.push({ orden:-100000-(-e.saldo), tier:'mora', frase, cuando: `${e.dias} d de uso` });
     }
   });
-  if(!av.length){
-    $('avisos').innerHTML = `<div class="aviso-ok">✅ Todo al día — nada por vencer en los próximos 30 días.</div>`;
+  if(!items.length){
+    $('avisos').innerHTML = `<div class="hoy-vacio">✅ Todo al día — nada urgente por ahora.</div>`;
     return;
   }
-  av.sort((a,b)=>a.d-b.d);
-  $('avisos').innerHTML = `<div class="aviso-card">${av.map(a=>`
-    <div class="aviso-row ${a.d<0?'mora':'due'}">
-      <span class="ic">${a.ic}</span>
-      <span class="tx"><b>${esc(a.qué)}</b><span>${esc(a.quién)} · ${a.d < 0 ? 'vencido hace '+(-a.d)+' d' : 'en '+a.d+' d'} · ${fmtDate(a.fecha)}</span></span>
+  items.sort((a,b)=>a.orden-b.orden);
+  $('avisos').innerHTML = `<div class="hoy-feed">${items.map(it=>`
+    <div class="hoy-item ${it.tier}">
+      <span class="punto"></span>
+      <span class="frase">${it.frase}</span>
+      <span class="cuando">${it.cuando}</span>
     </div>`).join('')}</div>`;
 }
 function renderCuentas(){
   const r = recuperacion();
   const pctTxt = (r.pct*100).toFixed(1) + '%';
   $('recuperacion').innerHTML = `
-    <div class="kpis" style="margin-bottom:16px">
-      <div class="kpi"><span class="ic">💼</span><div class="lbl">Inversión</div><div class="val">${money(r.inv)}</div></div>
-      <div class="kpi"><span class="ic">✅</span><div class="lbl">Recuperado</div><div class="val">${money(r.u)}</div>
-        <div class="note">${pctTxt} de la inversión</div></div>
-      <div class="kpi"><span class="ic">🎯</span><div class="lbl">Falta</div>
-        <div class="val ${r.libre?'':'neg'}">${r.libre ? 'Libre' : money(r.falta)}</div></div>
-      <div class="kpi"><span class="ic">⏱️</span><div class="lbl">Ritmo mensual</div><div class="val">${money(r.ritmo.mensual)}</div>
-        <div class="note">promedio de ${r.ritmo.dias} días</div></div>
+    <div class="resumen" style="margin-bottom:16px">
+      <div class="fila">
+        <div class="item"><div class="lbl">Inversión</div><div class="val">${money(r.inv)}</div></div>
+        <div class="item"><div class="lbl">Recuperado</div><div class="val">${money(r.u)}</div>
+          <div class="note">${pctTxt} de la inversión</div></div>
+        <div class="item"><div class="lbl">Falta</div>
+          <div class="val ${r.libre?'':'neg'}">${r.libre ? 'Libre 🎉' : money(r.falta)}</div></div>
+        <div class="item"><div class="lbl">Ritmo mensual</div><div class="val">${money(r.ritmo.mensual)}</div>
+          <div class="note">promedio de ${r.ritmo.dias} días</div></div>
+      </div>
     </div>
     <div style="border:1px solid var(--linea);background:var(--hueso);border-radius:var(--r);padding:16px 18px">
       <div style="height:10px;background:var(--linea);border-radius:6px;position:relative;overflow:hidden">
