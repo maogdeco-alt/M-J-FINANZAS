@@ -738,6 +738,18 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <button class="btn ghost sm" id="verCodigoBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="9" width="9" height="6" rx="3"/><rect x="11.8" y="9" width="9" height="6" rx="3"/></svg></span> Generar código de invitación</button>
         </div>
         <div id="codigoBox"></div>
+
+        <h2 style="margin:22px 0 8px">Reporte cada 8 días por correo</h2>
+        <p class="sub">
+          Un correo automático con lo que necesita atención — pagos vencidos, SOAT y
+          tecnomecánica por vencer, y el resumen de plata del periodo — a los correos
+          de todos los que tienen acceso a este negocio. Llega solo, sin abrir la app.
+        </p>
+        <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13.5px;font-weight:600">
+          <input type="checkbox" id="reporteActivoChk" style="width:17px;height:17px;accent-color:var(--acento)">
+          Activar el reporte
+        </label>
+        <p class="sub" id="reporteEstadoTx" style="margin-top:8px"></p>
       </div>
 
       <div class="section form" id="duenosBox">
@@ -986,9 +998,12 @@ function generarCodigo(){
   return s;
 }
 async function cargarMisNegocios(){
-  const r = await api('/rest/v1/miembros_negocio?usuario_id=eq.'+SESION.usuarioId+'&select=rol,negocios(id,nombre)');
+  const r = await api('/rest/v1/miembros_negocio?usuario_id=eq.'+SESION.usuarioId+'&select=rol,negocios(id,nombre,reporte_activo,reporte_ultimo_envio)');
   const rows = await chk(r);
-  MIS_NEGOCIOS = (rows||[]).filter(x=>x.negocios).map(x=>({ id:x.negocios.id, nombre:x.negocios.nombre, rol:x.rol }));
+  MIS_NEGOCIOS = (rows||[]).filter(x=>x.negocios).map(x=>({
+    id:x.negocios.id, nombre:x.negocios.nombre, rol:x.rol,
+    reporteActivo:x.negocios.reporte_activo, reporteUltimoEnvio:x.negocios.reporte_ultimo_envio
+  }));
   return MIS_NEGOCIOS;
 }
 async function crearNegocio(nombre){
@@ -1571,7 +1586,7 @@ function go(v){
     if(b.dataset.view===v) b.setAttribute('aria-current','page');
     else b.removeAttribute('aria-current');
   });
-  if(v==='ajustes'){ renderNegocioPanel(); $('codigoBox').innerHTML=''; }
+  if(v==='ajustes'){ renderNegocioPanel(); renderReporteToggle(); $('codigoBox').innerHTML=''; }
   window.scrollTo({top:0});
 }
 $('nav').innerHTML = VIEWS.map(([v,t],i)=>
@@ -1602,6 +1617,28 @@ $('verCodigoBtn').addEventListener('click', async ()=>{
       catch(e){ prompt('Copie este código:', cod); }
     });
   }catch(e){ $('codigoBox').innerHTML = `<p style="font-size:13px;color:var(--rojo);margin-top:12px">${esc(e.message)}</p>`; }
+});
+
+/* Reporte cada 8 días por correo — el envío en sí lo hace la Edge Function
+   "reporte-semanal" corriendo sola en el servidor (ver flota/README.md,
+   sección 5); acá solo se prende/apaga y se muestra cuándo fue el último. */
+function renderReporteToggle(){
+  const el = $('reporteActivoChk'), tx = $('reporteEstadoTx');
+  if(!el || !NEGOCIO) return;
+  el.checked = NEGOCIO.reporteActivo !== false;
+  tx.textContent = NEGOCIO.reporteUltimoEnvio
+    ? 'Último envío: ' + fmtDate(String(NEGOCIO.reporteUltimoEnvio).slice(0,10))
+    : 'Todavía no se ha enviado ninguno.';
+}
+$('reporteActivoChk').addEventListener('change', async e=>{
+  const val = e.target.checked;
+  e.target.disabled = true;
+  try{
+    await chk(await api('/rest/v1/negocios?id=eq.'+NEGOCIO.id, { method:'PATCH', body: JSON.stringify({ reporte_activo: val }) }));
+    NEGOCIO.reporteActivo = val;
+    toast(val ? 'Reporte activado' : 'Reporte desactivado');
+  }catch(err){ e.target.checked = !val; toast(err.message || 'No se pudo guardar.', true); }
+  e.target.disabled = false;
 });
 
 /* =========================================================
@@ -2753,7 +2790,7 @@ function pantallaNegocioCrear(){
     try{
       const neg = await crearNegocio(nombre);
       await cargarMisNegocios();
-      NEGOCIO = { id: neg.id, nombre: neg.nombre };
+      NEGOCIO = { id: neg.id, nombre: neg.nombre, reporteActivo: true, reporteUltimoEnvio: null };
       mostrarCodigoInicial(neg.codigo);
     }catch(e){ AUTH_CARGANDO=false; AUTH_ERROR = e.message || 'No se pudo crear el negocio.'; pantallaNegocioCrear(); }
   });

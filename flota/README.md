@@ -57,14 +57,104 @@ se mezclan con las finanzas personales.
 1. **Crear cuenta** → tu nombre, tu correo, tu contraseña (mínimo 6
    caracteres). Si el proyecto pide confirmar el correo, ábrelo y luego
    entra con tu clave.
-2. La primera persona que entra ve dos opciones: **➕ Crear un negocio** (le
-   pone nombre y genera un código de 6 letras) o **🔑 Unirme con un
+2. La primera persona que entra ve dos opciones: **Crear un negocio** (le
+   pone nombre y genera un código de 6 letras) o **Unirme con un
    código** (si su pareja ya lo creó y le compartió el código).
 3. Comparte el código por el medio que sea (WhatsApp, de palabra) — sirve
    una sola vez. Si se pierde, se puede generar uno nuevo desde
-   **⚙️ Ajustes → Tu negocio**.
+   **Ajustes → Tu negocio**.
 4. Ya adentro, los dos ven y editan la misma información: motos,
    conductores, pagos, gastos, cuentas y contratos.
+
+## 5. Reporte cada 8 días por correo (opcional)
+
+Un correo que llega solo — sin que nadie abra la app — con lo que necesita
+atención: pagos vencidos, SOAT y tecnomecánica por vencer, y el resumen de
+plata del periodo. Es la primera pieza de esta app que corre en el servidor
+en vez de en el navegador de quien la usa, así que tiene más pasos que el
+resto. Se puede saltar esta sección entera y la app funciona igual — el
+reporte es un extra.
+
+**5.1 Correr la migración nueva.** SQL Editor → New query → pega todo el
+contenido de `flota/supabase/migrations/0002_reporte_periodico.sql` → Run.
+
+**5.2 Crear la cuenta de Resend** (el servicio que manda el correo — no es
+de Supabase, es aparte y también gratis para esto).
+1. Entra a [resend.com](https://resend.com) y crea una cuenta gratis (100
+   correos al día, 3.000 al mes — de sobra para un reporte cada 8 días).
+2. En **API Keys**, crea una llave y cópiala — solo se muestra una vez.
+3. No hace falta verificar un dominio propio para empezar: Resend deja
+   mandar correos desde `onboarding@resend.dev` a cualquier destinatario
+   estando en el plan gratis. Si más adelante quieren que el correo llegue
+   "de parte de MA|OG" con su propio dominio, se verifica un dominio en
+   Resend y se ajusta la variable `RESEND_FROM` (paso 5.4).
+
+**5.3 Desplegar la función** (se pega en el navegador, no hay que instalar
+nada en el computador).
+1. En el panel de Supabase: **Edge Functions → Create a new function**.
+2. Nómbrala `reporte-semanal`.
+3. Borra el código de ejemplo y pega todo el contenido de
+   `flota/supabase/functions/reporte-semanal/index.ts`.
+4. **Deploy**.
+
+**5.4 Guardar los secretos.** Edge Functions → `reporte-semanal` →
+Secrets → agrega:
+- `RESEND_API_KEY`: la llave del paso 5.2.
+- `APP_URL` (opcional): la URL de Netlify (paso 2.4), para que el correo
+  traiga un botón "Abrir la app".
+- `RESEND_FROM` (opcional): solo si ya verificaron su propio dominio en
+  Resend, por ejemplo `MA|OG <reportes@tudominio.com>`.
+
+(La función solo la puede llamar quien traiga la llave `service_role` del
+proyecto — nunca la llave pública/anon que usa la app — así que no hace
+falta inventar ninguna clave aparte para protegerla.)
+
+**5.5 Programar el envío diario.** Esto necesita la llave `service_role`
+de tu proyecto (**Project Settings → API → Project API keys → `service_role`
+`secret`**) — es distinta de la llave pública/anon que pegaste en el paso 3;
+**no la pongas nunca dentro de la app ni la compartas**, solo va en este
+SQL que corres una vez en tu propio proyecto. Para no dejarla escrita en
+texto plano, primero se guarda en el *Vault* de Supabase:
+
+```sql
+-- 1) Guarda la llave service_role en el Vault (reemplaza el valor).
+select vault.create_secret('TU-SERVICE-ROLE-KEY-AQUI', 'reporte_service_key');
+
+-- 2) Programa el cron — reemplaza solo la URL de tu proyecto.
+select cron.schedule(
+  'reporte-semanal-diario',
+  '0 13 * * *', -- 8:00 a.m. hora de Colombia — el cron corre en UTC (UTC-5)
+  $$
+  select net.http_post(
+    url := 'https://TU-PROYECTO.supabase.co/functions/v1/reporte-semanal',
+    headers := jsonb_build_object(
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'reporte_service_key'),
+      'Content-Type', 'application/json'
+    ),
+    body := '{}'::jsonb
+  );
+  $$
+);
+```
+
+Si da error de que `cron.schedule`, `net.http_post` o `vault.create_secret`
+no existen: **Database → Extensions** → busca `pg_cron`, `pg_net` y
+`supabase_vault` → actívalas → corre el SQL de arriba de nuevo.
+
+Esto no manda un correo cada día — corre la función todos los días, y es
+la función la que decide, negocio por negocio, si ya pasaron 8 días desde
+el último envío. Si un día el cron no corre, no se pierde nada: al otro
+día igual detecta que tocaba.
+
+Para probar que quedó bien conectado sin esperar al cron, se puede llamar
+la función a mano una vez desde el mismo SQL Editor (el `select net.http_post(...)`
+de arriba, sin el `cron.schedule` alrededor) y revisar la respuesta con
+`select * from net._http_response order by id desc limit 1;`.
+
+**5.6 Activarlo.** Dentro de la app: **Ajustes → Tu negocio → Reporte cada
+8 días por correo**. Viene activado por defecto para negocios nuevos —
+llega al correo de cada persona que tenga acceso a ese negocio (los mismos
+correos con los que entran a la app). Se apaga desde el mismo lugar.
 
 ## Cómo está pensada la seguridad
 
