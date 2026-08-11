@@ -2813,7 +2813,7 @@ function pantallaConectar(){
         <p class="sub">Una sola vez. Pega los datos de tu proyecto de Supabase — quedan guardados en este navegador.</p>
         ${AUTH_ERROR?`<div class="gate-error"><span class="icono">${ICONS.alerta}</span><span>${esc(AUTH_ERROR)}</span></div>`:''}
         <div class="f"><label for="cnUrl">URL del proyecto</label><input id="cnUrl" placeholder="https://xxxx.supabase.co" value="${esc(SESION.url)}"></div>
-        <div class="f"><label for="cnKey">Clave pública (anon)</label><input id="cnKey" placeholder="eyJhbGciOi..." value="${esc(SESION.key)}"></div>
+        <div class="f"><label for="cnKey">Clave pública (anon / publishable)</label><input id="cnKey" placeholder="sb_publishable_... o eyJhbGciOi..." value="${esc(SESION.key)}"></div>
         <button class="btn block" id="cnGuardar">${AUTH_CARGANDO?'Conectando…':'<span class="icono">'+ICONS.enchufe+'</span> Conectar'}</button>
         <p class="gate-help">
           ¿Todavía no tienes el proyecto? Sigue los pasos de <code>flota/README.md</code> en el repositorio:

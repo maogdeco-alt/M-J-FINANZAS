@@ -49,8 +49,14 @@ se mezclan con las finanzas personales.
 
 1. Abre la URL de Netlify.
 2. En la pantalla "Conecta tu base de datos", pega tu **Project URL** y tu
-   **llave pública (anon)** — están en Supabase, en **Project Settings →
-   API**. Se guardan en este navegador; no hay que repetirlo cada vez.
+   **llave pública** — están en Supabase, en **Project Settings → API**.
+   Según cuándo se creó el proyecto, esa llave se ve distinto: los
+   proyectos nuevos muestran `sb_publishable_...`; los más viejos,
+   `eyJhbGciOi...` (formato "anon" / JWT). Cualquiera de las dos sirve —
+   es la misma llave, Supabase solo cambió cómo se ve. La que **nunca**
+   se pega aquí es la que dice `secret` o `service_role` — esa es solo
+   para el reporte por correo (sección 5) y no debe salir de ahí.
+   Se guardan en este navegador; no hay que repetirlo cada vez.
 
 ## 4. Usar la app
 
