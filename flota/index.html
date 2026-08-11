@@ -452,6 +452,22 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 }
 .miembro-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--linea)}
 .miembro-row:last-child{border-bottom:0}
+.negocio-row{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  background:none;border:0;padding:12px 10px;border-radius:9px;cursor:pointer;
+  border-bottom:1px solid var(--linea);transition:background .14s
+}
+.negocio-row:last-child{border-bottom:0}
+.negocio-row:hover{background:var(--papel-2)}
+.negocio-row:active{background:var(--papel-2);transform:scale(.99)}
+@media(prefers-reduced-motion:reduce){.negocio-row:active{transform:none}}
+.negocio-row .nm{flex:1;min-width:0}
+.negocio-row .nm b{display:block;font-size:14px;font-weight:600;color:var(--negro)}
+.negocio-row .nm span{font-size:11.5px;color:var(--gris)}
+.negocio-row.actual{background:var(--acento-suave)}
+.negocio-row.actual .nm b{color:var(--acento-ink)}
+.negocio-row .check{width:16px;height:16px;flex:0 0 16px;color:var(--acento);opacity:0}
+.negocio-row.actual .check{opacity:1}
 .miembro-row .av{width:32px;height:32px;border-radius:50%;background:var(--acento-suave);color:var(--acento);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:0 0 32px}
 .miembro-row .nm{flex:1;min-width:0}
 .miembro-row .nm b{font-size:13.5px;font-weight:600;display:block}
@@ -761,9 +777,23 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span>Ajustes</h1><p>Tu negocio, los dueños y la cuenta donde reciben los pagos.</p></div>
       </div>
 
+      <div class="section form" id="negociosBox">
+        <h2 style="margin-bottom:8px">Tus negocios</h2>
+        <p class="sub">
+          Puedes tener varios negocios separados — cada uno con sus propias motos,
+          conductores, pagos y contratos, sin mezclarse entre sí. Toca uno para entrar ahí.
+        </p>
+        <div id="listaNegocios"></div>
+        <div class="acts">
+          <button class="btn ghost sm" id="crearOtroBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Crear otro negocio</button>
+          <button class="btn ghost sm" id="unirseOtroBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.8" cy="15.5" r="3.2"/><path d="M10 13.3L17.5 5.8"/><path d="M14.7 8.6l2 2M16.9 6.4l2 2"/></svg></span> Unirme a otro con código</button>
+        </div>
+        <div id="crearOtroBox"></div>
+        <div id="unirseOtroBox"></div>
+      </div>
+
       <div class="section form" id="negocioBox">
-        <h2 style="margin-bottom:8px">Tu negocio</h2>
-        <p class="sub">Quiénes tienen acceso a <span id="negNombreTx">este negocio</span>.</p>
+        <h2 style="margin-bottom:8px">Quiénes tienen acceso a <span id="negNombreTx">este negocio</span></h2>
         <div id="miembrosList"></div>
         <div class="acts">
           <button class="btn ghost sm" id="verCodigoBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="9" width="9" height="6" rx="3"/><rect x="11.8" y="9" width="9" height="6" rx="3"/></svg></span> Generar código de invitación</button>
@@ -929,7 +959,7 @@ const ICONS = {
    Al entrar, se carga el negocio (o los negocios) a los que pertenece.
    ========================================================= */
 const SKEY = 'maog:flota:sesion';
-let SESION = { url:'', key:'', token:'', refresh:'', usuarioId:'', correo:'', nombre:'' };
+let SESION = { url:'', key:'', token:'', refresh:'', usuarioId:'', correo:'', nombre:'', ultimoNegocioId:'' };
 let MIS_NEGOCIOS = [], NEGOCIO = null;
 
 function cargarSesion(){ try{ const s = localStorage.getItem(SKEY); if(s) SESION = Object.assign(SESION, JSON.parse(s)); }catch(e){} }
@@ -1618,6 +1648,30 @@ async function renderNegocioPanel(){
       </div>`).join('');
   }catch(e){ box.innerHTML = `<p style="font-size:13px;color:var(--gris)">No se pudo cargar el equipo: ${esc(e.message)}</p>`; }
 }
+/* Lista de negocios del usuario, con el actual marcado — toca uno para
+   cambiarse ahí. La base de datos ya soporta que una persona pertenezca
+   a varios negocios independientes; esto es la puerta para verlos y
+   moverse entre ellos, y para crear o unirse a otros sin salir de la app. */
+function renderNegociosSwitcher(){
+  const box = $('listaNegocios');
+  if(!box) return;
+  const lista = DEMO ? [{ id: NEGOCIO.id, nombre: NEGOCIO.nombre, rol: 'propietario' }] : MIS_NEGOCIOS;
+  box.innerHTML = lista.map(n => `
+    <button class="negocio-row${n.id===NEGOCIO.id?' actual':''}" data-ir-negocio="${esc(n.id)}">
+      <span class="nm"><b>${esc(n.nombre)}</b><span>${n.rol==='propietario'?'propietario/a':'miembro'}</span></span>
+      <span class="icono check">${ICONS.check}</span>
+    </button>`).join('');
+}
+async function cambiarNegocio(id){
+  if(DEMO || !id || (NEGOCIO && id===NEGOCIO.id)) return;
+  const neg = MIS_NEGOCIOS.find(n=>n.id===id);
+  if(!neg) return;
+  NEGOCIO = neg;
+  SESION.ultimoNegocioId = id; guardarSesion();
+  go('tablero');
+  await load();
+  toast(`Ahora en "${neg.nombre}"`);
+}
 
 /* =========================================================
    Navegación
@@ -1628,7 +1682,10 @@ function go(v){
     if(b.dataset.view===v) b.setAttribute('aria-current','page');
     else b.removeAttribute('aria-current');
   });
-  if(v==='ajustes'){ renderNegocioPanel(); renderReporteToggle(); $('codigoBox').innerHTML=''; }
+  if(v==='ajustes'){
+    renderNegociosSwitcher(); renderNegocioPanel(); renderReporteToggle();
+    $('codigoBox').innerHTML=''; $('crearOtroBox').innerHTML=''; $('unirseOtroBox').innerHTML='';
+  }
   window.scrollTo({top:0});
 }
 $('nav').innerHTML = VIEWS.map(([v,t],i)=>
@@ -1668,6 +1725,70 @@ $('verCodigoBtn').addEventListener('click', async ()=>{
       catch(e){ prompt('Copie este código:', cod); }
     });
   }catch(e){ $('codigoBox').innerHTML = `<p style="font-size:13px;color:var(--rojo);margin-top:12px">${esc(e.message)}</p>`; }
+});
+
+/* Crear otro negocio o unirse a otro con código, sin salir de la app —
+   antes esto solo se podía hacer la primera vez, antes de entrar. */
+$('crearOtroBtn').addEventListener('click', ()=>{
+  if(DEMO) return toast('En modo demo no se pueden crear negocios nuevos.', true);
+  $('unirseOtroBox').innerHTML = '';
+  $('crearOtroBox').innerHTML = `
+    <div class="f" style="margin-top:12px"><label for="otroNombre">Nombre del negocio nuevo</label>
+      <input id="otroNombre" placeholder="Impresoras"></div>
+    <div class="acts">
+      <button class="btn sm" id="otroNombreGo"><span class="icono">${ICONS.check}</span> Crear</button>
+      <button class="btn ghost sm" id="otroNombreCancel">Cancelar</button>
+    </div>`;
+  $('otroNombreCancel').addEventListener('click', ()=>{ $('crearOtroBox').innerHTML=''; });
+  $('otroNombreGo').addEventListener('click', async ()=>{
+    const nombre = ($('otroNombre').value||'').trim();
+    if(!nombre) return toast('Ponle un nombre al negocio.', true);
+    $('otroNombreGo').disabled = true;
+    try{
+      const neg = await crearNegocio(nombre);
+      await cargarMisNegocios();
+      NEGOCIO = MIS_NEGOCIOS.find(n=>n.id===neg.id) || NEGOCIO;
+      SESION.ultimoNegocioId = neg.id; guardarSesion();
+      renderNegociosSwitcher();
+      $('crearOtroBox').innerHTML = `
+        <div class="gate-ok" style="margin-top:12px"><span class="icono">${ICONS.check}</span>
+          <span>"${esc(neg.nombre)}" creado. Comparte este código con quien se va a unir — sirve una sola vez.</span></div>
+        <div class="codigo-grande">${esc(neg.codigo)}</div>
+        <button class="btn ghost sm block" id="otroCopiarBtn"><span class="icono">${ICONS.copiar}</span> Copiar código</button>
+        <button class="btn block" id="otroEntrarBtn" style="margin-top:8px">Entrar a "${esc(neg.nombre)}" →</button>`;
+      $('otroCopiarBtn').addEventListener('click', async ()=>{
+        try{ await navigator.clipboard.writeText(neg.codigo); toast('Código copiado'); }
+        catch(e){ prompt('Copie este código:', neg.codigo); }
+      });
+      $('otroEntrarBtn').addEventListener('click', async ()=>{ go('tablero'); await load(); });
+    }catch(e){ toast(e.message || 'No se pudo crear el negocio.', true); $('otroNombreGo').disabled = false; }
+  });
+  $('otroNombre').focus();
+});
+$('unirseOtroBtn').addEventListener('click', ()=>{
+  if(DEMO) return toast('En modo demo no te puedes unir a otro negocio.', true);
+  $('crearOtroBox').innerHTML = '';
+  $('unirseOtroBox').innerHTML = `
+    <div class="f" style="margin-top:12px"><label for="otroCodigo">Código de 6 letras</label>
+      <input id="otroCodigo" placeholder="AB12CD" style="text-transform:uppercase;letter-spacing:.14em;font-family:var(--mono);text-align:center"></div>
+    <div class="acts">
+      <button class="btn sm" id="otroCodigoGo"><span class="icono">${ICONS.check}</span> Unirme</button>
+      <button class="btn ghost sm" id="otroCodigoCancel">Cancelar</button>
+    </div>`;
+  $('otroCodigoCancel').addEventListener('click', ()=>{ $('unirseOtroBox').innerHTML=''; });
+  $('otroCodigoGo').addEventListener('click', async ()=>{
+    const cod = ($('otroCodigo').value||'').trim();
+    if(!cod) return toast('Escribe el código.', true);
+    $('otroCodigoGo').disabled = true;
+    try{
+      const negId = await unirseConCodigo(cod);
+      await cargarMisNegocios();
+      $('unirseOtroBox').innerHTML = '';
+      await cambiarNegocio(negId);
+      toast('Te uniste al negocio 🎉');
+    }catch(e){ toast(e.message || 'No se pudo unir con ese código.', true); $('otroCodigoGo').disabled = false; }
+  });
+  $('otroCodigo').focus();
 });
 
 /* Reporte cada 8 días por correo — el envío en sí lo hace la Edge Function
@@ -1812,8 +1933,9 @@ document.addEventListener('click', async e=>{
      SVG adentro, y un clic que caiga sobre el ícono reporta el <svg>
      como e.target, no el <button> con el data-* — sin esto, tocar el
      ícono (en vez del texto) no hacía nada. */
-  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto]');
+  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio]');
   if(!t) return;
+  if(t.dataset.irNegocio) return cambiarNegocio(t.dataset.irNegocio);
   if(t.dataset.contrato) return generarContrato(t.dataset.contrato);
   const rm = async (arr, id, msg) => { S[arr] = S[arr].filter(x=>x.id!==id); await save(); renderAll(); toast(msg); };
   if(t.dataset.delCond){
@@ -3012,7 +3134,7 @@ async function arrancar(){
   try{
     await cargarMisNegocios();
     if(!MIS_NEGOCIOS.length){ NEG_MODO=''; AUTH_ERROR=''; return pantallaNegocio(); }
-    NEGOCIO = MIS_NEGOCIOS[0];
+    NEGOCIO = MIS_NEGOCIOS.find(n=>n.id===SESION.ultimoNegocioId) || MIS_NEGOCIOS[0];
     await mostrarApp();
   }catch(e){
     AUTH_ERROR = e.message || 'No se pudo cargar tu cuenta.';
