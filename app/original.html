@@ -961,6 +961,27 @@ function api(path,opts){
   if(SESION.token)h['Authorization']='Bearer '+SESION.token;
   if(opts.headers)for(var k in opts.headers)h[k]=opts.headers[k];
   return fetch(SESION.url.replace(/\/$/,'')+path,{method:opts.method||'GET',headers:h,body:opts.body})
+   .then(function(r){
+     /* la sesión venció a mitad de camino: renovarla sola y reintentar una
+        vez, para que nunca más haga falta volver a entrar a mano por esto */
+     if(r.status!==401||!SESION.refresh||opts._reintentado)return r;
+     return refrescarToken().then(function(ok){
+       if(!ok)return r;
+       opts._reintentado=true;
+       return api(path,opts)
+     })
+   })
+}
+function refrescarToken(){
+  if(!SESION.refresh)return Promise.resolve(false);
+  return fetch(SESION.url.replace(/\/$/,'')+'/auth/v1/token?grant_type=refresh_token',{
+    method:'POST',headers:{'apikey':SESION.key,'Content-Type':'application/json'},
+    body:JSON.stringify({refresh_token:SESION.refresh})
+  }).then(function(r){return r.ok?r.json():null})
+   .then(function(j){
+     if(j&&j.access_token){SESION.token=j.access_token;SESION.refresh=j.refresh_token||SESION.refresh;guardarSesion();return true}
+     return false
+   }).catch(function(){return false})
 }
 function capturarSesion(){
   try{
