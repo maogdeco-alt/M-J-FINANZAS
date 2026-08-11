@@ -322,6 +322,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
    quitar ningún campo. <details> nativo: funciona sin JS, accesible con
    teclado y lector de pantalla, y no cambia nada de cómo se guardan los
    campos (siguen teniendo su mismo id). */
+.hidden{display:none !important}
 .fold{margin-top:16px;border-top:1px dashed var(--linea);padding-top:14px}
 .fold summary{
   cursor:pointer;font-size:12.5px;font-weight:700;color:var(--gris2);
@@ -441,6 +442,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 }
 .choice:hover{border-color:var(--acento);box-shadow:var(--sombra-md);transform:translateY(-2px)}
 .choice:active{border-color:var(--acento);box-shadow:var(--sombra-sm);transform:scale(.98)}
+.choice.sel{border-color:var(--acento);box-shadow:var(--sombra-md);background:color-mix(in srgb, var(--acento) 7%, var(--hueso))}
 @media(prefers-reduced-motion:reduce){.choice:hover,.choice:active{transform:none}}
 .choice .ic{width:23px;height:23px;display:inline-flex;margin-bottom:10px;color:var(--acento)}
 .choice b{display:block;font-family:var(--disp);font-size:15.5px;font-weight:600;margin-bottom:3px}
@@ -468,6 +470,8 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .negocio-row.actual .nm b{color:var(--acento-ink)}
 .negocio-row .check{width:16px;height:16px;flex:0 0 16px;color:var(--acento);opacity:0}
 .negocio-row.actual .check{opacity:1}
+.negocio-row .ic{width:19px;height:19px;flex:0 0 19px;color:var(--gris)}
+.negocio-row.actual .ic{color:var(--acento)}
 .miembro-row .av{width:32px;height:32px;border-radius:50%;background:var(--acento-suave);color:var(--acento);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:0 0 32px}
 .miembro-row .nm{flex:1;min-width:0}
 .miembro-row .nm b{font-size:13.5px;font-weight:600;display:block}
@@ -551,6 +555,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <div class="rail-foot">
       <div class="sync-line" id="syncLine"><span class="dot"></span><span id="syncState">—</span><button id="refrescar" title="Traer los últimos cambios"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.5-4.7M20 12a8 8 0 0 1-14.5 4.7"/><path d="M18.5 3v4.5H14M5.5 21v-4.5H10"/></svg></span> Actualizar</button></div>
       <div class="rail-sep"></div>
+      <button class="rail-btn" id="proyectosBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5l8-4 8 4-8 4-8-4Z"/><path d="M4 7.5V16l8 4 8-4V7.5"/><path d="M12 11.5V20"/></svg></span><span>Proyectos</span></button>
       <button class="rail-btn" id="ajustesBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span><span>Ajustes</span></button>
       <button class="rail-btn" id="exportBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11.5M8 12l4 4 4-4"/><path d="M4.5 17.5v2A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg></span><span>Exportar a Excel</span></button>
       <button class="rail-btn warn" id="salirBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4.5H7A1.5 1.5 0 0 0 5.5 6v12A1.5 1.5 0 0 0 7 19.5h6"/><path d="M11 12h9M17 8.3l3.3 3.7-3.3 3.7"/></svg></span><span>Cerrar sesión</span></button>
@@ -561,6 +566,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <span class="brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span></span>
     <span class="acts">
       <button class="icon-btn" id="refrescarM" title="Actualizar"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.5-4.7M20 12a8 8 0 0 1-14.5 4.7"/><path d="M18.5 3v4.5H14M5.5 21v-4.5H10"/></svg></span></button>
+      <button class="icon-btn" id="proyectosBtnM" title="Proyectos"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5l8-4 8 4-8 4-8-4Z"/><path d="M4 7.5V16l8 4 8-4V7.5"/><path d="M12 11.5V20"/></svg></span></button>
       <button class="icon-btn" id="ajustesBtnM" title="Ajustes"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span></button>
       <button class="icon-btn" id="exportBtnM" title="Exportar a Excel"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11.5M8 12l4 4 4-4"/><path d="M4.5 17.5v2A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg></span></button>
     </span>
@@ -577,53 +583,70 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         </div>
       </div>
 
-      <div class="hoy-grid">
-        <div>
-          <h2>Hoy</h2>
-          <div id="heroHoy"></div>
-          <div id="avisos"></div>
-        </div>
-        <div>
-          <h2>Resumen</h2>
-          <div id="kpis"></div>
-        </div>
-      </div>
-
-      <div class="compose">
-        <span class="eyebrow">Registrar un pago</span>
-        <div class="lead">
-          <span>Recibí</span>
-          <input class="w-money" id="qValor" inputmode="numeric" placeholder="$0" aria-label="Valor recibido">
-          <span>de</span>
-          <select class="w-name" id="qCond" aria-label="Conductor"></select>
-          <span>por</span>
-          <input class="w-days" id="qDias" inputmode="numeric" value="7" aria-label="Días pagados">
-          <span id="qDiasWord">días</span>
-        </div>
-        <div class="row2">
-          <div class="f"><label for="qFecha">Fecha</label><input type="date" id="qFecha"></div>
-          <div class="f"><label for="qMedio">Medio</label>
-            <select id="qMedio">
-              <option>Transferencia</option><option>Efectivo</option>
-              <option>Nequi</option><option>Daviplata</option><option>Otro</option>
-            </select>
+      <div id="tableroMotos">
+        <div class="hoy-grid">
+          <div>
+            <h2>Hoy</h2>
+            <div id="heroHoy"></div>
+            <div id="avisos"></div>
           </div>
-          <button class="btn acento" id="qSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span> Registrar pago</button>
-          <span class="hint" id="qHint"></span>
+          <div>
+            <h2>Resumen</h2>
+            <div id="kpis"></div>
+          </div>
+        </div>
+
+        <div class="compose">
+          <span class="eyebrow">Registrar un pago</span>
+          <div class="lead">
+            <span>Recibí</span>
+            <input class="w-money" id="qValor" inputmode="numeric" placeholder="$0" aria-label="Valor recibido">
+            <span>de</span>
+            <select class="w-name" id="qCond" aria-label="Conductor"></select>
+            <span>por</span>
+            <input class="w-days" id="qDias" inputmode="numeric" value="7" aria-label="Días pagados">
+            <span id="qDiasWord">días</span>
+          </div>
+          <div class="row2">
+            <div class="f"><label for="qFecha">Fecha</label><input type="date" id="qFecha"></div>
+            <div class="f"><label for="qMedio">Medio</label>
+              <select id="qMedio">
+                <option>Transferencia</option><option>Efectivo</option>
+                <option>Nequi</option><option>Daviplata</option><option>Otro</option>
+              </select>
+            </div>
+            <button class="btn acento" id="qSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span> Registrar pago</button>
+            <span class="hint" id="qHint"></span>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Quién está al día</h2>
+          <div id="condStatus"></div>
+        </div>
+
+        <div class="section">
+          <h2>Recaudo del año</h2>
+          <div class="chart" id="chart"></div>
+          <div class="chart-legend">
+            <span><i style="background:var(--acento)"></i>Recaudado</span>
+            <span><i style="background:var(--linea)"></i>Sin movimiento</span>
+          </div>
         </div>
       </div>
 
-      <div class="section">
-        <h2>Quién está al día</h2>
-        <div id="condStatus"></div>
-      </div>
-
-      <div class="section">
-        <h2>Recaudo del año</h2>
-        <div class="chart" id="chart"></div>
-        <div class="chart-legend">
-          <span><i style="background:var(--acento)"></i>Recaudado</span>
-          <span><i style="background:var(--linea)"></i>Sin movimiento</span>
+      <div id="tableroFlex" class="hidden">
+        <div class="section">
+          <h2>Resumen del mes</h2>
+          <div id="resumenFlex"></div>
+        </div>
+        <div class="section hidden" id="productosBajoStockBox">
+          <h2>Poco inventario</h2>
+          <div id="productosBajoStock"></div>
+        </div>
+        <div class="section hidden" id="clientesRecientesBox">
+          <h2>Clientes recientes</h2>
+          <div id="clientesRecientes"></div>
         </div>
       </div>
     </section>
@@ -631,7 +654,21 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <!-- ============ PAGOS ============ -->
     <section class="view" id="v-pagos">
       <div class="head">
-        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6.5" width="18" height="11" rx="2.5"/><circle cx="12" cy="12" r="2.4"/><path d="M6.2 9v.01M17.8 15v.01"/></svg></span>Pagos</h1><p>Cada entrada de dinero, de la más reciente a la más antigua.</p></div>
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6.5" width="18" height="11" rx="2.5"/><circle cx="12" cy="12" r="2.4"/><path d="M6.2 9v.01M17.8 15v.01"/></svg></span><span id="pagosTitulo">Pagos</span></h1><p id="pagosSub">Cada entrada de dinero, de la más reciente a la más antigua.</p></div>
+      </div>
+      <div class="form hidden" id="pagoFlexForm">
+        <div class="fgrid">
+          <div class="f"><label for="pfFecha">Fecha</label><input type="date" id="pfFecha"></div>
+          <div class="f"><label for="pfConcepto">Concepto</label><input id="pfConcepto" placeholder="¿De qué es este ingreso?"></div>
+          <div class="f"><label for="pfValor">Valor</label><input id="pfValor" inputmode="numeric" placeholder="$0"></div>
+          <div class="f"><label for="pfMedio">Medio</label>
+            <select id="pfMedio">
+              <option>Transferencia</option><option>Efectivo</option>
+              <option>Nequi</option><option>Daviplata</option><option>Otro</option>
+            </select>
+          </div>
+        </div>
+        <div class="acts"><button class="btn acento" id="pfSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span> Registrar</button></div>
       </div>
       <div id="pagosList"></div>
     </section>
@@ -644,11 +681,11 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       <div class="form">
         <div class="fgrid">
           <div class="f"><label for="gFecha">Fecha</label><input type="date" id="gFecha"></div>
-          <div class="f"><label for="gMoto">Moto</label><select id="gMoto"></select></div>
+          <div class="f" id="gMotoBox"><label for="gMoto">Moto</label><select id="gMoto"></select></div>
           <div class="f"><label for="gCat">Categoría</label><select id="gCat"></select></div>
           <div class="f"><label for="gDesc">Descripción</label><input id="gDesc" placeholder="Cambio de aceite"></div>
           <div class="f"><label for="gValor">Valor</label><input id="gValor" inputmode="numeric" placeholder="$0"></div>
-          <div class="f"><label for="gCargo">A cargo de</label>
+          <div class="f" id="gCargoBox"><label for="gCargo">A cargo de</label>
             <select id="gCargo"><option>Empresa</option><option>Conductor</option></select>
           </div>
         </div>
@@ -663,9 +700,11 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V14M4 20h16M9.5 20V9.5M15 20v-6.5"/></svg></span>Cuentas</h1><p>Cuánto falta para librar la inversión y en qué se está yendo la plata.</p></div>
       </div>
 
-      <div class="section">
-        <h2>Recuperación de la inversión</h2>
-        <div id="recuperacion"></div>
+      <div id="cuentasMotosA">
+        <div class="section">
+          <h2>Recuperación de la inversión</h2>
+          <div id="recuperacion"></div>
+        </div>
       </div>
 
       <div class="section">
@@ -678,21 +717,23 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         <div id="porCategoria"></div>
       </div>
 
-      <div class="section">
-        <h2>Cuentas por dueño</h2>
-        <div id="propList"></div>
-      </div>
-
-      <div class="section form" id="invBox">
-        <h2 style="margin-bottom:8px">Otra inversión</h2>
-        <p class="sub">
-          El valor de cada moto ya se toma de su ficha. Sume aquí lo demás que pusieron:
-          papeles, GPS, cascos, accesorios.
-        </p>
-        <div class="fgrid">
-          <div class="f"><label for="invExtra">Inversión adicional</label><input id="invExtra" inputmode="numeric" placeholder="$0"></div>
+      <div id="cuentasMotosB">
+        <div class="section">
+          <h2>Cuentas por dueño</h2>
+          <div id="propList"></div>
         </div>
-        <div class="acts"><button class="btn" id="invSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="15" height="16" rx="2"/><path d="M8 4v5h7V4"/><path d="M7.5 20v-6h9v6"/></svg></span> Guardar</button></div>
+
+        <div class="section form" id="invBox">
+          <h2 style="margin-bottom:8px">Otra inversión</h2>
+          <p class="sub">
+            El valor de cada moto ya se toma de su ficha. Sume aquí lo demás que pusieron:
+            papeles, GPS, cascos, accesorios.
+          </p>
+          <div class="fgrid">
+            <div class="f"><label for="invExtra">Inversión adicional</label><input id="invExtra" inputmode="numeric" placeholder="$0"></div>
+          </div>
+          <div class="acts"><button class="btn" id="invSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="15" height="16" rx="2"/><path d="M8 4v5h7V4"/><path d="M7.5 20v-6h9v6"/></svg></span> Guardar</button></div>
+        </div>
       </div>
     </section>
 
@@ -771,25 +812,64 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       <div class="grid2" id="motosList"></div>
     </section>
 
-    <!-- ============ AJUSTES ============ -->
-    <section class="view" id="v-ajustes">
+    <!-- ============ PRODUCTOS ============ -->
+    <section class="view" id="v-productos">
       <div class="head">
-        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span>Ajustes</h1><p>Tu negocio, los dueños y la cuenta donde reciben los pagos.</p></div>
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5l8-4 8 4v9l-8 4-8-4v-9Z"/><path d="M4 7.5l8 4 8-4M12 11.5V20"/></svg></span>Productos</h1><p>Lo que vende — con precio, costo y cuánto queda.</p></div>
+      </div>
+      <div class="form">
+        <div class="fgrid">
+          <div class="f"><label for="prNombre">Nombre</label><input id="prNombre" placeholder="Camiseta talla M"></div>
+          <div class="f"><label for="prCat">Categoría</label><input id="prCat" placeholder="Ropa, insumo, servicio…"></div>
+          <div class="f"><label for="prPrecio">Precio de venta</label><input id="prPrecio" inputmode="numeric" placeholder="$0"></div>
+          <div class="f"><label for="prCosto">Costo</label><input id="prCosto" inputmode="numeric" placeholder="$0"></div>
+          <div class="f"><label for="prStock">Cuántos quedan</label><input id="prStock" inputmode="numeric" placeholder="0"></div>
+          <div class="f"><label for="prNotas">Notas</label><input id="prNotas" placeholder="Opcional"></div>
+        </div>
+        <div class="acts"><button class="btn" id="prSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Guardar producto</button>
+          <span class="hint" style="margin-left:0">Solo el nombre es obligatorio.</span></div>
+      </div>
+      <div class="grid2" id="productosList"></div>
+    </section>
+
+    <!-- ============ CLIENTES ============ -->
+    <section class="view" id="v-clientes">
+      <div class="head">
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.3 20v-1.3a6.7 6.7 0 0 1 13.4 0V20"/></svg></span>Clientes</h1><p>A quién le vende o le presta el servicio.</p></div>
+      </div>
+      <div class="form">
+        <div class="fgrid">
+          <div class="f"><label for="clNombre">Nombre</label><input id="clNombre" placeholder="Nombre completo"></div>
+          <div class="f"><label for="clContacto">Contacto</label><input id="clContacto" placeholder="Teléfono o correo"></div>
+          <div class="f"><label for="clNotas">Notas</label><input id="clNotas" placeholder="Qué le interesa, encargos, etc."></div>
+        </div>
+        <div class="acts"><button class="btn" id="clSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Guardar cliente</button>
+          <span class="hint" style="margin-left:0">Solo el nombre es obligatorio.</span></div>
+      </div>
+      <div class="grid2" id="clientesList"></div>
+    </section>
+
+    <!-- ============ PROYECTOS ============ -->
+    <section class="view" id="v-proyectos">
+      <div class="head">
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5l8-4 8 4-8 4-8-4Z"/><path d="M4 7.5V16l8 4 8-4V7.5"/><path d="M12 11.5V20"/></svg></span>Proyectos</h1><p>Todos tus negocios, solos o en pareja. Toca uno para entrar ahí — cada proyecto tiene sus propios datos, sin mezclarse.</p></div>
       </div>
 
       <div class="section form" id="negociosBox">
-        <h2 style="margin-bottom:8px">Tus negocios</h2>
-        <p class="sub">
-          Puedes tener varios negocios separados — cada uno con sus propias motos,
-          conductores, pagos y contratos, sin mezclarse entre sí. Toca uno para entrar ahí.
-        </p>
         <div id="listaNegocios"></div>
         <div class="acts">
-          <button class="btn ghost sm" id="crearOtroBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Crear otro negocio</button>
+          <button class="btn ghost sm" id="crearOtroBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Crear un proyecto nuevo</button>
           <button class="btn ghost sm" id="unirseOtroBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.8" cy="15.5" r="3.2"/><path d="M10 13.3L17.5 5.8"/><path d="M14.7 8.6l2 2M16.9 6.4l2 2"/></svg></span> Unirme a otro con código</button>
         </div>
         <div id="crearOtroBox"></div>
         <div id="unirseOtroBox"></div>
+      </div>
+    </section>
+
+    <!-- ============ AJUSTES ============ -->
+    <section class="view" id="v-ajustes">
+      <div class="head">
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span>Ajustes</h1><p>Tu negocio, los dueños y la cuenta donde reciben los pagos.</p></div>
       </div>
 
       <div class="section form" id="negocioBox">
@@ -914,9 +994,30 @@ const CATS = ['Cambio de aceite y filtro','Llantas','Frenos y pastillas','Kit de
               'SOAT','Tecnomecánica','Seguro','Multa o comparendo','Grúa o patios',
               'Parqueadero','GPS','Otro','Abono a deuda o compra de moto'];
 const CAT_DEUDA = 'Abono a deuda o compra de moto';
-const VIEWS = [['tablero','Tablero','Inicio'],['pagos','Pagos','Pagos'],['gastos','Gastos','Gastos'],
-               ['cuentas','Cuentas','Cuentas'],['conductores','Conductores','Cond.'],
-               ['vehiculos','Vehículos','Motos']];
+const CATS_FLEX = ['Compras o insumos','Servicios públicos','Arriendo del local','Transporte',
+                    'Nómina o pago a terceros','Publicidad','Empaques o envíos','Impuestos','Otro'];
+
+/* Plantillas de negocio: "motos" es la app completa de renta de vehículos
+   (todo lo que ya existía). "flexible" sirve para cualquier otro tipo de
+   negocio — ropa, impresoras, servicios, cuentas personales — y activa
+   solo los módulos (Productos / Clientes) que la persona elija al crearlo. */
+function esMotos(){ return !NEGOCIO || (NEGOCIO.plantilla||'motos') === 'motos'; }
+function modulosDe(neg){ return (neg && neg.modulos) || {}; }
+/* Menú según la plantilla del negocio activo — si no hay negocio todavía
+   (pantallas de entrada), se muestra el menú completo de motos por defecto. */
+function viewsPara(){
+  if(esMotos()){
+    return [['tablero','Tablero','Inicio'],['pagos','Pagos','Pagos'],['gastos','Gastos','Gastos'],
+            ['cuentas','Cuentas','Cuentas'],['conductores','Conductores','Cond.'],
+            ['vehiculos','Vehículos','Motos']];
+  }
+  const mods = modulosDe(NEGOCIO);
+  const v = [['tablero','Tablero','Inicio'],['pagos','Pagos','Pagos'],['gastos','Gastos','Gastos'],
+             ['cuentas','Cuentas','Cuentas']];
+  if(mods.productos) v.push(['productos','Productos','Prod.']);
+  if(mods.clientes) v.push(['clientes','Clientes','Clientes']);
+  return v;
+}
 /* Iconografía propia — trazo consistente (1.6, extremos y uniones
    redondeadas), en vez de emoji o un set de iconos genérico. Heredan el
    color por currentColor, así que un solo lugar (color del botón/h1)
@@ -951,6 +1052,9 @@ const ICONS = {
   grafica: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 12V4M12 12l6.9 4"/></svg>',
   persona: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.3 20v-1.3a6.7 6.7 0 0 1 13.4 0V20"/></svg>',
   enchufe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5v5.5M15 3.5v5.5"/><path d="M6.5 9h11v3.2a5.5 5.5 0 0 1-11 0V9Z"/><path d="M12 17.7V21"/></svg>',
+  productos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5l8-4 8 4v9l-8 4-8-4v-9Z"/><path d="M4 7.5l8 4 8-4M12 11.5V20"/></svg>',
+  clientes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.3 20v-1.3a6.7 6.7 0 0 1 13.4 0V20"/></svg>',
+  proyectos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5l8-4 8 4-8 4-8-4Z"/><path d="M4 7.5V16l8 4 8-4V7.5"/><path d="M12 11.5V20"/></svg>',
 };
 
 /* =========================================================
@@ -1067,7 +1171,8 @@ async function cargarMisNegocios(){
   const rows = await chk(r);
   MIS_NEGOCIOS = (rows||[]).map(x=>({
     id:x.id, nombre:x.nombre, rol:x.rol,
-    reporteActivo:x.reporte_activo, reporteUltimoEnvio:x.reporte_ultimo_envio
+    reporteActivo:x.reporte_activo, reporteUltimoEnvio:x.reporte_ultimo_envio,
+    plantilla:x.plantilla||'motos', modulos:x.modulos||{}, miembros:Number(x.miembros||1)
   }));
   return MIS_NEGOCIOS;
 }
@@ -1076,12 +1181,14 @@ async function cargarMisNegocios(){
    veces no se reconoce dentro de una política RLS evaluada sobre una
    tabla — aunque la sesión sí sea válida — pero SÍ se reconoce llamando
    una función directamente. Ver flota/supabase/migrations/0003_rpc_autenticacion.sql. */
-async function crearNegocio(nombre){
-  const r = await api('/rest/v1/rpc/crear_negocio_rpc', { method:'POST', body: JSON.stringify({ p_nombre: nombre }) });
+async function crearNegocio(nombre, plantilla, modulos){
+  const r = await api('/rest/v1/rpc/crear_negocio_rpc', { method:'POST', body: JSON.stringify({
+    p_nombre: nombre, p_plantilla: plantilla||'motos', p_modulos: modulos||{}
+  }) });
   const rows = await chk(r);
   const row = rows && rows[0];
   if(!row) throw new Error('No se pudo crear el negocio.');
-  return { id: row.id, nombre: row.nombre, codigo: row.codigo };
+  return { id: row.id, nombre: row.nombre, codigo: row.codigo, plantilla: row.plantilla||'motos', modulos: row.modulos||{} };
 }
 async function unirseConCodigo(codigo){
   const r = await api('/rest/v1/rpc/unirse_negocio_rpc', { method:'POST', body: JSON.stringify({ p_codigo: codigo }) });
@@ -1113,7 +1220,7 @@ let sincronizando = false;
 let DEMO = false;
 const KEY = () => 'maog:flota:datos:' + (NEGOCIO ? NEGOCIO.id : 'x');
 
-function vacio(){ return { motos:[], conductores:[], pagos:[], gastos:[], config:{} }; }
+function vacio(){ return { motos:[], conductores:[], pagos:[], gastos:[], productos:[], clientes:[], config:{} }; }
 
 async function nubeLeer(){
   const r = await api('/rest/v1/rpc/leer_datos_rpc', { method:'POST', body: JSON.stringify({ p_negocio_id: NEGOCIO.id }) });
@@ -1244,11 +1351,42 @@ function quien(){ return SESION.nombre || 'Alguien'; }
 
 function renderAll(){
   if(!ready || !S) return;
+  if(!S.productos) S.productos = [];
+  if(!S.clientes) S.clientes = [];
+  aplicarPlantillaUI();
   renderSelects(); renderKPIs(); renderAvisos(); renderCuentas(); renderPropietarios();
   renderCondStatus(); renderChart();
   renderPagos(); renderGastos(); renderMotos(); renderCond();
+  renderProductos(); renderClientes(); renderResumenFlex();
   $('todayLabel').textContent = new Date().toLocaleDateString('es-CO',
     {weekday:'long', day:'numeric', month:'long'});
+}
+function setHidden(id, cond){ const e=$(id); if(e) e.classList.toggle('hidden', !!cond); }
+/* Muestra/oculta y relabela lo que cambia según la plantilla del negocio
+   activo (motos vs. flexible) — se corre en cada render para que el
+   cambio entre negocios (que pueden tener plantillas distintas) se note
+   al instante. */
+function aplicarPlantillaUI(){
+  const motos = esMotos();
+  setHidden('tableroMotos', !motos);
+  setHidden('tableroFlex', motos);
+  setHidden('cuentasMotosA', !motos);
+  setHidden('cuentasMotosB', !motos);
+  setHidden('gMotoBox', !motos);
+  setHidden('gCargoBox', !motos);
+  setHidden('pagoFlexForm', motos);
+  const pt = $('pagosTitulo'); if(pt) pt.textContent = motos ? 'Pagos' : 'Ingresos';
+  const ps = $('pagosSub'); if(ps) ps.textContent = motos
+    ? 'Cada entrada de dinero, de la más reciente a la más antigua.'
+    : 'Cada venta o cobro que reciba, de más reciente a más antiguo.';
+  const gCat = $('gCat');
+  if(gCat){
+    const set = motos ? 'motos' : 'flex';
+    if(gCat.dataset.set !== set){
+      gCat.innerHTML = (motos?CATS:CATS_FLEX).map(c=>`<option>${esc(c)}</option>`).join('');
+      gCat.dataset.set = set;
+    }
+  }
 }
 function fillSelect(el, items, ph){
   const prev = el.value;
@@ -1273,7 +1411,6 @@ function renderSelects(){
   set('cfgLav', S.config && S.config.lavadero); set('cfgLavDir', S.config && S.config.lavaderoDir);
   if(bk.tipo) $('bTipo').value = bk.tipo;
   if(bk.diaPago) $('bDia').value = bk.diaPago;
-  if(!$('gCat').options.length) $('gCat').innerHTML = CATS.map(c=>`<option>${esc(c)}</option>`).join('');
   updateHint();
   const nl = $('negLabel'); if(nl) nl.textContent = DEMO ? 'Datos de ejemplo' : (NEGOCIO ? NEGOCIO.nombre : 'Control de flota');
   const nt = $('negNombreTx'); if(nt) nt.textContent = NEGOCIO ? '"'+NEGOCIO.nombre+'"' : 'tu negocio';
@@ -1525,8 +1662,20 @@ function renderChart(){
 }
 function renderPagos(){
   if(!S.pagos.length){
-    $('pagosList').innerHTML = `<div class="empty"><span class="ic icono">${ICONS.pagos}</span><strong>Sin pagos registrados</strong>
-      Registre el primero desde el tablero.</div>`; return;
+    $('pagosList').innerHTML = `<div class="empty"><span class="ic icono">${ICONS.pagos}</span><strong>Sin ${esMotos()?'pagos':'ingresos'} registrados</strong>
+      ${esMotos()?'Registre el primero desde el tablero.':'Registre el primero arriba.'}</div>`; return;
+  }
+  if(!esMotos()){
+    const rows = [...S.pagos].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).map(p=>`<tr>
+      <td>${fmtDate(p.fecha)}</td>
+      <td><span class="name">${esc(p.concepto||'Ingreso')}</span><span class="sub">${esc(p.medio||'')}${p.creadoPor?' · '+esc(p.creadoPor):''}</span></td>
+      <td class="num money">${money(p.valor)}</td>
+      <td class="num"><button class="rowdel" data-del-pago="${p.id}" aria-label="Eliminar"><span class="icono">${ICONS.trash}</span></button></td>
+    </tr>`).join('');
+    $('pagosList').innerHTML = `<div class="ledger-wrap"><table class="ledger">
+      <thead><tr><th>Fecha</th><th>Concepto</th><th class="num">Valor</th><th></th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`;
+    return;
   }
   const rows = [...S.pagos].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).map(p=>{
     const c = condById(p.condId), m = c && motoById(c.motoId);
@@ -1549,7 +1698,18 @@ function renderPagos(){
 function renderGastos(){
   if(!S.gastos.length){
     $('gastosList').innerHTML = `<div class="empty"><span class="ic icono">${ICONS.gastos}</span><strong>Sin gastos registrados</strong>
-      Anote el SOAT, los mantenimientos y los comparendos aquí.</div>`; return;
+      ${esMotos()?'Anote el SOAT, los mantenimientos y los comparendos aquí.':'Anote aquí lo que sale del negocio.'}</div>`; return;
+  }
+  if(!esMotos()){
+    const rows = [...S.gastos].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).map(g=>`<tr>
+      <td>${fmtDate(g.fecha)}</td>
+      <td><span class="name">${esc(g.desc||g.cat)}</span><span class="sub">${esc(g.cat)}${g.creadoPor?' · '+esc(g.creadoPor):''}</span></td>
+      <td class="num money">${money(g.valor)}</td>
+      <td class="num"><button class="rowdel" data-del-gasto="${g.id}" aria-label="Eliminar gasto"><span class="icono">${ICONS.trash}</span></button></td>
+    </tr>`).join('');
+    $('gastosList').innerHTML = `<div class="ledger-wrap"><table class="ledger">
+      <thead><tr><th>Fecha</th><th>Concepto</th><th class="num">Valor</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    return;
   }
   const rows = [...S.gastos].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).map(g=>{
     const m = motoById(g.motoId);
@@ -1627,6 +1787,73 @@ function renderCond(){
     </div>`;
   }).join('');
 }
+function renderProductos(){
+  const box = $('productosList'); if(!box) return;
+  if(!S.productos.length){
+    box.innerHTML = `<div class="empty"><span class="ic icono">${ICONS.productos}</span><strong>Todavía no hay productos</strong>
+      Empiece por aquí: agregue el nombre y el precio.</div>`; return;
+  }
+  box.innerHTML = S.productos.map(p=>{
+    const bajo = p.stock!=null && p.stock<=2;
+    return `<div class="card">
+      <h3><span class="icono">${ICONS.productos}</span> ${esc(p.nombre)}</h3>
+      <div class="meta">${esc(p.categoria||'—')}</div>
+      <div class="figs">
+        <div class="fig"><div class="k">Precio</div><div class="v">${money(p.precio)}</div></div>
+        <div class="fig"><div class="k">Costo</div><div class="v">${money(p.costo)}</div></div>
+        <div class="fig"><div class="k">Quedan</div><div class="v" style="${bajo?'color:var(--rojo)':''}">${p.stock==null?'—':p.stock}</div></div>
+      </div>
+      ${p.notas?`<div class="meta" style="margin-top:6px">${esc(p.notas)}</div>`:''}
+      <div class="acts"><button class="btn ghost sm" data-del-producto="${p.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button></div>
+    </div>`;
+  }).join('');
+}
+function renderClientes(){
+  const box = $('clientesList'); if(!box) return;
+  if(!S.clientes.length){
+    box.innerHTML = `<div class="empty"><span class="ic icono">${ICONS.clientes}</span><strong>Todavía no hay clientes</strong>
+      Empiece por aquí: agregue el nombre y un contacto.</div>`; return;
+  }
+  box.innerHTML = S.clientes.map(c=>`<div class="card">
+      <h3><span class="icono">${ICONS.clientes}</span> ${esc(c.nombre)}</h3>
+      <div class="meta">${esc(c.contacto||'sin contacto')}</div>
+      ${c.notas?`<div class="meta" style="margin-top:6px">${esc(c.notas)}</div>`:''}
+      <div class="acts"><button class="btn ghost sm" data-del-cliente="${c.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button></div>
+    </div>`).join('');
+}
+/* Resumen simple del Tablero para negocios que no son de motos — ingresos,
+   gastos y utilidad del mes en curso, más un vistazo a inventario/clientes
+   si esos módulos están activos. */
+function renderResumenFlex(){
+  const box = $('resumenFlex'); if(!box || esMotos()) return;
+  const hoy = todayISO(), inicioMes = hoy.slice(0,7)+'-01';
+  const ing = ingresos(inicioMes, hoy), gas = gastosOper(inicioMes, hoy), ut = ing-gas;
+  box.innerHTML = `<div class="resumen">
+    <div class="hero">
+      <div class="num ${ut<0?'neg':''}">${money(ut)}</div>
+      <div class="tx"><b>Utilidad del mes</b><span>Ingresos menos gastos, desde el 1.º</span></div>
+    </div>
+    <div class="fila">
+      <div class="item"><div class="lbl">Ingresos del mes</div><div class="val">${money(ing)}</div></div>
+      <div class="item"><div class="lbl">Gastos del mes</div><div class="val">${money(gas)}</div></div>
+      <div class="item"><div class="lbl">Productos</div><div class="val">${S.productos.length}</div></div>
+      <div class="item"><div class="lbl">Clientes</div><div class="val">${S.clientes.length}</div></div>
+    </div>
+  </div>`;
+  const mods = modulosDe(NEGOCIO);
+  if(mods.productos){
+    const bajos = S.productos.filter(p=>p.stock!=null && p.stock<=2);
+    setHidden('productosBajoStockBox', !bajos.length);
+    $('productosBajoStock').innerHTML = bajos.map(p=>
+      `<div class="meta">${esc(p.nombre)} — quedan <b style="color:var(--rojo)">${p.stock}</b></div>`).join('') || '';
+  } else setHidden('productosBajoStockBox', true);
+  if(mods.clientes){
+    const recientes = [...S.clientes].slice(-5).reverse();
+    setHidden('clientesRecientesBox', !recientes.length);
+    $('clientesRecientes').innerHTML = recientes.map(c=>
+      `<div class="meta">${esc(c.nombre)}${c.contacto?' — '+esc(c.contacto):''}</div>`).join('') || '';
+  } else setHidden('clientesRecientesBox', true);
+}
 async function renderNegocioPanel(){
   const box = $('miembrosList');
   if(!box) return;
@@ -1652,13 +1879,16 @@ async function renderNegocioPanel(){
    cambiarse ahí. La base de datos ya soporta que una persona pertenezca
    a varios negocios independientes; esto es la puerta para verlos y
    moverse entre ellos, y para crear o unirse a otros sin salir de la app. */
+const NOMBRE_PLANTILLA = { motos:'Renta de vehículos', flexible:'Negocio flexible' };
 function renderNegociosSwitcher(){
   const box = $('listaNegocios');
   if(!box) return;
-  const lista = DEMO ? [{ id: NEGOCIO.id, nombre: NEGOCIO.nombre, rol: 'propietario' }] : MIS_NEGOCIOS;
+  const lista = DEMO ? [{ id: NEGOCIO.id, nombre: NEGOCIO.nombre, rol: 'propietario', plantilla:'motos', miembros:1 }] : MIS_NEGOCIOS;
+  if(!lista.length){ box.innerHTML = `<p class="sub">Todavía no tienes ningún proyecto.</p>`; return; }
   box.innerHTML = lista.map(n => `
     <button class="negocio-row${n.id===NEGOCIO.id?' actual':''}" data-ir-negocio="${esc(n.id)}">
-      <span class="nm"><b>${esc(n.nombre)}</b><span>${n.rol==='propietario'?'propietario/a':'miembro'}</span></span>
+      <span class="icono ic">${ICONS[n.plantilla==='flexible'?'productos':'vehiculos']}</span>
+      <span class="nm"><b>${esc(n.nombre)}</b><span>${NOMBRE_PLANTILLA[n.plantilla]||NOMBRE_PLANTILLA.motos} · ${(n.miembros||1)>1?'en pareja':'solo tuyo'}</span></span>
       <span class="icono check">${ICONS.check}</span>
     </button>`).join('');
 }
@@ -1668,6 +1898,7 @@ async function cambiarNegocio(id){
   if(!neg) return;
   NEGOCIO = neg;
   SESION.ultimoNegocioId = id; guardarSesion();
+  renderMenu();
   go('tablero');
   await load();
   toast(`Ahora en "${neg.nombre}"`);
@@ -1683,21 +1914,32 @@ function go(v){
     else b.removeAttribute('aria-current');
   });
   if(v==='ajustes'){
-    renderNegociosSwitcher(); renderNegocioPanel(); renderReporteToggle();
-    $('codigoBox').innerHTML=''; $('crearOtroBox').innerHTML=''; $('unirseOtroBox').innerHTML='';
+    renderNegocioPanel(); renderReporteToggle();
+    $('codigoBox').innerHTML='';
+  }
+  if(v==='proyectos'){
+    renderNegociosSwitcher();
+    $('crearOtroBox').innerHTML=''; $('unirseOtroBox').innerHTML='';
   }
   window.scrollTo({top:0});
 }
-$('nav').innerHTML = VIEWS.map(([v,t],i)=>
-  `<button data-view="${v}" ${i===0?'aria-current="page"':''}><span class="icono">${ICONS[v]}</span>${t}</button>`).join('');
-$('tabbar').innerHTML = VIEWS.map(([v,t,c],i)=>
-  `<button data-view="${v}" ${i===0?'aria-current="page"':''}><span class="icono">${ICONS[v]}</span>${c||t}</button>`).join('');
+function renderMenu(){
+  const VIEWS = viewsPara();
+  const activo = document.querySelector('[data-view].on')?.dataset.view
+    || document.querySelector('.view.on')?.id.replace('v-','') || 'tablero';
+  $('nav').innerHTML = VIEWS.map(([v,t],i)=>
+    `<button data-view="${v}" ${v===activo?'aria-current="page"':(i===0?'aria-current="page"':'')}><span class="icono">${ICONS[v]}</span>${t}</button>`).join('');
+  $('tabbar').innerHTML = VIEWS.map(([v,t,c],i)=>
+    `<button data-view="${v}" ${v===activo?'aria-current="page"':(i===0?'aria-current="page"':'')}><span class="icono">${ICONS[v]}</span>${c||t}</button>`).join('');
+}
 document.addEventListener('click', e=>{
   const b = e.target.closest('[data-view]');
   if(b) go(b.dataset.view);
 });
 $('ajustesBtn').addEventListener('click', ()=>go('ajustes'));
 $('ajustesBtnM').addEventListener('click', ()=>go('ajustes'));
+$('proyectosBtn').addEventListener('click', ()=>go('proyectos'));
+$('proyectosBtnM').addEventListener('click', ()=>go('proyectos'));
 async function salirDeLaApp(){
   if(DEMO){ location.reload(); return; }
   if(await confirmar('Cerrar sesión', '¿Seguro que quiere salir? Puede volver a entrar con su correo y contraseña cuando quiera.')) cerrarSesion();
@@ -1732,24 +1974,28 @@ $('verCodigoBtn').addEventListener('click', async ()=>{
 $('crearOtroBtn').addEventListener('click', ()=>{
   if(DEMO) return toast('En modo demo no se pueden crear negocios nuevos.', true);
   $('unirseOtroBox').innerHTML = '';
+  NUEVA_PLANTILLA = { plantilla:'motos', productos:false, clientes:false };
   $('crearOtroBox').innerHTML = `
-    <div class="f" style="margin-top:12px"><label for="otroNombre">Nombre del negocio nuevo</label>
+    <div class="f" style="margin-top:12px"><label for="otroNombre">Nombre del proyecto nuevo</label>
       <input id="otroNombre" placeholder="Impresoras"></div>
+    ${plantillaPickerHTML('otroNeg')}
     <div class="acts">
       <button class="btn sm" id="otroNombreGo"><span class="icono">${ICONS.check}</span> Crear</button>
       <button class="btn ghost sm" id="otroNombreCancel">Cancelar</button>
     </div>`;
+  wirePlantillaPicker('otroNeg');
   $('otroNombreCancel').addEventListener('click', ()=>{ $('crearOtroBox').innerHTML=''; });
   $('otroNombreGo').addEventListener('click', async ()=>{
     const nombre = ($('otroNombre').value||'').trim();
     if(!nombre) return toast('Ponle un nombre al negocio.', true);
+    const { plantilla, modulos } = leerPlantillaPicker();
     $('otroNombreGo').disabled = true;
     try{
-      const neg = await crearNegocio(nombre);
+      const neg = await crearNegocio(nombre, plantilla, modulos);
       await cargarMisNegocios();
       NEGOCIO = MIS_NEGOCIOS.find(n=>n.id===neg.id) || NEGOCIO;
       SESION.ultimoNegocioId = neg.id; guardarSesion();
-      renderNegociosSwitcher();
+      renderNegociosSwitcher(); renderMenu();
       $('crearOtroBox').innerHTML = `
         <div class="gate-ok" style="margin-top:12px"><span class="icono">${ICONS.check}</span>
           <span>"${esc(neg.nombre)}" creado. Comparte este código con quien se va a unir — sirve una sola vez.</span></div>
@@ -1847,11 +2093,41 @@ $('qSave').addEventListener('click', async ()=>{
 $('gSave').addEventListener('click', async ()=>{
   const valor = num($('gValor').value);
   if(!valor) return toast('Escriba el valor del gasto.', true);
-  S.gastos.push({ id:uid(), fecha:$('gFecha').value||todayISO(), motoId:$('gMoto').value,
-    cat:$('gCat').value, desc:$('gDesc').value.trim(), valor, cargo:$('gCargo').value, recuperado:false, creadoPor:quien() });
+  S.gastos.push({ id:uid(), fecha:$('gFecha').value||todayISO(), motoId: esMotos() ? $('gMoto').value : null,
+    cat:$('gCat').value, desc:$('gDesc').value.trim(), valor, cargo: esMotos() ? $('gCargo').value : 'Empresa',
+    recuperado:false, creadoPor:quien() });
   await save(); renderAll();
   $('gValor').value=''; $('gDesc').value='';
   toast('Gasto registrado');
+});
+$('pfSave').addEventListener('click', async ()=>{
+  const valor = num($('pfValor').value);
+  if(!valor) return toast('Escriba el valor.', true);
+  S.pagos.push({ id:uid(), valor, fecha:$('pfFecha').value||todayISO(), medio:$('pfMedio').value,
+    concepto:$('pfConcepto').value.trim(), creadoPor:quien() });
+  await save(); renderAll();
+  $('pfValor').value=''; $('pfConcepto').value='';
+  toast(`Registrado · ${money(valor)}`);
+});
+$('prSave').addEventListener('click', async ()=>{
+  const nombre = $('prNombre').value.trim();
+  if(!nombre) return toast('Escriba el nombre del producto.', true);
+  const stockTxt = $('prStock').value.trim();
+  S.productos.push({ id:uid(), nombre, categoria:$('prCat').value.trim(),
+    precio:num($('prPrecio').value), costo:num($('prCosto').value),
+    stock: stockTxt==='' ? null : num(stockTxt), notas:$('prNotas').value.trim(), creadoPor:quien() });
+  await save(); renderAll();
+  ['prNombre','prCat','prPrecio','prCosto','prStock','prNotas'].forEach(i=>$(i).value='');
+  toast(`${nombre} agregado`);
+});
+$('clSave').addEventListener('click', async ()=>{
+  const nombre = $('clNombre').value.trim();
+  if(!nombre) return toast('Escriba el nombre del cliente.', true);
+  S.clientes.push({ id:uid(), nombre, contacto:$('clContacto').value.trim(),
+    notas:$('clNotas').value.trim(), creadoPor:quien() });
+  await save(); renderAll();
+  ['clNombre','clContacto','clNotas'].forEach(i=>$(i).value='');
+  toast(`${nombre} agregado`);
 });
 $('mSave').addEventListener('click', async ()=>{
   const placa = $('mPlaca').value.trim().toUpperCase();
@@ -1933,11 +2209,19 @@ document.addEventListener('click', async e=>{
      SVG adentro, y un clic que caiga sobre el ícono reporta el <svg>
      como e.target, no el <button> con el data-* — sin esto, tocar el
      ícono (en vez del texto) no hacía nada. */
-  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio]');
+  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente]');
   if(!t) return;
   if(t.dataset.irNegocio) return cambiarNegocio(t.dataset.irNegocio);
   if(t.dataset.contrato) return generarContrato(t.dataset.contrato);
   const rm = async (arr, id, msg) => { S[arr] = S[arr].filter(x=>x.id!==id); await save(); renderAll(); toast(msg); };
+  if(t.dataset.delProducto){
+    if(!(await confirmar('Eliminar producto', 'Se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
+    return rm('productos', t.dataset.delProducto, 'Producto eliminado');
+  }
+  if(t.dataset.delCliente){
+    if(!(await confirmar('Eliminar cliente', 'Se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
+    return rm('clientes', t.dataset.delCliente, 'Cliente eliminado');
+  }
   if(t.dataset.delCond){
     const n = S.pagos.filter(p=>p.condId===t.dataset.delCond).length;
     if(n && !(await confirmar('Eliminar conductor', `Este conductor tiene ${n} pago(s) registrados. Si lo elimina, esos pagos quedan sin dueño. ¿Continuar?`))) return;
@@ -2855,6 +3139,47 @@ let AUTH_MODO = 'entrar';
 let AUTH_ERROR = '';
 let AUTH_CARGANDO = false;
 let NEG_MODO = '';
+/* Elección de plantilla al crear un negocio — se recuerda mientras dura
+   la pantalla de creación (onboarding, o "crear otro" desde Proyectos),
+   para que sobreviva a los re-render mientras se guarda. */
+let NUEVA_PLANTILLA = { plantilla:'motos', productos:false, clientes:false };
+function plantillaPickerHTML(pref){
+  const p = NUEVA_PLANTILLA;
+  return `
+    <div class="f"><label>Tipo de proyecto</label></div>
+    <div class="choice-grid" id="${pref}Cards">
+      <button type="button" class="choice sm${p.plantilla==='motos'?' sel':''}" data-pp="motos"><span class="ic icono">${ICONS.vehiculos}</span><b>Renta de vehículos</b><span>Motos, conductores, contratos y pagos — como ya lo tienes.</span></button>
+      <button type="button" class="choice sm${p.plantilla==='flexible'?' sel':''}" data-pp="flexible"><span class="ic icono">${ICONS.productos}</span><b>Otro tipo de negocio</b><span>Tú eliges qué llevar: productos, clientes, o solo ingresos y gastos.</span></button>
+    </div>
+    <div class="fgrid" id="${pref}Modulos" style="margin:2px 0 10px;${p.plantilla==='flexible'?'':'display:none'}">
+      <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13.5px;font-weight:600">
+        <input type="checkbox" id="${pref}ModProductos" ${p.productos?'checked':''} style="width:17px;height:17px;accent-color:var(--acento)">
+        Productos o inventario — ej. ropa, mercancía
+      </label>
+      <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13.5px;font-weight:600">
+        <input type="checkbox" id="${pref}ModClientes" ${p.clientes?'checked':''} style="width:17px;height:17px;accent-color:var(--acento)">
+        Clientes — ej. servicios, encargos
+      </label>
+      <p class="sub" style="margin:0">Deja las dos sin marcar si es solo para llevar cuentas — ingresos y gastos.</p>
+    </div>`;
+}
+function wirePlantillaPicker(pref){
+  document.querySelectorAll(`#${pref}Cards [data-pp]`).forEach(b=>{
+    b.addEventListener('click', ()=>{
+      NUEVA_PLANTILLA.plantilla = b.dataset.pp;
+      document.querySelectorAll(`#${pref}Cards [data-pp]`).forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');
+      $(pref+'Modulos').style.display = b.dataset.pp==='flexible' ? '' : 'none';
+    });
+  });
+  const cp = $(pref+'ModProductos'), cc = $(pref+'ModClientes');
+  if(cp) cp.addEventListener('change', ()=>{ NUEVA_PLANTILLA.productos = cp.checked; });
+  if(cc) cc.addEventListener('change', ()=>{ NUEVA_PLANTILLA.clientes = cc.checked; });
+}
+function leerPlantillaPicker(){
+  if(NUEVA_PLANTILLA.plantilla !== 'flexible') return { plantilla:'motos', modulos:{} };
+  return { plantilla:'flexible', modulos:{ productos: !!NUEVA_PLANTILLA.productos, clientes: !!NUEVA_PLANTILLA.clientes } };
+}
 
 /* =========================================================
    Modo demo — datos de muestra para explorar la app entera sin crear
@@ -2900,6 +3225,7 @@ function datosDemo(){
       { id:'d-g2', fecha:haceDias(2), motoId:'d-m2', cat:'Multa o comparendo', desc:'Comparendo por parqueo',
         valor:20000, cargo:'Conductor', recuperado:false, creadoPor:'Gina' },
     ],
+    productos: [], clientes: [],
     config: {
       duenos:[{ nombre:'Mao', cedula:'1000000001', ciudad:'Ibagué' }, { nombre:'Gina', cedula:'1000000002', ciudad:'Ibagué' }],
       inversionExtra:300000, bTipo:'Nequi', bBanco:'', bCuenta:'', cfgLav:'', cfgLavDir:'', bDia:'lunes'
@@ -3047,20 +3373,24 @@ function pantallaNegocioCrear(){
       <div class="gate-brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span></div>
       <div class="gate-panel">
         <h3><span class="icono">${ICONS.plus}</span> Crear tu negocio</h3>
-        <p class="sub">Ponle un nombre — puede ser el mismo que ya usan, o cualquier otro.</p>
+        <p class="sub">Ponle un nombre y elige qué tipo de negocio es — puedes crear más proyectos después.</p>
         ${AUTH_ERROR?`<div class="gate-error"><span class="icono">${ICONS.alerta}</span><span>${esc(AUTH_ERROR)}</span></div>`:''}
         <div class="f"><label for="negNombre">Nombre del negocio</label><input id="negNombre" placeholder="MA|OG" value="MA|OG"></div>
+        ${plantillaPickerHTML('negOnb')}
         <button class="btn block" id="negCrearBtn">${AUTH_CARGANDO?'Creando…':'<span class="icono">'+ICONS.check+'</span> Crear negocio'}</button>
         <p class="gate-foot"><button class="linkbtn" data-back="1">← Volver</button></p>
       </div>
     </div>`;
+  wirePlantillaPicker('negOnb');
   $('negCrearBtn').addEventListener('click', async ()=>{
     const nombre = ($('negNombre').value||'').trim() || 'MA|OG';
+    const { plantilla, modulos } = leerPlantillaPicker();
     AUTH_CARGANDO=true; AUTH_ERROR=''; pantallaNegocioCrear();
     try{
-      const neg = await crearNegocio(nombre);
+      const neg = await crearNegocio(nombre, plantilla, modulos);
       await cargarMisNegocios();
-      NEGOCIO = { id: neg.id, nombre: neg.nombre, reporteActivo: true, reporteUltimoEnvio: null };
+      NEGOCIO = { id: neg.id, nombre: neg.nombre, reporteActivo: true, reporteUltimoEnvio: null, plantilla: neg.plantilla, modulos: neg.modulos };
+      NUEVA_PLANTILLA = { plantilla:'motos', productos:false, clientes:false };
       mostrarCodigoInicial(neg.codigo);
     }catch(e){ AUTH_CARGANDO=false; AUTH_ERROR = e.message || 'No se pudo crear el negocio.'; pantallaNegocioCrear(); }
   });
@@ -3121,6 +3451,8 @@ async function mostrarApp(){
   $('qFecha').value = todayISO();
   $('gFecha').value = todayISO();
   $('cInicio').value = todayISO();
+  $('pfFecha').value = todayISO();
+  renderMenu();
   go('tablero');
   await load();
 }
