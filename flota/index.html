@@ -1033,47 +1033,41 @@ function generarCodigo(){
   return s;
 }
 async function cargarMisNegocios(){
-  const r = await api('/rest/v1/miembros_negocio?usuario_id=eq.'+SESION.usuarioId+'&select=rol,negocios(id,nombre,reporte_activo,reporte_ultimo_envio)');
+  const r = await api('/rest/v1/rpc/mis_negocios_rpc', { method:'POST', body: '{}' });
   const rows = await chk(r);
-  MIS_NEGOCIOS = (rows||[]).filter(x=>x.negocios).map(x=>({
-    id:x.negocios.id, nombre:x.negocios.nombre, rol:x.rol,
-    reporteActivo:x.negocios.reporte_activo, reporteUltimoEnvio:x.negocios.reporte_ultimo_envio
+  MIS_NEGOCIOS = (rows||[]).map(x=>({
+    id:x.id, nombre:x.nombre, rol:x.rol,
+    reporteActivo:x.reporte_activo, reporteUltimoEnvio:x.reporte_ultimo_envio
   }));
   return MIS_NEGOCIOS;
 }
+/* Estas cinco funciones usan /rest/v1/rpc/... en vez de leer/escribir las
+   tablas directo. Motivo: en proyectos nuevos de Supabase, auth.uid() a
+   veces no se reconoce dentro de una política RLS evaluada sobre una
+   tabla — aunque la sesión sí sea válida — pero SÍ se reconoce llamando
+   una función directamente. Ver flota/supabase/migrations/0003_rpc_autenticacion.sql. */
 async function crearNegocio(nombre){
-  const r1 = await api('/rest/v1/negocios', { method:'POST', headers:{Prefer:'return=representation'}, body: JSON.stringify({ nombre }) });
-  const neg = await chk(r1);
-  if(!neg || !neg[0]) throw new Error('No se pudo crear el negocio.');
-  const negId = neg[0].id;
-  await chk(await api('/rest/v1/miembros_negocio', { method:'POST', body: JSON.stringify({ negocio_id:negId, usuario_id:SESION.usuarioId, rol:'propietario' }) }));
-  await chk(await api('/rest/v1/negocios_datos', { method:'POST', body: JSON.stringify({ negocio_id:negId, estado:{} }) }));
-  const codigo = generarCodigo();
-  await chk(await api('/rest/v1/codigos_negocio', { method:'POST', body: JSON.stringify({ codigo, nombre_negocio:nombre, negocio_id:negId, creado_por:SESION.usuarioId }) }));
-  return { id:negId, nombre, codigo };
+  const r = await api('/rest/v1/rpc/crear_negocio_rpc', { method:'POST', body: JSON.stringify({ p_nombre: nombre }) });
+  const rows = await chk(r);
+  const row = rows && rows[0];
+  if(!row) throw new Error('No se pudo crear el negocio.');
+  return { id: row.id, nombre: row.nombre, codigo: row.codigo };
 }
 async function unirseConCodigo(codigo){
-  const cod = (codigo||'').trim().toUpperCase();
-  const r = await api('/rest/v1/codigos_negocio?codigo=eq.'+encodeURIComponent(cod)+'&estado=eq.pendiente', {
-    method:'PATCH', headers:{Prefer:'return=representation'},
-    body: JSON.stringify({ estado:'usado', usado_por:SESION.usuarioId, usado_en:new Date().toISOString() })
-  });
-  const rows = await chk(r);
-  if(!rows || !rows.length) throw new Error('Ese código no existe, ya se usó, o es tuyo.');
-  const negId = rows[0].negocio_id;
-  await chk(await api('/rest/v1/miembros_negocio', { method:'POST', body: JSON.stringify({ negocio_id:negId, usuario_id:SESION.usuarioId, rol:'miembro' }) }));
+  const r = await api('/rest/v1/rpc/unirse_negocio_rpc', { method:'POST', body: JSON.stringify({ p_codigo: codigo }) });
+  const negId = await chk(r);
+  if(!negId) throw new Error('Ese código no existe, ya se usó, o es tuyo.');
   return negId;
 }
 async function generarCodigoParaNegocio(){
-  const codigo = generarCodigo();
-  const r = await api('/rest/v1/codigos_negocio', { method:'POST', headers:{Prefer:'return=representation'},
-    body: JSON.stringify({ codigo, nombre_negocio:NEGOCIO.nombre, negocio_id:NEGOCIO.id, creado_por:SESION.usuarioId }) });
-  const c = await chk(r);
-  return c && c[0] ? c[0].codigo : '';
+  const r = await api('/rest/v1/rpc/generar_codigo_rpc', { method:'POST', body: JSON.stringify({ p_negocio_id: NEGOCIO.id }) });
+  const cod = await chk(r);
+  return cod || '';
 }
 async function cargarMiembros(){
-  const r = await api('/rest/v1/miembros_negocio?negocio_id=eq.'+NEGOCIO.id+'&select=rol,creado_en,profiles(nombre,correo)');
-  return (await chk(r)) || [];
+  const r = await api('/rest/v1/rpc/miembros_de_negocio_rpc', { method:'POST', body: JSON.stringify({ p_negocio_id: NEGOCIO.id }) });
+  const rows = await chk(r);
+  return (rows||[]).map(x=>({ rol:x.rol, creado_en:x.creado_en, profiles:{ nombre:x.nombre, correo:x.correo } }));
 }
 
 /* =========================================================
@@ -1092,14 +1086,12 @@ const KEY = () => 'maog:flota:datos:' + (NEGOCIO ? NEGOCIO.id : 'x');
 function vacio(){ return { motos:[], conductores:[], pagos:[], gastos:[], config:{} }; }
 
 async function nubeLeer(){
-  const r = await api('/rest/v1/negocios_datos?negocio_id=eq.'+NEGOCIO.id+'&select=estado');
+  const r = await api('/rest/v1/rpc/leer_datos_rpc', { method:'POST', body: JSON.stringify({ p_negocio_id: NEGOCIO.id }) });
   const j = await chk(r);
-  return (j && j[0] && j[0].estado) ? j[0].estado : null;
+  return (j && Object.keys(j).length) ? j : null;
 }
 async function nubeEscribir(){
-  const r = await api('/rest/v1/negocios_datos?negocio_id=eq.'+NEGOCIO.id, {
-    method:'PATCH', body: JSON.stringify({ estado:S, actualizado:new Date().toISOString() })
-  });
+  const r = await api('/rest/v1/rpc/guardar_datos_rpc', { method:'POST', body: JSON.stringify({ p_negocio_id: NEGOCIO.id, p_estado: S }) });
   await chk(r);
 }
 function marcaSync(txt, mal){
@@ -1694,7 +1686,7 @@ $('reporteActivoChk').addEventListener('change', async e=>{
   if(DEMO){ NEGOCIO.reporteActivo = val; toast(val ? 'Reporte activado' : 'Reporte desactivado'); return; }
   e.target.disabled = true;
   try{
-    await chk(await api('/rest/v1/negocios?id=eq.'+NEGOCIO.id, { method:'PATCH', body: JSON.stringify({ reporte_activo: val }) }));
+    await chk(await api('/rest/v1/rpc/actualizar_reporte_rpc', { method:'POST', body: JSON.stringify({ p_negocio_id: NEGOCIO.id, p_activo: val }) }));
     NEGOCIO.reporteActivo = val;
     toast(val ? 'Reporte activado' : 'Reporte desactivado');
   }catch(err){ e.target.checked = !val; toast(err.message || 'No se pudo guardar.', true); }
