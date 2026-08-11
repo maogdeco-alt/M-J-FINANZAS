@@ -1086,54 +1086,33 @@ function generarCodigo(){
   for(var i=0;i<6;i++)s+=abc[Math.floor(Math.random()*abc.length)];
   return s
 }
+/* Crear/unirse a una Casa ahora se hace con una sola llamada a una función
+   de la base de datos (crear_casa/unirse_casa — ver migración 0003), que
+   hace las 4 escrituras de un solo golpe por dentro, en vez de 4 pedidos
+   separados desde aquí que cada uno dependía de que las políticas RLS
+   reconocieran la sesión en ese instante exacto. */
 function crearCasa(nombre){
-  return api('/rest/v1/espacios',{method:'POST',headers:{'Prefer':'return=representation'},
-    body:JSON.stringify({tipo:'casa',nombre:nombre})})
+  return api('/rest/v1/rpc/crear_casa',{method:'POST',body:JSON.stringify({p_nombre:nombre})})
    .then(chk)
-   .then(function(esp){
-     if(!esp||!esp[0])throw new Error('No se pudo crear la Casa (no llegó respuesta).');
-     var espId=esp[0].id;
-     return api('/rest/v1/miembros_espacio',{method:'POST',
-       body:JSON.stringify({espacio_id:espId,usuario_id:SESION.usuarioId,slot:'a',rol:'propietario'})})
-      .then(chk)
-      .then(function(){
-        var blob=VACIO_CASA(SESION.nombre,'Tu pareja o familiar');
-        return api('/rest/v1/espacios_datos',{method:'POST',body:JSON.stringify({espacio_id:espId,estado:blob})})
-      })
-      .then(chk)
-      .then(function(){
-        var codigo=generarCodigo();
-        return api('/rest/v1/codigos_casa',{method:'POST',headers:{'Prefer':'return=representation'},
-          body:JSON.stringify({codigo:codigo,nombre_casa:nombre,espacio_id:espId,creado_por:SESION.usuarioId})})
-      })
-      .then(chk)
-      .then(function(c){
-        if(!c||!c[0])throw new Error('La Casa quedó creada, pero no se pudo generar el código. Entra a Ajustes → Mi cuenta para generar uno.');
-        return {espacioId:espId,codigo:c[0].codigo}
-      })
+   .then(function(codigo){
+     if(!codigo)throw new Error('No se pudo crear la Casa (no llegó código).');
+     return {codigo:codigo}
    })
 }
 function unirseConCodigo(codigo){
   var cod=(codigo||'').trim().toUpperCase();
-  return api('/rest/v1/codigos_casa?codigo=eq.'+encodeURIComponent(cod)+'&estado=eq.pendiente',
-    {method:'PATCH',headers:{'Prefer':'return=representation'},
-     body:JSON.stringify({estado:'usado',usado_por:SESION.usuarioId,usado_en:new Date().toISOString()})})
+  return api('/rest/v1/rpc/unirse_casa',{method:'POST',body:JSON.stringify({p_codigo:cod})})
    .then(chk)
-   .then(function(rows){
-     if(!rows||!rows.length)throw new Error('Ese código no existe, ya se usó, o es tuyo.');
-     var espId=rows[0].espacio_id;
-     return api('/rest/v1/miembros_espacio',{method:'POST',
-       body:JSON.stringify({espacio_id:espId,usuario_id:SESION.usuarioId,slot:'b',rol:'miembro'})})
-      .then(chk)
-      .then(function(){return api('/rest/v1/espacios_datos?espacio_id=eq.'+espId+'&select=estado')})
+   .then(function(espId){
+     if(!espId)throw new Error('No se pudo unir a la Casa.');
+     return api('/rest/v1/espacios_datos?espacio_id=eq.'+espId+'&select=estado')
       .then(chk)
       .then(function(rows2){
         var estado=rows2&&rows2[0]&&rows2[0].estado&&Object.keys(rows2[0].estado).length
           ?rows2[0].estado:VACIO_CASA('Tu pareja o familiar',SESION.nombre);
         if(estado.personas)estado.personas.b=SESION.nombre;
         return api('/rest/v1/espacios_datos?espacio_id=eq.'+espId,{method:'PATCH',body:JSON.stringify({estado:estado})})
-      })
-      .then(chk)
+      }).then(chk).catch(function(){/* si esto puntual falla, no es grave: el nombre se puede ajustar luego en Ajustes */})
       .then(function(){return espId})
    })
 }
