@@ -648,6 +648,10 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       </div>
 
       <div id="tableroFlex" class="hidden">
+        <div class="section hidden" id="hoyPersonalBox">
+          <h2>Hoy</h2>
+          <div id="hoyPersonal"></div>
+        </div>
         <div class="section">
           <h2>Resumen del mes</h2>
           <div id="resumenFlex"></div>
@@ -679,6 +683,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
               <option>Nequi</option><option>Daviplata</option><option>Otro</option>
             </select>
           </div>
+          <div class="f hidden" id="pfCuentaBox"><label for="pfCuenta">¿A qué cuenta?</label><select id="pfCuenta"></select></div>
         </div>
         <div class="acts"><button class="btn acento" id="pfSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span> Registrar</button></div>
       </div>
@@ -700,6 +705,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <div class="f" id="gCargoBox"><label for="gCargo">A cargo de</label>
             <select id="gCargo"><option>Empresa</option><option>Conductor</option></select>
           </div>
+          <div class="f hidden" id="gCuentaBox"><label for="gCuenta">¿De qué cuenta?</label><select id="gCuenta"></select></div>
         </div>
         <div class="acts"><button class="btn" id="gSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Registrar gasto</button></div>
       </div>
@@ -709,7 +715,35 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <!-- ============ CUENTAS ============ -->
     <section class="view" id="v-cuentas">
       <div class="head">
-        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V14M4 20h16M9.5 20V9.5M15 20v-6.5"/></svg></span>Cuentas</h1><p>Cuánto falta para librar la inversión y en qué se está yendo la plata.</p></div>
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V14M4 20h16M9.5 20V9.5M15 20v-6.5"/></svg></span><span id="cuentasTitulo">Cuentas</span></h1><p id="cuentasSub">Cuánto falta para librar la inversión y en qué se está yendo la plata.</p></div>
+      </div>
+
+      <div id="miPlataBox" class="hidden">
+        <div class="section form" id="cuentasBox">
+          <h2 style="margin-bottom:8px">Tus cuentas</h2>
+          <p class="sub">Efectivo, la cuenta del banco, la tarjeta — cada una con su saldo, para saber dónde está la plata.</p>
+          <div class="fgrid">
+            <div class="f"><label for="ctNombre">Nombre</label><input id="ctNombre" placeholder="Bancolombia"></div>
+            <div class="f"><label for="ctTipo">Tipo</label>
+              <select id="ctTipo"><option value="efectivo">Efectivo</option><option value="ahorros">Ahorros</option>
+                <option value="corriente">Corriente</option><option value="tarjeta">Tarjeta de crédito</option></select></div>
+            <div class="f"><label for="ctSaldo">Saldo inicial</label><input id="ctSaldo" inputmode="numeric" placeholder="$0"></div>
+          </div>
+          <div class="acts"><button class="btn" id="ctSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar cuenta</button></div>
+          <div class="grid2" id="cuentasList" style="margin-top:14px"></div>
+        </div>
+
+        <div class="section form" id="metasBox">
+          <h2 style="margin-bottom:8px">Tus metas</h2>
+          <p class="sub">Algo que estás ahorrando para lograr — se ve el avance, no hay examen si va lento.</p>
+          <div class="fgrid">
+            <div class="f"><label for="mtNombre">Nombre</label><input id="mtNombre" placeholder="Vacaciones"></div>
+            <div class="f"><label for="mtObjetivo">Objetivo</label><input id="mtObjetivo" inputmode="numeric" placeholder="$0"></div>
+            <div class="f"><label for="mtFecha">Fecha (opcional)</label><input type="date" id="mtFecha"></div>
+          </div>
+          <div class="acts"><button class="btn" id="mtSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar meta</button></div>
+          <div class="grid2" id="metasList" style="margin-top:14px"></div>
+        </div>
       </div>
 
       <div id="cuentasMotosA">
@@ -859,6 +893,39 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <span class="hint" style="margin-left:0">Solo el nombre es obligatorio.</span></div>
       </div>
       <div class="grid2" id="clientesList"></div>
+    </section>
+
+    <!-- ============ PAGOS FIJOS (cuentas personales) ============ -->
+    <section class="view" id="v-fijos">
+      <div class="head">
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 9.7h16M8 3.5v3.4M16 3.5v3.4"/></svg></span>Pagos fijos</h1><p>Lo que se repite cada mes, y lo que le debes a alguien más.</p></div>
+      </div>
+
+      <div class="section form" id="fijosBox">
+        <h2 style="margin-bottom:8px">Pagos fijos del mes</h2>
+        <p class="sub">Arriendo, servicios, suscripciones — lo que casi siempre es el mismo valor, cada mes.</p>
+        <div class="fgrid">
+          <div class="f"><label for="fjNombre">Nombre</label><input id="fjNombre" placeholder="Arriendo"></div>
+          <div class="f"><label for="fjMonto">Valor</label><input id="fjMonto" inputmode="numeric" placeholder="$0"></div>
+          <div class="f"><label for="fjDia">Día del mes</label><input id="fjDia" inputmode="numeric" placeholder="1 a 31"></div>
+        </div>
+        <div class="acts"><button class="btn" id="fjSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar pago fijo</button></div>
+        <div id="fijosList" style="margin-top:14px"></div>
+      </div>
+
+      <div class="section form" id="deudasBox">
+        <h2 style="margin-bottom:8px">Deudas</h2>
+        <p class="sub">Lo que le debes a un banco o a alguien más, con sus cuotas.</p>
+        <div class="fgrid">
+          <div class="f"><label for="dbNombre">Nombre</label><input id="dbNombre" placeholder="Préstamo del carro"></div>
+          <div class="f"><label for="dbSaldo">Saldo actual</label><input id="dbSaldo" inputmode="numeric" placeholder="$0"></div>
+          <div class="f"><label for="dbCuota">Cuota mensual</label><input id="dbCuota" inputmode="numeric" placeholder="$0"></div>
+          <div class="f"><label for="dbCuotasTotal">Cuotas totales</label><input id="dbCuotasTotal" inputmode="numeric" placeholder="0"></div>
+          <div class="f"><label for="dbCuotasPagadas">Cuotas ya pagadas</label><input id="dbCuotasPagadas" inputmode="numeric" placeholder="0"></div>
+        </div>
+        <div class="acts"><button class="btn" id="dbSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar deuda</button></div>
+        <div class="grid2" id="deudasList" style="margin-top:14px"></div>
+      </div>
     </section>
 
     <!-- ============ PROYECTOS ============ -->
@@ -1024,6 +1091,10 @@ function viewsPara(){
             ['vehiculos','Vehículos','Motos']];
   }
   const mods = modulosDe(NEGOCIO);
+  if(mods.tipo === 'personal'){
+    return [['tablero','Tablero','Inicio'],['pagos','Lo que entra','Entra'],['gastos','Lo que sale','Sale'],
+            ['cuentas','Mi plata','Mi plata'],['fijos','Pagos fijos','Fijos']];
+  }
   const v = [['tablero','Tablero','Inicio'],['pagos','Pagos','Pagos'],['gastos','Gastos','Gastos'],
              ['cuentas','Cuentas','Cuentas']];
   if(mods.productos) v.push(['productos','Productos','Prod.']);
@@ -1067,6 +1138,8 @@ const ICONS = {
   productos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5l8-4 8 4v9l-8 4-8-4v-9Z"/><path d="M4 7.5l8 4 8-4M12 11.5V20"/></svg>',
   clientes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.3 20v-1.3a6.7 6.7 0 0 1 13.4 0V20"/></svg>',
   proyectos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5l8-4 8 4-8 4-8-4Z"/><path d="M4 7.5V16l8 4 8-4V7.5"/><path d="M12 11.5V20"/></svg>',
+  fijos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 9.7h16M8 3.5v3.4M16 3.5v3.4"/></svg>',
+  meta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.3"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r=".6" fill="currentColor"/></svg>',
 };
 
 /* =========================================================
@@ -1232,7 +1305,8 @@ let sincronizando = false;
 let DEMO = false;
 const KEY = () => 'maog:flota:datos:' + (NEGOCIO ? NEGOCIO.id : 'x');
 
-function vacio(){ return { motos:[], conductores:[], pagos:[], gastos:[], productos:[], clientes:[], config:{} }; }
+function vacio(){ return { motos:[], conductores:[], pagos:[], gastos:[], productos:[], clientes:[],
+  cuentas:[], fijos:[], deudas:[], metas:[], config:{} }; }
 
 async function nubeLeer(){
   const r = await api('/rest/v1/rpc/leer_datos_rpc', { method:'POST', body: JSON.stringify({ p_negocio_id: NEGOCIO.id }) });
@@ -1365,11 +1439,16 @@ function renderAll(){
   if(!ready || !S) return;
   if(!S.productos) S.productos = [];
   if(!S.clientes) S.clientes = [];
+  if(!S.cuentas) S.cuentas = [];
+  if(!S.fijos) S.fijos = [];
+  if(!S.deudas) S.deudas = [];
+  if(!S.metas) S.metas = [];
   aplicarPlantillaUI();
   renderSelects(); renderKPIs(); renderAvisos(); renderCuentas(); renderPropietarios();
   renderCondStatus(); renderChart();
   renderPagos(); renderGastos(); renderMotos(); renderCond();
   renderProductos(); renderClientes(); renderResumenFlex();
+  renderCuentasPersonales(); renderMetas(); renderFijos(); renderDeudas(); renderHoyPersonal();
   $('todayLabel').textContent = new Date().toLocaleDateString('es-CO',
     {weekday:'long', day:'numeric', month:'long'});
 }
@@ -1404,6 +1483,14 @@ function aplicarPlantillaUI(){
       gCat.dataset.set = set;
     }
   }
+  setHidden('miPlataBox', !personal);
+  setHidden('hoyPersonalBox', !personal);
+  setHidden('pfCuentaBox', !personal);
+  setHidden('gCuentaBox', !personal);
+  const ct = $('cuentasTitulo'); if(ct) ct.textContent = motos ? 'Cuentas' : (personal ? 'Mi plata' : 'Cuentas');
+  const cs = $('cuentasSub'); if(cs) cs.textContent = motos
+    ? 'Cuánto falta para librar la inversión y en qué se está yendo la plata.'
+    : (personal ? 'Tus cuentas, tus metas, y en qué se está yendo la plata.' : 'En qué se está yendo la plata.');
 }
 function fillSelect(el, items, ph){
   const prev = el.value;
@@ -1418,6 +1505,11 @@ function renderSelects(){
   fillSelect($('qCond'), conds, 'agregue un conductor');
   fillSelect($('gMoto'), motos, 'agregue una moto');
   fillSelect($('cMoto'), [{v:'',t:'Sin asignar'}].concat(motos), 'Sin asignar');
+  if(esPersonal()){
+    const cuentas = (S.cuentas||[]).map(c=>({v:c.id,t:c.nombre}));
+    fillSelect($('pfCuenta'), [{v:'',t:'Sin especificar'}].concat(cuentas), 'agregue una cuenta en Mi plata');
+    fillSelect($('gCuenta'), [{v:'',t:'Sin especificar'}].concat(cuentas), 'agregue una cuenta en Mi plata');
+  }
   const dd = duenos();
   fillSelect($('mProp'), [{v:dd[0],t:dd[0]},{v:dd[1],t:dd[1]}], 'defina los dueños');
   const dob = duenosObj(), bk = (S.config && S.config.banco) || {};
@@ -1850,6 +1942,143 @@ function renderClientes(){
       <div class="acts"><button class="btn ghost sm" data-del-cliente="${c.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button></div>
     </div>`).join('');
 }
+
+/* =========================================================
+   Cuentas personales — cuentas (con saldo), metas, pagos fijos y
+   deudas. Solo aplica a negocios con modulos.tipo === 'personal'
+   (ver esPersonal()); en cualquier otra plantilla estos arreglos
+   existen pero se quedan vacíos y sin vista.
+   ========================================================= */
+function saldoCuenta(id){
+  const cta = (S.cuentas||[]).find(c=>c.id===id);
+  if(!cta) return 0;
+  const entro = S.pagos.filter(p=>p.cuentaId===id).reduce((a,p)=>a+p.valor,0);
+  const salio = S.gastos.filter(g=>g.cuentaId===id).reduce((a,g)=>a+g.valor,0);
+  return (cta.saldoInicial||0) + entro - salio;
+}
+function renderCuentasPersonales(){
+  const box = $('cuentasList'); if(!box || !esPersonal()) return;
+  if(!S.cuentas.length){
+    box.innerHTML = `<div class="empty"><span class="ic icono">${ICONS.cuentas}</span><strong>Todavía no hay cuentas</strong>
+      Agregue el efectivo o la cuenta que usa — así se ve dónde está la plata.</div>`; return;
+  }
+  const NOM_TIPO = { efectivo:'Efectivo', ahorros:'Ahorros', corriente:'Corriente', tarjeta:'Tarjeta de crédito' };
+  box.innerHTML = S.cuentas.map(c=>{
+    const saldo = saldoCuenta(c.id);
+    return `<div class="card">
+      <h3><span class="icono">${ICONS.cuentas}</span> ${esc(c.nombre)}</h3>
+      <div class="meta">${esc(NOM_TIPO[c.tipo]||c.tipo)}</div>
+      <div class="figs"><div class="fig"><div class="k">Saldo</div><div class="v" style="${saldo<0?'color:var(--rojo)':''}">${money(saldo)}</div></div></div>
+      <div class="acts"><button class="btn ghost sm" data-del-cuenta="${c.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button></div>
+    </div>`;
+  }).join('');
+}
+function renderMetas(){
+  const box = $('metasList'); if(!box || !esPersonal()) return;
+  if(!S.metas.length){
+    box.innerHTML = `<div class="empty"><span class="ic icono">${ICONS.meta}</span><strong>Todavía no hay metas</strong>
+      Algo que quiera lograr — un viaje, un colchón de emergencia, lo que sea.</div>`; return;
+  }
+  box.innerHTML = S.metas.map(m=>{
+    const pct = m.objetivo ? Math.min(100, Math.round((m.ahorrado||0)/m.objetivo*100)) : 0;
+    return `<div class="card">
+      <h3><span class="icono">${ICONS.meta}</span> ${esc(m.nombre)}</h3>
+      <div class="meta">${m.fecha?('para '+fmtDate(m.fecha)):'sin fecha límite'}</div>
+      <div class="figs">
+        <div class="fig"><div class="k">Ahorrado</div><div class="v">${money(m.ahorrado||0)}</div></div>
+        <div class="fig"><div class="k">Objetivo</div><div class="v">${money(m.objetivo)}</div></div>
+        <div class="fig"><div class="k">Avance</div><div class="v">${pct}%</div></div>
+      </div>
+      <div class="acts">
+        <button class="btn ghost sm" data-abonar-meta="${m.id}"><span class="icono">${ICONS.plus}</span> Abonar</button>
+        <button class="btn ghost sm" data-del-meta="${m.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderFijos(){
+  const box = $('fijosList'); if(!box || !esPersonal()) return;
+  if(!S.fijos.length){
+    box.innerHTML = `<div class="empty"><span class="ic icono">${ICONS.fijos}</span><strong>Sin pagos fijos</strong>
+      Arriendo, servicios, suscripciones — lo que se repite cada mes.</div>`; return;
+  }
+  const mesActual = todayISO().slice(0,7);
+  const rows = [...S.fijos].sort((a,b)=>(a.dia||0)-(b.dia||0)).map(f=>{
+    const pagado = f.pagadoMes === mesActual;
+    return `<tr>
+      <td><span class="name">${esc(f.nombre)}</span><span class="sub">día ${f.dia}</span></td>
+      <td class="num money">${money(f.monto)}</td>
+      <td class="num">${pagado ? '<span class="tag ok">Pagado este mes</span>' : '<span class="tag due">Pendiente</span>'}</td>
+      <td class="num"><button class="btn ghost sm" data-marcar-fijo="${f.id}">${pagado?'Desmarcar':'<span class="icono">'+ICONS.check+'</span> Marcar pagado'}</button></td>
+      <td class="num"><button class="rowdel" data-del-fijo="${f.id}" aria-label="Eliminar"><span class="icono">${ICONS.trash}</span></button></td>
+    </tr>`;
+  }).join('');
+  box.innerHTML = `<div class="ledger-wrap"><table class="ledger">
+    <thead><tr><th>Nombre</th><th class="num">Valor</th><th class="num">Estado</th><th></th><th></th></tr></thead>
+    <tbody>${rows}</tbody></table></div>`;
+}
+function renderDeudas(){
+  const box = $('deudasList'); if(!box || !esPersonal()) return;
+  if(!S.deudas.length){
+    box.innerHTML = `<div class="empty"><span class="ic icono">${ICONS.fijos}</span><strong>Sin deudas registradas</strong>
+      Si le debe a un banco o a alguien más, regístrela aquí para ver el avance.</div>`; return;
+  }
+  box.innerHTML = S.deudas.map(d=>{
+    const total = d.cuotasTotal||0, pagadas = Math.min(d.cuotasPagadas||0, total);
+    const pct = total ? Math.round(pagadas/total*100) : 0;
+    return `<div class="card">
+      <h3><span class="icono">${ICONS.fijos}</span> ${esc(d.nombre)}</h3>
+      <div class="meta">${pagadas} de ${total||'—'} cuotas · ${pct}% pagado</div>
+      <div class="figs">
+        <div class="fig"><div class="k">Saldo</div><div class="v">${money(d.saldo)}</div></div>
+        <div class="fig"><div class="k">Cuota</div><div class="v">${money(d.cuotaMensual)}</div></div>
+      </div>
+      <div class="acts">
+        <button class="btn ghost sm" data-abonar-deuda="${d.id}"><span class="icono">${ICONS.check}</span> Abonar una cuota</button>
+        <button class="btn ghost sm" data-del-deuda="${d.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+/* "Hoy" del Tablero personal: pagos fijos vencidos o por vencer, arriba
+   de todo — igual que en el Tablero de motos, con mensaje de
+   tranquilidad si no hay nada pendiente (nunca dejar el silencio como
+   única señal). */
+function renderHoyPersonal(){
+  const box = $('hoyPersonal'); if(!box || !esPersonal()) return;
+  setHidden('hoyPersonalBox', false);
+  const diaHoy = new Date().getDate(), mesActual = todayISO().slice(0,7);
+  const pendientes = (S.fijos||[]).filter(f=>f.pagadoMes !== mesActual);
+  const items = pendientes.map(f=>{
+    const df = f.dia - diaHoy;
+    const tier = df < 0 ? 'mora' : (df <= 5 ? 'due' : null);
+    if(!tier) return null;
+    const frase = df < 0
+      ? `<b>${esc(f.nombre)}</b> <span class="cif mora">venció hace ${-df} d</span>`
+      : `<b>${esc(f.nombre)}</b> vence <span class="cif due">en ${df} d</span>`;
+    return { orden: df, tier, frase, cuando: money(f.monto) };
+  }).filter(Boolean).sort((a,b)=>a.orden-b.orden);
+
+  if(!items.length){
+    box.innerHTML = `<div class="hero-hoy">
+      <span class="eyebrow2">Hoy</span>
+      <div class="titular"><span class="icono">${ICONS.check}</span> Todo al día</div>
+      <div class="sub">No hay pagos fijos pendientes por ahora.</div>
+    </div>`;
+    return;
+  }
+  const top = items[0], resto = items.slice(1);
+  box.innerHTML = `<div class="hero-hoy ${top.tier}">
+      <span class="eyebrow2">${top.tier==='mora' ? 'Necesita atención' : 'Se viene'}</span>
+      <div class="titular">${top.frase}</div>
+      <div class="sub">${esc(top.cuando)}</div>
+    </div>` + (resto.length ? `<div class="hoy-feed">${resto.map(it=>`
+      <div class="hoy-item ${it.tier}">
+        <span class="punto"></span>
+        <span class="frase">${it.frase}</span>
+        <span class="cuando">${esc(it.cuando)}</span>
+      </div>`).join('')}</div>` : '');
+}
 /* Resumen simple del Tablero para negocios que no son de motos — ingresos,
    gastos y utilidad del mes en curso, más un vistazo a inventario/clientes
    si esos módulos están activos. */
@@ -2134,6 +2363,7 @@ $('gSave').addEventListener('click', async ()=>{
   if(!valor) return toast('Escriba el valor del gasto.', true);
   S.gastos.push({ id:uid(), fecha:$('gFecha').value||todayISO(), motoId: esMotos() ? $('gMoto').value : null,
     cat:$('gCat').value, desc:$('gDesc').value.trim(), valor, cargo: esMotos() ? $('gCargo').value : 'Empresa',
+    cuentaId: esPersonal() ? ($('gCuenta').value||null) : null,
     recuperado:false, creadoPor:quien() });
   await save(); renderAll();
   $('gValor').value=''; $('gDesc').value='';
@@ -2143,7 +2373,8 @@ $('pfSave').addEventListener('click', async ()=>{
   const valor = num($('pfValor').value);
   if(!valor) return toast('Escriba el valor.', true);
   S.pagos.push({ id:uid(), valor, fecha:$('pfFecha').value||todayISO(), medio:$('pfMedio').value,
-    concepto:$('pfConcepto').value.trim(), creadoPor:quien() });
+    concepto:$('pfConcepto').value.trim(), cuentaId: esPersonal() ? ($('pfCuenta').value||null) : null,
+    creadoPor:quien() });
   await save(); renderAll();
   $('pfValor').value=''; $('pfConcepto').value='';
   toast(`Registrado · ${money(valor)}`);
@@ -2167,6 +2398,44 @@ $('clSave').addEventListener('click', async ()=>{
   await save(); renderAll();
   ['clNombre','clContacto','clNotas'].forEach(i=>$(i).value='');
   toast(`${nombre} agregado`);
+});
+$('ctSave').addEventListener('click', async ()=>{
+  const nombre = $('ctNombre').value.trim();
+  if(!nombre) return toast('Escriba el nombre de la cuenta.', true);
+  S.cuentas.push({ id:uid(), nombre, tipo:$('ctTipo').value, saldoInicial:num($('ctSaldo').value), creadoPor:quien() });
+  await save(); renderAll();
+  ['ctNombre','ctSaldo'].forEach(i=>$(i).value='');
+  toast(`${nombre} agregada`);
+});
+$('mtSave').addEventListener('click', async ()=>{
+  const nombre = $('mtNombre').value.trim();
+  const objetivo = num($('mtObjetivo').value);
+  if(!nombre) return toast('Escriba el nombre de la meta.', true);
+  if(!objetivo) return toast('Escriba cuánto quiere lograr.', true);
+  S.metas.push({ id:uid(), nombre, objetivo, ahorrado:0, fecha:$('mtFecha').value||'', creadoPor:quien() });
+  await save(); renderAll();
+  ['mtNombre','mtObjetivo','mtFecha'].forEach(i=>$(i).value='');
+  toast(`${nombre} agregada`);
+});
+$('fjSave').addEventListener('click', async ()=>{
+  const nombre = $('fjNombre').value.trim();
+  const monto = num($('fjMonto').value);
+  const dia = Math.max(1, Math.min(31, num($('fjDia').value) || 1));
+  if(!nombre) return toast('Escriba el nombre del pago fijo.', true);
+  if(!monto) return toast('Escriba el valor.', true);
+  S.fijos.push({ id:uid(), nombre, monto, dia, pagadoMes:'', creadoPor:quien() });
+  await save(); renderAll();
+  ['fjNombre','fjMonto','fjDia'].forEach(i=>$(i).value='');
+  toast(`${nombre} agregado`);
+});
+$('dbSave').addEventListener('click', async ()=>{
+  const nombre = $('dbNombre').value.trim();
+  if(!nombre) return toast('Escriba el nombre de la deuda.', true);
+  S.deudas.push({ id:uid(), nombre, saldo:num($('dbSaldo').value), cuotaMensual:num($('dbCuota').value),
+    cuotasTotal:num($('dbCuotasTotal').value), cuotasPagadas:num($('dbCuotasPagadas').value), creadoPor:quien() });
+  await save(); renderAll();
+  ['dbNombre','dbSaldo','dbCuota','dbCuotasTotal','dbCuotasPagadas'].forEach(i=>$(i).value='');
+  toast(`${nombre} agregada`);
 });
 $('mSave').addEventListener('click', async ()=>{
   const placa = $('mPlaca').value.trim().toUpperCase();
@@ -2248,7 +2517,7 @@ document.addEventListener('click', async e=>{
      SVG adentro, y un clic que caiga sobre el ícono reporta el <svg>
      como e.target, no el <button> con el data-* — sin esto, tocar el
      ícono (en vez del texto) no hacía nada. */
-  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente]');
+  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda]');
   if(!t) return;
   if(t.dataset.irNegocio) return cambiarNegocio(t.dataset.irNegocio);
   if(t.dataset.contrato) return generarContrato(t.dataset.contrato);
@@ -2283,6 +2552,48 @@ document.addEventListener('click', async e=>{
     const g = S.gastos.find(x=>x.id===t.dataset.toggleGasto);
     if(g){ g.recuperado = !g.recuperado; await save(); renderAll();
            toast(g.recuperado?'Marcado como cobrado':'Marcado como pendiente'); }
+  }
+  if(t.dataset.delCuenta){
+    if(!(await confirmar('Eliminar cuenta', 'Se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
+    return rm('cuentas', t.dataset.delCuenta, 'Cuenta eliminada');
+  }
+  if(t.dataset.delMeta){
+    if(!(await confirmar('Eliminar meta', 'Se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
+    return rm('metas', t.dataset.delMeta, 'Meta eliminada');
+  }
+  if(t.dataset.abonarMeta){
+    const m = S.metas.find(x=>x.id===t.dataset.abonarMeta);
+    if(!m) return;
+    const v = num(prompt(`¿Cuánto quiere abonar a "${m.nombre}"?`, ''));
+    if(!v) return;
+    m.ahorrado = (m.ahorrado||0) + v;
+    await save(); renderAll(); toast(`Abonado ${money(v)} a "${m.nombre}"`);
+    return;
+  }
+  if(t.dataset.delFijo){
+    if(!(await confirmar('Eliminar pago fijo', 'Se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
+    return rm('fijos', t.dataset.delFijo, 'Pago fijo eliminado');
+  }
+  if(t.dataset.marcarFijo){
+    const f = S.fijos.find(x=>x.id===t.dataset.marcarFijo);
+    if(!f) return;
+    const mesActual = todayISO().slice(0,7);
+    f.pagadoMes = (f.pagadoMes===mesActual) ? '' : mesActual;
+    await save(); renderAll();
+    toast(f.pagadoMes ? 'Marcado como pagado' : 'Marcado como pendiente');
+    return;
+  }
+  if(t.dataset.delDeuda){
+    if(!(await confirmar('Eliminar deuda', 'Se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
+    return rm('deudas', t.dataset.delDeuda, 'Deuda eliminada');
+  }
+  if(t.dataset.abonarDeuda){
+    const d = S.deudas.find(x=>x.id===t.dataset.abonarDeuda);
+    if(!d) return;
+    d.saldo = Math.max(0, (d.saldo||0) - (d.cuotaMensual||0));
+    d.cuotasPagadas = (d.cuotasPagadas||0) + 1;
+    await save(); renderAll(); toast(`Cuota abonada a "${d.nombre}"`);
+    return;
   }
 });
 document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ $('scrim').classList.remove('on'); cerrarDoc(); } });
