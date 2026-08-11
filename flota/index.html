@@ -69,9 +69,10 @@ hr{border:0;border-top:1px solid var(--linea);margin:18px 0}
 }
 .brand .seal .seal-mark{font-size:17px}
 .brand .tx{min-width:0}
-.brand .mark{font-family:var(--disp);font-weight:600;font-size:21px;letter-spacing:-.015em;line-height:1.1;display:block}
+.brand .mark{font-family:var(--disp);font-weight:600;font-size:21px;letter-spacing:-.015em;line-height:1.1;
+  display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand .mark i{font-style:normal;color:var(--gris);padding:0 1px}
-.brand .sub{display:block;margin-top:3px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand .sub{display:block;margin-top:3px;font-size:10px;letter-spacing:.03em;color:var(--gris);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nav{display:flex;flex-direction:column;gap:3px;padding:10px 12px}
 .nav button{
   background:none;border:0;text-align:left;cursor:pointer;border-radius:11px;
@@ -443,6 +444,10 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .choice:hover{border-color:var(--acento);box-shadow:var(--sombra-md);transform:translateY(-2px)}
 .choice:active{border-color:var(--acento);box-shadow:var(--sombra-sm);transform:scale(.98)}
 .choice.sel{border-color:var(--acento);box-shadow:var(--sombra-md);background:color-mix(in srgb, var(--acento) 7%, var(--hueso))}
+.choice.sm{padding:13px 12px}
+.choice.sm .ic{width:19px;height:19px;margin-bottom:7px}
+.choice.sm b{font-size:13.5px}
+.choice.sm span{font-size:11px}
 @media(prefers-reduced-motion:reduce){.choice:hover,.choice:active{transform:none}}
 .choice .ic{width:23px;height:23px;display:inline-flex;margin-bottom:10px;color:var(--acento)}
 .choice b{display:block;font-family:var(--disp);font-size:15.5px;font-weight:600;margin-bottom:3px}
@@ -489,11 +494,12 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     padding:14px 16px;border-bottom:1px solid var(--linea);
     position:sticky;top:0;background:var(--hueso);z-index:40
   }
-  .topbar .brand{padding:0}
-  .topbar .brand .seal{width:38px;height:38px;box-shadow:0 0 0 2px var(--hueso),0 0 0 3px var(--linea),0 3px 8px -3px rgba(221,75,34,.5)}
+  .topbar .brand{padding:0;flex:1 1 auto;min-width:0;overflow:hidden}
+  .topbar .brand .seal{width:38px;height:38px;flex:0 0 auto;box-shadow:0 0 0 2px var(--hueso),0 0 0 3px var(--linea),0 3px 8px -3px rgba(221,75,34,.5)}
   .topbar .brand .seal .seal-mark{font-size:15px}
-  .topbar .brand .mark{font-size:18px}
-  .topbar .acts{display:flex;gap:4px}
+  .topbar .brand .mark{font-size:16px}
+  .topbar .brand .sub{font-size:9.5px}
+  .topbar .acts{display:flex;gap:4px;flex:0 0 auto}
   .icon-btn{
     background:none;border:0;color:var(--gris2);font-size:21px;width:42px;height:42px;
     display:inline-flex;align-items:center;justify-content:center;border-radius:11px;
@@ -547,8 +553,8 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <div class="brand">
       <span class="seal"><span class="seal-mark">M<i>|</i>G</span></span>
       <span class="tx">
-        <span class="mark">MA<i>|</i>OG</span>
-        <span class="sub" id="negLabel">Control de flota</span>
+        <span class="mark neg-label">Control de flota</span>
+        <span class="sub cuenta-label"></span>
       </span>
     </div>
     <nav class="nav" id="nav"></nav>
@@ -563,7 +569,13 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
   </aside>
 
   <header class="topbar">
-    <span class="brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span></span>
+    <span class="brand">
+      <span class="seal"><span class="seal-mark">M<i>|</i>G</span></span>
+      <span class="tx">
+        <span class="mark neg-label">Control de flota</span>
+        <span class="sub cuenta-label"></span>
+      </span>
+    </span>
     <span class="acts">
       <button class="icon-btn" id="refrescarM" title="Actualizar"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.5-4.7M20 12a8 8 0 0 1-14.5 4.7"/><path d="M18.5 3v4.5H14M5.5 21v-4.5H10"/></svg></span></button>
       <button class="icon-btn" id="proyectosBtnM" title="Proyectos"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5l8-4 8 4-8 4-8-4Z"/><path d="M4 7.5V16l8 4 8-4V7.5"/><path d="M12 11.5V20"/></svg></span></button>
@@ -676,7 +688,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <!-- ============ GASTOS ============ -->
     <section class="view" id="v-gastos">
       <div class="head">
-        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v16.5l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3V3z"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4"/></svg></span>Gastos</h1><p>Lo que sale. Marque si lo asume el negocio o si se le cobra al conductor.</p></div>
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v16.5l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3V3z"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4"/></svg></span><span id="gastosTitulo">Gastos</span></h1><p id="gastosSub">Lo que sale. Marque si lo asume el negocio o si se le cobra al conductor.</p></div>
       </div>
       <div class="form">
         <div class="fgrid">
@@ -1366,8 +1378,9 @@ function setHidden(id, cond){ const e=$(id); if(e) e.classList.toggle('hidden', 
    activo (motos vs. flexible) — se corre en cada render para que el
    cambio entre negocios (que pueden tener plantillas distintas) se note
    al instante. */
+function esPersonal(){ return !esMotos() && NEGOCIO && NEGOCIO.modulos && NEGOCIO.modulos.tipo==='personal'; }
 function aplicarPlantillaUI(){
-  const motos = esMotos();
+  const motos = esMotos(), personal = esPersonal();
   setHidden('tableroMotos', !motos);
   setHidden('tableroFlex', motos);
   setHidden('cuentasMotosA', !motos);
@@ -1375,10 +1388,14 @@ function aplicarPlantillaUI(){
   setHidden('gMotoBox', !motos);
   setHidden('gCargoBox', !motos);
   setHidden('pagoFlexForm', motos);
-  const pt = $('pagosTitulo'); if(pt) pt.textContent = motos ? 'Pagos' : 'Ingresos';
+  const pt = $('pagosTitulo'); if(pt) pt.textContent = motos ? 'Pagos' : (personal ? 'Lo que entra' : 'Ingresos');
   const ps = $('pagosSub'); if(ps) ps.textContent = motos
     ? 'Cada entrada de dinero, de la más reciente a la más antigua.'
-    : 'Cada venta o cobro que reciba, de más reciente a más antiguo.';
+    : (personal ? 'Cada cosa que entró, de la más reciente a la más antigua.' : 'Cada venta o cobro que reciba, de más reciente a más antiguo.');
+  const gt = $('gastosTitulo'); if(gt) gt.textContent = motos ? 'Gastos' : (personal ? 'Lo que sale' : 'Gastos');
+  const gs = $('gastosSub'); if(gs) gs.textContent = motos
+    ? 'Lo que sale. Marque si lo asume el negocio o si se le cobra al conductor.'
+    : (personal ? 'Cada cosa que salió — sin juzgar, solo para saber en qué se va.' : 'Lo que sale del negocio.');
   const gCat = $('gCat');
   if(gCat){
     const set = motos ? 'motos' : 'flex';
@@ -1412,8 +1429,17 @@ function renderSelects(){
   if(bk.tipo) $('bTipo').value = bk.tipo;
   if(bk.diaPago) $('bDia').value = bk.diaPago;
   updateHint();
-  const nl = $('negLabel'); if(nl) nl.textContent = DEMO ? 'Datos de ejemplo' : (NEGOCIO ? NEGOCIO.nombre : 'Control de flota');
+  renderIdentidad();
   const nt = $('negNombreTx'); if(nt) nt.textContent = NEGOCIO ? '"'+NEGOCIO.nombre+'"' : 'tu negocio';
+}
+/* Esquina superior izquierda: qué proyecto está abierto (grande) y con
+   qué cuenta se entró (chico) — antes solo decía "MA|OG" fijo, que
+   confundía apenas hubo negocios con nombres distintos al de la app. */
+function renderIdentidad(){
+  const negTxt = DEMO ? 'Datos de ejemplo' : (NEGOCIO ? NEGOCIO.nombre : 'Control de flota');
+  const cuentaTxt = DEMO ? 'Explorando sin conectar' : [SESION.nombre, SESION.correo].filter(Boolean).join(' · ');
+  document.querySelectorAll('.neg-label').forEach(e=>{ e.textContent = negTxt; });
+  document.querySelectorAll('.cuenta-label').forEach(e=>{ e.textContent = cuentaTxt; });
 }
 function renderKPIs(){
   const k = kpis();
@@ -1662,7 +1688,8 @@ function renderChart(){
 }
 function renderPagos(){
   if(!S.pagos.length){
-    $('pagosList').innerHTML = `<div class="empty"><span class="ic icono">${ICONS.pagos}</span><strong>Sin ${esMotos()?'pagos':'ingresos'} registrados</strong>
+    const titulo = esMotos() ? 'Sin pagos registrados' : (esPersonal() ? 'Todavía no anotas nada' : 'Sin ingresos registrados');
+    $('pagosList').innerHTML = `<div class="empty"><span class="ic icono">${ICONS.pagos}</span><strong>${titulo}</strong>
       ${esMotos()?'Registre el primero desde el tablero.':'Registre el primero arriba.'}</div>`; return;
   }
   if(!esMotos()){
@@ -1697,8 +1724,10 @@ function renderPagos(){
 }
 function renderGastos(){
   if(!S.gastos.length){
+    const sub = esMotos() ? 'Anote el SOAT, los mantenimientos y los comparendos aquí.'
+      : (esPersonal() ? 'Anota aquí lo que va saliendo — sin juzgar, solo para saber en qué se va.' : 'Anote aquí lo que sale del negocio.');
     $('gastosList').innerHTML = `<div class="empty"><span class="ic icono">${ICONS.gastos}</span><strong>Sin gastos registrados</strong>
-      ${esMotos()?'Anote el SOAT, los mantenimientos y los comparendos aquí.':'Anote aquí lo que sale del negocio.'}</div>`; return;
+      ${sub}</div>`; return;
   }
   if(!esMotos()){
     const rows = [...S.gastos].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).map(g=>`<tr>
@@ -1828,19 +1857,20 @@ function renderResumenFlex(){
   const box = $('resumenFlex'); if(!box || esMotos()) return;
   const hoy = todayISO(), inicioMes = hoy.slice(0,7)+'-01';
   const ing = ingresos(inicioMes, hoy), gas = gastosOper(inicioMes, hoy), ut = ing-gas;
+  const mods = modulosDe(NEGOCIO);
+  const personal = esPersonal();
+  const items = personal
+    ? [['Entró este mes', money(ing)], ['Salió este mes', money(gas)]]
+    : [['Ingresos del mes', money(ing)], ['Gastos del mes', money(gas)],
+       ...(mods.productos ? [['Productos', String(S.productos.length)]] : []),
+       ...(mods.clientes ? [['Clientes', String(S.clientes.length)]] : [])];
   box.innerHTML = `<div class="resumen">
     <div class="hero">
       <div class="num ${ut<0?'neg':''}">${money(ut)}</div>
-      <div class="tx"><b>Utilidad del mes</b><span>Ingresos menos gastos, desde el 1.º</span></div>
+      <div class="tx"><b>${personal?'Lo que te queda':'Utilidad del mes'}</b><span>${personal?'Lo que entró menos lo que salió, desde el 1.º':'Ingresos menos gastos, desde el 1.º'}</span></div>
     </div>
-    <div class="fila">
-      <div class="item"><div class="lbl">Ingresos del mes</div><div class="val">${money(ing)}</div></div>
-      <div class="item"><div class="lbl">Gastos del mes</div><div class="val">${money(gas)}</div></div>
-      <div class="item"><div class="lbl">Productos</div><div class="val">${S.productos.length}</div></div>
-      <div class="item"><div class="lbl">Clientes</div><div class="val">${S.clientes.length}</div></div>
-    </div>
+    <div class="fila">${items.map(([l,v])=>`<div class="item"><div class="lbl">${esc(l)}</div><div class="val">${v}</div></div>`).join('')}</div>
   </div>`;
-  const mods = modulosDe(NEGOCIO);
   if(mods.productos){
     const bajos = S.productos.filter(p=>p.stock!=null && p.stock<=2);
     setHidden('productosBajoStockBox', !bajos.length);
@@ -1879,18 +1909,27 @@ async function renderNegocioPanel(){
    cambiarse ahí. La base de datos ya soporta que una persona pertenezca
    a varios negocios independientes; esto es la puerta para verlos y
    moverse entre ellos, y para crear o unirse a otros sin salir de la app. */
-const NOMBRE_PLANTILLA = { motos:'Renta de vehículos', flexible:'Negocio flexible' };
+/* A qué tarjeta de PLANTILLAS_DISPONIBLES corresponde un negocio ya
+   creado — por su "modulos.tipo" si es flexible, o "motos" si no. Con
+   reserva por si algún negocio viejo no trae tipo (queda como
+   "Negocio flexible" genérico en vez de romperse). */
+function catalogoDe(n){
+  if(!n) return PLANTILLAS_DISPONIBLES[0];
+  if((n.plantilla||'motos')==='motos') return PLANTILLAS_DISPONIBLES.find(p=>p.id==='motos');
+  const tipo = n.modulos && n.modulos.tipo;
+  return PLANTILLAS_DISPONIBLES.find(p=>p.id===tipo) || { nombre:'Negocio flexible', icono:'productos' };
+}
 function renderNegociosSwitcher(){
   const box = $('listaNegocios');
   if(!box) return;
   const lista = DEMO ? [{ id: NEGOCIO.id, nombre: NEGOCIO.nombre, rol: 'propietario', plantilla:'motos', miembros:1 }] : MIS_NEGOCIOS;
   if(!lista.length){ box.innerHTML = `<p class="sub">Todavía no tienes ningún proyecto.</p>`; return; }
-  box.innerHTML = lista.map(n => `
+  box.innerHTML = lista.map(n => { const c = catalogoDe(n); return `
     <button class="negocio-row${n.id===NEGOCIO.id?' actual':''}" data-ir-negocio="${esc(n.id)}">
-      <span class="icono ic">${ICONS[n.plantilla==='flexible'?'productos':'vehiculos']}</span>
-      <span class="nm"><b>${esc(n.nombre)}</b><span>${NOMBRE_PLANTILLA[n.plantilla]||NOMBRE_PLANTILLA.motos} · ${(n.miembros||1)>1?'en pareja':'solo tuyo'}</span></span>
+      <span class="icono ic">${ICONS[c.icono]}</span>
+      <span class="nm"><b>${esc(n.nombre)}</b><span>${esc(c.nombre)} · ${(n.miembros||1)>1?'en pareja':'solo tuyo'}</span></span>
       <span class="icono check">${ICONS.check}</span>
-    </button>`).join('');
+    </button>`; }).join('');
 }
 async function cambiarNegocio(id){
   if(DEMO || !id || (NEGOCIO && id===NEGOCIO.id)) return;
@@ -1974,7 +2013,7 @@ $('verCodigoBtn').addEventListener('click', async ()=>{
 $('crearOtroBtn').addEventListener('click', ()=>{
   if(DEMO) return toast('En modo demo no se pueden crear negocios nuevos.', true);
   $('unirseOtroBox').innerHTML = '';
-  NUEVA_PLANTILLA = { plantilla:'motos', productos:false, clientes:false };
+  NUEVA_PLANTILLA = 'motos';
   $('crearOtroBox').innerHTML = `
     <div class="f" style="margin-top:12px"><label for="otroNombre">Nombre del proyecto nuevo</label>
       <input id="otroNombre" placeholder="Impresoras"></div>
@@ -3142,43 +3181,45 @@ let NEG_MODO = '';
 /* Elección de plantilla al crear un negocio — se recuerda mientras dura
    la pantalla de creación (onboarding, o "crear otro" desde Proyectos),
    para que sobreviva a los re-render mientras se guarda. */
-let NUEVA_PLANTILLA = { plantilla:'motos', productos:false, clientes:false };
+/* Catálogo de plantillas elegibles al crear un proyecto. Cada una es un
+   preset fijo (plantilla + módulos) — nada de casillas: la persona
+   escoge el tipo que más se parece a su negocio y ya. "modulos.tipo" no
+   cambia ningún cálculo, solo qué ícono/nombre/copys usar (ver
+   NOMBRE_PLANTILLA y aplicarPlantillaUI). Impresión 3D usa hoy el mismo
+   motor que Ropa (Productos + Clientes) — se afina más adelante. */
+const PLANTILLAS_DISPONIBLES = [
+  { id:'motos', nombre:'Renta de vehículos', desc:'Motos, conductores, contratos y pagos — como ya lo tienes.',
+    icono:'vehiculos', plantilla:'motos', modulos:{} },
+  { id:'personal', nombre:'Cuentas personales', desc:'Lo que entra y lo que sale — para llevar tus cuentas aparte de cualquier negocio.',
+    icono:'cuentas', plantilla:'flexible', modulos:{ tipo:'personal', productos:false, clientes:false } },
+  { id:'ropa', nombre:'Venta de ropa', desc:'Tus productos con precio, costo y cuánto queda, más tus clientes.',
+    icono:'productos', plantilla:'flexible', modulos:{ tipo:'ropa', productos:true, clientes:true } },
+  { id:'impresion3d', nombre:'Impresión 3D', desc:'Productos y clientes — la seguimos afinando contigo más adelante.',
+    icono:'productos', plantilla:'flexible', modulos:{ tipo:'impresion3d', productos:true, clientes:true } },
+];
+let NUEVA_PLANTILLA = 'motos';
 function plantillaPickerHTML(pref){
-  const p = NUEVA_PLANTILLA;
   return `
     <div class="f"><label>Tipo de proyecto</label></div>
     <div class="choice-grid" id="${pref}Cards">
-      <button type="button" class="choice sm${p.plantilla==='motos'?' sel':''}" data-pp="motos"><span class="ic icono">${ICONS.vehiculos}</span><b>Renta de vehículos</b><span>Motos, conductores, contratos y pagos — como ya lo tienes.</span></button>
-      <button type="button" class="choice sm${p.plantilla==='flexible'?' sel':''}" data-pp="flexible"><span class="ic icono">${ICONS.productos}</span><b>Otro tipo de negocio</b><span>Tú eliges qué llevar: productos, clientes, o solo ingresos y gastos.</span></button>
-    </div>
-    <div class="fgrid" id="${pref}Modulos" style="margin:2px 0 10px;${p.plantilla==='flexible'?'':'display:none'}">
-      <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13.5px;font-weight:600">
-        <input type="checkbox" id="${pref}ModProductos" ${p.productos?'checked':''} style="width:17px;height:17px;accent-color:var(--acento)">
-        Productos o inventario — ej. ropa, mercancía
-      </label>
-      <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13.5px;font-weight:600">
-        <input type="checkbox" id="${pref}ModClientes" ${p.clientes?'checked':''} style="width:17px;height:17px;accent-color:var(--acento)">
-        Clientes — ej. servicios, encargos
-      </label>
-      <p class="sub" style="margin:0">Deja las dos sin marcar si es solo para llevar cuentas — ingresos y gastos.</p>
+      ${PLANTILLAS_DISPONIBLES.map(p => `
+        <button type="button" class="choice sm${p.id===NUEVA_PLANTILLA?' sel':''}" data-pp="${p.id}">
+          <span class="ic icono">${ICONS[p.icono]}</span><b>${esc(p.nombre)}</b><span>${esc(p.desc)}</span>
+        </button>`).join('')}
     </div>`;
 }
 function wirePlantillaPicker(pref){
   document.querySelectorAll(`#${pref}Cards [data-pp]`).forEach(b=>{
     b.addEventListener('click', ()=>{
-      NUEVA_PLANTILLA.plantilla = b.dataset.pp;
+      NUEVA_PLANTILLA = b.dataset.pp;
       document.querySelectorAll(`#${pref}Cards [data-pp]`).forEach(x=>x.classList.remove('sel'));
       b.classList.add('sel');
-      $(pref+'Modulos').style.display = b.dataset.pp==='flexible' ? '' : 'none';
     });
   });
-  const cp = $(pref+'ModProductos'), cc = $(pref+'ModClientes');
-  if(cp) cp.addEventListener('change', ()=>{ NUEVA_PLANTILLA.productos = cp.checked; });
-  if(cc) cc.addEventListener('change', ()=>{ NUEVA_PLANTILLA.clientes = cc.checked; });
 }
 function leerPlantillaPicker(){
-  if(NUEVA_PLANTILLA.plantilla !== 'flexible') return { plantilla:'motos', modulos:{} };
-  return { plantilla:'flexible', modulos:{ productos: !!NUEVA_PLANTILLA.productos, clientes: !!NUEVA_PLANTILLA.clientes } };
+  const def = PLANTILLAS_DISPONIBLES.find(p=>p.id===NUEVA_PLANTILLA) || PLANTILLAS_DISPONIBLES[0];
+  return { plantilla: def.plantilla, modulos: def.modulos };
 }
 
 /* =========================================================
@@ -3390,7 +3431,7 @@ function pantallaNegocioCrear(){
       const neg = await crearNegocio(nombre, plantilla, modulos);
       await cargarMisNegocios();
       NEGOCIO = { id: neg.id, nombre: neg.nombre, reporteActivo: true, reporteUltimoEnvio: null, plantilla: neg.plantilla, modulos: neg.modulos };
-      NUEVA_PLANTILLA = { plantilla:'motos', productos:false, clientes:false };
+      NUEVA_PLANTILLA = 'motos';
       mostrarCodigoInicial(neg.codigo);
     }catch(e){ AUTH_CARGANDO=false; AUTH_ERROR = e.message || 'No se pudo crear el negocio.'; pantallaNegocioCrear(); }
   });
