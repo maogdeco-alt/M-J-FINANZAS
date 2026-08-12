@@ -1865,7 +1865,12 @@ async function recuperarClave(correo){
 }
 function cerrarSesion(){
   crudo('/auth/v1/logout', { method:'POST' }).catch(()=>{});
-  SESION = { url:SESION.url, key:SESION.key, token:'', refresh:'', usuarioId:'', correo:'', nombre:'' };
+  /* Solo se limpia lo propio de esta sesión (token, quién es). La
+     conexión a Supabase, el avatar elegido y el último proyecto se
+     quedan guardados — así, si vuelve a entrar (la misma persona u
+     otra en el mismo negocio compartido), no hay que volver a armar
+     todo desde cero. */
+  SESION = { ...SESION, token:'', refresh:'', usuarioId:'', correo:'', nombre:'' };
   guardarSesion(); MIS_NEGOCIOS=[]; NEGOCIO=null; S=null;
   location.hash=''; arrancar();
 }
@@ -4911,6 +4916,44 @@ function pantallaSesion(estadoExtra){
   });
 }
 
+/* Pregunta de inicio, única: cuando la cuenta tiene más de un
+   proyecto, en vez de entrar en silencio al último que se usó, se
+   pregunta una sola vez, al arrancar, en cuál seguir — así el
+   Tablero al que se entra es siempre el que la persona eligió, no
+   una sorpresa. Con un solo proyecto no hay nada que preguntar, así
+   que se entra directo, sin esta pantalla de por medio. */
+function pantallaElegirNegocio(){
+  $('gate').innerHTML = `
+    <div class="gate-card" style="max-width:460px">
+      <div class="gate-brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span><span class="sub">Hola, ${esc(SESION.nombre)} 👋</span></div>
+      <div class="gate-panel">
+        <h3><span class="icono">${ICONS.proyectos}</span> ¿Dónde quiere seguir?</h3>
+        <p class="sub">Elija un proyecto para entrar directo a su Tablero.</p>
+        <div id="elegirNegocioLista"></div>
+        <p class="gate-foot"><button class="linkbtn" id="salirDeElegir"><span class="icono">${ICONS.salir}</span> Cerrar sesión</button></p>
+      </div>
+    </div>`;
+  $('elegirNegocioLista').innerHTML = MIS_NEGOCIOS.map(n=>{
+    const c = catalogoDe(n);
+    const esUltimo = n.id === SESION.ultimoNegocioId;
+    return `
+    <div class="negocio-row${esUltimo?' actual':''}">
+      <button class="negocio-row-main" data-elegir-negocio="${esc(n.id)}">
+        <span class="icono ic">${ICONS[c.icono]}</span>
+        <span class="nm"><b>${esc(n.nombre)}</b><span>${esc(c.nombre)} · ${(n.miembros||1)>1?'en pareja':'solo tuyo'}${esUltimo?' · como la última vez':''}</span></span>
+        <span class="icono check">${ICONS.check}</span>
+      </button>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('[data-elegir-negocio]').forEach(b=>b.addEventListener('click', async ()=>{
+    const neg = MIS_NEGOCIOS.find(n=>n.id===b.dataset.elegirNegocio);
+    if(!neg) return;
+    NEGOCIO = neg;
+    SESION.ultimoNegocioId = neg.id; guardarSesion();
+    await mostrarApp();
+  }));
+  $('salirDeElegir').addEventListener('click', cerrarSesion);
+}
 function pantallaNegocio(){
   if(NEG_MODO==='crear') return pantallaNegocioCrear();
   if(NEG_MODO==='unirse') return pantallaNegocioUnirse();
@@ -5032,7 +5075,9 @@ async function arrancar(){
   try{
     await cargarMisNegocios();
     if(!MIS_NEGOCIOS.length){ NEG_MODO=''; AUTH_ERROR=''; return pantallaNegocio(); }
-    NEGOCIO = MIS_NEGOCIOS.find(n=>n.id===SESION.ultimoNegocioId) || MIS_NEGOCIOS[0];
+    if(MIS_NEGOCIOS.length > 1) return pantallaElegirNegocio();
+    NEGOCIO = MIS_NEGOCIOS[0];
+    SESION.ultimoNegocioId = NEGOCIO.id; guardarSesion();
     await mostrarApp();
   }catch(e){
     AUTH_ERROR = e.message || 'No se pudo cargar tu cuenta.';
