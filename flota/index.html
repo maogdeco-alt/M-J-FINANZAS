@@ -528,6 +528,32 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .miembro-row .nm b{font-size:13.5px;font-weight:600;display:block}
 .miembro-row .nm span{font-size:11.5px;color:var(--gris)}
 
+/* Mercado (Cuentas familia): lista de compras tentativa — es una
+   lista para tachar, no un libro contable, así que usa su propia
+   checklist en vez de la tabla tipo "ledger" del resto de la app. */
+.mercado-list{display:flex;flex-direction:column;gap:8px}
+.mercado-sep{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--gris);font-weight:700;margin:6px 2px -2px}
+.mercado-item{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;
+  border:1px solid var(--linea);border-radius:var(--r-sm);background:var(--hueso);box-shadow:var(--sombra-sm)
+}
+.mercado-chk{
+  flex:0 0 25px;width:25px;height:25px;border-radius:50%;border:1.5px solid var(--linea);
+  background:var(--papel);display:flex;align-items:center;justify-content:center;cursor:pointer;
+  color:transparent;padding:0;transition:background .14s,border-color .14s,color .14s
+}
+.mercado-chk:hover{border-color:var(--acento)}
+.mercado-chk:active{transform:scale(.92)}
+@media(prefers-reduced-motion:reduce){.mercado-chk:active{transform:none}}
+.mercado-chk .icono{width:14px;height:14px}
+.mercado-item.comprado{background:var(--papel)}
+.mercado-item.comprado .mercado-chk{background:var(--acento);border-color:var(--acento);color:var(--papel)}
+.mercado-tx{flex:1;min-width:0}
+.mercado-tx b{display:block;font-size:14px;font-weight:600;color:var(--negro);word-break:break-word}
+.mercado-item.comprado .mercado-tx b{text-decoration:line-through;color:var(--gris)}
+.mercado-tx span{font-size:11.5px;color:var(--gris)}
+.mercado-item .rowdel{flex:0 0 auto}
+
 .spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--linea);border-top-color:var(--negro);animation:spin .8s linear infinite;margin:0 auto}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -769,6 +795,16 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           </div>
           <div class="f hidden" id="gCuentaBox"><label for="gCuenta">¿De qué cuenta?</label><select id="gCuenta"></select></div>
         </div>
+        <div class="fgrid hidden" id="gRepartoBox">
+          <div class="f"><label for="gPagador">¿Quién lo puso?</label><select id="gPagador"></select></div>
+          <div class="f"><label for="gReparto">¿Cómo se reparte?</label>
+            <select id="gReparto">
+              <option value="pagador">No se reparte — lo asume quien pagó</option>
+              <option value="mitad">Mitad y mitad</option>
+              <option value="otro">Lo asume el otro, completo</option>
+            </select>
+          </div>
+        </div>
         <div class="acts"><button class="btn" id="gSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Registrar gasto</button></div>
       </div>
       <div id="gastosList"></div>
@@ -807,6 +843,12 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           </div>
           <div class="acts"><button class="btn" id="ctSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar cuenta</button></div>
           <div class="grid2" id="cuentasList" style="margin-top:14px"></div>
+        </div>
+
+        <div class="section hidden" id="balanceBox">
+          <h2 style="margin-bottom:8px">Balance entre ustedes</h2>
+          <p class="sub">Sumando los gastos que marcaron como repartidos y los préstamos entre los dos.</p>
+          <div id="balancePareja"></div>
         </div>
 
         <div class="section form" id="metasBox">
@@ -1012,6 +1054,37 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         <div class="acts"><button class="btn" id="dbSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar crédito</button></div>
         <div class="grid2" id="deudasList" style="margin-top:14px"></div>
       </div>
+
+      <div class="section form hidden" id="prestamosBox">
+        <h2 style="margin-bottom:8px">Préstamos entre ustedes</h2>
+        <p class="sub">Plata que se prestaron entre los dos — sin banco de por medio. No es lo mismo que un gasto repartido.</p>
+        <div class="fgrid">
+          <div class="f"><label for="prDe">¿Quién prestó?</label><select id="prDe"></select></div>
+          <div class="f"><label for="prPara">¿A quién?</label><select id="prPara"></select></div>
+          <div class="f"><label for="prMonto">Valor</label><input id="prMonto" inputmode="numeric" placeholder="$0"></div>
+          <div class="f"><label for="prMotivo">Motivo (opcional)</label><input id="prMotivo" placeholder="Ej. mercado del mes"></div>
+        </div>
+        <div class="acts"><button class="btn" id="prPrestamoSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Registrar préstamo</button></div>
+        <div id="prestamosList" style="margin-top:14px"></div>
+      </div>
+    </section>
+
+    <!-- ============ MERCADO (Cuentas familia) ============ -->
+    <section class="view" id="v-mercado">
+      <div class="head">
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8.5h11l-1 11.4a1.6 1.6 0 0 1-1.6 1.5H9.1a1.6 1.6 0 0 1-1.6-1.5L6.5 8.5Z"/><path d="M9 8.5V6.8a3 3 0 0 1 6 0v1.7"/></svg></span>Mercado</h1><p>La lista tentativa de lo que hace falta — vayan marcando a medida que lo van consiguiendo.</p></div>
+      </div>
+
+      <div class="section form" id="mercadoBox">
+        <div class="fgrid">
+          <div class="f"><label for="mkNombre">Qué hace falta</label><input id="mkNombre" placeholder="Leche, arroz, comida del perro…"></div>
+          <div class="f"><label for="mkCant">Cantidad (opcional)</label><input id="mkCant" placeholder="2, 1 bolsa, 3 kg…"></div>
+        </div>
+        <div class="acts"><button class="btn" id="mkSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar a la lista</button>
+          <span class="hint" style="margin-left:0">Solo el nombre es obligatorio.</span></div>
+      </div>
+
+      <div id="mercadoList" style="margin-top:16px"></div>
     </section>
 
     <!-- ============ PROYECTOS ============ -->
@@ -1035,6 +1108,16 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <section class="view" id="v-ajustes">
       <div class="head">
         <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span>Ajustes</h1><p>Tu negocio, los dueños y la cuenta donde reciben los pagos.</p></div>
+      </div>
+
+      <div class="section form hidden" id="integrantesBox">
+        <h2 style="margin-bottom:8px">Quiénes son</h2>
+        <p class="sub">Los nombres de los dos, para poder decir quién pagó cada cosa y cómo se reparte.</p>
+        <div class="fgrid">
+          <div class="f"><label for="ig1">Integrante 1</label><input id="ig1" placeholder="Tu nombre"></div>
+          <div class="f"><label for="ig2">Integrante 2</label><input id="ig2" placeholder="Nombre de tu pareja"></div>
+        </div>
+        <div class="acts"><button class="btn" id="igSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="15" height="16" rx="2"/><path d="M8 4v5h7V4"/><path d="M7.5 20v-6h9v6"/></svg></span> Guardar</button></div>
       </div>
 
       <div class="section form" id="aparienciaBox">
@@ -1224,8 +1307,10 @@ function viewsPara(){
   }
   const mods = modulosDe(NEGOCIO);
   if(mods.tipo === 'personal' || mods.tipo === 'familia'){
-    return [['tablero','Tablero','Inicio'],['pagos','Lo que entra','Entra'],['gastos','Lo que sale','Sale'],
+    const v = [['tablero','Tablero','Inicio'],['pagos','Lo que entra','Entra'],['gastos','Lo que sale','Sale'],
             ['cuentas','Mi plata','Mi plata'],['fijos','Pagos fijos','Fijos']];
+    if(mods.tipo === 'familia') v.push(['mercado','Mercado','Mercado']);
+    return v;
   }
   const v = [['tablero','Tablero','Inicio'],['pagos','Pagos','Pagos'],['gastos','Gastos','Gastos'],
              ['cuentas','Cuentas','Cuentas']];
@@ -1272,6 +1357,7 @@ const ICONS = {
   proyectos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5l8-4 8 4-8 4-8-4Z"/><path d="M4 7.5V16l8 4 8-4V7.5"/><path d="M12 11.5V20"/></svg>',
   fijos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 9.7h16M8 3.5v3.4M16 3.5v3.4"/></svg>',
   meta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.3"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r=".6" fill="currentColor"/></svg>',
+  mercado: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8.5h11l-1 11.4a1.6 1.6 0 0 1-1.6 1.5H9.1a1.6 1.6 0 0 1-1.6-1.5L6.5 8.5Z"/><path d="M9 8.5V6.8a3 3 0 0 1 6 0v1.7"/></svg>',
 };
 
 /* =========================================================
@@ -1442,7 +1528,7 @@ let DEMO = false;
 const KEY = () => 'maog:flota:datos:' + (NEGOCIO ? NEGOCIO.id : 'x');
 
 function vacio(){ return { motos:[], conductores:[], pagos:[], gastos:[], productos:[], clientes:[],
-  cuentas:[], fijos:[], deudas:[], metas:[], config:{} }; }
+  cuentas:[], fijos:[], deudas:[], metas:[], prestamos:[], mercado:[], config:{} }; }
 
 async function nubeLeer(){
   const r = await api('/rest/v1/rpc/leer_datos_rpc', { method:'POST', body: JSON.stringify({ p_negocio_id: NEGOCIO.id }) });
@@ -1579,6 +1665,8 @@ function renderAll(){
   if(!S.fijos) S.fijos = [];
   if(!S.deudas) S.deudas = [];
   if(!S.metas) S.metas = [];
+  if(!S.prestamos) S.prestamos = [];
+  if(!S.mercado) S.mercado = [];
   aplicarColor();
   aplicarPlantillaUI();
   renderSelects(); renderKPIs(); renderAvisos(); renderCuentas(); renderPropietarios();
@@ -1586,6 +1674,7 @@ function renderAll(){
   renderPagos(); renderGastos(); renderMotos(); renderCond();
   renderProductos(); renderClientes(); renderResumenFlex();
   renderCuentasPersonales(); renderMetas(); renderFijos(); renderDeudas(); renderHoyPersonal();
+  renderBalancePareja(); renderPrestamos(); renderMercado();
   $('todayLabel').textContent = new Date().toLocaleDateString('es-CO',
     {weekday:'long', day:'numeric', month:'long'});
 }
@@ -1602,6 +1691,34 @@ function setHidden(id, cond){ const e=$(id); if(e) e.classList.toggle('hidden', 
 function esPersonal(){
   if(esMotos() || !NEGOCIO || !NEGOCIO.modulos) return false;
   return NEGOCIO.modulos.tipo==='personal' || NEGOCIO.modulos.tipo==='familia';
+}
+/* "familia" hereda todo el motor de "personal" (esPersonal() cubre
+   ambos) y además prende lo propio de llevar la casa en pareja:
+   quién pagó qué y cómo se reparte, préstamos informales entre los
+   dos, y la lista de mercado. */
+function esFamilia(){ return !esMotos() && NEGOCIO && NEGOCIO.modulos && NEGOCIO.modulos.tipo==='familia'; }
+function integrantesDe(){
+  const i = (S && S.config && S.config.integrantes) || [];
+  return [i[0]||'Integrante 1', i[1]||'Integrante 2'];
+}
+/* Balance de pareja: cuánto le debe uno al otro, sumando gastos
+   marcados como repartidos y préstamos informales sin pagar. saldo>0
+   quiere decir que "b" le debe a "a"; saldo<0, que "a" le debe a "b". */
+function balancePareja(){
+  const [a,b] = integrantesDe();
+  let saldo = 0;
+  (S.gastos||[]).forEach(g=>{
+    if(!g.reparto || g.reparto==='pagador' || !g.pagadoPor) return;
+    const pagoA = g.pagadoPor === a;
+    if(g.reparto==='mitad'){ const mitad = g.valor/2; saldo += pagoA ? mitad : -mitad; }
+    else if(g.reparto==='otro'){ saldo += pagoA ? g.valor : -g.valor; }
+  });
+  (S.prestamos||[]).forEach(p=>{
+    if(p.pagado) return;
+    if(p.prestaEl===a && p.recibeEl===b) saldo += p.monto;
+    else if(p.prestaEl===b && p.recibeEl===a) saldo -= p.monto;
+  });
+  return { a, b, saldo };
 }
 function aplicarPlantillaUI(){
   const motos = esMotos(), personal = esPersonal();
@@ -1635,6 +1752,11 @@ function aplicarPlantillaUI(){
   setHidden('pfCuentaBox', !personal);
   setHidden('gCuentaBox', !personal);
   setHidden('pfTipoBox', !personal);
+  const familia = esFamilia();
+  setHidden('integrantesBox', !familia);
+  setHidden('gRepartoBox', !familia);
+  setHidden('prestamosBox', !familia);
+  setHidden('balanceBox', !familia);
   const ct = $('cuentasTitulo'); if(ct) ct.textContent = motos ? 'Cuentas' : (personal ? 'Mi plata' : 'Cuentas');
   const cs = $('cuentasSub'); if(cs) cs.textContent = motos
     ? 'Cuánto falta para librar la inversión y en qué se está yendo la plata.'
@@ -1657,6 +1779,16 @@ function renderSelects(){
     const cuentas = (S.cuentas||[]).map(c=>({v:c.id,t:c.nombre}));
     fillSelect($('pfCuenta'), [{v:'',t:'Sin especificar'}].concat(cuentas), 'agregue una cuenta en Mi plata');
     fillSelect($('gCuenta'), [{v:'',t:'Sin especificar'}].concat(cuentas), 'agregue una cuenta en Mi plata');
+  }
+  if(esFamilia()){
+    const [ia,ib] = integrantesDe();
+    const set2 = (id,v)=>{ const e=$(id); if(e && document.activeElement!==e) e.value = v||''; };
+    const ig = (S.config && S.config.integrantes) || [];
+    set2('ig1', ig[0]); set2('ig2', ig[1]);
+    const nombres = [{v:ia,t:ia},{v:ib,t:ib}];
+    fillSelect($('gPagador'), nombres, 'defina los nombres en Ajustes');
+    fillSelect($('prDe'), nombres, 'defina los nombres en Ajustes');
+    fillSelect($('prPara'), nombres, 'defina los nombres en Ajustes');
   }
   const dd = duenos();
   fillSelect($('mProp'), [{v:dd[0],t:dd[0]},{v:dd[1],t:dd[1]}], 'defina los dueños');
@@ -1973,12 +2105,16 @@ function renderGastos(){
       ${sub}</div>`; return;
   }
   if(!esMotos()){
-    const rows = [...S.gastos].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).map(g=>`<tr>
+    const NOM_REPARTO = { mitad:'se reparte mitad y mitad', otro:'lo asume el otro' };
+    const rows = [...S.gastos].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).map(g=>{
+      const reparto = (esFamilia() && g.pagadoPor && g.reparto && g.reparto!=='pagador')
+        ? ` · puso ${esc(g.pagadoPor)}, ${NOM_REPARTO[g.reparto]||''}` : '';
+      return `<tr>
       <td>${fmtDate(g.fecha)}</td>
-      <td><span class="name">${esc(g.desc||g.cat)}</span><span class="sub">${esc(g.cat)}${g.creadoPor?' · '+esc(g.creadoPor):''}</span></td>
+      <td><span class="name">${esc(g.desc||g.cat)}</span><span class="sub">${esc(g.cat)}${reparto}${g.creadoPor?' · '+esc(g.creadoPor):''}</span></td>
       <td class="num money">${money(g.valor)}</td>
       <td class="num"><button class="rowdel" data-del-gasto="${g.id}" aria-label="Eliminar gasto"><span class="icono">${ICONS.trash}</span></button></td>
-    </tr>`).join('');
+    </tr>`;}).join('');
     $('gastosList').innerHTML = `<div class="ledger-wrap"><table class="ledger">
       <thead><tr><th>Fecha</th><th>Concepto</th><th class="num">Valor</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
     return;
@@ -2210,6 +2346,63 @@ function renderDeudas(){
       </div>
     </div>`;
   }).join('');
+}
+function renderBalancePareja(){
+  const box = $('balancePareja'); if(!box || !esFamilia()) return;
+  setHidden('balanceBox', false);
+  const { a, b, saldo } = balancePareja();
+  const redondeado = Math.round(Math.abs(saldo));
+  if(redondeado < 100){
+    box.innerHTML = `<div class="resumen"><div class="hero">
+      <div class="num">${money(0)}</div>
+      <div class="tx"><b>Están a mano</b><span>Ningún gasto repartido ni préstamo pendiente entre ${esc(a)} y ${esc(b)}.</span></div>
+    </div></div>`;
+    return;
+  }
+  const [quienDebe, quienRecibe] = saldo > 0 ? [b,a] : [a,b];
+  box.innerHTML = `<div class="resumen"><div class="hero">
+    <div class="num">${money(redondeado)}</div>
+    <div class="tx"><b>${esc(quienDebe)} le debe a ${esc(quienRecibe)}</b><span>Sumando gastos repartidos y préstamos sin pagar.</span></div>
+  </div></div>`;
+}
+function renderPrestamos(){
+  const box = $('prestamosList'); if(!box || !esFamilia()) return;
+  if(!S.prestamos.length){
+    box.innerHTML = `<div class="empty"><span class="ic icono">${ICONS.check}</span><strong>Sin préstamos registrados</strong>
+      Cuando uno le preste plata al otro, sin banco de por medio, regístrelo aquí.</div>`; return;
+  }
+  const rows = [...S.prestamos].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).map(p=>`<tr>
+    <td>${fmtDate(p.fecha)}</td>
+    <td><span class="name">${esc(p.prestaEl)} → ${esc(p.recibeEl)}</span><span class="sub">${esc(p.motivo||'')}</span></td>
+    <td class="num money">${money(p.monto)}</td>
+    <td class="num">${p.pagado ? '<span class="tag ok">Pagado</span>' : '<span class="tag due">Pendiente</span>'}</td>
+    <td class="num">${!p.pagado ? `<button class="btn ghost sm" data-marcar-prestamo="${p.id}"><span class="icono">${ICONS.check}</span> Marcar pagado</button>` : ''}</td>
+    <td class="num"><button class="rowdel" data-del-prestamo="${p.id}" aria-label="Eliminar"><span class="icono">${ICONS.trash}</span></button></td>
+  </tr>`).join('');
+  box.innerHTML = `<div class="ledger-wrap"><table class="ledger">
+    <thead><tr><th>Fecha</th><th>De quién a quién</th><th class="num">Valor</th><th class="num">Estado</th><th></th><th></th></tr></thead>
+    <tbody>${rows}</tbody></table></div>`;
+}
+/* Mercado: checklist, no ledger — lo pendiente arriba (más nuevo
+   primero), lo ya comprado abajo y aparte, para que la lista de lo que
+   falta por hacer no se ensucie con lo que ya está resuelto. */
+function renderMercado(){
+  const box = $('mercadoList'); if(!box || !esFamilia()) return;
+  if(!S.mercado.length){
+    box.innerHTML = `<div class="empty"><span class="ic icono">${ICONS.mercado}</span><strong>La lista está vacía</strong>
+      Agreguen lo que se va necesitando, y táchenlo cuando lo consigan.</div>`; return;
+  }
+  const item = m => `<div class="mercado-item ${m.comprado?'comprado':''}">
+      <button class="mercado-chk" data-toggle-mercado="${m.id}" aria-label="${m.comprado?'Marcar como pendiente':'Marcar como comprado'}"><span class="icono">${ICONS.check}</span></button>
+      <div class="mercado-tx"><b>${esc(m.nombre)}</b>${m.cantidad?`<span>${esc(m.cantidad)}</span>`:''}</div>
+      <button class="rowdel" data-del-mercado="${m.id}" aria-label="Quitar"><span class="icono">${ICONS.trash}</span></button>
+    </div>`;
+  const lista = [...S.mercado].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  const pendientes = lista.filter(m=>!m.comprado), comprados = lista.filter(m=>m.comprado);
+  box.innerHTML = `<div class="mercado-list">
+    ${pendientes.map(item).join('')}
+    ${comprados.length ? `<div class="mercado-sep">Ya comprado</div>${comprados.map(item).join('')}` : ''}
+  </div>`;
 }
 /* "Hoy" del Tablero personal: pagos fijos vencidos o por vencer, arriba
    de todo — igual que en el Tablero de motos, con mensaje de
@@ -2577,6 +2770,8 @@ $('gSave').addEventListener('click', async ()=>{
   S.gastos.push({ id:uid(), fecha:$('gFecha').value||todayISO(), motoId: esMotos() ? $('gMoto').value : null,
     cat:$('gCat').value, desc:$('gDesc').value.trim(), valor, cargo: esMotos() ? $('gCargo').value : 'Empresa',
     cuentaId: esPersonal() ? ($('gCuenta').value||null) : null,
+    pagadoPor: esFamilia() ? ($('gPagador').value||'') : '',
+    reparto: esFamilia() ? $('gReparto').value : '',
     recuperado:false, creadoPor:quien() });
   await save(); renderAll();
   $('gValor').value=''; $('gDesc').value='';
@@ -2624,6 +2819,14 @@ function actualizarFormCuenta(){
   setHidden('ctRecordBox', !esCredito);
   $('ctSaldoLbl').textContent = esCredito ? 'Deuda actual' : 'Saldo inicial';
 }
+$('igSave').addEventListener('click', async ()=>{
+  const n1 = $('ig1').value.trim(), n2 = $('ig2').value.trim();
+  if(!n1 || !n2) return toast('Escriba los dos nombres.', true);
+  if(!S.config) S.config = {};
+  S.config.integrantes = [n1, n2];
+  await save(); renderAll();
+  toast('Nombres guardados');
+});
 $('ctTipo').addEventListener('change', actualizarFormCuenta);
 $('ctSave').addEventListener('click', async ()=>{
   const nombre = $('ctNombre').value.trim();
@@ -2672,6 +2875,27 @@ $('dbSave').addEventListener('click', async ()=>{
   ['dbNombre','dbEntidad','dbSaldo','dbCuota','dbCuotasTotal','dbCuotasPagadas','dbDia'].forEach(i=>$(i).value='');
   $('dbRecordatorio').checked = false;
   toast(`${nombre} agregado`);
+});
+$('prPrestamoSave').addEventListener('click', async ()=>{
+  const prestaEl = $('prDe').value, recibeEl = $('prPara').value;
+  const monto = num($('prMonto').value);
+  if(!prestaEl || !recibeEl) return toast('Defina los dos nombres en Ajustes primero.', true);
+  if(prestaEl === recibeEl) return toast('Elija dos personas distintas.', true);
+  if(!monto) return toast('Escriba el valor.', true);
+  S.prestamos.push({ id:uid(), prestaEl, recibeEl, monto, motivo:$('prMotivo').value.trim(),
+    fecha:todayISO(), pagado:false, creadoPor:quien() });
+  await save(); renderAll();
+  $('prMonto').value=''; $('prMotivo').value='';
+  toast('Préstamo registrado');
+});
+$('mkSave').addEventListener('click', async ()=>{
+  const nombre = $('mkNombre').value.trim();
+  if(!nombre) return toast('Escriba qué hace falta.', true);
+  S.mercado.push({ id:uid(), nombre, cantidad:$('mkCant').value.trim(), comprado:false,
+    fecha:todayISO(), creadoPor:quien() });
+  await save(); renderAll();
+  $('mkNombre').value=''; $('mkCant').value=''; $('mkNombre').focus();
+  toast(`${nombre} agregado a la lista`);
 });
 $('mSave').addEventListener('click', async ()=>{
   const placa = $('mPlaca').value.trim().toUpperCase();
@@ -2753,7 +2977,7 @@ document.addEventListener('click', async e=>{
      SVG adentro, y un clic que caiga sobre el ícono reporta el <svg>
      como e.target, no el <button> con el data-* — sin esto, tocar el
      ícono (en vez del texto) no hacía nada. */
-  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-del-negocio],[data-color]');
+  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-del-negocio],[data-color],[data-del-prestamo],[data-marcar-prestamo],[data-del-mercado],[data-toggle-mercado]');
   if(!t) return;
   if(t.dataset.irNegocio) return cambiarNegocio(t.dataset.irNegocio);
   if(t.dataset.delNegocio) return eliminarNegocioFlow(t.dataset.delNegocio, t.dataset.nombreNegocio);
@@ -2838,6 +3062,23 @@ document.addEventListener('click', async e=>{
     d.saldo = Math.max(0, (d.saldo||0) - (d.cuotaMensual||0));
     d.cuotasPagadas = (d.cuotasPagadas||0) + 1;
     await save(); renderAll(); toast(`Cuota abonada a "${d.nombre}"`);
+    return;
+  }
+  if(t.dataset.delPrestamo){
+    if(!(await confirmar('Eliminar préstamo', 'Se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
+    return rm('prestamos', t.dataset.delPrestamo, 'Préstamo eliminado');
+  }
+  if(t.dataset.marcarPrestamo){
+    const p = S.prestamos.find(x=>x.id===t.dataset.marcarPrestamo);
+    if(p){ p.pagado = true; await save(); renderAll(); toast('Marcado como pagado'); }
+    return;
+  }
+  if(t.dataset.delMercado){
+    return rm('mercado', t.dataset.delMercado, 'Quitado de la lista');
+  }
+  if(t.dataset.toggleMercado){
+    const m = S.mercado.find(x=>x.id===t.dataset.toggleMercado);
+    if(m){ m.comprado = !m.comprado; await save(); renderAll(); }
     return;
   }
 });
