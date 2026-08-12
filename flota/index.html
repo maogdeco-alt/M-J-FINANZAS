@@ -25,6 +25,8 @@
   --rojo:#9B3324; --rojo-suave:#F4E6DF;
   --ambar:#8C5A0C; --ambar-suave:#F3E7CD;
   --verde:#1F7A4F; --verde-suave:#E1EEE5;
+  --festivo:#2C5F9E; --festivo-suave:#DCE7F4;
+  --meta:#6B4C9A; --meta-suave:#E9E1F1;
   --r:10px; --r-sm:6px;
   --sombra-sm:0 1px 2px rgba(27,20,14,.07);
   --sombra-md:0 14px 28px -10px rgba(27,20,14,.20),0 2px 6px rgba(27,20,14,.06);
@@ -553,6 +555,126 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .mercado-item.comprado .mercado-tx b{text-decoration:line-through;color:var(--gris)}
 .mercado-tx span{font-size:11.5px;color:var(--gris)}
 .mercado-item .rowdel{flex:0 0 auto}
+
+/* Calendario — el sello final: grande, con festivos de Colombia,
+   compromisos de plata encima de cada día, y notas propias. La
+   grilla no lleva texto en celdas "fuera de mes" (son solo de
+   relleno visual) y el detalle completo de cada día vive en el
+   panel de al lado, para que las celdas se mantengan limpias a
+   cualquier tamaño de pantalla. */
+.cal-wrap{display:flex;gap:24px;align-items:flex-start}
+.cal-main{flex:1 1 640px;min-width:0}
+.cal-side{
+  flex:0 0 320px;border:1px solid var(--linea);border-radius:var(--r);background:var(--hueso);
+  padding:22px;box-shadow:var(--sombra-sm)
+}
+.cal-nav{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.cal-titulo{
+  flex:1;text-align:center;font-family:var(--disp);font-weight:600;font-size:21px;
+  letter-spacing:-.005em;text-transform:capitalize
+}
+.cal-dow-row{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;
+  font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--gris);text-align:center
+}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-day{
+  min-height:112px;border:1px solid var(--linea);border-radius:var(--r-sm);background:var(--hueso);
+  padding:8px;display:flex;flex-direction:column;gap:4px;align-items:stretch;text-align:left;
+  cursor:pointer;transition:border-color .14s,box-shadow .14s,transform .08s;overflow:hidden
+}
+.cal-day:hover{border-color:var(--acento);box-shadow:var(--sombra-sm)}
+.cal-day:active{transform:scale(.98)}
+@media(prefers-reduced-motion:reduce){.cal-day:active{transform:none}}
+.cal-day.out{
+  min-height:112px;border:1px solid transparent;background:none;color:var(--gris);
+  padding:8px;opacity:.35;display:flex;align-items:flex-start
+}
+.cal-day.festivo{background:var(--festivo-suave)}
+.cal-day.sel{box-shadow:0 0 0 2px var(--hueso),0 0 0 3px var(--acento)}
+.cal-day.hoy{border-color:var(--acento)}
+.cal-top{display:flex;align-items:center;justify-content:space-between}
+.cal-num{font-family:var(--mono);font-weight:600;font-size:12.5px;color:var(--gris2)}
+.cal-day.out .cal-num{color:var(--gris)}
+.cal-day.hoy .cal-num{
+  background:var(--acento);color:#fff;border-radius:50%;width:20px;height:20px;
+  display:flex;align-items:center;justify-content:center;font-size:11px
+}
+.cal-nota-dot{width:6px;height:6px;border-radius:50%;background:var(--acento-ink);flex:0 0 6px}
+.cal-festivo-tag{
+  font-size:10px;font-weight:700;color:var(--festivo);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;max-width:100%
+}
+.cal-chips{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cal-chip{
+  font-size:10px;font-weight:600;padding:2px 5px;border-radius:5px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:100%
+}
+.cal-chip.mora{background:var(--rojo-suave);color:var(--rojo)}
+.cal-chip.due{background:var(--ambar-suave);color:var(--ambar)}
+.cal-chip.neutral{background:var(--papel-2);color:var(--gris2)}
+.cal-chip.meta{background:var(--meta-suave);color:var(--meta)}
+.cal-more{font-size:9.5px;font-weight:700;color:var(--gris)}
+.cal-leyenda{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px;font-size:11.5px;color:var(--gris2)}
+.cal-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.cal-dot.mora{background:var(--rojo)}
+.cal-dot.due{background:var(--ambar)}
+.cal-dot.neutral{background:var(--gris)}
+.cal-dot.festivo{background:var(--festivo)}
+.cal-dia-cab{margin-bottom:12px}
+.cal-dia-dow{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gris)}
+.cal-hoy-tag{color:var(--acento-ink)}
+.cal-dia-num{font-family:var(--disp);font-weight:600;font-size:21px;margin-top:2px}
+.cal-dia-festivo{
+  display:flex;align-items:center;gap:7px;background:var(--festivo-suave);color:var(--festivo);
+  padding:9px 11px;border-radius:var(--r-sm);font-size:12.5px;font-weight:600;margin-bottom:14px
+}
+.cal-dia-festivo .icono{width:15px;height:15px;flex:0 0 15px}
+.cal-dia-lista{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.cal-item{
+  display:flex;align-items:center;gap:8px;border:1px solid var(--linea);border-radius:var(--r-sm);
+  padding:8px 10px;font-size:12.5px;background:var(--hueso);transition:background .14s
+}
+.cal-item[data-cal-ir]{cursor:pointer}
+.cal-item[data-cal-ir]:hover{background:var(--papel-2)}
+.cal-item-tag{
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;
+  padding:2px 6px;border-radius:999px;flex:0 0 auto
+}
+.cal-item-tag.mora{background:var(--rojo-suave);color:var(--rojo)}
+.cal-item-tag.due{background:var(--ambar-suave);color:var(--ambar)}
+.cal-item-tag.neutral{background:var(--papel-2);color:var(--gris2)}
+.cal-item-tag.meta{background:var(--meta-suave);color:var(--meta)}
+.cal-item-tx{flex:1;min-width:0;font-weight:600;color:var(--negro)}
+.cal-item-monto{font-family:var(--mono);font-weight:600;font-size:11.5px;white-space:nowrap;color:var(--gris2)}
+.cal-dia-vacio{color:var(--gris);font-size:13px;margin:6px 0 16px}
+.cal-dia-vacio.sm{font-size:12px;margin:4px 0 10px}
+.cal-notas h3{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gris);margin:0 0 8px}
+.cal-nota-row{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:8px;
+  padding:8px 0;border-bottom:1px dashed var(--linea);font-size:13px
+}
+.cal-nota-row span{flex:1;min-width:0;word-break:break-word}
+.cal-notas textarea{
+  width:100%;border:1px solid var(--linea);border-radius:var(--r-sm);padding:10px;
+  font-family:inherit;font-size:13.5px;margin:10px 0 8px;resize:vertical;background:var(--fondo-input)
+}
+@media(max-width:960px){
+  .cal-wrap{flex-direction:column}
+  .cal-side{flex:1 1 auto;width:100%}
+}
+@media(max-width:720px){
+  .cal-titulo{font-size:16px}
+  .cal-dow-row{font-size:9px}
+  .cal-day,.cal-day.out{min-height:62px;padding:5px;gap:2px}
+  .cal-num{font-size:11px}
+  .cal-day.hoy .cal-num{width:17px;height:17px;font-size:9.5px}
+  .cal-festivo-tag{font-size:8.5px}
+  .cal-chip{font-size:8.5px;padding:1px 4px}
+  .cal-more{font-size:8.5px}
+  .cal-leyenda{font-size:10.5px;gap:6px 12px}
+}
 
 .spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--linea);border-top-color:var(--negro);animation:spin .8s linear infinite;margin:0 auto}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -1087,6 +1209,35 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       <div id="mercadoList" style="margin-top:16px"></div>
     </section>
 
+    <!-- ============ CALENDARIO ============ -->
+    <section class="view" id="v-calendario">
+      <div class="head">
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 9.7h16M8 3.5v3.4M16 3.5v3.4"/></svg></span>Calendario</h1><p>Festivos de Colombia, tus pagos y compromisos, y lo que quieras anotar — todo en un solo lugar para planear el mes.</p></div>
+      </div>
+
+      <div class="cal-wrap">
+        <div class="cal-main">
+          <div class="cal-nav">
+            <button type="button" class="btn ghost sm" id="calPrev" aria-label="Mes anterior">‹</button>
+            <div class="cal-titulo" id="calTitulo"></div>
+            <button type="button" class="btn ghost sm" id="calNext" aria-label="Mes siguiente">›</button>
+            <button type="button" class="btn ghost sm" id="calHoy">Hoy</button>
+          </div>
+          <div class="cal-dow-row">
+            <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="cal-leyenda">
+            <span><i class="cal-dot mora"></i> Vencido</span>
+            <span><i class="cal-dot due"></i> Próximo</span>
+            <span><i class="cal-dot neutral"></i> Recordatorio</span>
+            <span><i class="cal-dot festivo"></i> Festivo</span>
+          </div>
+        </div>
+        <div class="cal-side" id="calSide"></div>
+      </div>
+    </section>
+
     <!-- ============ PROYECTOS ============ -->
     <section class="view" id="v-proyectos">
       <div class="head">
@@ -1222,6 +1373,59 @@ const dayDiff = (a,b) => Math.round((new Date(b+'T00:00:00') - new Date(a+'T00:0
 const fmtDate = iso => { if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+/* =========================================================
+   Festivos de Colombia — se calculan, no se copian de una lista que
+   se vuelve vieja cada año. Domingo de Pascua por el algoritmo de
+   Gauss/Meeus (calendario gregoriano); de ahí salen Jueves y Viernes
+   Santo (fijos, no se mueven) y Ascensión/Corpus Christi/Sagrado
+   Corazón (sí se mueven, como los de fecha fija de la Ley Emiliani:
+   si no caen lunes, se corren al lunes siguiente). Todo en UTC para
+   que el cálculo no dependa de en qué zona horaria esté el navegador
+   — son fechas de calendario, no horas del día.
+   ========================================================= */
+const FESTIVOS_CACHE = {};
+function festivosDelAnio(anio){
+  if(FESTIVOS_CACHE[anio]) return FESTIVOS_CACHE[anio];
+  const U = Date.UTC, DIA = 86400000, p = n => String(n).padStart(2,'0');
+  const iso = ms => { const d = new Date(ms); return `${d.getUTCFullYear()}-${p(d.getUTCMonth()+1)}-${p(d.getUTCDate())}`; };
+  const lunes = ms => { const dow = new Date(ms).getUTCDay(); return ms + ((8-dow)%7)*DIA; };
+  // Domingo de Pascua
+  const a=anio%19, b=Math.floor(anio/100), c=anio%100, d=Math.floor(b/4), e=b%4,
+        f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3), h=(19*a+b-d-g+15)%30,
+        i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451),
+        mes=Math.floor((h+l-7*m+114)/31), dia=((h+l-7*m+114)%31)+1;
+  const pascua = U(anio, mes-1, dia);
+  const lista = [
+    [U(anio,0,1),               'Año nuevo'],
+    [lunes(U(anio,0,6)),        'Reyes Magos'],
+    [lunes(U(anio,2,19)),       'Día de San José'],
+    [pascua - 3*DIA,            'Jueves Santo'],
+    [pascua - 2*DIA,            'Viernes Santo'],
+    [U(anio,4,1),                'Día del Trabajo'],
+    [lunes(pascua + 39*DIA),    'Ascensión del Señor'],
+    [lunes(pascua + 60*DIA),    'Corpus Christi'],
+    [lunes(pascua + 68*DIA),    'Sagrado Corazón de Jesús'],
+    [lunes(U(anio,5,29)),       'San Pedro y San Pablo'],
+    [U(anio,6,20),               'Día de la Independencia'],
+    [U(anio,7,7),                'Batalla de Boyacá'],
+    [lunes(U(anio,7,15)),       'Asunción de la Virgen'],
+    [lunes(U(anio,9,12)),       'Día de la Raza'],
+    [lunes(U(anio,10,1)),       'Todos los Santos'],
+    [lunes(U(anio,10,11)),      'Independencia de Cartagena'],
+    [U(anio,11,8),               'Inmaculada Concepción'],
+    [U(anio,11,25),              'Navidad'],
+  ];
+  // Un par de años (ej. 2025) dos festivos de Ley Emiliani caen el
+  // mismo lunes — se combinan en una sola entrada, no se pisan.
+  const mapa = {};
+  lista.forEach(([ms,nombre])=>{
+    const f = iso(ms);
+    mapa[f] = mapa[f] ? mapa[f]+' / '+nombre : nombre;
+  });
+  return FESTIVOS_CACHE[anio] = mapa;
+}
+function festivoDe(iso){ return festivosDelAnio(Number(iso.slice(0,4)))[iso] || null; }
+
 function toast(msg, bad){
   const t = $('toast');
   t.innerHTML = '<span class="icono">'+(bad?ICONS.alerta:ICONS.check)+'</span><span>'+esc(msg)+'</span>';
@@ -1295,7 +1499,16 @@ function esMotos(){ return !NEGOCIO || (NEGOCIO.plantilla||'motos') === 'motos';
 function modulosDe(neg){ return (neg && neg.modulos) || {}; }
 /* Menú según la plantilla del negocio activo — si no hay negocio todavía
    (pantallas de entrada), se muestra el menú completo de motos por defecto. */
+/* El Calendario es transversal: todo negocio lo tiene, sin importar la
+   plantilla, así que se agrega al final acá — un solo lugar — en vez
+   de repetirlo en cada rama de abajo. Va justo después del Tablero
+   porque es lo segundo más importante: "hoy" y "todo el mes". */
 function viewsPara(){
+  const v = viewsBase();
+  v.splice(1, 0, ['calendario','Calendario','Calend.']);
+  return v;
+}
+function viewsBase(){
   if(esMotos()){
     return [['tablero','Tablero','Inicio'],['pagos','Pagos','Pagos'],['gastos','Gastos','Gastos'],
             ['cuentas','Cuentas','Cuentas'],['conductores','Conductores','Cond.'],
@@ -1524,7 +1737,7 @@ let DEMO = false;
 const KEY = () => 'maog:flota:datos:' + (NEGOCIO ? NEGOCIO.id : 'x');
 
 function vacio(){ return { motos:[], conductores:[], pagos:[], gastos:[], productos:[], clientes:[],
-  cuentas:[], fijos:[], deudas:[], metas:[], prestamos:[], mercado:[], config:{} }; }
+  cuentas:[], fijos:[], deudas:[], metas:[], prestamos:[], mercado:[], notas:[], config:{} }; }
 
 async function nubeLeer(){
   const r = await api('/rest/v1/rpc/leer_datos_rpc', { method:'POST', body: JSON.stringify({ p_negocio_id: NEGOCIO.id }) });
@@ -1663,6 +1876,7 @@ function renderAll(){
   if(!S.metas) S.metas = [];
   if(!S.prestamos) S.prestamos = [];
   if(!S.mercado) S.mercado = [];
+  if(!S.notas) S.notas = [];
   aplicarColor();
   aplicarPlantillaUI();
   renderSelects(); renderKPIs(); renderAvisos(); renderCuentas(); renderPropietarios();
@@ -1670,7 +1884,7 @@ function renderAll(){
   renderPagos(); renderGastos(); renderMotos(); renderCond();
   renderProductos(); renderClientes(); renderResumenFlex();
   renderCuentasPersonales(); renderMetas(); renderFijos(); renderDeudas(); renderHoyPersonal();
-  renderBalancePareja(); renderPrestamos(); renderMercado();
+  renderBalancePareja(); renderPrestamos(); renderMercado(); renderCalendario();
   $('todayLabel').textContent = new Date().toLocaleDateString('es-CO',
     {weekday:'long', day:'numeric', month:'long'});
 }
@@ -2452,6 +2666,180 @@ function renderHoyPersonal(){
         <span class="cuando">${esc(it.cuando)}</span>
       </div>`).join('')}</div>` : '');
 }
+/* =========================================================
+   Calendario — el punto de encuentro entre festivos, lo que hay que
+   pagar, y lo que cada quien quiera anotar. Todo lo que trae fecha en
+   este negocio (S) aparece aquí, sin importar la plantilla:
+
+   - Motos: SOAT, tecnomecánica, licencia de conducción, fin del mes
+     de contrato de cada conductor activo.
+   - Cuentas personales/familia: pagos fijos (recurren cada mes en su
+     día), tarjetas de crédito y créditos con día de pago (aquí se
+     muestran TODOS los que tengan día, no solo los marcados
+     "Avisarme" — el Tablero avisa solo lo urgente, pero el calendario
+     es un lugar donde uno va a mirar, así que muestra todo), y las
+     metas con fecha límite.
+   - Cualquier plantilla: los festivos de Colombia, y las notas
+     propias que se agreguen día por día.
+
+   "Vencido" (mora) solo se marca así en cosas de fecha única (SOAT,
+   licencia, meta) o en pagos recurrentes SI el mes que se está
+   mirando es el mes real de hoy — en otro mes no hay forma honesta de
+   saber si ya se pagó o no, así que ahí solo se muestra como
+   recordatorio, sin alarmar. */
+function tierDeFecha(iso, aplicaMora){
+  const df = dayDiff(todayISO(), iso);
+  if(aplicaMora && df < 0) return 'mora';
+  if(df >= 0 && df <= 5) return 'due';
+  return 'neutral';
+}
+function diaDelMes(anio, mesIdx, dia){
+  const ultimo = new Date(anio, mesIdx+1, 0).getDate();
+  const d = Math.min(Math.max(1, dia||1), ultimo);
+  return `${anio}-${String(mesIdx+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+function compromisosDelMes(anio, mesIdx){
+  const mapa = {};
+  const add = (iso, item) => { if(!iso) return; (mapa[iso] = mapa[iso]||[]).push(item); };
+  const hoyD = new Date();
+  const esMesActual = anio === hoyD.getFullYear() && mesIdx === hoyD.getMonth();
+
+  if(esMotos()){
+    (S.motos||[]).forEach(m=>{
+      if(m.soat)  add(m.soat,  { tipo:'soat',  texto:`SOAT · ${m.placa}`,       tier: tierDeFecha(m.soat, true),  view:'vehiculos' });
+      if(m.tecno) add(m.tecno, { tipo:'tecno', texto:`Tecnomecánica · ${m.placa}`, tier: tierDeFecha(m.tecno, true), view:'vehiculos' });
+    });
+    (S.conductores||[]).filter(esActivo).forEach(c=>{
+      if(c.licVence) add(c.licVence, { tipo:'licencia', texto:`Licencia · ${c.nombre}`, tier: tierDeFecha(c.licVence, true), view:'conductores' });
+      if(c.inicio){
+        const fin = sumarDias(c.inicio, 29);
+        add(fin, { tipo:'contrato', texto:`Fin de mes · ${c.nombre}`, tier: tierDeFecha(fin, true), view:'conductores' });
+      }
+    });
+  } else if(esPersonal()){
+    (S.fijos||[]).forEach(f=>{
+      const iso = diaDelMes(anio, mesIdx, f.dia);
+      add(iso, { tipo:'fijo', texto:f.nombre, monto:f.monto, tier: tierDeFecha(iso, esMesActual), view:'fijos' });
+    });
+    (S.cuentas||[]).forEach(c=>{
+      if(c.tipo==='tarjeta_credito' && c.diaPago){
+        const iso = diaDelMes(anio, mesIdx, c.diaPago);
+        add(iso, { tipo:'tarjeta', texto:c.nombre, monto: saldoCuenta(c.id), tier: tierDeFecha(iso, esMesActual), view:'cuentas' });
+      }
+    });
+    (S.deudas||[]).forEach(d=>{
+      if(d.diaPago){
+        const iso = diaDelMes(anio, mesIdx, d.diaPago);
+        add(iso, { tipo:'credito', texto:d.nombre, monto:d.cuotaMensual, tier: tierDeFecha(iso, esMesActual), view:'fijos' });
+      }
+    });
+    (S.metas||[]).forEach(m=>{
+      if(m.fecha) add(m.fecha, { tipo:'meta', texto:`Meta: ${m.nombre}`, tier:'meta', view:'cuentas' });
+    });
+  }
+  (S.notas||[]).forEach(n=>{
+    add(n.fecha, { tipo:'nota', texto:n.texto, tier:'nota', id:n.id });
+  });
+  return mapa;
+}
+/* Estado de qué mes se está mirando en el Calendario y qué día está
+   seleccionado — vive fuera de S porque es solo de navegación en
+   pantalla, no un dato que haya que guardar en la nube. Arranca
+   siempre en el mes y el día de hoy. */
+let CAL_ANIO = new Date().getFullYear();
+let CAL_MES = new Date().getMonth();
+let CAL_DIA_SEL = todayISO();
+const MESES_NOMBRE = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DOW_NOMBRE = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+const NOM_TIER_CAL = { mora:'Vencido', due:'Próximo', neutral:'Recordatorio', meta:'Meta' };
+function calCambiarMes(delta){
+  CAL_MES += delta;
+  if(CAL_MES < 0){ CAL_MES = 11; CAL_ANIO--; }
+  if(CAL_MES > 11){ CAL_MES = 0; CAL_ANIO++; }
+  renderCalendario();
+}
+function calIrHoy(){
+  const hoy = new Date();
+  CAL_ANIO = hoy.getFullYear(); CAL_MES = hoy.getMonth(); CAL_DIA_SEL = todayISO();
+  renderCalendario();
+}
+/* El calendario grande: una grilla del mes (empieza en lunes, como se
+   usa en Colombia) con los festivos y compromisos encima de cada día,
+   y abajo el detalle del día que se tenga seleccionado, con sus notas. */
+function renderCalendario(){
+  const grid = $('calGrid'); if(!grid) return;
+  const titulo = $('calTitulo');
+  const nombreMes = MESES_NOMBRE[CAL_MES];
+  if(titulo) titulo.textContent = `${nombreMes[0].toUpperCase()}${nombreMes.slice(1)} ${CAL_ANIO}`;
+
+  const compromisos = compromisosDelMes(CAL_ANIO, CAL_MES);
+  const festivos = festivosDelAnio(CAL_ANIO);
+  const hoy = todayISO();
+
+  const primerDiaSemana = (new Date(CAL_ANIO, CAL_MES, 1).getDay() + 6) % 7; // 0 = lunes
+  const totalDias = new Date(CAL_ANIO, CAL_MES+1, 0).getDate();
+  const diasMesAnterior = new Date(CAL_ANIO, CAL_MES, 0).getDate();
+
+  const celdas = [];
+  for(let i=primerDiaSemana; i>0; i--) celdas.push({ dia: diasMesAnterior - i + 1, fuera:true });
+  for(let d=1; d<=totalDias; d++) celdas.push({ dia:d, fuera:false, iso: diaDelMes(CAL_ANIO, CAL_MES, d) });
+  let sig = 1;
+  while(celdas.length % 7 !== 0) celdas.push({ dia: sig++, fuera:true });
+
+  grid.innerHTML = celdas.map(c=>{
+    if(c.fuera) return `<div class="cal-day out"><span class="cal-num">${c.dia}</span></div>`;
+    const iso = c.iso;
+    const todos = compromisos[iso] || [];
+    const items = todos.filter(it=>it.tipo!=='nota');
+    const hayNota = todos.some(it=>it.tipo==='nota');
+    const fest = festivos[iso];
+    const mostrar = items.slice(0,2);
+    const resto = items.length - mostrar.length;
+    return `<button type="button" class="cal-day${iso===hoy?' hoy':''}${iso===CAL_DIA_SEL?' sel':''}${fest?' festivo':''}" data-cal-dia="${iso}">
+      <span class="cal-top"><span class="cal-num">${c.dia}</span>${hayNota?'<span class="cal-nota-dot" title="Tiene una nota"></span>':''}</span>
+      ${fest?`<span class="cal-festivo-tag">${esc(fest)}</span>`:''}
+      ${items.length?`<span class="cal-chips">
+        ${mostrar.map(it=>`<span class="cal-chip ${it.tier}">${esc(it.texto)}</span>`).join('')}
+        ${resto>0?`<span class="cal-more">+${resto} más</span>`:''}
+      </span>`:''}
+    </button>`;
+  }).join('');
+
+  renderCalDia(CAL_DIA_SEL);
+}
+function renderCalDia(iso){
+  const box = $('calSide'); if(!box) return;
+  CAL_DIA_SEL = iso;
+  const [y,m,d] = iso.split('-').map(Number);
+  const fecha = new Date(y, m-1, d);
+  const todos = (compromisosDelMes(y, m-1)[iso]) || [];
+  const items = todos.filter(it=>it.tipo!=='nota');
+  const notas = todos.filter(it=>it.tipo==='nota');
+  const fest = festivoDe(iso);
+  const esHoy = iso === todayISO();
+
+  const filaItem = it => `<div class="cal-item ${it.tier}"${it.view?` data-cal-ir="${it.view}"`:''}>
+      <span class="cal-item-tag ${it.tier}">${esc(NOM_TIER_CAL[it.tier]||'')}</span>
+      <span class="cal-item-tx">${esc(it.texto)}</span>
+      ${it.monto!=null?`<span class="cal-item-monto">${money(it.monto)}</span>`:''}
+    </div>`;
+
+  box.innerHTML = `
+    <div class="cal-dia-cab">
+      <div class="cal-dia-dow">${DOW_NOMBRE[(fecha.getDay()+6)%7]}${esHoy?' <span class="cal-hoy-tag">· hoy</span>':''}</div>
+      <div class="cal-dia-num">${d} de ${MESES_NOMBRE[m-1]}</div>
+    </div>
+    ${fest ? `<div class="cal-dia-festivo"><span class="icono">${ICONS.calendario}</span> ${esc(fest)}</div>` : ''}
+    ${items.length ? `<div class="cal-dia-lista">${items.map(filaItem).join('')}</div>`
+      : `<p class="cal-dia-vacio">Sin pagos ni compromisos este día.</p>`}
+    <div class="cal-notas">
+      <h3>Notas</h3>
+      ${notas.length ? notas.map(n=>`<div class="cal-nota-row"><span>${esc(n.texto)}</span><button class="rowdel" data-del-nota="${n.id}" aria-label="Borrar nota"><span class="icono">${ICONS.trash}</span></button></div>`).join('')
+        : `<p class="cal-dia-vacio sm">Sin notas todavía.</p>`}
+      <textarea id="calNotaTexto" placeholder="Escriba aquí lo que quiera recordar de este día…" rows="2"></textarea>
+      <button class="btn ghost sm" data-cal-guardar-nota="${iso}"><span class="icono">${ICONS.plus}</span> Agregar nota</button>
+    </div>`;
+}
 /* Resumen simple del Tablero para negocios que no son de motos — ingresos,
    gastos y utilidad del mes en curso, más un vistazo a inventario/clientes
    si esos módulos están activos. */
@@ -2625,6 +3013,9 @@ $('salirBtn').addEventListener('click', salirDeLaApp);
 $('salirBtnAjustes').addEventListener('click', salirDeLaApp);
 $('refrescar').addEventListener('click', ()=>refrescar(true));
 $('refrescarM').addEventListener('click', ()=>refrescar(true));
+$('calPrev').addEventListener('click', ()=>calCambiarMes(-1));
+$('calNext').addEventListener('click', ()=>calCambiarMes(1));
+$('calHoy').addEventListener('click', calIrHoy);
 $('verCodigoBtn').addEventListener('click', async ()=>{
   if(DEMO){
     $('codigoBox').innerHTML = `
@@ -2986,7 +3377,7 @@ document.addEventListener('click', async e=>{
      SVG adentro, y un clic que caiga sobre el ícono reporta el <svg>
      como e.target, no el <button> con el data-* — sin esto, tocar el
      ícono (en vez del texto) no hacía nada. */
-  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-del-negocio],[data-color],[data-del-prestamo],[data-marcar-prestamo],[data-del-mercado],[data-toggle-mercado]');
+  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-del-negocio],[data-color],[data-del-prestamo],[data-marcar-prestamo],[data-del-mercado],[data-toggle-mercado],[data-cal-dia],[data-cal-ir],[data-del-nota],[data-cal-guardar-nota]');
   if(!t) return;
   if(t.dataset.irNegocio) return cambiarNegocio(t.dataset.irNegocio);
   if(t.dataset.delNegocio) return eliminarNegocioFlow(t.dataset.delNegocio, t.dataset.nombreNegocio);
@@ -3088,6 +3479,25 @@ document.addEventListener('click', async e=>{
   if(t.dataset.toggleMercado){
     const m = S.mercado.find(x=>x.id===t.dataset.toggleMercado);
     if(m){ m.comprado = !m.comprado; await save(); renderAll(); }
+    return;
+  }
+  if(t.dataset.calDia){
+    CAL_DIA_SEL = t.dataset.calDia;
+    renderCalendario();
+    return;
+  }
+  if(t.dataset.calIr){
+    return go(t.dataset.calIr);
+  }
+  if(t.dataset.delNota){
+    return rm('notas', t.dataset.delNota, 'Nota borrada');
+  }
+  if(t.dataset.calGuardarNota){
+    const texto = $('calNotaTexto').value.trim();
+    if(!texto) return toast('Escriba algo para poder guardarlo.', true);
+    S.notas.push({ id:uid(), fecha:t.dataset.calGuardarNota, texto, creadoPor:quien() });
+    await save(); renderAll();
+    toast('Nota agregada');
     return;
   }
 });
