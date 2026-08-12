@@ -60,6 +60,7 @@ hr{border:0;border-top:1px solid var(--linea);margin:18px 0}
   display:flex;flex-direction:column;background:var(--hueso);overflow-y:auto;
 }
 .brand{padding:0 16px 22px;display:flex;align-items:center;gap:12px}
+.avatar-slot{flex:0 0 auto}
 .icono{display:inline-flex;flex:0 0 auto}
 .icono svg{width:100%;height:100%;display:block}
 .seal-mark{font-family:var(--disp);font-weight:700;letter-spacing:-.02em;display:inline-flex;align-items:baseline;line-height:1}
@@ -383,6 +384,31 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .dialog h4{font-weight:700;font-size:20px;margin:0 0 6px;letter-spacing:-.01em}
 .dialog p{margin:0 0 18px;font-size:13.5px;color:var(--gris);line-height:1.5}
 .dialog .acts{display:flex;gap:9px}
+.dialog.ancho{max-width:440px}
+.dialog.ancho .acts{margin-top:20px}
+
+/* Botón flotante "Gasto rápido" — solo vive en el Tablero (es hijo de
+   esa vista, así que desaparece con ella) para que anotar un gasto en
+   el momento no dependa de navegar a otra parte. */
+.fab-gasto{
+  position:fixed;right:28px;bottom:32px;z-index:45;
+  display:flex;align-items:center;gap:9px;border:0;cursor:pointer;
+  background:var(--acento);color:#fff;border-radius:999px;
+  padding:15px 22px 15px 18px;font-family:var(--disp);font-weight:600;font-size:14.5px;
+  box-shadow:var(--sombra-lg);transition:transform .12s,box-shadow .12s
+}
+.fab-gasto .icono{width:19px;height:19px;flex:0 0 19px}
+.fab-gasto:hover{transform:translateY(-2px)}
+.fab-gasto:active{transform:scale(.95)}
+@media(prefers-reduced-motion:reduce){.fab-gasto:hover,.fab-gasto:active{transform:none}}
+@media(max-width:720px){
+  .fab-gasto{
+    right:18px;bottom:calc(78px + env(safe-area-inset-bottom));
+    padding:15px;border-radius:50%
+  }
+  .fab-gasto .fab-tx{display:none}
+  .fab-gasto .icono{width:22px;height:22px}
+}
 
 /* ---------- vista del contrato ---------- */
 #docScrim{align-items:flex-start;overflow-y:auto;padding:0}
@@ -483,6 +509,17 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .swatch.sel{box-shadow:0 0 0 2px var(--hueso),0 0 0 3px var(--sw),0 0 0 5px var(--hueso),0 0 0 6px var(--sw)}
 .swatch.sel span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;text-shadow:0 1px 2px rgba(0,0,0,.4)}
 .swatch.sel span::after{content:'✓'}
+.avatar-swatch{display:flex;align-items:center;justify-content:center;color:#fff}
+.avatar-swatch svg{width:19px;height:19px}
+/* El avatar en la esquina, junto al nombre — mismo formato circular que
+   el sello de MA|OG, pero con el color y el ícono que cada quien eligió. */
+.avatar-ic{
+  width:30px;height:30px;border-radius:50%;flex:0 0 30px;background:var(--av);
+  color:#fff;display:flex;align-items:center;justify-content:center
+}
+.avatar-ic svg{width:16px;height:16px}
+.avatar-ic.sm{width:25px;height:25px;flex:0 0 25px}
+.avatar-ic.sm svg{width:13px;height:13px}
 .choice.sm{padding:13px 12px}
 .choice.sm .ic{width:19px;height:19px;margin-bottom:7px}
 .choice.sm b{font-size:13.5px}
@@ -562,53 +599,49 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
    relleno visual) y el detalle completo de cada día vive en el
    panel de al lado, para que las celdas se mantengan limpias a
    cualquier tamaño de pantalla. */
-.cal-wrap{display:flex;gap:24px;align-items:flex-start}
-.cal-main{flex:1 1 640px;min-width:0}
+.cal-wrap{display:flex;gap:22px;align-items:flex-start}
+.cal-main{flex:1 1 auto;min-width:0}
 .cal-side{
-  flex:0 0 320px;border:1px solid var(--linea);border-radius:var(--r);background:var(--hueso);
+  flex:0 0 280px;border:1px solid var(--linea);border-radius:var(--r);background:var(--hueso);
   padding:22px;box-shadow:var(--sombra-sm)
 }
-.cal-nav{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.cal-nav{display:flex;align-items:center;gap:8px;margin-bottom:16px}
 .cal-titulo{
-  flex:1;text-align:center;font-family:var(--disp);font-weight:600;font-size:21px;
+  flex:1;text-align:center;font-family:var(--disp);font-weight:600;font-size:26px;
   letter-spacing:-.005em;text-transform:capitalize
 }
 .cal-dow-row{
-  display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;
-  font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px;
+  font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   color:var(--gris);text-align:center
 }
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
 .cal-day{
-  min-height:112px;border:1px solid var(--linea);border-radius:var(--r-sm);background:var(--hueso);
-  padding:8px;display:flex;flex-direction:column;gap:4px;align-items:stretch;text-align:left;
+  min-height:140px;border:1px solid var(--linea);border-radius:var(--r-sm);background:var(--hueso);
+  padding:10px;display:flex;flex-direction:column;gap:6px;align-items:stretch;text-align:left;
   cursor:pointer;transition:border-color .14s,box-shadow .14s,transform .08s;overflow:hidden
 }
 .cal-day:hover{border-color:var(--acento);box-shadow:var(--sombra-sm)}
 .cal-day:active{transform:scale(.98)}
 @media(prefers-reduced-motion:reduce){.cal-day:active{transform:none}}
 .cal-day.out{
-  min-height:112px;border:1px solid transparent;background:none;color:var(--gris);
-  padding:8px;opacity:.35;display:flex;align-items:flex-start
+  min-height:140px;border:1px solid transparent;background:none;color:var(--gris);
+  padding:10px;opacity:.35;display:flex;align-items:flex-start
 }
 .cal-day.festivo{background:var(--festivo-suave)}
 .cal-day.sel{box-shadow:0 0 0 2px var(--hueso),0 0 0 3px var(--acento)}
 .cal-day.hoy{border-color:var(--acento)}
 .cal-top{display:flex;align-items:center;justify-content:space-between}
-.cal-num{font-family:var(--mono);font-weight:600;font-size:12.5px;color:var(--gris2)}
+.cal-num{font-family:var(--mono);font-weight:600;font-size:13.5px;color:var(--gris2)}
 .cal-day.out .cal-num{color:var(--gris)}
 .cal-day.hoy .cal-num{
-  background:var(--acento);color:#fff;border-radius:50%;width:20px;height:20px;
-  display:flex;align-items:center;justify-content:center;font-size:11px
+  background:var(--acento);color:#fff;border-radius:50%;width:22px;height:22px;
+  display:flex;align-items:center;justify-content:center;font-size:11.5px
 }
-.cal-nota-dot{width:6px;height:6px;border-radius:50%;background:var(--acento-ink);flex:0 0 6px}
-.cal-festivo-tag{
-  font-size:10px;font-weight:700;color:var(--festivo);white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis;max-width:100%
-}
-.cal-chips{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cal-nota-dot{width:7px;height:7px;border-radius:50%;background:var(--acento-ink);flex:0 0 7px}
+.cal-chips{display:flex;flex-direction:column;gap:3px;min-width:0}
 .cal-chip{
-  font-size:10px;font-weight:600;padding:2px 5px;border-radius:5px;white-space:nowrap;
+  font-size:10.5px;font-weight:600;padding:3px 6px;border-radius:5px;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;max-width:100%
 }
 .cal-chip.mora{background:var(--rojo-suave);color:var(--rojo)}
@@ -665,13 +698,12 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
   .cal-side{flex:1 1 auto;width:100%}
 }
 @media(max-width:720px){
-  .cal-titulo{font-size:16px}
+  .cal-titulo{font-size:18px}
   .cal-dow-row{font-size:9px}
-  .cal-day,.cal-day.out{min-height:62px;padding:5px;gap:2px}
+  .cal-day,.cal-day.out{min-height:72px;padding:6px;gap:3px}
   .cal-num{font-size:11px}
-  .cal-day.hoy .cal-num{width:17px;height:17px;font-size:9.5px}
-  .cal-festivo-tag{font-size:8.5px}
-  .cal-chip{font-size:8.5px;padding:1px 4px}
+  .cal-day.hoy .cal-num{width:18px;height:18px;font-size:9.5px}
+  .cal-chip{font-size:8.5px;padding:2px 4px}
   .cal-more{font-size:8.5px}
   .cal-leyenda{font-size:10.5px;gap:6px 12px}
 }
@@ -691,6 +723,8 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
   .topbar .brand{padding:0;flex:1 1 auto;min-width:0;overflow:hidden}
   .topbar .brand .mark{font-size:17px}
   .topbar .brand .sub{font-size:10px}
+  .topbar .avatar-ic{width:26px;height:26px;flex:0 0 26px}
+  .topbar .avatar-ic svg{width:14px;height:14px}
   .topbar .acts{display:flex;gap:4px;flex:0 0 auto}
   .icon-btn{
     background:none;border:0;color:var(--gris2);font-size:21px;width:42px;height:42px;
@@ -743,6 +777,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 <div class="shell" id="appShell" hidden>
   <aside class="rail">
     <div class="brand">
+      <span class="avatar-slot"></span>
       <span class="tx">
         <span class="mark cuenta-label"></span>
         <span class="sub neg-label">Control de flota</span>
@@ -762,6 +797,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 
   <header class="topbar">
     <span class="brand">
+      <span class="avatar-slot"></span>
       <span class="tx">
         <span class="mark cuenta-label"></span>
         <span class="sub neg-label">Control de flota</span>
@@ -832,6 +868,11 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <div id="clientesRecientes"></div>
         </div>
       </div>
+
+      <button type="button" class="fab-gasto" id="fabGasto" aria-label="Anotar un gasto rápido">
+        <span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        <span class="fab-tx">Gasto rápido</span>
+      </button>
     </section>
 
     <!-- ============ PAGOS ============ -->
@@ -905,6 +946,45 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       <div class="head">
         <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v16.5l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3V3z"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4"/></svg></span><span id="gastosTitulo">Gastos</span></h1><p id="gastosSub">Lo que sale. Marque si lo asume el negocio o si se le cobra al conductor.</p></div>
       </div>
+
+      <div id="compromisosBox" class="hidden">
+        <div class="section form" id="fijosBox">
+          <h2 style="margin-bottom:8px">Pagos fijos del mes</h2>
+          <p class="sub">Arriendo, servicios, suscripciones — lo que casi siempre es el mismo valor, cada mes. Al marcar uno pagado, queda registrado abajo en el libro, como cualquier otro gasto.</p>
+          <div class="fgrid">
+            <div class="f"><label for="fjNombre">Nombre</label><input id="fjNombre" placeholder="Arriendo"></div>
+            <div class="f"><label for="fjMonto">Valor</label><input id="fjMonto" inputmode="numeric" placeholder="$0"></div>
+            <div class="f"><label for="fjDia">Día del mes</label><input id="fjDia" inputmode="numeric" placeholder="1 a 31"></div>
+            <div class="f"><label for="fjCuenta">¿De qué cuenta sale? (opcional)</label><select id="fjCuenta"></select></div>
+          </div>
+          <div class="acts"><button class="btn" id="fjSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar pago fijo</button></div>
+          <div id="fijosList" style="margin-top:14px"></div>
+        </div>
+
+        <div class="section form" id="deudasBox">
+          <h2 style="margin-bottom:8px">Créditos y préstamos</h2>
+          <p class="sub">Cualquier crédito con cuotas fijas — de libre inversión, un banco, un fiado con alguien — no solo préstamos. Al abonar una cuota, también queda registrada abajo en el libro.</p>
+          <div class="fgrid">
+            <div class="f"><label for="dbNombre">Nombre</label><input id="dbNombre" placeholder="Ej. Crédito de libre inversión"></div>
+            <div class="f"><label for="dbEntidad">Entidad (opcional)</label><input id="dbEntidad" placeholder="Ej. Banco de Bogotá"></div>
+            <div class="f"><label for="dbSaldo">Saldo actual</label><input id="dbSaldo" inputmode="numeric" placeholder="$0"></div>
+            <div class="f"><label for="dbCuota">Cuota mensual</label><input id="dbCuota" inputmode="numeric" placeholder="$0"></div>
+            <div class="f"><label for="dbCuotasTotal">Cuotas totales</label><input id="dbCuotasTotal" inputmode="numeric" placeholder="0"></div>
+            <div class="f"><label for="dbCuotasPagadas">Cuotas ya pagadas</label><input id="dbCuotasPagadas" inputmode="numeric" placeholder="0"></div>
+            <div class="f"><label for="dbDia">Día de pago (opcional)</label><input id="dbDia" inputmode="numeric" placeholder="1 a 31"></div>
+            <div class="f"><label for="dbCuenta">¿De qué cuenta sale? (opcional)</label><select id="dbCuenta"></select></div>
+            <div class="f" style="align-self:end;padding-bottom:9px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13px">
+                <input type="checkbox" id="dbRecordatorio" style="width:17px;height:17px;accent-color:var(--acento)">
+                Avisarme (Tablero y correo)
+              </label>
+            </div>
+          </div>
+          <div class="acts"><button class="btn" id="dbSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar crédito</button></div>
+          <div class="grid2" id="deudasList" style="margin-top:14px"></div>
+        </div>
+      </div>
+
       <div class="form">
         <div class="fgrid">
           <div class="f"><label for="gFecha">Fecha</label><input type="date" id="gFecha"></div>
@@ -971,6 +1051,19 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <h2 style="margin-bottom:8px">Balance entre ustedes</h2>
           <p class="sub">Sumando los gastos que marcaron como repartidos y los préstamos entre los dos.</p>
           <div id="balancePareja"></div>
+        </div>
+
+        <div class="section form hidden" id="prestamosBox">
+          <h2 style="margin-bottom:8px">Préstamos entre ustedes</h2>
+          <p class="sub">Plata que se prestaron entre los dos — sin banco de por medio. No es lo mismo que un gasto repartido.</p>
+          <div class="fgrid">
+            <div class="f"><label for="prDe">¿Quién prestó?</label><select id="prDe"></select></div>
+            <div class="f"><label for="prPara">¿A quién?</label><select id="prPara"></select></div>
+            <div class="f"><label for="prMonto">Valor</label><input id="prMonto" inputmode="numeric" placeholder="$0"></div>
+            <div class="f"><label for="prMotivo">Motivo (opcional)</label><input id="prMotivo" placeholder="Ej. mercado del mes"></div>
+          </div>
+          <div class="acts"><button class="btn" id="prPrestamoSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Registrar préstamo</button></div>
+          <div id="prestamosList" style="margin-top:14px"></div>
         </div>
 
         <div class="section form" id="metasBox">
@@ -1138,59 +1231,6 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     </section>
 
     <!-- ============ PAGOS FIJOS (cuentas personales) ============ -->
-    <section class="view" id="v-fijos">
-      <div class="head">
-        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 9.7h16M8 3.5v3.4M16 3.5v3.4"/></svg></span>Pagos fijos</h1><p>Lo que se repite cada mes, y lo que le debes a alguien más.</p></div>
-      </div>
-
-      <div class="section form" id="fijosBox">
-        <h2 style="margin-bottom:8px">Pagos fijos del mes</h2>
-        <p class="sub">Arriendo, servicios, suscripciones — lo que casi siempre es el mismo valor, cada mes.</p>
-        <div class="fgrid">
-          <div class="f"><label for="fjNombre">Nombre</label><input id="fjNombre" placeholder="Arriendo"></div>
-          <div class="f"><label for="fjMonto">Valor</label><input id="fjMonto" inputmode="numeric" placeholder="$0"></div>
-          <div class="f"><label for="fjDia">Día del mes</label><input id="fjDia" inputmode="numeric" placeholder="1 a 31"></div>
-        </div>
-        <div class="acts"><button class="btn" id="fjSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar pago fijo</button></div>
-        <div id="fijosList" style="margin-top:14px"></div>
-      </div>
-
-      <div class="section form" id="deudasBox">
-        <h2 style="margin-bottom:8px">Créditos y préstamos</h2>
-        <p class="sub">Cualquier crédito con cuotas fijas — de libre inversión, un banco, un fiado con alguien — no solo préstamos.</p>
-        <div class="fgrid">
-          <div class="f"><label for="dbNombre">Nombre</label><input id="dbNombre" placeholder="Ej. Crédito de libre inversión"></div>
-          <div class="f"><label for="dbEntidad">Entidad (opcional)</label><input id="dbEntidad" placeholder="Ej. Banco de Bogotá"></div>
-          <div class="f"><label for="dbSaldo">Saldo actual</label><input id="dbSaldo" inputmode="numeric" placeholder="$0"></div>
-          <div class="f"><label for="dbCuota">Cuota mensual</label><input id="dbCuota" inputmode="numeric" placeholder="$0"></div>
-          <div class="f"><label for="dbCuotasTotal">Cuotas totales</label><input id="dbCuotasTotal" inputmode="numeric" placeholder="0"></div>
-          <div class="f"><label for="dbCuotasPagadas">Cuotas ya pagadas</label><input id="dbCuotasPagadas" inputmode="numeric" placeholder="0"></div>
-          <div class="f"><label for="dbDia">Día de pago (opcional)</label><input id="dbDia" inputmode="numeric" placeholder="1 a 31"></div>
-          <div class="f" style="align-self:end;padding-bottom:9px">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13px">
-              <input type="checkbox" id="dbRecordatorio" style="width:17px;height:17px;accent-color:var(--acento)">
-              Avisarme (Tablero y correo)
-            </label>
-          </div>
-        </div>
-        <div class="acts"><button class="btn" id="dbSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar crédito</button></div>
-        <div class="grid2" id="deudasList" style="margin-top:14px"></div>
-      </div>
-
-      <div class="section form hidden" id="prestamosBox">
-        <h2 style="margin-bottom:8px">Préstamos entre ustedes</h2>
-        <p class="sub">Plata que se prestaron entre los dos — sin banco de por medio. No es lo mismo que un gasto repartido.</p>
-        <div class="fgrid">
-          <div class="f"><label for="prDe">¿Quién prestó?</label><select id="prDe"></select></div>
-          <div class="f"><label for="prPara">¿A quién?</label><select id="prPara"></select></div>
-          <div class="f"><label for="prMonto">Valor</label><input id="prMonto" inputmode="numeric" placeholder="$0"></div>
-          <div class="f"><label for="prMotivo">Motivo (opcional)</label><input id="prMotivo" placeholder="Ej. mercado del mes"></div>
-        </div>
-        <div class="acts"><button class="btn" id="prPrestamoSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Registrar préstamo</button></div>
-        <div id="prestamosList" style="margin-top:14px"></div>
-      </div>
-    </section>
-
     <!-- ============ MERCADO (Cuentas familia) ============ -->
     <section class="view" id="v-mercado">
       <div class="head">
@@ -1269,6 +1309,12 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <div class="f"><label for="ig2">Integrante 2</label><input id="ig2" placeholder="Nombre de tu pareja"></div>
         </div>
         <div class="acts"><button class="btn" id="igSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="15" height="16" rx="2"/><path d="M8 4v5h7V4"/><path d="M7.5 20v-6h9v6"/></svg></span> Guardar</button></div>
+      </div>
+
+      <div class="section form" id="avatarBox">
+        <h2 style="margin-bottom:8px">Tu foto de perfil</h2>
+        <p class="sub">Un ícono para diferenciarte de un vistazo cuando comparten un proyecto — se ve en la esquina de arriba y en "Quiénes tienen acceso". Es tuyo: te acompaña sin importar a qué proyecto entres.</p>
+        <div id="avatarPicker"></div>
       </div>
 
       <div class="section form" id="aparienciaBox">
@@ -1360,6 +1406,22 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
   </div>
 </div>
 
+<div class="scrim" id="gastoRapidoScrim">
+  <div class="dialog ancho" id="gastoRapidoDialog">
+    <h4>Anotar un gasto</h4>
+    <p class="sub" style="margin:0 0 16px">Lo justo para que quede registrado ya mismo — los demás detalles se pueden completar después.</p>
+    <div class="fgrid">
+      <div class="f"><label for="grValor">¿Cuánto fue?</label><input id="grValor" inputmode="numeric" placeholder="$0" autocomplete="off"></div>
+      <div class="f"><label for="grCat">Categoría</label><select id="grCat"></select></div>
+      <div class="f"><label for="grDesc">¿En qué? (opcional)</label><input id="grDesc" placeholder="Almuerzo, gasolina…" autocomplete="off"></div>
+    </div>
+    <div class="acts">
+      <button class="btn" id="grGuardar"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Guardar gasto</button>
+      <button class="btn ghost" id="grCancelar">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* =========================================================
    Utilidades
@@ -1443,6 +1505,41 @@ function confirmar(titulo, texto){
 }
 $('scrim').addEventListener('click', e=>{ if(e.target===$('scrim')) $('scrim').classList.remove('on'); });
 
+/* Gasto rápido desde el Tablero — el botón flotante que se ve en la
+   página de inicio. A propósito son solo 3 campos (valor, categoría,
+   qué fue) para que anotar algo en el momento no se sienta como
+   llenar un formulario — todo lo demás (moto, cuenta, quién lo puso)
+   se puede completar después editando desde "Lo que sale" si hace
+   falta. Guarda como un gasto normal, así que aparece igual de
+   completo en el libro y en los totales. */
+function categoriasParaGastoRapido(){ return esMotos() ? CATS : (esPersonal() ? CATS_PERSONAL : CATS_FLEX); }
+function abrirGastoRapido(){
+  if(!ready || !S) return;
+  const cat = $('grCat');
+  cat.innerHTML = categoriasParaGastoRapido().map(c=>`<option>${esc(c)}</option>`).join('');
+  $('grValor').value = ''; $('grDesc').value = '';
+  $('gastoRapidoScrim').classList.add('on');
+  setTimeout(()=>$('grValor').focus(), 50);
+}
+function cerrarGastoRapido(){ $('gastoRapidoScrim').classList.remove('on'); }
+async function guardarGastoRapido(){
+  const valor = num($('grValor').value);
+  if(!valor) return toast('Escriba cuánto fue.', true);
+  S.gastos.push({ id:uid(), fecha:todayISO(), cat:$('grCat').value, desc:$('grDesc').value.trim(),
+    valor, cargo:'Empresa', motoId:null, cuentaId:null, pagadoPor:'', reparto:'',
+    recuperado:false, creadoPor:quien() });
+  await save(); renderAll();
+  cerrarGastoRapido();
+  toast('Gasto agregado');
+}
+$('fabGasto').addEventListener('click', abrirGastoRapido);
+$('grCancelar').addEventListener('click', cerrarGastoRapido);
+$('grGuardar').addEventListener('click', guardarGastoRapido);
+$('gastoRapidoScrim').addEventListener('click', e=>{ if(e.target===$('gastoRapidoScrim')) cerrarGastoRapido(); });
+['grValor','grDesc'].forEach(id=>{
+  $(id).addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); guardarGastoRapido(); } });
+});
+
 /* =========================================================
    Color por proyecto — 8 acentos para diferenciar de un vistazo en
    qué negocio se está (ej. Motos en naranja, Cuentas María en verde).
@@ -1473,6 +1570,30 @@ function renderColorPicker(){
   const actual = (S && S.config && S.config.color) || 'naranja';
   box.innerHTML = Object.entries(PALETAS_COLOR).map(([key,p])=>
     `<button type="button" class="swatch${key===actual?' sel':''}" data-color="${key}" title="${esc(p.nombre)}" style="--sw:${p.muestra}"><span></span></button>`
+  ).join('');
+}
+
+/* Foto de perfil — 5 avatares genéricos (no fotos reales, para no
+   necesitar subir ni guardar imágenes en ningún lado) para diferenciar
+   de un vistazo quién es quién cuando dos personas comparten un
+   negocio. Es de la CUENTA (vive en profiles.avatar), no del negocio —
+   el mismo avatar se ve sin importar a qué proyecto se entre. */
+const AVATARES = {
+  sol:      { nombre:'Sol',      color:'#DD4B22', icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 3.5v2.3M12 18.2v2.3M3.5 12h2.3M18.2 12h2.3M6.3 6.3l1.6 1.6M16.1 16.1l1.6 1.6M6.3 17.7l1.6-1.6M16.1 7.9l1.6-1.6"/></svg>' },
+  luna:     { nombre:'Luna',     color:'#2C5F9E', icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18.8 14.7A8 8 0 1 1 9.7 3.6a6.4 6.4 0 0 0 9.1 11.1Z"/></svg>' },
+  hoja:     { nombre:'Hoja',     color:'#2C8256', icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18.5C3.8 11 8 4.5 18.5 4.5c0 10.5-6.5 15-12.5 14Z"/><path d="M6.5 18 15.5 9"/></svg>' },
+  ola:      { nombre:'Ola',      color:'#6B4C9A', icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.8c1.7-1.7 3.5-1.7 5.2 0s3.5 1.7 5.2 0 3.5-1.7 5.2 0"/><path d="M3 15.5c1.7-1.7 3.5-1.7 5.2 0s3.5 1.7 5.2 0 3.5-1.7 5.2 0"/></svg>' },
+  estrella: { nombre:'Estrella', color:'#C24476', icono:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.3l2.7 5.9 6.4.6-4.9 4.3 1.4 6.3L12 17.1l-5.6 3.3 1.4-6.3-4.9-4.3 6.4-.6Z"/></svg>' },
+};
+function avatarHTML(key, extraClass){
+  const a = AVATARES[key] || AVATARES.sol;
+  return `<span class="avatar-ic${extraClass?' '+extraClass:''}" style="--av:${a.color}" title="${esc(a.nombre)}">${a.icono}</span>`;
+}
+function renderAvatarPicker(){
+  const box = $('avatarPicker'); if(!box) return;
+  const actual = SESION.avatar || 'sol';
+  box.innerHTML = Object.entries(AVATARES).map(([key,a])=>
+    `<button type="button" class="swatch avatar-swatch${key===actual?' sel':''}" data-avatar="${key}" title="${esc(a.nombre)}" style="--sw:${a.color}">${a.icono}</button>`
   ).join('');
 }
 
@@ -1517,7 +1638,7 @@ function viewsBase(){
   const mods = modulosDe(NEGOCIO);
   if(mods.tipo === 'personal' || mods.tipo === 'familia'){
     const v = [['tablero','Tablero','Inicio'],['pagos','Lo que entra','Entra'],['gastos','Lo que sale','Sale'],
-            ['cuentas','Mi plata','Mi plata'],['fijos','Pagos fijos','Fijos']];
+            ['cuentas','Mi plata','Mi plata']];
     if(mods.tipo === 'familia') v.push(['mercado','Mercado','Mercado']);
     return v;
   }
@@ -1575,7 +1696,7 @@ const ICONS = {
    Al entrar, se carga el negocio (o los negocios) a los que pertenece.
    ========================================================= */
 const SKEY = 'maog:flota:sesion';
-let SESION = { url:'', key:'', token:'', refresh:'', usuarioId:'', correo:'', nombre:'', ultimoNegocioId:'' };
+let SESION = { url:'', key:'', token:'', refresh:'', usuarioId:'', correo:'', nombre:'', avatar:'sol', ultimoNegocioId:'' };
 let MIS_NEGOCIOS = [], NEGOCIO = null;
 
 function cargarSesion(){ try{ const s = localStorage.getItem(SKEY); if(s) SESION = Object.assign(SESION, JSON.parse(s)); }catch(e){} }
@@ -1688,6 +1809,25 @@ async function cargarMisNegocios(){
   }));
   return MIS_NEGOCIOS;
 }
+/* Trae el avatar guardado (y de paso el nombre/correo, aunque esos ya se
+   tenían del login) — se llama una sola vez al entrar. Si la migración
+   0006 todavía no se ha corrido en el proyecto de Supabase de quien usa
+   esto, la función no existe todavía y este llamado falla — eso está
+   bien, no debe tumbar la entrada a la app; simplemente se sigue con el
+   avatar por defecto hasta que se actualice. */
+async function cargarMiPerfil(){
+  if(DEMO){ if(!SESION.avatar) SESION.avatar = 'sol'; return; }
+  try{
+    const r = await api('/rest/v1/rpc/mi_perfil_rpc', { method:'POST', body: '{}' });
+    const rows = await chk(r);
+    const perfil = rows && rows[0];
+    if(perfil && perfil.avatar && perfil.avatar !== SESION.avatar){ SESION.avatar = perfil.avatar; guardarSesion(); }
+  }catch(e){ /* función todavía no desplegada, o sin conexión — se sigue con lo que ya había */ }
+}
+async function actualizarAvatar(avatar){
+  const r = await api('/rest/v1/rpc/actualizar_avatar_rpc', { method:'POST', body: JSON.stringify({ p_avatar: avatar }) });
+  await chk(r);
+}
 /* Estas cinco funciones usan /rest/v1/rpc/... en vez de leer/escribir las
    tablas directo. Motivo: en proyectos nuevos de Supabase, auth.uid() a
    veces no se reconoce dentro de una política RLS evaluada sobre una
@@ -1720,7 +1860,7 @@ async function eliminarNegocio(id){
 async function cargarMiembros(){
   const r = await api('/rest/v1/rpc/miembros_de_negocio_rpc', { method:'POST', body: JSON.stringify({ p_negocio_id: NEGOCIO.id }) });
   const rows = await chk(r);
-  return (rows||[]).map(x=>({ rol:x.rol, creado_en:x.creado_en, profiles:{ nombre:x.nombre, correo:x.correo } }));
+  return (rows||[]).map(x=>({ rol:x.rol, creado_en:x.creado_en, profiles:{ nombre:x.nombre, correo:x.correo, avatar:x.avatar } }));
 }
 
 /* =========================================================
@@ -1947,7 +2087,7 @@ function aplicarPlantillaUI(){
   const gt = $('gastosTitulo'); if(gt) gt.textContent = motos ? 'Gastos' : (personal ? 'Lo que sale' : 'Gastos');
   const gs = $('gastosSub'); if(gs) gs.textContent = motos
     ? 'Lo que sale. Marque si lo asume el negocio o si se le cobra al conductor.'
-    : (personal ? 'Cada cosa que salió — sin juzgar, solo para saber en qué se va.' : 'Lo que sale del negocio.');
+    : (personal ? 'Lo fijo de cada mes, los créditos, o un gasto cualquiera — todo lo que sale, en un solo lugar.' : 'Lo que sale del negocio.');
   const gCat = $('gCat');
   if(gCat){
     const set = motos ? 'motos' : (personal ? 'personal' : 'flex');
@@ -1962,6 +2102,7 @@ function aplicarPlantillaUI(){
   setHidden('pfCuentaBox', !personal);
   setHidden('gCuentaBox', !personal);
   setHidden('pfTipoBox', !personal);
+  setHidden('compromisosBox', !personal);
   const familia = esFamilia();
   setHidden('integrantesBox', !familia);
   setHidden('gRepartoBox', !familia);
@@ -1997,6 +2138,8 @@ function renderSelects(){
     const cuentas = (S.cuentas||[]).map(c=>({v:c.id,t:c.nombre}));
     fillSelect($('pfCuenta'), [{v:'',t:'Sin especificar'}].concat(cuentas), 'agregue una cuenta en Mi plata');
     fillSelect($('gCuenta'), [{v:'',t:'Sin especificar'}].concat(cuentas), 'agregue una cuenta en Mi plata');
+    fillSelect($('fjCuenta'), [{v:'',t:'Sin especificar'}].concat(cuentas), 'agregue una cuenta en Mi plata');
+    fillSelect($('dbCuenta'), [{v:'',t:'Sin especificar'}].concat(cuentas), 'agregue una cuenta en Mi plata');
   }
   if(esFamilia()){
     const [ia,ib] = integrantesDe();
@@ -2030,6 +2173,7 @@ function renderIdentidad(){
   const cuentaTxt = DEMO ? 'Modo demo' : (SESION.nombre || SESION.correo || '');
   document.querySelectorAll('.neg-label').forEach(e=>{ e.textContent = negTxt; });
   document.querySelectorAll('.cuenta-label').forEach(e=>{ e.textContent = cuentaTxt; });
+  document.querySelectorAll('.avatar-slot').forEach(e=>{ e.innerHTML = avatarHTML(SESION.avatar); });
 }
 function renderKPIs(){
   const k = kpis();
@@ -2719,7 +2863,7 @@ function compromisosDelMes(anio, mesIdx){
   } else if(esPersonal()){
     (S.fijos||[]).forEach(f=>{
       const iso = diaDelMes(anio, mesIdx, f.dia);
-      add(iso, { tipo:'fijo', texto:f.nombre, monto:f.monto, tier: tierDeFecha(iso, esMesActual), view:'fijos' });
+      add(iso, { tipo:'fijo', texto:f.nombre, monto:f.monto, tier: tierDeFecha(iso, esMesActual), view:'gastos' });
     });
     (S.cuentas||[]).forEach(c=>{
       if(c.tipo==='tarjeta_credito' && c.diaPago){
@@ -2730,7 +2874,7 @@ function compromisosDelMes(anio, mesIdx){
     (S.deudas||[]).forEach(d=>{
       if(d.diaPago){
         const iso = diaDelMes(anio, mesIdx, d.diaPago);
-        add(iso, { tipo:'credito', texto:d.nombre, monto:d.cuotaMensual, tier: tierDeFecha(iso, esMesActual), view:'fijos' });
+        add(iso, { tipo:'credito', texto:d.nombre, monto:d.cuotaMensual, tier: tierDeFecha(iso, esMesActual), view:'gastos' });
       }
     });
     (S.metas||[]).forEach(m=>{
@@ -2793,11 +2937,13 @@ function renderCalendario(){
     const items = todos.filter(it=>it.tipo!=='nota');
     const hayNota = todos.some(it=>it.tipo==='nota');
     const fest = festivos[iso];
-    const mostrar = items.slice(0,2);
+    // El nombre del festivo ya no se escribe encima del día (llenaba la
+    // celda de texto chico) — el tinte de fondo avisa que hay uno, y el
+    // nombre completo aparece al tocar el día, en el panel de al lado.
+    const mostrar = items.slice(0,3);
     const resto = items.length - mostrar.length;
-    return `<button type="button" class="cal-day${iso===hoy?' hoy':''}${iso===CAL_DIA_SEL?' sel':''}${fest?' festivo':''}" data-cal-dia="${iso}">
+    return `<button type="button" class="cal-day${iso===hoy?' hoy':''}${iso===CAL_DIA_SEL?' sel':''}${fest?' festivo':''}" data-cal-dia="${iso}"${fest?` title="${esc(fest)}"`:''}>
       <span class="cal-top"><span class="cal-num">${c.dia}</span>${hayNota?'<span class="cal-nota-dot" title="Tiene una nota"></span>':''}</span>
-      ${fest?`<span class="cal-festivo-tag">${esc(fest)}</span>`:''}
       ${items.length?`<span class="cal-chips">
         ${mostrar.map(it=>`<span class="cal-chip ${it.tier}">${esc(it.texto)}</span>`).join('')}
         ${resto>0?`<span class="cal-more">+${resto} más</span>`:''}
@@ -2888,9 +3034,12 @@ async function renderNegocioPanel(){
   box.innerHTML = `<div class="spinner" style="margin:16px auto"></div>`;
   try{
     const ms = await cargarMiembros();
+    // Si todavía no se corrió la migración 0006, profiles.avatar no
+    // existe y el RPC no lo entrega — se ve la inicial de siempre, sin
+    // romper nada, hasta que se actualice.
     box.innerHTML = ms.map(m=>`
       <div class="miembro-row">
-        <span class="av">${esc((m.profiles&&m.profiles.nombre||'?').slice(0,1).toUpperCase())}</span>
+        ${m.profiles&&m.profiles.avatar ? avatarHTML(m.profiles.avatar) : `<span class="av">${esc((m.profiles&&m.profiles.nombre||'?').slice(0,1).toUpperCase())}</span>`}
         <span class="nm"><b>${esc(m.profiles&&m.profiles.nombre||'—')}${m.profiles&&m.profiles.correo===SESION.correo?' (tú)':''}</b><span>${esc(m.profiles&&m.profiles.correo||'')} · ${m.rol==='propietario'?'propietario/a':'miembro'}</span></span>
       </div>`).join('');
   }catch(e){ box.innerHTML = `<p style="font-size:13px;color:var(--gris)">No se pudo cargar el equipo: ${esc(e.message)}</p>`; }
@@ -2937,19 +3086,31 @@ async function cambiarNegocio(id){
 }
 /* Eliminar un proyecto es definitivo — se borran motos/pagos/cuentas/
    todo, para siempre, y para cualquiera que tuviera acceso. Por eso
-   pide DOS confirmaciones: primero la de siempre (sí/no), y luego
-   escribir el nombre exacto del proyecto — igual que pide GitHub para
-   borrar un repositorio — para que no se vaya un dedo por accidente. */
+   pide DOS confirmaciones seguidas (nada de escribir el nombre a
+   mano — eso era frágil: un tilde o una mayúscula de más ya lo
+   rechazaba, y parecía un error del sistema sin serlo). */
 async function eliminarNegocioFlow(id, nombre){
   if(DEMO) return toast('En modo demo no se pueden eliminar proyectos.', true);
   const primero = await confirmar('Eliminar "'+nombre+'"',
     'Esto borra TODO lo de este proyecto — motos, pagos, cuentas, todo — para siempre, y para cualquiera que tenga acceso. No se puede deshacer.');
   if(!primero) return;
-  const escrito = prompt('Para confirmar, escriba exactamente el nombre del proyecto: '+nombre);
-  if(escrito === null) return;
-  if(escrito.trim() !== nombre){ toast('El nombre no coincide — no se eliminó nada.', true); return; }
+  const segundo = await confirmar('¿Está completamente segura/o?',
+    '"'+nombre+'" y todos sus datos se van a eliminar ahora mismo. Esta es la última confirmación.');
+  if(!segundo) return;
+
+  // A partir de aquí, si algo falla, hay que distinguir bien entre "no
+  // se pudo eliminar" (el paso de abajo) y "se eliminó pero algo de
+  // la pantalla no se pudo refrescar después" (los pasos siguientes) —
+  // lo segundo NO es un error de la eliminación en sí, y reportarlo
+  // como tal confunde más de lo que ayuda.
   try{
     await eliminarNegocio(id);
+  }catch(e){
+    toast(e.message || 'No se pudo eliminar el proyecto.', true);
+    return;
+  }
+  toast('"'+nombre+'" eliminado');
+  try{
     await cargarMisNegocios();
     if(NEGOCIO && NEGOCIO.id === id){
       if(MIS_NEGOCIOS.length){
@@ -2965,8 +3126,10 @@ async function eliminarNegocioFlow(id, nombre){
       }
     }
     renderNegociosSwitcher();
-    toast('"'+nombre+'" eliminado');
-  }catch(e){ toast(e.message || 'No se pudo eliminar el proyecto.', true); }
+  }catch(e){
+    console.error('El proyecto se eliminó, pero la pantalla no se pudo refrescar sola:', e);
+    toast('Se eliminó — actualice la página si la lista no cambió.');
+  }
 }
 
 /* =========================================================
@@ -2979,7 +3142,7 @@ function go(v){
     else b.removeAttribute('aria-current');
   });
   if(v==='ajustes'){
-    renderNegocioPanel(); renderReporteToggle(); renderColorPicker();
+    renderNegocioPanel(); renderReporteToggle(); renderColorPicker(); renderAvatarPicker();
     $('codigoBox').innerHTML='';
   }
   if(v==='proyectos'){
@@ -3260,9 +3423,10 @@ $('fjSave').addEventListener('click', async ()=>{
   const dia = Math.max(1, Math.min(31, num($('fjDia').value) || 1));
   if(!nombre) return toast('Escriba el nombre del pago fijo.', true);
   if(!monto) return toast('Escriba el valor.', true);
-  S.fijos.push({ id:uid(), nombre, monto, dia, pagadoMes:'', creadoPor:quien() });
+  S.fijos.push({ id:uid(), nombre, monto, dia, pagadoMes:'', gastoId:'', cuentaId:$('fjCuenta').value||null, creadoPor:quien() });
   await save(); renderAll();
   ['fjNombre','fjMonto','fjDia'].forEach(i=>$(i).value='');
+  $('fjCuenta').value = '';
   toast(`${nombre} agregado`);
 });
 $('dbSave').addEventListener('click', async ()=>{
@@ -3270,10 +3434,10 @@ $('dbSave').addEventListener('click', async ()=>{
   if(!nombre) return toast('Escriba el nombre del crédito.', true);
   S.deudas.push({ id:uid(), nombre, entidad:$('dbEntidad').value.trim(), saldo:num($('dbSaldo').value), cuotaMensual:num($('dbCuota').value),
     cuotasTotal:num($('dbCuotasTotal').value), cuotasPagadas:num($('dbCuotasPagadas').value),
-    diaPago: num($('dbDia').value)||null, recordatorio: $('dbRecordatorio').checked, creadoPor:quien() });
+    diaPago: num($('dbDia').value)||null, recordatorio: $('dbRecordatorio').checked, cuentaId:$('dbCuenta').value||null, creadoPor:quien() });
   await save(); renderAll();
   ['dbNombre','dbEntidad','dbSaldo','dbCuota','dbCuotasTotal','dbCuotasPagadas','dbDia'].forEach(i=>$(i).value='');
-  $('dbRecordatorio').checked = false;
+  $('dbRecordatorio').checked = false; $('dbCuenta').value = '';
   toast(`${nombre} agregado`);
 });
 $('prPrestamoSave').addEventListener('click', async ()=>{
@@ -3377,7 +3541,7 @@ document.addEventListener('click', async e=>{
      SVG adentro, y un clic que caiga sobre el ícono reporta el <svg>
      como e.target, no el <button> con el data-* — sin esto, tocar el
      ícono (en vez del texto) no hacía nada. */
-  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-del-negocio],[data-color],[data-del-prestamo],[data-marcar-prestamo],[data-del-mercado],[data-toggle-mercado],[data-cal-dia],[data-cal-ir],[data-del-nota],[data-cal-guardar-nota]');
+  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-del-negocio],[data-color],[data-avatar],[data-del-prestamo],[data-marcar-prestamo],[data-del-mercado],[data-toggle-mercado],[data-cal-dia],[data-cal-ir],[data-del-nota],[data-cal-guardar-nota]');
   if(!t) return;
   if(t.dataset.irNegocio) return cambiarNegocio(t.dataset.irNegocio);
   if(t.dataset.delNegocio) return eliminarNegocioFlow(t.dataset.delNegocio, t.dataset.nombreNegocio);
@@ -3388,6 +3552,19 @@ document.addEventListener('click', async e=>{
     aplicarColor(); renderColorPicker();
     await save();
     return toast(`Color ${PALETAS_COLOR[t.dataset.color].nombre.toLowerCase()} aplicado a "${NEGOCIO.nombre}"`);
+  }
+  if(t.dataset.avatar){
+    if(DEMO) return toast('En modo demo el avatar no se guarda.', true);
+    const avatar = t.dataset.avatar;
+    if(avatar === SESION.avatar) return;
+    const anterior = SESION.avatar;
+    SESION.avatar = avatar; guardarSesion(); renderAvatarPicker(); renderIdentidad();
+    try{ await actualizarAvatar(avatar); toast(`Avatar "${AVATARES[avatar].nombre}" guardado`); }
+    catch(e){
+      SESION.avatar = anterior; guardarSesion(); renderAvatarPicker(); renderIdentidad();
+      toast(e.message || 'No se pudo guardar el avatar.', true);
+    }
+    return;
   }
   if(t.dataset.contrato) return generarContrato(t.dataset.contrato);
   const rm = async (arr, id, msg) => { S[arr] = S[arr].filter(x=>x.id!==id); await save(); renderAll(); toast(msg); };
@@ -3415,6 +3592,20 @@ document.addEventListener('click', async e=>{
   }
   if(t.dataset.delGasto){
     if(!(await confirmar('Eliminar gasto', 'Este gasto se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
+    // Si este gasto venía de marcar un pago fijo como pagado, o de abonar
+    // una cuota, hay que devolver ese pago fijo o esa deuda a como
+    // estaban antes — si no, quedarían "pagados" en un lado sin que el
+    // gasto exista del otro, que es justo la desconexión que no debe
+    // volver a pasar.
+    const g = S.gastos.find(x=>x.id===t.dataset.delGasto);
+    if(g && g.origen === 'fijo'){
+      const f = S.fijos.find(x=>x.id===g.origenId);
+      if(f && f.gastoId === g.id){ f.pagadoMes = ''; f.gastoId = ''; }
+    }
+    if(g && g.origen === 'deuda'){
+      const d = S.deudas.find(x=>x.id===g.origenId);
+      if(d){ d.saldo = (d.saldo||0) + g.valor; d.cuotasPagadas = Math.max(0, (d.cuotasPagadas||0) - 1); }
+    }
     return rm('gastos', t.dataset.delGasto, 'Gasto eliminado');
   }
   if(t.dataset.toggleGasto){
@@ -3447,9 +3638,27 @@ document.addEventListener('click', async e=>{
     const f = S.fijos.find(x=>x.id===t.dataset.marcarFijo);
     if(!f) return;
     const mesActual = todayISO().slice(0,7);
-    f.pagadoMes = (f.pagadoMes===mesActual) ? '' : mesActual;
-    await save(); renderAll();
-    toast(f.pagadoMes ? 'Marcado como pagado' : 'Marcado como pendiente');
+    if(f.pagadoMes === mesActual){
+      // Desmarcar: si el gasto que se generó al pagar sigue existiendo,
+      // se quita también — así "Lo que sale" y "Pagos fijos" nunca
+      // quedan en desacuerdo sobre si esto está pagado o no.
+      if(f.gastoId){ S.gastos = S.gastos.filter(g=>g.id!==f.gastoId); }
+      f.pagadoMes = ''; f.gastoId = '';
+      await save(); renderAll();
+      toast('Marcado como pendiente');
+    } else {
+      // pagadoPor/reparto quedan vacíos a propósito: no hay forma de saber
+      // quién de los dos pagó esto sin preguntar, y suponerlo dañaría el
+      // balance entre la pareja. Si quieren que se reparta, pueden borrar
+      // este gasto y registrarlo a mano con esos datos.
+      const gasto = { id:uid(), fecha:todayISO(), cat:'📅 Pago fijo', desc:f.nombre, valor:f.monto,
+        cargo:'Empresa', cuentaId:f.cuentaId||null, pagadoPor:'', reparto:'',
+        recuperado:false, creadoPor:quien(), origen:'fijo', origenId:f.id };
+      S.gastos.push(gasto);
+      f.pagadoMes = mesActual; f.gastoId = gasto.id;
+      await save(); renderAll();
+      toast(`${f.nombre} pagado — se agregó a Lo que sale`);
+    }
     return;
   }
   if(t.dataset.delDeuda){
@@ -3459,9 +3668,16 @@ document.addEventListener('click', async e=>{
   if(t.dataset.abonarDeuda){
     const d = S.deudas.find(x=>x.id===t.dataset.abonarDeuda);
     if(!d) return;
-    d.saldo = Math.max(0, (d.saldo||0) - (d.cuotaMensual||0));
+    const cuota = d.cuotaMensual || 0;
+    d.saldo = Math.max(0, (d.saldo||0) - cuota);
     d.cuotasPagadas = (d.cuotasPagadas||0) + 1;
-    await save(); renderAll(); toast(`Cuota abonada a "${d.nombre}"`);
+    if(cuota > 0){
+      S.gastos.push({ id:uid(), fecha:todayISO(), cat:'💳 Abono a crédito', desc:d.nombre, valor:cuota,
+        cargo:'Empresa', cuentaId:d.cuentaId||null, pagadoPor:'', reparto:'', recuperado:false,
+        creadoPor:quien(), origen:'deuda', origenId:d.id });
+    }
+    await save(); renderAll();
+    toast(cuota > 0 ? `Cuota abonada a "${d.nombre}" — se agregó a Lo que sale` : `Cuota abonada a "${d.nombre}"`);
     return;
   }
   if(t.dataset.delPrestamo){
@@ -3501,7 +3717,7 @@ document.addEventListener('click', async e=>{
     return;
   }
 });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ $('scrim').classList.remove('on'); cerrarDoc(); } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ $('scrim').classList.remove('on'); cerrarGastoRapido(); cerrarDoc(); } });
 
 /* =========================================================
    Generador de contratos
@@ -4717,6 +4933,7 @@ async function mostrarApp(){
   $('gFecha').value = todayISO();
   $('cInicio').value = todayISO();
   $('pfFecha').value = todayISO();
+  await cargarMiPerfil();
   renderMenu();
   go('tablero');
   await load();
