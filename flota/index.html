@@ -182,6 +182,40 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .hoy-item.mora .cuando{color:var(--rojo)}
 .hoy-item.due .cuando{color:var(--ambar)}
 
+/* ---------- Notas del Tablero: una pizarra libre, sin fecha, para
+   recordatorios rápidos o cualquier cosa que se quiera dejar anotada.
+   Comparte tabla con las notas del Calendario (S.notas) — las de aquí
+   simplemente no llevan fecha. Colores y ligera rotación alternan por
+   posición para que se sientan como notas sueltas, no una tabla más. */
+.pizarra-cab{margin-bottom:14px}
+.pizarra-cab .sub{font-size:12.5px;color:var(--gris2);margin:4px 0 0;max-width:60ch;line-height:1.5}
+.pizarra-compose{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.pizarra-compose input{
+  flex:1;min-width:0;background:var(--fondo-input);border:1px solid var(--linea);
+  padding:11px 13px;font-family:inherit;font-size:14.5px;color:var(--negro);border-radius:var(--r-sm)
+}
+.pizarra-compose input:focus{outline:none;border-color:var(--acento);background:#fff}
+.pizarra-grid{display:flex;flex-wrap:wrap;gap:12px}
+.pizarra-vacio{color:var(--gris);font-size:13px;margin:0}
+.nota-card{
+  flex:1 1 190px;max-width:230px;min-width:160px;background:var(--acento-suave);
+  border-radius:var(--r-sm);padding:14px 14px 10px;box-shadow:var(--sombra-sm);
+  display:flex;flex-direction:column;gap:10px;transition:transform .15s ease;animation:rowIn .3s ease both
+}
+.nota-card:nth-of-type(3n+2){background:var(--papel-2)}
+.nota-card:nth-of-type(3n){background:color-mix(in srgb, var(--acento) 16%, var(--hueso))}
+.nota-card:nth-of-type(odd){transform:rotate(-.6deg)}
+.nota-card:nth-of-type(even){transform:rotate(.6deg)}
+.nota-card:hover{transform:rotate(0deg) scale(1.02)}
+@media(prefers-reduced-motion:reduce){.nota-card{transform:none!important;transition:none}}
+.nota-card .nota-tx{font-size:13.5px;line-height:1.45;color:var(--negro);word-break:break-word;white-space:pre-wrap}
+.nota-card .nota-pie{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.nota-card .nota-autor{font-size:10.5px;color:var(--gris2);font-weight:600}
+.nota-card .rowdel{margin-left:auto;flex:0 0 auto}
+@media(max-width:720px){
+  .nota-card{flex:1 1 42%;min-width:130px;max-width:none;padding:12px 12px 8px}
+}
+
 /* ---------- sentence form (signature) ---------- */
 .compose{
   border:1px solid var(--linea);background:var(--hueso);border-radius:var(--r);
@@ -820,6 +854,18 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <span class="eyebrow" id="todayLabel" style="display:block;margin-bottom:4px"></span>
           <h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.25"/><path d="M12 12L15.3 8.2"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg></span>Tablero</h1>
         </div>
+      </div>
+
+      <div class="section pizarra" id="notasBox">
+        <div class="pizarra-cab">
+          <h2>Notas</h2>
+          <p class="sub">Recordatorios, ideas, o cualquier cosa que quiera dejar anotada aquí.</p>
+        </div>
+        <div class="pizarra-compose">
+          <input id="notaTexto" placeholder="Escriba algo…" maxlength="140" aria-label="Nueva nota">
+          <button class="btn" id="notaGuardar"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Anotar</button>
+        </div>
+        <div id="notasList" class="pizarra-grid"></div>
       </div>
 
       <div id="tableroMotos">
@@ -1540,6 +1586,39 @@ $('gastoRapidoScrim').addEventListener('click', e=>{ if(e.target===$('gastoRapid
   $(id).addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); guardarGastoRapido(); } });
 });
 
+/* Notas del Tablero — una pizarra libre para recordatorios rápidos,
+   ideas o mensajes motivacionales, sin necesidad de fecha. Vive en la
+   misma tabla que las notas del Calendario (S.notas): las de aquí
+   simplemente se guardan sin "fecha", así que compromisosDelMes()
+   nunca las agrega a ningún día (add() ignora fecha vacía) y no
+   aparecen en el Calendario — y viceversa, las notas puestas sobre un
+   día del Calendario no aparecen aquí. Un mismo borrador (data-del-
+   nota + rm('notas', …)) sirve para las dos, sin código nuevo. */
+function renderNotasTablero(){
+  const box = $('notasList'); if(!box) return;
+  const notas = (S.notas||[]).filter(n=>!n.fecha);
+  box.innerHTML = notas.length ? notas.slice().reverse().map(n=>`
+    <div class="nota-card">
+      <div class="nota-tx">${esc(n.texto)}</div>
+      <div class="nota-pie">
+        <span class="nota-autor">${n.creadoPor?esc(n.creadoPor):''}</span>
+        <button class="rowdel" data-del-nota="${n.id}" aria-label="Borrar nota"><span class="icono">${ICONS.trash}</span></button>
+      </div>
+    </div>`).join('') : `<p class="pizarra-vacio">Nada anotado todavía — escriba algo arriba.</p>`;
+}
+async function guardarNotaTablero(){
+  const input = $('notaTexto');
+  const texto = input.value.trim();
+  if(!texto) return toast('Escriba algo para poder guardarlo.', true);
+  S.notas.push({ id:uid(), fecha:'', texto, creadoPor:quien() });
+  input.value = '';
+  await save(); renderAll();
+  input.focus();
+  toast('Nota agregada');
+}
+$('notaGuardar').addEventListener('click', guardarNotaTablero);
+$('notaTexto').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); guardarNotaTablero(); } });
+
 /* =========================================================
    Color por proyecto — 8 acentos para diferenciar de un vistazo en
    qué negocio se está (ej. Motos en naranja, Cuentas María en verde).
@@ -2024,7 +2103,7 @@ function renderAll(){
   renderPagos(); renderGastos(); renderMotos(); renderCond();
   renderProductos(); renderClientes(); renderResumenFlex();
   renderCuentasPersonales(); renderMetas(); renderFijos(); renderDeudas(); renderHoyPersonal();
-  renderBalancePareja(); renderPrestamos(); renderMercado(); renderCalendario();
+  renderBalancePareja(); renderPrestamos(); renderMercado(); renderCalendario(); renderNotasTablero();
   $('todayLabel').textContent = new Date().toLocaleDateString('es-CO',
     {weekday:'long', day:'numeric', month:'long'});
 }
@@ -4701,6 +4780,10 @@ function datosDemo(){
         valor:20000, cargo:'Conductor', recuperado:false, creadoPor:'Gina' },
     ],
     productos: [], clientes: [],
+    notas: [
+      { id:'d-n1', fecha:'', texto:'Llamar a la aseguradora por el SOAT de la XYZ98A', creadoPor:'Mao' },
+      { id:'d-n2', fecha:'', texto:'Vamos muy bien este mes 💪 seguir así', creadoPor:'Gina' },
+    ],
     config: {
       duenos:[{ nombre:'Mao', cedula:'1000000001', ciudad:'Ibagué' }, { nombre:'Gina', cedula:'1000000002', ciudad:'Ibagué' }],
       inversionExtra:300000, bTipo:'Nequi', bBanco:'', bCuenta:'', cfgLav:'', cfgLavDir:'', bDia:'lunes'
