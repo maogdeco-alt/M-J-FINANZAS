@@ -4,8 +4,13 @@
 // Se dispara sola (no la abre nadie): un cron de la base de datos la llama
 // una vez al día; esta función revisa qué negocios ya llevan 8 días o más
 // sin recibir el reporte y les manda uno por correo con lo que necesita
-// atención — pagos vencidos, SOAT/tecnomecánica por vencer, y el resumen de
-// plata del periodo.
+// atención, distinto según el tipo de proyecto:
+//   - Motos: pagos vencidos, SOAT/tecnomecánica por vencer.
+//   - Cuentas personales / Cuentas familia: pagos fijos del mes sin marcar
+//     como pagados, y las tarjetas de crédito o créditos que se marcaron
+//     con "avisarme" y ya están por vencer o vencidos.
+// En los dos casos, además, el resumen de plata del periodo (lo que entró
+// y lo que salió desde el correo anterior).
 //
 // Variables de entorno que necesita (Project Settings → Edge Functions →
 // Secrets, ver flota/README.md sección 5):
@@ -55,9 +60,26 @@ type Conductor = {
   id: string; nombre: string; motoId?: string; estado?: string;
   inicio?: string; licVence?: string;
 };
-type Pago = { condId: string; valor: number; fecha: string };
-type Gasto = { cargo?: string; cat?: string; valor: number; fecha: string };
-type Estado = { motos?: Moto[]; conductores?: Conductor[]; pagos?: Pago[]; gastos?: Gasto[] };
+type Pago = { condId?: string; cuentaId?: string; valor: number; fecha: string };
+type Gasto = {
+  cargo?: string; cat?: string; valor: number; fecha: string; cuentaId?: string;
+  pagadoPor?: string; reparto?: string;
+};
+type Fijo = { id: string; nombre: string; monto: number; dia: number; pagadoMes?: string };
+type CuentaPersonal = {
+  id: string; nombre: string; tipo?: string; saldoInicial?: number;
+  recordatorio?: boolean; diaPago?: number;
+};
+type DeudaPersonal = {
+  nombre: string; recordatorio?: boolean; diaPago?: number; cuotaMensual?: number;
+};
+type Prestamo = { prestaEl: string; recibeEl: string; monto: number; pagado?: boolean };
+type Estado = {
+  motos?: Moto[]; conductores?: Conductor[]; pagos?: Pago[]; gastos?: Gasto[];
+  fijos?: Fijo[]; cuentas?: CuentaPersonal[]; deudas?: DeudaPersonal[]; prestamos?: Prestamo[];
+  config?: { integrantes?: string[] };
+};
+type Item = { orden: number; tier: "mora" | "due"; frase: string; cuando: string };
 
 const CAT_DEUDA = "Abono a deuda o compra de moto";
 
@@ -71,7 +93,6 @@ function construirResumen(estado: Estado, desdeISO: string) {
   const esActivo = (c: Conductor) =>
     (c.estado || "Activo") === "Activo" && !!c.motoId && !!motoById(c.motoId);
 
-  type Item = { orden: number; tier: "mora" | "due"; frase: string; cuando: string };
   const atencion: Item[] = [];
   const seViene: Item[] = [];
 
@@ -130,44 +151,164 @@ function construirResumen(estado: Estado, desdeISO: string) {
   return { atencion, seViene, ingresos, gastosOper, utilidad: ingresos - gastosOper, pagosPeriodo };
 }
 
-function armarCorreoHTML(nombreNegocio: string, desdeISO: string, r: ReturnType<typeof construirResumen>) {
-  const item = (it: { frase: string; cuando: string }, color: string) =>
-    `<tr><td style="padding:7px 0;border-bottom:1px solid #E3DECE;font-size:14px;color:#1B1812">${it.frase}</td>
+// ---------------------------------------------------------------------------
+// Piezas de HTML que comparten los dos tipos de correo (motos y
+// personal/familia) — mismo look, mismos colores, para que se sientan la
+// misma app aunque el contenido de adentro sea distinto.
+// ---------------------------------------------------------------------------
+function filaItem(it: { frase: string; cuando: string }, color: string) {
+  return `<tr><td style="padding:7px 0;border-bottom:1px solid #E3DECE;font-size:14px;color:#1B1812">${it.frase}</td>
      <td style="padding:7px 0;border-bottom:1px solid #E3DECE;font-size:12px;color:${color};text-align:right;white-space:nowrap">${esc(it.cuando)}</td></tr>`;
-  const seccion = (titulo: string, items: { frase: string; cuando: string }[], color: string) =>
-    !items.length ? "" : `
+}
+function seccionHTML(titulo: string, items: { frase: string; cuando: string }[], color: string) {
+  return !items.length ? "" : `
     <h3 style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#8C8271;margin:22px 0 6px">${titulo}</h3>
-    <table style="width:100%;border-collapse:collapse">${items.map((it) => item(it, color)).join("")}</table>`;
-
-  const boton = APP_URL
+    <table style="width:100%;border-collapse:collapse">${items.map((it) => filaItem(it, color)).join("")}</table>`;
+}
+function botonHTML() {
+  return APP_URL
     ? `<p style="margin:26px 0 0"><a href="${esc(APP_URL)}" style="background:#DD4B22;color:#fff;text-decoration:none;padding:11px 22px;border-radius:999px;font-weight:600;font-size:13.5px;display:inline-block">Abrir la app →</a></p>`
     : "";
+}
+function encabezadoHTML(nombreNegocio: string, titulo: string, desdeISO: string) {
+  return `<p style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8C8271;margin:0 0 4px">MA|OG · ${esc(nombreNegocio)}</p>
+    <h1 style="font-size:22px;margin:0 0 4px;font-weight:600">${esc(titulo)}</h1>
+    <p style="font-size:13px;color:#5B5344;margin:0 0 18px">Del ${fmtDate(desdeISO)} a hoy, ${fmtDate(todayISO())}.</p>`;
+}
+function piePaginaHTML() {
+  return `<p style="margin:28px 0 0;font-size:11px;color:#B0A890">Este correo se manda solo cada 8 días. Se puede apagar desde Ajustes → Tu negocio, dentro de la app.</p>`;
+}
+function filaDinero(cols: [string, string][]) {
+  return `<table style="width:100%;border-collapse:collapse;background:#F8F6EE;border-radius:8px;overflow:hidden">
+      <tr>${cols.map(([l]) => `<td style="padding:14px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#8C8271">${esc(l)}</td>`).join("")}</tr>
+      <tr>${cols.map(([, v]) => `<td style="padding:0 16px 14px;font-size:18px;font-weight:600">${v}</td>`).join("")}</tr>
+    </table>`;
+}
 
+function armarCorreoHTML(nombreNegocio: string, desdeISO: string, r: ReturnType<typeof construirResumen>) {
   return `<div style="font-family:Georgia,'Iowan Old Style',serif;max-width:560px;margin:0 auto;padding:8px">
-    <p style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8C8271;margin:0 0 4px">MA|OG · ${esc(nombreNegocio)}</p>
-    <h1 style="font-size:22px;margin:0 0 4px;font-weight:600">Cómo va el negocio</h1>
-    <p style="font-size:13px;color:#5B5344;margin:0 0 18px">Del ${fmtDate(desdeISO)} a hoy, ${fmtDate(todayISO())}.</p>
+    ${encabezadoHTML(nombreNegocio, "Cómo va el negocio", desdeISO)}
 
-    <table style="width:100%;border-collapse:collapse;background:#F8F6EE;border-radius:8px;overflow:hidden">
-      <tr>
-        <td style="padding:14px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#8C8271">Recaudado</td>
-        <td style="padding:14px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#8C8271">Gastos</td>
-        <td style="padding:14px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#8C8271">Utilidad</td>
-      </tr>
-      <tr>
-        <td style="padding:0 16px 14px;font-size:18px;font-weight:600">${money(r.ingresos)}</td>
-        <td style="padding:0 16px 14px;font-size:18px;font-weight:600">${money(r.gastosOper)}</td>
-        <td style="padding:0 16px 14px;font-size:18px;font-weight:600;color:${r.utilidad < 0 ? "#9B3324" : "#1B1812"}">${money(r.utilidad)}</td>
-      </tr>
-    </table>
+    ${filaDinero([
+      ["Recaudado", money(r.ingresos)],
+      ["Gastos", money(r.gastosOper)],
+      ["Utilidad", `<span style="${r.utilidad < 0 ? "color:#9B3324" : ""}">${money(r.utilidad)}</span>`],
+    ])}
 
-    ${seccion("Necesita atención", r.atencion, "#9B3324")}
-    ${seccion("Se viene pronto", r.seViene, "#8C5A0C")}
+    ${seccionHTML("Necesita atención", r.atencion, "#9B3324")}
+    ${seccionHTML("Se viene pronto", r.seViene, "#8C5A0C")}
     ${!r.atencion.length && !r.seViene.length ? '<p style="margin:22px 0 0;font-size:14px;color:#1B1812">Todo al día — nada vencido ni por vencer en los próximos días. 👍</p>' : ""}
 
     <p style="margin:22px 0 0;font-size:12.5px;color:#8C8271">${r.pagosPeriodo} pago(s) registrado(s) en el periodo.</p>
-    ${boton}
-    <p style="margin:28px 0 0;font-size:11px;color:#B0A890">Este correo se manda solo cada 8 días. Se puede apagar desde Ajustes → Tu negocio, dentro de la app.</p>
+    ${botonHTML()}
+    ${piePaginaHTML()}
+  </div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Cuentas personales / Cuentas familia — mismo criterio que el Tablero de la
+// app (renderHoyPersonal en index.html): pagos fijos del mes sin marcar
+// como pagados, y las tarjetas de crédito o créditos con "avisarme"
+// prendido, vencidos o a 5 días o menos. Si el proyecto es "familia" y hay
+// un balance entre los dos que valga la pena mencionar, se agrega al final.
+// ---------------------------------------------------------------------------
+function saldoCuentaPersonal(estado: Estado, id: string): number {
+  const cta = (estado.cuentas || []).find((c) => c.id === id);
+  if (!cta) return 0;
+  const entro = (estado.pagos || []).filter((p) => p.cuentaId === id).reduce((a, p) => a + p.valor, 0);
+  const salio = (estado.gastos || []).filter((g) => g.cuentaId === id).reduce((a, g) => a + g.valor, 0);
+  if (cta.tipo === "tarjeta_credito") return Math.max(0, (cta.saldoInicial || 0) + salio - entro);
+  return (cta.saldoInicial || 0) + entro - salio;
+}
+
+function construirResumenPersonal(estado: Estado, desdeISO: string) {
+  const hoy = todayISO();
+  const diaHoy = new Date().getDate();
+  const mesActual = hoy.slice(0, 7);
+
+  const haceAlerta = (df: number, nombre: string, valor: number): Item | null => {
+    const tier: "mora" | "due" | null = df < 0 ? "mora" : df <= 5 ? "due" : null;
+    if (!tier) return null;
+    const frase = `<b>${esc(nombre)}</b> ${df < 0 ? `venció hace ${-df} d` : `vence en ${df} d`}`;
+    return { orden: df, tier, frase, cuando: money(valor) };
+  };
+
+  const deFijos = (estado.fijos || [])
+    .filter((f) => f.pagadoMes !== mesActual)
+    .map((f) => haceAlerta(f.dia - diaHoy, f.nombre, f.monto));
+  const deTarjetas = (estado.cuentas || [])
+    .filter((c) => c.tipo === "tarjeta_credito" && c.recordatorio && c.diaPago)
+    .map((c) => haceAlerta((c.diaPago as number) - diaHoy, c.nombre, saldoCuentaPersonal(estado, c.id)));
+  const deCreditos = (estado.deudas || [])
+    .filter((d) => d.recordatorio && d.diaPago)
+    .map((d) => haceAlerta((d.diaPago as number) - diaHoy, d.nombre, d.cuotaMensual || 0));
+
+  const atencion: Item[] = [];
+  const seViene: Item[] = [];
+  ([...deFijos, ...deTarjetas, ...deCreditos].filter(Boolean) as Item[]).forEach((it) => {
+    (it.tier === "mora" ? atencion : seViene).push(it);
+  });
+  atencion.sort((a, b) => a.orden - b.orden);
+  seViene.sort((a, b) => a.orden - b.orden);
+
+  const enRango = (f: string, a: string, b: string) => !!f && f >= a && f <= b;
+  const pagos = estado.pagos || [], gastos = estado.gastos || [];
+  const ingresos = pagos.filter((p) => enRango(p.fecha, desdeISO, hoy)).reduce((x, p) => x + p.valor, 0);
+  const salidas = gastos
+    .filter((g) => g.cargo === "Empresa" && g.cat !== CAT_DEUDA && enRango(g.fecha, desdeISO, hoy))
+    .reduce((x, g) => x + g.valor, 0);
+
+  let balance: { a: string; b: string; saldo: number } | null = null;
+  const integrantes = estado.config?.integrantes;
+  if (integrantes && integrantes[0] && integrantes[1]) {
+    const [a, b] = integrantes;
+    let saldo = 0;
+    gastos.forEach((g) => {
+      if (!g.reparto || g.reparto === "pagador" || !g.pagadoPor) return;
+      const pagoA = g.pagadoPor === a;
+      if (g.reparto === "mitad") { const mitad = g.valor / 2; saldo += pagoA ? mitad : -mitad; }
+      else if (g.reparto === "otro") { saldo += pagoA ? g.valor : -g.valor; }
+    });
+    (estado.prestamos || []).forEach((p) => {
+      if (p.pagado) return;
+      if (p.prestaEl === a && p.recibeEl === b) saldo += p.monto;
+      else if (p.prestaEl === b && p.recibeEl === a) saldo -= p.monto;
+    });
+    balance = { a, b, saldo };
+  }
+
+  return { atencion, seViene, ingresos, salidas, quedo: ingresos - salidas, balance };
+}
+
+function armarCorreoPersonal(
+  nombreNegocio: string,
+  desdeISO: string,
+  r: ReturnType<typeof construirResumenPersonal>,
+  esFamilia: boolean
+) {
+  let balanceHTML = "";
+  if (esFamilia && r.balance && Math.round(Math.abs(r.balance.saldo)) >= 100) {
+    const { a, b, saldo } = r.balance;
+    const [quienDebe, quienRecibe] = saldo > 0 ? [b, a] : [a, b];
+    balanceHTML = `<h3 style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#8C8271;margin:22px 0 6px">Entre ustedes</h3>
+      <p style="margin:0;font-size:14px;color:#1B1812"><b>${esc(quienDebe)}</b> le debe a <b>${esc(quienRecibe)}</b> ${money(Math.abs(saldo))}, sumando gastos repartidos y préstamos sin pagar.</p>`;
+  }
+
+  return `<div style="font-family:Georgia,'Iowan Old Style',serif;max-width:560px;margin:0 auto;padding:8px">
+    ${encabezadoHTML(nombreNegocio, "Cómo van tus pagos", desdeISO)}
+
+    ${filaDinero([
+      ["Entró", money(r.ingresos)],
+      ["Salió", money(r.salidas)],
+      ["Te quedó", `<span style="${r.quedo < 0 ? "color:#9B3324" : ""}">${money(r.quedo)}</span>`],
+    ])}
+
+    ${seccionHTML("Necesita atención", r.atencion, "#9B3324")}
+    ${seccionHTML("Se viene pronto", r.seViene, "#8C5A0C")}
+    ${!r.atencion.length && !r.seViene.length ? '<p style="margin:22px 0 0;font-size:14px;color:#1B1812">Ningún pago pendiente por ahora — nada vencido ni por vencer en los próximos días. 👍</p>' : ""}
+    ${balanceHTML}
+    ${botonHTML()}
+    ${piePaginaHTML()}
   </div>`;
 }
 
@@ -202,7 +343,7 @@ Deno.serve(async (req) => {
 
   const { data: negocios, error } = await supabase
     .from("negocios")
-    .select("id, nombre, reporte_activo, reporte_ultimo_envio")
+    .select("id, nombre, reporte_activo, reporte_ultimo_envio, modulos")
     .eq("reporte_activo", true);
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
@@ -234,9 +375,15 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const resumen = construirResumen(estado, desdeISO);
-      const html = armarCorreoHTML(neg.nombre, desdeISO, resumen);
-      await enviarCorreo(correos, `MA|OG · Cómo va ${neg.nombre}`, html);
+      const tipo = neg.modulos?.tipo;
+      const esFamilia = tipo === "familia";
+      const esPersonalLike = tipo === "personal" || esFamilia;
+
+      const html = esPersonalLike
+        ? armarCorreoPersonal(neg.nombre, desdeISO, construirResumenPersonal(estado, desdeISO), esFamilia)
+        : armarCorreoHTML(neg.nombre, desdeISO, construirResumen(estado, desdeISO));
+      const asunto = esPersonalLike ? `MA|OG · Tus pagos de ${neg.nombre}` : `MA|OG · Cómo va ${neg.nombre}`;
+      await enviarCorreo(correos, asunto, html);
 
       const { error: e2 } = await supabase
         .from("negocios")

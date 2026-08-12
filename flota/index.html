@@ -837,7 +837,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
             <div class="f hidden" id="ctRecordBox" style="align-self:end;padding-bottom:9px">
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13px">
                 <input type="checkbox" id="ctRecordatorio" style="width:17px;height:17px;accent-color:var(--acento)">
-                Avisarme en el Tablero
+                Avisarme (Tablero y correo)
               </label>
             </div>
           </div>
@@ -1047,7 +1047,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <div class="f" style="align-self:end;padding-bottom:9px">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13px">
               <input type="checkbox" id="dbRecordatorio" style="width:17px;height:17px;accent-color:var(--acento)">
-              Avisarme en el Tablero
+              Avisarme (Tablero y correo)
             </label>
           </div>
         </div>
@@ -1135,11 +1135,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         <div id="codigoBox"></div>
 
         <h2 style="margin:22px 0 8px">Reporte cada 8 días por correo</h2>
-        <p class="sub">
-          Un correo automático con lo que necesita atención — pagos vencidos, SOAT y
-          tecnomecánica por vencer, y el resumen de plata del periodo — a los correos
-          de todos los que tienen acceso a este negocio. Llega solo, sin abrir la app.
-        </p>
+        <p class="sub" id="reporteDesc"></p>
         <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13.5px;font-weight:600">
           <input type="checkbox" id="reporteActivoChk" style="width:17px;height:17px;accent-color:var(--acento)">
           Activar el reporte
@@ -2714,12 +2710,15 @@ $('unirseOtroBtn').addEventListener('click', ()=>{
    "reporte-semanal" corriendo sola en el servidor (ver flota/README.md,
    sección 5); acá solo se prende/apaga y se muestra cuándo fue el último. */
 function renderReporteToggle(){
-  const el = $('reporteActivoChk'), tx = $('reporteEstadoTx');
+  const el = $('reporteActivoChk'), tx = $('reporteEstadoTx'), desc = $('reporteDesc');
   if(!el || !NEGOCIO) return;
   el.checked = NEGOCIO.reporteActivo !== false;
   tx.textContent = NEGOCIO.reporteUltimoEnvio
     ? 'Último envío: ' + fmtDate(String(NEGOCIO.reporteUltimoEnvio).slice(0,10))
     : 'Todavía no se ha enviado ninguno.';
+  if(desc) desc.textContent = esPersonal()
+    ? 'Un correo automático con lo que necesita atención — pagos fijos del mes sin pagar, y las tarjetas o créditos que marcaste con "Avisarme" — más el resumen de lo que entró y salió en el periodo. Llega solo, sin abrir la app.'
+    : 'Un correo automático con lo que necesita atención — pagos vencidos, SOAT y tecnomecánica por vencer, y el resumen de plata del periodo — a los correos de todos los que tienen acceso a este negocio. Llega solo, sin abrir la app.';
 }
 $('reporteActivoChk').addEventListener('change', async e=>{
   const val = e.target.checked;

@@ -75,11 +75,27 @@ se mezclan con las finanzas personales.
 ## 5. Reporte cada 8 días por correo (opcional)
 
 Un correo que llega solo — sin que nadie abra la app — con lo que necesita
-atención: pagos vencidos, SOAT y tecnomecánica por vencer, y el resumen de
-plata del periodo. Es la primera pieza de esta app que corre en el servidor
-en vez de en el navegador de quien la usa, así que tiene más pasos que el
-resto. Se puede saltar esta sección entera y la app funciona igual — el
-reporte es un extra.
+atención. El contenido cambia según el tipo de proyecto:
+
+- **Motos**: pagos vencidos, SOAT y tecnomecánica por vencer.
+- **Cuentas personales / Cuentas familia**: pagos fijos del mes sin marcar
+  como pagados, y las tarjetas de crédito o créditos que se marcaron con
+  "Avisarme" y ya están vencidos o por vencer. Si es un proyecto de familia
+  y hay un balance entre los dos que valga la pena mencionar, también sale.
+
+En los dos casos trae, además, el resumen de plata del periodo (lo que
+entró y lo que salió desde el correo anterior). Es la primera pieza de esta
+app que corre en el servidor en vez de en el navegador de quien la usa, así
+que tiene más pasos que el resto. Se puede saltar esta sección entera y la
+app funciona igual — el reporte es un extra.
+
+Si ya tenías esto configurado de antes (de cuando la app solo tenía
+proyectos de motos) y solo quieres que el reporte de tus proyectos de
+Cuentas personales/familia empiece a traer los pagos pendientes: no hace
+falta repetir todos los pasos. Ve directo a **5.3** y vuelve a pegar el
+contenido actualizado de `reporte-semanal/index.ts` sobre la función que ya
+existe en Supabase, y dale **Deploy** de nuevo — el resto (secretos, cron,
+la migración) sigue igual, no hay que tocarlo.
 
 **5.1 Correr la migración nueva.** SQL Editor → New query → pega todo el
 contenido de `flota/supabase/migrations/0002_reporte_periodico.sql` → Run.
