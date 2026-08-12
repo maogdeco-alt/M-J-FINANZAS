@@ -1107,7 +1107,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <!-- ============ AJUSTES ============ -->
     <section class="view" id="v-ajustes">
       <div class="head">
-        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span>Ajustes</h1><p>Tu negocio, los dueños y la cuenta donde reciben los pagos.</p></div>
+        <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span>Ajustes</h1><p id="ajustesSub">Tu negocio, los dueños y la cuenta donde reciben los pagos.</p></div>
       </div>
 
       <div class="section form hidden" id="integrantesBox">
@@ -1757,6 +1757,14 @@ function aplicarPlantillaUI(){
   const cs = $('cuentasSub'); if(cs) cs.textContent = motos
     ? 'Cuánto falta para librar la inversión y en qué se está yendo la plata.'
     : (personal ? 'Tus cuentas, tus metas, y en qué se está yendo la plata.' : 'En qué se está yendo la plata.');
+  // "Los dueños" y "Cuenta para recibir los pagos" solo existen para llenar
+  // contratos de arrendamiento y para saber de quién es cada moto — no
+  // aplican a ningún otro tipo de proyecto, así que en Ajustes solo se ven
+  // en Motos.
+  setHidden('duenosBox', !motos);
+  const asub = $('ajustesSub'); if(asub) asub.textContent = motos
+    ? 'Tu negocio, los dueños y la cuenta donde reciben los pagos.'
+    : (personal ? 'Tu cuenta, quién tiene acceso, y cómo te avisamos.' : 'Tu negocio y quién tiene acceso.');
 }
 function fillSelect(el, items, ph){
   const prev = el.value;
@@ -2716,9 +2724,11 @@ function renderReporteToggle(){
   tx.textContent = NEGOCIO.reporteUltimoEnvio
     ? 'Último envío: ' + fmtDate(String(NEGOCIO.reporteUltimoEnvio).slice(0,10))
     : 'Todavía no se ha enviado ninguno.';
-  if(desc) desc.textContent = esPersonal()
-    ? 'Un correo automático con lo que necesita atención — pagos fijos del mes sin pagar, y las tarjetas o créditos que marcaste con "Avisarme" — más el resumen de lo que entró y salió en el periodo. Llega solo, sin abrir la app.'
-    : 'Un correo automático con lo que necesita atención — pagos vencidos, SOAT y tecnomecánica por vencer, y el resumen de plata del periodo — a los correos de todos los que tienen acceso a este negocio. Llega solo, sin abrir la app.';
+  if(desc) desc.textContent = esMotos()
+    ? 'Un correo automático con lo que necesita atención — pagos vencidos, SOAT y tecnomecánica por vencer, y el resumen de plata del periodo — a los correos de todos los que tienen acceso a este negocio. Llega solo, sin abrir la app.'
+    : (esPersonal()
+      ? 'Un correo automático con lo que necesita atención — pagos fijos del mes sin pagar, y las tarjetas o créditos que marcaste con "Avisarme" — más el resumen de lo que entró y salió en el periodo. Llega solo, sin abrir la app.'
+      : 'Un correo automático con el resumen de plata del periodo — cuánto entró y cuánto salió — a los correos de todos los que tienen acceso a este negocio. Llega solo, sin abrir la app.');
 }
 $('reporteActivoChk').addEventListener('change', async e=>{
   const val = e.target.checked;
