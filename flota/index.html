@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MA|OG — Control de flota</title>
-<meta name="description" content="Control de flota de motos: motos, conductores, pagos, gastos, contratos.">
+<title>MA|OG — Finanzas saludables</title>
+<meta name="description" content="Finanzas saludables: tus negocios y tus cuentas, cada uno por su lado, sin enredos y sin números que den miedo.">
 <meta name="theme-color" content="#F5F5F6">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%8D%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -780,7 +780,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       <span class="avatar-slot"></span>
       <span class="tx">
         <span class="mark cuenta-label"></span>
-        <span class="sub neg-label">Control de flota</span>
+        <span class="sub neg-label">Finanzas saludables</span>
       </span>
     </div>
     <nav class="nav" id="nav"></nav>
@@ -800,7 +800,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       <span class="avatar-slot"></span>
       <span class="tx">
         <span class="mark cuenta-label"></span>
-        <span class="sub neg-label">Control de flota</span>
+        <span class="sub neg-label">Finanzas saludables</span>
       </span>
     </span>
     <span class="acts">
@@ -2169,7 +2169,7 @@ function renderSelects(){
    qué cuenta se entró (chico) — antes solo decía "MA|OG" fijo, que
    confundía apenas hubo negocios con nombres distintos al de la app. */
 function renderIdentidad(){
-  const negTxt = DEMO ? 'Datos de ejemplo' : (NEGOCIO ? NEGOCIO.nombre : 'Control de flota');
+  const negTxt = DEMO ? 'Datos de ejemplo' : (NEGOCIO ? NEGOCIO.nombre : 'Finanzas saludables');
   const cuentaTxt = DEMO ? 'Modo demo' : (SESION.nombre || SESION.correo || '');
   document.querySelectorAll('.neg-label').forEach(e=>{ e.textContent = negTxt; });
   document.querySelectorAll('.cuenta-label').forEach(e=>{ e.textContent = cuentaTxt; });
@@ -4771,7 +4771,7 @@ function pantallaSesion(estadoExtra){
   const modo = AUTH_MODO;
   $('gate').innerHTML = `
     <div class="gate-card">
-      <div class="gate-brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span><span class="sub">Control de flota</span></div>
+      <div class="gate-brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span><span class="sub">Finanzas saludables</span></div>
       <div class="gate-panel">
         ${modo!=='recuperar' ? `
         <div class="gate-tabs">
