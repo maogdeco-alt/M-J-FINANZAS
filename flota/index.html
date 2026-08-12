@@ -73,20 +73,20 @@ hr{border:0;border-top:1px solid var(--linea);margin:18px 0}
   display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand .mark i{font-style:normal;color:var(--gris);padding:0 1px}
 .brand .sub{display:block;margin-top:3px;font-size:10px;letter-spacing:.03em;color:var(--gris);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* Marca chica al pie del riel — antes el sello grande vivía en la
-   esquina superior (compitiendo con el nombre de la cuenta y del
-   proyecto); ahora es solo un crédito discreto, abajo del todo. */
-.rail-brandmark{
-  display:flex;align-items:center;gap:7px;padding:12px 10px 4px;margin-top:8px;
-  border-top:1px solid var(--linea);opacity:.6
-}
-.rail-brandmark .mini-seal{
+/* Marca chica reutilizable — un sello mini + "MA|OG" en texto pequeño,
+   para cuando la marca necesita ser un crédito discreto en vez del
+   protagonista (pie del riel, esquina de las pantallas de entrada). */
+.mini-brand{display:flex;align-items:center;gap:7px}
+.mini-seal{
   width:19px;height:19px;border-radius:50%;flex:0 0 19px;
   background:linear-gradient(178deg,var(--acento),var(--acento-2));color:var(--papel);
   display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:600;font-size:8px
 }
-.rail-brandmark span:last-child{font-family:var(--disp);font-weight:600;font-size:11.5px;color:var(--gris2)}
-.rail-brandmark i{font-style:normal;color:var(--gris);padding:0 1px}
+.mini-brand span:last-child{font-family:var(--disp);font-weight:600;font-size:11.5px;color:var(--gris2)}
+.mini-brand i{font-style:normal;color:var(--gris);padding:0 1px}
+.rail-brandmark{padding:12px 10px 4px;margin-top:8px;border-top:1px solid var(--linea);opacity:.6}
+.gate-corner-mark{position:fixed;top:18px;left:18px;z-index:5;opacity:.7}
+@media(max-width:560px){.gate-corner-mark{top:14px;left:14px}}
 .nav{display:flex;flex-direction:column;gap:3px;padding:10px 12px}
 .nav button{
   background:none;border:0;text-align:left;cursor:pointer;border-radius:11px;
@@ -420,8 +420,10 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 @keyframes in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 
 /* ---------- pantallas de acceso ---------- */
-.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:26px;background:var(--papel)}
+.gate{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px;background:var(--papel)}
 .gate-card{width:100%;max-width:400px}
+.gate-wrap{width:100%;display:flex;flex-direction:column;align-items:center}
+.gate-wrap .gate-hero{max-width:540px}
 .gate-brand{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:28px}
 .gate-brand .seal{
   width:64px;height:64px;border-radius:50%;background:linear-gradient(178deg,var(--acento),var(--acento-2));color:var(--papel);
@@ -432,6 +434,16 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .gate-brand .mark{font-family:var(--disp);font-weight:600;font-size:29px;letter-spacing:-.015em}
 .gate-brand .mark i{font-style:normal;color:var(--gris)}
 .gate-brand .sub{font-size:12.5px;letter-spacing:.04em;color:var(--gris);margin-top:5px;font-style:italic;font-family:var(--disp)}
+/* Hero de la primerísima pantalla (conectar) — el único momento donde
+   la app se presenta antes de pedir nada. El sello de MA|OG se achica
+   y se va a la esquina (.gate-corner-mark); aquí el protagonista es el
+   nombre grande. Las demás pantallas de entrada (sesión, negocio...)
+   siguen con el .gate-brand chico de siempre, para no repetir un hero
+   gigante en cada paso. */
+.gate-hero{text-align:center;margin-bottom:30px}
+.gate-hero h1{font-family:var(--disp);font-weight:600;font-size:50px;letter-spacing:-.02em;line-height:1.03;margin:0 0 12px;color:var(--negro);text-wrap:balance}
+.gate-hero p{font-size:14.5px;color:var(--gris2);max-width:380px;margin:0 auto;line-height:1.55}
+@media(max-width:560px){.gate-hero h1{font-size:36px}.gate-hero{margin-bottom:24px}}
 .gate-panel{background:var(--hueso);border:1px solid var(--linea);border-radius:14px;padding:28px 26px;box-shadow:0 1px 2px rgba(27,24,18,.03)}
 .gate-panel h3{font-weight:600;font-size:20px;margin:0 0 4px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
 .gate-panel h3 .icono{width:19px;height:19px;color:var(--acento);flex:0 0 19px}
@@ -596,7 +608,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       <button class="rail-btn" id="ajustesBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span><span>Ajustes</span></button>
       <button class="rail-btn" id="exportBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11.5M8 12l4 4 4-4"/><path d="M4.5 17.5v2A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg></span><span>Exportar a Excel</span></button>
       <button class="rail-btn warn" id="salirBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4.5H7A1.5 1.5 0 0 0 5.5 6v12A1.5 1.5 0 0 0 7 19.5h6"/><path d="M11 12h9M17 8.3l3.3 3.7-3.3 3.7"/></svg></span><span>Cerrar sesión</span></button>
-      <div class="rail-brandmark"><span class="mini-seal">M<i>|</i>G</span><span>MA<i>|</i>OG</span></div>
+      <div class="rail-brandmark mini-brand"><span class="mini-seal">M<i>|</i>G</span><span>MA<i>|</i>OG</span></div>
     </div>
   </aside>
 
@@ -3833,8 +3845,13 @@ function entrarModoDemo(){
 
 function pantallaConectar(){
   $('gate').innerHTML = `
-    <div class="gate-card">
-      <div class="gate-brand"><span class="seal"><span class="seal-mark">M<i>|</i>G</span></span><span class="mark">MA<i>|</i>OG</span><span class="sub">Control de flota</span></div>
+    <div class="gate-corner-mark mini-brand"><span class="mini-seal">M<i>|</i>G</span><span>MA<i>|</i>OG</span></div>
+    <div class="gate-wrap">
+      <div class="gate-hero">
+        <h1>Finanzas saludables</h1>
+        <p>Tus negocios y tus cuentas, cada uno por su lado — sin enredos, sin números que den miedo.</p>
+      </div>
+      <div class="gate-card">
       <div class="gate-panel">
         <h3><span class="icono">${ICONS.enchufe}</span> Conecta tu base de datos</h3>
         <p class="sub">Una sola vez. Pega los datos de tu proyecto de Supabase — quedan guardados en este navegador.</p>
@@ -3849,6 +3866,7 @@ function pantallaConectar(){
         <p class="gate-foot" style="margin-top:2px">
           <button class="linkbtn" id="verDemoBtn"><span class="icono">${ICONS.tablero}</span> Explorar con datos de ejemplo</button>
         </p>
+      </div>
       </div>
     </div>`;
   $('verDemoBtn').addEventListener('click', entrarModoDemo);
