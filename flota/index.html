@@ -73,6 +73,20 @@ hr{border:0;border-top:1px solid var(--linea);margin:18px 0}
   display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand .mark i{font-style:normal;color:var(--gris);padding:0 1px}
 .brand .sub{display:block;margin-top:3px;font-size:10px;letter-spacing:.03em;color:var(--gris);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Marca chica al pie del riel — antes el sello grande vivía en la
+   esquina superior (compitiendo con el nombre de la cuenta y del
+   proyecto); ahora es solo un crédito discreto, abajo del todo. */
+.rail-brandmark{
+  display:flex;align-items:center;gap:7px;padding:12px 10px 4px;margin-top:8px;
+  border-top:1px solid var(--linea);opacity:.6
+}
+.rail-brandmark .mini-seal{
+  width:19px;height:19px;border-radius:50%;flex:0 0 19px;
+  background:linear-gradient(178deg,var(--acento),var(--acento-2));color:var(--papel);
+  display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:600;font-size:8px
+}
+.rail-brandmark span:last-child{font-family:var(--disp);font-weight:600;font-size:11.5px;color:var(--gris2)}
+.rail-brandmark i{font-style:normal;color:var(--gris);padding:0 1px}
 .nav{display:flex;flex-direction:column;gap:3px;padding:10px 12px}
 .nav button{
   background:none;border:0;text-align:left;cursor:pointer;border-radius:11px;
@@ -444,6 +458,17 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .choice:hover{border-color:var(--acento);box-shadow:var(--sombra-md);transform:translateY(-2px)}
 .choice:active{border-color:var(--acento);box-shadow:var(--sombra-sm);transform:scale(.98)}
 .choice.sel{border-color:var(--acento);box-shadow:var(--sombra-md);background:color-mix(in srgb, var(--acento) 7%, var(--hueso))}
+#colorPicker{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0 4px}
+.swatch{
+  width:38px;height:38px;border-radius:50%;border:0;padding:0;cursor:pointer;background:var(--sw);
+  box-shadow:0 0 0 2px var(--hueso),0 0 0 3px var(--linea);position:relative;transition:box-shadow .15s,transform .15s
+}
+.swatch:hover{transform:translateY(-2px)}
+.swatch:active{transform:scale(.94)}
+@media(prefers-reduced-motion:reduce){.swatch:hover,.swatch:active{transform:none}}
+.swatch.sel{box-shadow:0 0 0 2px var(--hueso),0 0 0 3px var(--sw),0 0 0 5px var(--hueso),0 0 0 6px var(--sw)}
+.swatch.sel span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.swatch.sel span::after{content:'✓'}
 .choice.sm{padding:13px 12px}
 .choice.sm .ic{width:19px;height:19px;margin-bottom:7px}
 .choice.sm b{font-size:13.5px}
@@ -504,10 +529,8 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     position:sticky;top:0;background:var(--hueso);z-index:40
   }
   .topbar .brand{padding:0;flex:1 1 auto;min-width:0;overflow:hidden}
-  .topbar .brand .seal{width:38px;height:38px;flex:0 0 auto;box-shadow:0 0 0 2px var(--hueso),0 0 0 3px var(--linea),0 3px 8px -3px rgba(221,75,34,.5)}
-  .topbar .brand .seal .seal-mark{font-size:15px}
-  .topbar .brand .mark{font-size:16px}
-  .topbar .brand .sub{font-size:9.5px}
+  .topbar .brand .mark{font-size:17px}
+  .topbar .brand .sub{font-size:10px}
   .topbar .acts{display:flex;gap:4px;flex:0 0 auto}
   .icon-btn{
     background:none;border:0;color:var(--gris2);font-size:21px;width:42px;height:42px;
@@ -560,10 +583,9 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 <div class="shell" id="appShell" hidden>
   <aside class="rail">
     <div class="brand">
-      <span class="seal"><span class="seal-mark">M<i>|</i>G</span></span>
       <span class="tx">
-        <span class="mark neg-label">Control de flota</span>
-        <span class="sub cuenta-label"></span>
+        <span class="mark cuenta-label"></span>
+        <span class="sub neg-label">Control de flota</span>
       </span>
     </div>
     <nav class="nav" id="nav"></nav>
@@ -574,15 +596,15 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       <button class="rail-btn" id="ajustesBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span><span>Ajustes</span></button>
       <button class="rail-btn" id="exportBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11.5M8 12l4 4 4-4"/><path d="M4.5 17.5v2A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg></span><span>Exportar a Excel</span></button>
       <button class="rail-btn warn" id="salirBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4.5H7A1.5 1.5 0 0 0 5.5 6v12A1.5 1.5 0 0 0 7 19.5h6"/><path d="M11 12h9M17 8.3l3.3 3.7-3.3 3.7"/></svg></span><span>Cerrar sesión</span></button>
+      <div class="rail-brandmark"><span class="mini-seal">M<i>|</i>G</span><span>MA<i>|</i>OG</span></div>
     </div>
   </aside>
 
   <header class="topbar">
     <span class="brand">
-      <span class="seal"><span class="seal-mark">M<i>|</i>G</span></span>
       <span class="tx">
-        <span class="mark neg-label">Control de flota</span>
-        <span class="sub cuenta-label"></span>
+        <span class="mark cuenta-label"></span>
+        <span class="sub neg-label">Control de flota</span>
       </span>
     </span>
     <span class="acts">
@@ -1003,6 +1025,12 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         <div><h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span>Ajustes</h1><p>Tu negocio, los dueños y la cuenta donde reciben los pagos.</p></div>
       </div>
 
+      <div class="section form" id="aparienciaBox">
+        <h2 style="margin-bottom:8px">Color de este proyecto</h2>
+        <p class="sub">Cada proyecto puede tener su propio color — así se diferencian de un vistazo. Solo cambia el acento, no el resto de la app.</p>
+        <div id="colorPicker"></div>
+      </div>
+
       <div class="section form" id="negocioBox">
         <h2 style="margin-bottom:8px">Quiénes tienen acceso a <span id="negNombreTx">este negocio</span></h2>
         <div id="miembrosList"></div>
@@ -1120,6 +1148,39 @@ function confirmar(titulo, texto){
 }
 $('scrim').addEventListener('click', e=>{ if(e.target===$('scrim')) $('scrim').classList.remove('on'); });
 
+/* =========================================================
+   Color por proyecto — 8 acentos para diferenciar de un vistazo en
+   qué negocio se está (ej. Motos en naranja, Cuentas María en verde).
+   Cada uno reemplaza las 4 variables de acento del CSS; el resto de
+   la paleta (papel, líneas, tinta) no cambia — solo el color de marca.
+   Se guarda en S.config.color, así que es por negocio, no por cuenta. */
+const PALETAS_COLOR = {
+  naranja: { nombre:'Naranja', muestra:'#DD4B22', acento:'#DD4B22', acento2:'#B93A18', acentoInk:'#8A2C12', acentoSuave:'#FBE4D8' },
+  rojo:    { nombre:'Rojo',    muestra:'#C4372A', acento:'#C4372A', acento2:'#A32A1F', acentoInk:'#7A1F16', acentoSuave:'#F7E1DC' },
+  rosado:  { nombre:'Rosado',  muestra:'#C24476', acento:'#C24476', acento2:'#9E3560', acentoInk:'#752646', acentoSuave:'#F7E1EC' },
+  azul:    { nombre:'Azul',    muestra:'#2C5F9E', acento:'#2C5F9E', acento2:'#204A7D', acentoInk:'#17375E', acentoSuave:'#DCE7F4' },
+  verde:   { nombre:'Verde',   muestra:'#2C8256', acento:'#2C8256', acento2:'#215F3D', acentoInk:'#18452C', acentoSuave:'#DDEDE3' },
+  negro:   { nombre:'Negro',   muestra:'#2B2820', acento:'#2B2820', acento2:'#1B1812', acentoInk:'#000000', acentoSuave:'#E8E6E0' },
+  blanco:  { nombre:'Blanco',  muestra:'#B7AF9B', acento:'#6B6656', acento2:'#544F42', acentoInk:'#3A362C', acentoSuave:'#EDEBE3' },
+  morado:  { nombre:'Morado',  muestra:'#6B4C9A', acento:'#6B4C9A', acento2:'#523876', acentoInk:'#3D2A59', acentoSuave:'#E9E1F1' },
+};
+function aplicarColor(){
+  const key = (S && S.config && S.config.color) || 'naranja';
+  const p = PALETAS_COLOR[key] || PALETAS_COLOR.naranja;
+  const r = document.documentElement.style;
+  r.setProperty('--acento', p.acento);
+  r.setProperty('--acento-2', p.acento2);
+  r.setProperty('--acento-ink', p.acentoInk);
+  r.setProperty('--acento-suave', p.acentoSuave);
+}
+function renderColorPicker(){
+  const box = $('colorPicker'); if(!box) return;
+  const actual = (S && S.config && S.config.color) || 'naranja';
+  box.innerHTML = Object.entries(PALETAS_COLOR).map(([key,p])=>
+    `<button type="button" class="swatch${key===actual?' sel':''}" data-color="${key}" title="${esc(p.nombre)}" style="--sw:${p.muestra}"><span></span></button>`
+  ).join('');
+}
+
 const CATS = ['Cambio de aceite y filtro','Llantas','Frenos y pastillas','Kit de arrastre',
               'Batería','Bujías y eléctrico','Mantenimiento general','Repuestos','Lavado',
               'SOAT','Tecnomecánica','Seguro','Multa o comparendo','Grúa o patios',
@@ -1150,7 +1211,7 @@ function viewsPara(){
             ['vehiculos','Vehículos','Motos']];
   }
   const mods = modulosDe(NEGOCIO);
-  if(mods.tipo === 'personal'){
+  if(mods.tipo === 'personal' || mods.tipo === 'familia'){
     return [['tablero','Tablero','Inicio'],['pagos','Lo que entra','Entra'],['gastos','Lo que sale','Sale'],
             ['cuentas','Mi plata','Mi plata'],['fijos','Pagos fijos','Fijos']];
   }
@@ -1506,6 +1567,7 @@ function renderAll(){
   if(!S.fijos) S.fijos = [];
   if(!S.deudas) S.deudas = [];
   if(!S.metas) S.metas = [];
+  aplicarColor();
   aplicarPlantillaUI();
   renderSelects(); renderKPIs(); renderAvisos(); renderCuentas(); renderPropietarios();
   renderCondStatus(); renderChart();
@@ -1520,7 +1582,15 @@ function setHidden(id, cond){ const e=$(id); if(e) e.classList.toggle('hidden', 
    activo (motos vs. flexible) — se corre en cada render para que el
    cambio entre negocios (que pueden tener plantillas distintas) se note
    al instante. */
-function esPersonal(){ return !esMotos() && NEGOCIO && NEGOCIO.modulos && NEGOCIO.modulos.tipo==='personal'; }
+/* "familia" usa hoy exactamente el mismo motor que "personal" (Mi
+   plata, Pagos fijos, el lenguaje amable) — son la misma plantilla por
+   dentro, solo cambia el nombre/ícono en el selector. El día que se
+   diseñe algo propio para llevar cuentas en pareja (quién puso qué,
+   por ejemplo), esta función es el lugar para separarlas. */
+function esPersonal(){
+  if(esMotos() || !NEGOCIO || !NEGOCIO.modulos) return false;
+  return NEGOCIO.modulos.tipo==='personal' || NEGOCIO.modulos.tipo==='familia';
+}
 function aplicarPlantillaUI(){
   const motos = esMotos(), personal = esPersonal();
   setHidden('tableroMotos', !motos);
@@ -1595,7 +1665,7 @@ function renderSelects(){
    confundía apenas hubo negocios con nombres distintos al de la app. */
 function renderIdentidad(){
   const negTxt = DEMO ? 'Datos de ejemplo' : (NEGOCIO ? NEGOCIO.nombre : 'Control de flota');
-  const cuentaTxt = DEMO ? 'Explorando sin conectar' : [SESION.nombre, SESION.correo].filter(Boolean).join(' · ');
+  const cuentaTxt = DEMO ? 'Modo demo' : (SESION.nombre || SESION.correo || '');
   document.querySelectorAll('.neg-label').forEach(e=>{ e.textContent = negTxt; });
   document.querySelectorAll('.cuenta-label').forEach(e=>{ e.textContent = cuentaTxt; });
 }
@@ -2312,7 +2382,7 @@ function go(v){
     else b.removeAttribute('aria-current');
   });
   if(v==='ajustes'){
-    renderNegocioPanel(); renderReporteToggle();
+    renderNegocioPanel(); renderReporteToggle(); renderColorPicker();
     $('codigoBox').innerHTML='';
   }
   if(v==='proyectos'){
@@ -2671,10 +2741,18 @@ document.addEventListener('click', async e=>{
      SVG adentro, y un clic que caiga sobre el ícono reporta el <svg>
      como e.target, no el <button> con el data-* — sin esto, tocar el
      ícono (en vez del texto) no hacía nada. */
-  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-del-negocio]');
+  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-del-negocio],[data-color]');
   if(!t) return;
   if(t.dataset.irNegocio) return cambiarNegocio(t.dataset.irNegocio);
   if(t.dataset.delNegocio) return eliminarNegocioFlow(t.dataset.delNegocio, t.dataset.nombreNegocio);
+  if(t.dataset.color){
+    if(DEMO) return toast('En modo demo el color no se guarda.', true);
+    if(!S.config) S.config = {};
+    S.config.color = t.dataset.color;
+    aplicarColor(); renderColorPicker();
+    await save();
+    return toast(`Color ${PALETAS_COLOR[t.dataset.color].nombre.toLowerCase()} aplicado a "${NEGOCIO.nombre}"`);
+  }
   if(t.dataset.contrato) return generarContrato(t.dataset.contrato);
   const rm = async (arr, id, msg) => { S[arr] = S[arr].filter(x=>x.id!==id); await save(); renderAll(); toast(msg); };
   if(t.dataset.delProducto){
@@ -3662,6 +3740,8 @@ const PLANTILLAS_DISPONIBLES = [
     icono:'productos', plantilla:'flexible', modulos:{ tipo:'ropa', productos:true, clientes:true } },
   { id:'impresion3d', nombre:'Impresión 3D', desc:'Productos y clientes — la seguimos afinando contigo más adelante.',
     icono:'productos', plantilla:'flexible', modulos:{ tipo:'impresion3d', productos:true, clientes:true } },
+  { id:'familia', nombre:'Cuentas familia', desc:'Los gastos de la casa, en pareja — por ahora usa lo mismo que Cuentas personales; la seguimos construyendo pronto.',
+    icono:'persona', plantilla:'flexible', modulos:{ tipo:'familia', productos:false, clientes:false } },
 ];
 let NUEVA_PLANTILLA = 'motos';
 function plantillaPickerHTML(pref){
@@ -3966,6 +4046,7 @@ async function mostrarApp(){
 
 async function arrancar(){
   $('appShell').hidden = true; $('gate').hidden = false;
+  aplicarColor(); // vuelve al naranja de siempre en las pantallas de entrada, sin importar el color del último negocio
   capturarSesion();
   if(!sesionLista()) return pantallaConectar();
   if(!autenticado()) return pantallaSesion();
