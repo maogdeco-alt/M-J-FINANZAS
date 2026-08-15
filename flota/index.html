@@ -7,6 +7,11 @@
 <meta name="description" content="Finanzas saludables: tus negocios y tus cuentas, cada uno por su lado, sin enredos y sin números que den miedo.">
 <meta name="theme-color" content="#F5F5F6">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%8D%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MA|OG">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -181,6 +186,34 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .hoy-item .cuando{flex:0 0 auto;font-size:10.5px;font-weight:600;letter-spacing:.03em;white-space:nowrap;color:var(--gris)}
 .hoy-item.mora .cuando{color:var(--rojo)}
 .hoy-item.due .cuando{color:var(--ambar)}
+
+/* ---------- Bienvenida: primeros pasos cuando el Tablero está
+   completamente vacío (nada registrado todavía) ---------- */
+.bienvenida-card{
+  border-radius:var(--r);padding:24px 26px;margin-bottom:8px;
+  background:linear-gradient(135deg,var(--acento-suave) 0%,var(--hueso) 78%);
+  border:1px solid var(--linea);box-shadow:var(--sombra-sm)
+}
+.bienvenida-card h2{
+  font-size:20px;font-family:var(--disp);font-weight:600;text-transform:none;
+  letter-spacing:-.01em;margin:0 0 4px
+}
+.bienvenida-card h2::before{display:none}
+.bienvenida-card .sub{margin:0 0 16px}
+.bienvenida-pasos{display:flex;flex-direction:column;gap:8px}
+.bienvenida-paso{
+  display:flex;align-items:center;gap:12px;text-align:left;background:var(--hueso);
+  border:1px solid var(--linea);border-radius:var(--r-sm);padding:12px 14px;cursor:pointer;
+  font-family:inherit;font-size:13.5px;font-weight:600;color:var(--negro);width:100%;
+  transition:border-color .14s,transform .1s
+}
+.bienvenida-paso:hover{border-color:var(--acento)}
+.bienvenida-paso:active{transform:scale(.99)}
+@media(prefers-reduced-motion:reduce){.bienvenida-paso:active{transform:none}}
+.bienvenida-paso .num{
+  flex:0 0 22px;width:22px;height:22px;border-radius:50%;background:var(--acento);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mono)
+}
 
 /* ---------- Notas del Tablero: una pizarra libre, sin fecha, para
    recordatorios rápidos o cualquier cosa que se quiera dejar anotada.
@@ -466,6 +499,12 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .docpaper p{margin:0 0 7px}
 .docpaper table{table-layout:fixed}
 .docpaper blockquote{margin:0 0 7px 18px}
+.docpaper h2{font-size:15px;margin:20px 0 8px;font-weight:700;letter-spacing:-.005em}
+.docpaper h2:first-child{margin-top:0}
+.docpaper h3{font-size:12px;margin:14px 0 6px;font-weight:700}
+.docpaper ul,.docpaper ol{margin:0 0 9px;padding-left:20px}
+.docpaper li{margin-bottom:4px}
+.docpaper .docfecha{color:#8c8271;font-size:10.5px;margin:-4px 0 16px}
 @media (max-width:720px){ .docpaper{padding:26px 20px;margin:14px 8px 0} }
 @media print{
   body.imprimiendo > *:not(#docScrim){display:none!important}
@@ -853,6 +892,14 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         <div>
           <span class="eyebrow" id="todayLabel" style="display:block;margin-bottom:4px"></span>
           <h1><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.25"/><path d="M12 12L15.3 8.2"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg></span>Tablero</h1>
+        </div>
+      </div>
+
+      <div class="section bienvenida hidden" id="bienvenidaBox">
+        <div class="bienvenida-card">
+          <h2>¡Bienvenido a tu Tablero!</h2>
+          <p class="sub" id="bienvenidaSub">Todavía no hay nada registrado — estos son los primeros pasos.</p>
+          <div id="bienvenidaPasos" class="bienvenida-pasos"></div>
         </div>
       </div>
 
@@ -1415,6 +1462,21 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           <span class="hint" style="margin-left:0">Se usan para llenar los contratos.</span></div>
       </div>
 
+      <div class="section form" id="ayudaBox">
+        <h2 style="margin-bottom:8px">Ayuda y soporte</h2>
+        <p class="sub">El correo al que puede escribir cualquiera que use este proyecto si algo falla o tiene una pregunta — aparece también en los Términos de uso y la Política de privacidad, abajo.</p>
+        <div class="fgrid">
+          <div class="f"><label for="correoSoporte">Correo de contacto</label><input id="correoSoporte" type="email" placeholder="tucorreo@ejemplo.com"></div>
+        </div>
+        <div class="acts">
+          <button class="btn" id="correoSoporteSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="15" height="16" rx="2"/><path d="M8 4v5h7V4"/><path d="M7.5 20v-6h9v6"/></svg></span> Guardar</button>
+          <a class="linkbtn hidden" id="escribirSoporte" href="#"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4.3 7l7.7 6 7.7-6"/></svg></span> Escribir ahora</a>
+        </div>
+        <p class="sub" style="margin-top:16px">
+          <button class="linkbtn" data-legal="terminos">Ver Términos de uso</button> · <button class="linkbtn" data-legal="privacidad">Ver Política de privacidad</button>
+        </p>
+      </div>
+
       <div class="section" style="text-align:center">
         <button class="linkbtn" id="salirBtnAjustes"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4.5H7A1.5 1.5 0 0 0 5.5 6v12A1.5 1.5 0 0 0 7 19.5h6"/><path d="M11 12h9M17 8.3l3.3 3.7-3.3 3.7"/></svg></span> Cerrar sesión</button>
       </div>
@@ -1594,6 +1656,46 @@ $('gastoRapidoScrim').addEventListener('click', e=>{ if(e.target===$('gastoRapid
    aparecen en el Calendario — y viceversa, las notas puestas sobre un
    día del Calendario no aparecen aquí. Un mismo borrador (data-del-
    nota + rm('notas', …)) sirve para las dos, sin código nuevo. */
+/* Bienvenida del Tablero: se ve solo mientras el negocio está
+   completamente vacío (nadie ha registrado nada todavía) — en cuanto
+   hay un primer dato, desaparece sola y no vuelve a aparecer, así
+   que no estorba a quien ya está usando la app de verdad. */
+function huboAlgunRegistro(){
+  if(esMotos()) return !!(S.motos.length || S.conductores.length || S.pagos.length || S.gastos.length);
+  const mods = modulosDe(NEGOCIO);
+  return !!(S.pagos.length || S.gastos.length || (S.cuentas&&S.cuentas.length) ||
+    (mods.productos && S.productos && S.productos.length) || (mods.clientes && S.clientes && S.clientes.length));
+}
+function pasosBienvenida(){
+  if(esMotos()) return [
+    { texto:'Registra tu primera moto', view:'vehiculos' },
+    { texto:'Agrega un conductor y asígnale la moto', view:'conductores' },
+    { texto:'Cuando te paguen, registra el pago aquí', view:'pagos' },
+  ];
+  if(esFamilia()) return [
+    { texto:'Escriban quiénes son los dos, en Ajustes', view:'ajustes' },
+    { texto:'Agreguen una cuenta en Mi plata', view:'cuentas' },
+    { texto:'Registren lo que entra o lo que sale', view:'gastos' },
+  ];
+  if(esPersonal()) return [
+    { texto:'Agrega una cuenta en Mi plata — dónde tienes la plata', view:'cuentas' },
+    { texto:'Registra lo que entra', view:'pagos' },
+    { texto:'Ponte una meta de ahorro, si quieres', view:'cuentas' },
+  ];
+  const mods = modulosDe(NEGOCIO), pasos = [];
+  if(mods.productos) pasos.push({ texto:'Agrega tu primer producto', view:'productos' });
+  if(mods.clientes) pasos.push({ texto:'Registra un cliente', view:'clientes' });
+  pasos.push({ texto:'Anota tu primera venta en Lo que entra', view:'pagos' });
+  return pasos;
+}
+function renderBienvenida(){
+  const box = $('bienvenidaBox'); if(!box) return;
+  if(DEMO || huboAlgunRegistro()) return setHidden('bienvenidaBox', true);
+  setHidden('bienvenidaBox', false);
+  $('bienvenidaPasos').innerHTML = pasosBienvenida().map((p,i)=>
+    `<button class="bienvenida-paso" data-view="${esc(p.view)}"><span class="num">${i+1}</span><span>${esc(p.texto)}</span></button>`
+  ).join('');
+}
 function renderNotasTablero(){
   const box = $('notasList'); if(!box) return;
   const notas = (S.notas||[]).filter(n=>!n.fecha);
@@ -1776,6 +1878,48 @@ const ICONS = {
    ========================================================= */
 const SKEY = 'maog:flota:sesion';
 let SESION = { url:'', key:'', token:'', refresh:'', usuarioId:'', correo:'', nombre:'', avatar:'sol', ultimoNegocioId:'' };
+
+/* Aviso automático si algo se rompe — antes, si la app fallaba, solo se
+   enteraba quien lo estuviera mirando en ese momento (o nadie). Ahora
+   se manda un correo con el error a quien administra este proyecto,
+   reutilizando la misma función de correo (Resend) que ya existe para
+   el reporte semanal — nada nuevo que pagar ni configurar aparte, solo
+   una función más desplegada en Supabase (ver README).
+
+   Es "mejor esfuerzo" a propósito: si no hay Supabase conectado
+   todavía, si la función no se ha desplegado, o si no hay internet,
+   simplemente no se manda nada — reportar un error JAMÁS puede ser la
+   causa de un segundo error. Y se manda como máximo un aviso por
+   visita, para no saturar el correo si algo falla en cadena. */
+let YA_SE_REPORTO_ERROR = false;
+async function reportarError(info){
+  if(YA_SE_REPORTO_ERROR || !SESION.url || !SESION.key) return;
+  YA_SE_REPORTO_ERROR = true;
+  try{
+    await fetch(SESION.url.replace(/\/+$/,'') + '/functions/v1/reportar-error', {
+      method:'POST',
+      headers:{ apikey:SESION.key, Authorization:'Bearer '+SESION.key, 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        mensaje: String((info && info.mensaje) || '').slice(0, 500),
+        detalle: String((info && info.detalle) || '').slice(0, 1500),
+        pagina: location.pathname,
+        negocio: (typeof NEGOCIO !== 'undefined' && NEGOCIO && NEGOCIO.nombre) || '',
+        correo: SESION.correo || '',
+        navegador: navigator.userAgent,
+        cuando: new Date().toISOString(),
+      })
+    });
+  }catch(e){ /* mejor esfuerzo — si falla, no pasa nada */ }
+}
+window.addEventListener('error', e=>{
+  try{ reportarError({ mensaje: e.message, detalle: (e.error && e.error.stack) || (e.filename+':'+e.lineno) }); }catch(_){}
+});
+window.addEventListener('unhandledrejection', e=>{
+  try{
+    const r = e.reason;
+    reportarError({ mensaje: 'Promesa sin atrapar: ' + ((r && r.message) || String(r)), detalle: (r && r.stack) || '' });
+  }catch(_){}
+});
 let MIS_NEGOCIOS = [], NEGOCIO = null;
 
 function cargarSesion(){ try{ const s = localStorage.getItem(SKEY); if(s) SESION = Object.assign(SESION, JSON.parse(s)); }catch(e){} }
@@ -2108,7 +2252,7 @@ function renderAll(){
   renderPagos(); renderGastos(); renderMotos(); renderCond();
   renderProductos(); renderClientes(); renderResumenFlex();
   renderCuentasPersonales(); renderMetas(); renderFijos(); renderDeudas(); renderHoyPersonal();
-  renderBalancePareja(); renderPrestamos(); renderMercado(); renderCalendario(); renderNotasTablero();
+  renderBalancePareja(); renderPrestamos(); renderMercado(); renderCalendario(); renderNotasTablero(); renderBienvenida();
   $('todayLabel').textContent = new Date().toLocaleDateString('es-CO',
     {weekday:'long', day:'numeric', month:'long'});
 }
@@ -2243,6 +2387,10 @@ function renderSelects(){
   set('d2',dob[1].nombre); set('d2cc',dob[1].cedula); set('d2ciu',dob[1].ciudad);
   set('bBanco',bk.banco); set('bCuenta',bk.cuenta);
   set('cfgLav', S.config && S.config.lavadero); set('cfgLavDir', S.config && S.config.lavaderoDir);
+  set('correoSoporte', S.config && S.config.correoSoporte);
+  const correoAyuda = S.config && S.config.correoSoporte;
+  setHidden('escribirSoporte', !correoAyuda);
+  if(correoAyuda) $('escribirSoporte').href = 'mailto:' + correoAyuda;
   if(bk.tipo) $('bTipo').value = bk.tipo;
   if(bk.diaPago) $('bDia').value = bk.diaPago;
   updateHint();
@@ -3620,13 +3768,22 @@ $('dSave').addEventListener('click', async ()=>{
   });
   await save(); renderAll(); toast('Nombres guardados');
 });
+$('correoSoporteSave').addEventListener('click', async ()=>{
+  const correo = $('correoSoporte').value.trim();
+  if(correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return toast('Ese correo no se ve completo.', true);
+  if(!S.config) S.config = {};
+  S.config.correoSoporte = correo;
+  await save(); renderAll();
+  toast(correo ? 'Correo de contacto guardado' : 'Correo de contacto borrado');
+});
 document.addEventListener('click', async e=>{
   /* .closest() y no e.target a secas: los botones ahora llevan un ícono
      SVG adentro, y un clic que caiga sobre el ícono reporta el <svg>
      como e.target, no el <button> con el data-* — sin esto, tocar el
      ícono (en vez del texto) no hacía nada. */
-  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-del-negocio],[data-color],[data-avatar],[data-del-prestamo],[data-marcar-prestamo],[data-del-mercado],[data-toggle-mercado],[data-cal-dia],[data-cal-ir],[data-del-nota],[data-cal-guardar-nota]');
+  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-del-negocio],[data-color],[data-avatar],[data-del-prestamo],[data-marcar-prestamo],[data-del-mercado],[data-toggle-mercado],[data-cal-dia],[data-cal-ir],[data-del-nota],[data-cal-guardar-nota],[data-legal]');
   if(!t) return;
+  if(t.dataset.legal){ e.preventDefault(); return abrirLegal(t.dataset.legal); }
   if(t.dataset.irNegocio) return cambiarNegocio(t.dataset.irNegocio);
   if(t.dataset.delNegocio) return eliminarNegocioFlow(t.dataset.delNegocio, t.dataset.nombreNegocio);
   if(t.dataset.color){
@@ -4584,6 +4741,71 @@ function datosContrato(c){
       String(S.conductores.findIndex(x=>x.id===c.id) + 1).padStart(3,'0'))
   };
 }
+/* =========================================================
+   Términos de uso y Política de privacidad — se muestran con el
+   mismo visor de documentos que ya existe para el contrato (imprimir,
+   copiar, descargar). {{CONTACTO}} se llena con el correo de soporte
+   configurado en Ajustes, o con un texto genérico si todavía no se
+   ha puesto uno. Estos documentos aplican a quien administra CADA
+   proyecto — no están escritos pensando en una sola persona, porque
+   cada negocio puede tener su propio responsable. */
+const TPL_TERMINOS = `
+<h2>Términos de uso</h2>
+<p class="docfecha">Última actualización: 12 de agosto de 2026</p>
+<h3>1. Qué es esto</h3>
+<p>Esta aplicación es una herramienta para llevar las cuentas de un negocio o de las finanzas personales de quien la usa — motos, pagos, gastos, cuentas, deudas, metas, y similares, según el tipo de proyecto que se haya creado.</p>
+<h3>2. Tu cuenta</h3>
+<p>Te registras con tu propio correo y contraseña. Esa cuenta es tuya: eres responsable de mantener tu contraseña segura y de todo lo que se registre usándola. Si compartes un proyecto con alguien más (por ejemplo, en pareja o en un negocio con dos socios), esa persona ve y puede modificar los datos de ese proyecto, no de los tuyos aparte.</p>
+<h3>3. Los datos que registras son tuyos</h3>
+<p>Puedes exportarlos a Excel en cualquier momento, y puedes eliminar un proyecto completo desde Proyectos, cuando quieras. Al eliminar un proyecto se borra todo lo que contiene, para siempre, sin poder deshacerse.</p>
+<h3>4. Qué no se puede hacer</h3>
+<ul>
+  <li>Usar la aplicación para actividades ilegales.</li>
+  <li>Intentar vulnerar la seguridad, acceder a datos de otra persona sin permiso, o sobrecargar el servicio a propósito.</li>
+  <li>Compartir tu clave de acceso con quien no debería tenerla.</li>
+</ul>
+<h3>5. Disponibilidad</h3>
+<p>Se hace lo posible por mantener el servicio funcionando y los datos seguros, pero al ser una herramienta pequeña, no se ofrece una garantía formal de disponibilidad permanente. Se recomienda exportar tu información de vez en cuando como respaldo propio.</p>
+<h3>6. Cambios a estos términos</h3>
+<p>Si estos términos cambian de forma importante, se avisará dentro de la aplicación.</p>
+<h3>7. Contacto</h3>
+<p>{{CONTACTO}}</p>
+`.trim();
+const TPL_PRIVACIDAD = `
+<h2>Política de privacidad</h2>
+<p class="docfecha">Última actualización: 12 de agosto de 2026</p>
+<h3>1. Qué datos se recogen</h3>
+<p>Tu nombre, tu correo, y una contraseña que Supabase guarda cifrada (nunca en texto plano). Además, todo lo que tú mismo ingreses dentro de tus proyectos: motos, pagos, gastos, cuentas, deudas, metas, notas, y similares.</p>
+<h3>2. Para qué se usan</h3>
+<p>Únicamente para mostrarte tu propia información dentro de la aplicación, y para mandarte el reporte periódico por correo si decides activarlo en Ajustes. No se usan con fines de publicidad, ni se venden a nadie.</p>
+<h3>3. Dónde se guardan</h3>
+<p>En una base de datos de Supabase, protegida con permisos que hacen que solo tú — y a quien tú invites a un proyecto compartido — puedan ver esos datos. Nadie más, ni siquiera entre distintos proyectos de la misma persona, puede ver información que no sea la suya.</p>
+<h3>4. Con quién se comparte</h3>
+<p>Con nadie, salvo dos servicios técnicos que hacen posible la aplicación: <strong>Supabase</strong> (aloja la base de datos y el inicio de sesión) y <strong>Resend</strong> (envía el correo del reporte periódico, solo si está activo). Ninguno de los dos usa tu información para nada distinto a prestar ese servicio.</p>
+<h3>5. Tus derechos</h3>
+<p>De acuerdo con la Ley 1581 de 2012 (Habeas Data) de Colombia, puedes conocer, actualizar, rectificar y pedir la eliminación de tus datos personales en cualquier momento.</p>
+<h3>6. Cómo pedir que se eliminen tus datos</h3>
+<p>Puedes borrar un proyecto completo tú mismo desde Proyectos, o pedir que se elimine tu cuenta por completo escribiendo a quien administra este proyecto. {{CONTACTO}}</p>
+<h3>7. Menores de edad</h3>
+<p>Esta aplicación no está dirigida a menores de 18 años.</p>
+<h3>8. Cambios a esta política</h3>
+<p>Si esta política cambia de forma importante, se avisará dentro de la aplicación.</p>
+`.trim();
+function abrirLegal(tipo){
+  const soporte = (S && S.config && S.config.correoSoporte) ? S.config.correoSoporte : '';
+  const contacto = soporte
+    ? `Puedes escribir a <strong>${esc(soporte)}</strong>.`
+    : `Puedes escribirle a quien te dio acceso a este proyecto (ver Ajustes → Quiénes tienen acceso).`;
+  const esPriv = tipo === 'privacidad';
+  const cuerpo = (esPriv ? TPL_PRIVACIDAD : TPL_TERMINOS).split('{{CONTACTO}}').join(contacto);
+  $('docTitulo').innerHTML = '<span class="icono">'+ICONS.documento+'</span> ' + (esPriv ? 'Política de privacidad' : 'Términos de uso');
+  $('docCuerpo').innerHTML = cuerpo;
+  $('docScrim').classList.add('on');
+  document.body.classList.add('imprimiendo');
+  $('docScrim').scrollTop = 0;
+  ULTIMO_CONTRATO = { nombre: esPriv ? 'Politica_de_privacidad' : 'Terminos_de_uso', cuerpo };
+}
+
 function generarContrato(condId){
   const c = condById(condId);
   if(!c) return;
@@ -4648,6 +4870,9 @@ function exportXLSX(){
   if(typeof XLSX === 'undefined'){
     return toast('No se pudo cargar la herramienta de Excel. Revise su conexión a internet e intente de nuevo.', true);
   }
+  return esMotos() ? exportXLSXMotos() : exportXLSXFlex();
+}
+function exportXLSXMotos(){
   const wb = XLSX.utils.book_new();
   const k = kpis();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
@@ -4682,6 +4907,89 @@ function exportXLSX(){
         Moto:m?m.placa:'', Inicio:c.inicio, Depósito:c.deposito, Días:e.dias,
         'Esperado a hoy':e.esperado, Pagado:e.pagado, Saldo:e.saldo }; })), 'Conductores');
   XLSX.writeFile(wb, `MAOG_Control_Motos_${todayISO()}.xlsx`);
+  toast('Excel descargado');
+}
+/* Exportar a Excel para las 4 plantillas que no son Motos (personal,
+   familia, ropa, impresión 3D) — antes esta función no existía y el
+   botón "Exportar a Excel" solo sabía de motos, así que en cualquier
+   otra plantilla descargaba un archivo casi vacío. Arma una hoja por
+   cada cosa que ese negocio realmente tenga activa. */
+function exportXLSXFlex(){
+  const wb = XLSX.utils.book_new();
+  const hoy = todayISO(), inicioMes = hoy.slice(0,7)+'-01';
+  const ing = ingresos(inicioMes, hoy), gas = gastosOper(inicioMes, hoy);
+  const mods = modulosDe(NEGOCIO);
+  const personal = esPersonal(), familia = esFamilia();
+
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+    [`${(NEGOCIO && NEGOCIO.nombre) || 'MA|OG'} — RESUMEN`], ['Generado el', fmtDate(todayISO())], [],
+    [personal ? 'Entró este mes' : 'Ingresos del mes', ing],
+    [personal ? 'Salió este mes' : 'Gastos del mes', gas],
+    [personal ? 'Lo que te queda' : 'Utilidad del mes', ing - gas],
+  ]), 'Resumen');
+
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+    [...S.pagos].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')).map(p=>({
+      Fecha:p.fecha, Concepto:p.concepto||'', 'Tipo de ingreso':p.tipoIngreso||'',
+      Valor:p.valor, Medio:p.medio||'', Nota:p.nota||'', 'Registrado por':p.creadoPor||''
+    }))), personal ? 'Lo que entra' : 'Ingresos');
+
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+    [...S.gastos].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')).map(g=>{
+      const cuenta = g.cuentaId ? ((S.cuentas.find(c=>c.id===g.cuentaId)||{}).nombre || '') : '';
+      const row = { Fecha:g.fecha, Categoría:g.cat, Descripción:g.desc||'', Valor:g.valor, Cuenta:cuenta };
+      if(familia){ row['¿Quién lo puso?'] = g.pagadoPor||''; row['Cómo se reparte'] = g.reparto||''; }
+      row['Registrado por'] = g.creadoPor||'';
+      return row;
+    })), personal ? 'Lo que sale' : 'Gastos');
+
+  if(personal){
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      (S.cuentas||[]).map(c=>({ Nombre:c.nombre, Tipo:c.tipo, Entidad:c.entidad||'', 'Saldo actual':saldoCuenta(c.id) }))
+    ), 'Mi plata');
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      (S.fijos||[]).map(f=>({ Nombre:f.nombre, Valor:f.monto, 'Día del mes':f.dia,
+        '¿Pagado este mes?': f.pagadoMes===hoy.slice(0,7) ? 'Sí' : 'No' }))
+    ), 'Pagos fijos');
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      (S.deudas||[]).map(d=>({ Nombre:d.nombre, Entidad:d.entidad||'', Saldo:d.saldo,
+        'Cuota mensual':d.cuotaMensual, 'Cuotas totales':d.cuotasTotal, 'Cuotas pagadas':d.cuotasPagadas,
+        'Día de pago':d.diaPago||'' }))
+    ), 'Créditos');
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      (S.metas||[]).map(m=>({ Nombre:m.nombre, Objetivo:m.objetivo, Ahorrado:m.ahorrado,
+        'Aporte mensual':m.aporteMensual||0, 'Fecha límite':m.fecha||'' }))
+    ), 'Metas');
+  }
+
+  if(familia){
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      (S.prestamos||[]).map(p=>({ 'Quién prestó':p.prestaEl, 'A quién':p.recibeEl, Valor:p.monto,
+        Motivo:p.motivo||'', '¿Pagado?':p.pagado?'Sí':'No' }))
+    ), 'Préstamos');
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      (S.mercado||[]).map(m=>({ Artículo:m.nombre, Cantidad:m.cantidad||'', '¿Comprado?':m.comprado?'Sí':'No' }))
+    ), 'Mercado');
+  }
+
+  if(mods.productos){
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      (S.productos||[]).map(p=>({ Nombre:p.nombre, Categoría:p.categoria||'', Precio:p.precio||0,
+        Costo:p.costo||0, Stock: p.stock==null ? '' : p.stock, Notas:p.notas||'' }))
+    ), 'Productos');
+  }
+  if(mods.clientes){
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      (S.clientes||[]).map(c=>({ Nombre:c.nombre, Contacto:c.contacto||'', Notas:c.notas||'' }))
+    ), 'Clientes');
+  }
+
+  const nombreArchivo = ((NEGOCIO && NEGOCIO.nombre) || 'MAOG').replace(/[^\w]+/g, '_');
+  XLSX.writeFile(wb, `${nombreArchivo}_${todayISO()}.xlsx`);
   toast('Excel descargado');
 }
 $('exportBtn').addEventListener('click', exportXLSX);
@@ -4830,6 +5138,7 @@ function pantallaConectar(){
         <p class="gate-foot" style="margin-top:2px">
           <button class="linkbtn" id="verDemoBtn"><span class="icono">${ICONS.tablero}</span> Explorar con datos de ejemplo</button>
         </p>
+        <p class="gate-help" style="margin-top:10px"><button class="linkbtn" data-legal="terminos" style="font-size:11.5px">Términos</button> · <button class="linkbtn" data-legal="privacidad" style="font-size:11.5px">Privacidad</button></p>
       </div>
       </div>
     </div>`;
@@ -4874,11 +5183,13 @@ function pantallaSesion(estadoExtra){
         ${AUTH_ERROR?`<div class="gate-error"><span class="icono">${ICONS.alerta}</span><span>${esc(AUTH_ERROR)}</span></div>`:''}
         ${modo==='crear' ? `<div class="f"><label for="fNombre">Tu nombre</label><input id="fNombre" placeholder="Nombre y apellido"></div>` : ''}
         <div class="f"><label for="fCorreo">Correo</label><input id="fCorreo" type="email" inputmode="email" placeholder="tucorreo@ejemplo.com"></div>
-        ${modo!=='recuperar' ? `<div class="f"><label for="fClave">Contraseña</label><input id="fClave" type="password" placeholder="mínimo 6 caracteres"></div>` : ''}
+        ${modo!=='recuperar' ? `<div class="f"><label for="fClave">Contraseña</label><input id="fClave" type="password" placeholder="${modo==='crear'?'mínimo 8, con letras y números':'tu contraseña'}"></div>` : ''}
         <button class="btn block" id="authGo">${AUTH_CARGANDO?'Un momento…':(modo==='entrar'?'Entrar':modo==='crear'?'Crear cuenta':'Enviar enlace')}</button>
         ${modo==='entrar' ? `<p class="gate-foot"><button class="linkbtn" data-modo="recuperar">¿Olvidaste tu contraseña?</button></p>` : ''}
         ${modo==='recuperar' ? `<p class="gate-foot"><button class="linkbtn" data-modo="entrar">Volver a entrar</button></p>` : ''}
+        ${modo==='crear' ? `<p class="gate-help" style="margin-top:-6px">Al crear tu cuenta, aceptas los <button class="linkbtn" data-legal="terminos" style="font-size:inherit;padding:0">Términos de uso</button> y la <button class="linkbtn" data-legal="privacidad" style="font-size:inherit;padding:0">Política de privacidad</button>.</p>` : ''}
         <p class="gate-help">Conectado a <code>${esc(SESION.url.replace(/^https?:\/\//,''))}</code> · <button class="linkbtn" id="cambiarProyecto" style="font-size:12px">cambiar proyecto</button></p>
+        <p class="gate-help" style="margin-top:2px"><button class="linkbtn" data-legal="terminos" style="font-size:11.5px">Términos</button> · <button class="linkbtn" data-legal="privacidad" style="font-size:11.5px">Privacidad</button></p>
       </div>
     </div>`;
   document.querySelectorAll('[data-modo]').forEach(b=>b.addEventListener('click', ()=>{ AUTH_MODO=b.dataset.modo; AUTH_ERROR=''; pantallaSesion(); }));
@@ -4890,7 +5201,17 @@ function pantallaSesion(estadoExtra){
     if(modo==='crear'){
       const nombre = ($('fNombre').value||'').trim();
       if(!nombre) { AUTH_ERROR='Falta tu nombre.'; return pantallaSesion(); }
-      if(!correo || clave.length<6) { AUTH_ERROR='La contraseña debe tener mínimo 6 caracteres.'; return pantallaSesion(); }
+      if(!correo) { AUTH_ERROR='Falta tu correo.'; return pantallaSesion(); }
+      // Mínimo 8, con al menos una letra y un número — más difícil de
+      // adivinar que el mínimo de 6 de antes, sin pedir símbolos raros
+      // que solo terminan frustrando a alguien que no es técnico. Esto
+      // es solo la primera barrera (rápida, sin red); la de verdad
+      // vive en Supabase (Authentication → Policies → Minimum password
+      // length) — vale la pena subirla ahí también a 8, si no está ya.
+      if(!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(clave)){
+        AUTH_ERROR='La contraseña debe tener mínimo 8 caracteres, con letras y números.';
+        return pantallaSesion();
+      }
       AUTH_CARGANDO=true; pantallaSesion();
       try{
         const r = await registrar(nombre, correo, clave);
@@ -5087,6 +5408,17 @@ async function arrancar(){
 }
 cargarSesion();
 arrancar();
+
+/* Service worker: para que la app se pueda "instalar" (ícono propio,
+   pantalla de inicio) y abra aunque se vaya el internet. Si falla
+   (navegador viejo, o el archivo no se subió por alguna razón), la
+   app sigue funcionando exactamente igual — instalarse es un extra,
+   nunca un requisito. */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>

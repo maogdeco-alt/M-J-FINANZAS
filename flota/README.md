@@ -60,9 +60,9 @@ se mezclan con las finanzas personales.
 
 ## 4. Usar la app
 
-1. **Crear cuenta** → tu nombre, tu correo, tu contraseña (mínimo 6
-   caracteres). Si el proyecto pide confirmar el correo, ábrelo y luego
-   entra con tu clave.
+1. **Crear cuenta** → tu nombre, tu correo, tu contraseña (mínimo 8
+   caracteres, con letras y números). Si el proyecto pide confirmar el
+   correo, ábrelo y luego entra con tu clave.
 2. La primera persona que entra ve dos opciones: **Crear un negocio** (le
    pone nombre y genera un código de 6 letras) o **Unirme con un
    código** (si su pareja ya lo creó y le compartió el código).
@@ -178,6 +178,37 @@ de arriba, sin el `cron.schedule` alrededor) y revisar la respuesta con
 llega al correo de cada persona que tenga acceso a ese negocio (los mismos
 correos con los que entran a la app). Se apaga desde el mismo lugar.
 
+## 6. Aviso automático si algo se rompe (opcional)
+
+Si a alguien se le rompe la app por un error de JavaScript, esta función te
+manda un correo con lo que pasó — sin que esa persona tenga que avisarte.
+Usa la misma cuenta de Resend del paso 5.2, así que si ya configuraste el
+reporte periódico, este paso es más corto.
+
+**6.1 Desplegar la función.**
+1. En el panel de Supabase: **Edge Functions → Create a new function**.
+2. Nómbrala `reportar-error`.
+3. Borra el código de ejemplo y pega todo el contenido de
+   `flota/supabase/functions/reportar-error/index.ts`.
+4. **Deploy**.
+
+**6.2 Guardar los secretos.** Edge Functions → `reportar-error` → Secrets
+→ agrega:
+- `RESEND_API_KEY`: la misma llave del paso 5.2 (si ya la tienes de ahí,
+  cópiala tal cual).
+- `ALERTA_EMAIL`: el correo tuyo donde quieres recibir estos avisos.
+- `RESEND_FROM` (opcional): igual que en el paso 5.4, solo si ya
+  verificaron un dominio propio en Resend.
+
+Si te saltas este paso, no pasa nada malo: la app sigue funcionando exactamente
+igual, simplemente nadie te avisa por correo si algo se rompe (como es hoy).
+
+(A diferencia del reporte semanal, esta función SÍ la puede llamar el
+navegador directamente — con la llave pública/anon de siempre, la misma que
+ya usa la app para todo lo demás — porque un error puede pasar antes de que
+la persona inicie sesión. No hace falta el paso del `service_role` ni del
+cron: el navegador la llama solo, en el momento, cuando algo se rompe.)
+
 ## Cómo está pensada la seguridad
 
 - Cada quien tiene su propia cuenta (correo + contraseña) — no hay una sola
@@ -187,6 +218,13 @@ correos con los que entran a la app). Se apaga desde el mismo lugar.
   datos, no solo en la pantalla.
 - Cada pago, gasto, moto y conductor que se registra queda con el nombre de
   quién lo registró (se ve en la lista, y también en el Excel exportado).
+- La app pide contraseñas de mínimo 8 caracteres con letras y números al
+  crear una cuenta — pero esa es solo la primera barrera, del lado del
+  navegador. La que de verdad manda es la de Supabase: **Authentication →
+  Policies (o Providers) → Minimum password length**. Si tu proyecto es
+  viejo y ese número todavía está en 6, vale la pena subirlo a 8 ahí
+  también, para que quede protegido incluso si alguien intenta saltarse
+  la pantalla de la app.
 
 ## Lo que queda por fuera de esta vuelta, a propósito
 
