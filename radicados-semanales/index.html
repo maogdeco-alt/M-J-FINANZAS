@@ -312,13 +312,6 @@
     :root:not([data-theme="light"]) #themeToggleBtn .icon-moon{display:block;}
   }
 
-  .profile-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;max-height:220px;overflow-y:auto;}
-  .profile-option{display:flex;align-items:center;gap:10px;border:1px solid var(--border);background:var(--surface-2);border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:600;}
-  .profile-option:hover{border-color:var(--accent);}
-  .profile-option.current{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);}
-  .profile-option .avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(180deg,var(--accent),var(--accent-2));color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex:none;}
-  .profile-option .po-body{display:flex;flex-direction:column;min-width:0;}
-  .profile-option .po-email{font-weight:400;color:var(--muted);font-size:0.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .profile-new{display:flex;gap:8px;margin-top:4px;}
   .profile-new input{flex:1;}
 
@@ -692,13 +685,12 @@
     </div>
 
     <div id="authLoginTab">
-      <div class="profile-list" id="profileList"></div>
-      <div id="loginPasswordRow" style="display:none;">
-        <label for="loginPassword">Contraseña de <span id="loginAsName">—</span></label>
-        <input id="loginPassword" type="password" placeholder="Tu contraseña" autocomplete="current-password">
-        <div class="import-actions" style="margin-top:10px;">
-          <button class="btn primary" id="loginBtn" type="button">Ingresar</button>
-        </div>
+      <div style="display:grid;gap:12px;">
+        <div><label for="loginEmail">Correo de Gmail</label><input id="loginEmail" type="email" autocomplete="username" placeholder="tunombre@gmail.com"></div>
+        <div><label for="loginPassword">Contraseña</label><input id="loginPassword" type="password" placeholder="Tu contraseña" autocomplete="current-password"></div>
+      </div>
+      <div class="import-actions" style="margin-top:14px;">
+        <button class="btn primary" id="loginBtn" type="button">Ingresar</button>
       </div>
     </div>
 
@@ -715,6 +707,7 @@
     </div>
   </div>
   <div class="form-actions">
+    <button class="btn ghost" id="authLogout" type="button" style="display:none;margin-right:auto;">Cerrar sesión</button>
     <button class="btn ghost" id="authCancel" type="button">Cancelar</button>
   </div>
 </dialog>
@@ -1105,22 +1098,6 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("userAvatar").textContent = user ? initials(user.name) : "—";
   }
 
-  var selectedLoginEmail = null;
-  function renderProfileList(){
-    var list = document.getElementById("profileList");
-    document.getElementById("loginPasswordRow").style.display = "none";
-    selectedLoginEmail = null;
-    if(!state.profile.users.length){
-      list.innerHTML = '<p class="hint" style="margin:0;">Todavía no hay cuentas creadas en este computador. Ve a la pestaña "Crear cuenta".</p>';
-      return;
-    }
-    list.innerHTML = state.profile.users.map(function(u){
-      return '<div class="profile-option" data-email="'+escapeHtml(u.email)+'">'+
-        '<span class="avatar">'+escapeHtml(initials(u.name))+'</span>'+
-        '<span class="po-body"><span>'+escapeHtml(u.name)+'</span><span class="po-email">'+escapeHtml(u.email)+'</span></span></div>';
-    }).join("");
-  }
-
   function setAuthTab(tab){
     Array.prototype.forEach.call(document.querySelectorAll("#authTabs button"), function(b){
       b.classList.toggle("active", b.getAttribute("data-tab")===tab);
@@ -1134,14 +1111,16 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   });
 
   function openAuthDialog(mandatory){
-    renderProfileList();
-    ["reg_name","reg_email","reg_password","reg_password2","loginPassword"].forEach(function(id){ document.getElementById(id).value = ""; });
+    ["reg_name","reg_email","reg_password","reg_password2","loginEmail","loginPassword"].forEach(function(id){ document.getElementById(id).value = ""; });
     setAuthTab(state.profile.users.length ? "login" : "register");
     document.getElementById("authTitle").textContent = mandatory ? "Bienvenido — inicia sesión" : "Cambiar de usuario";
     document.getElementById("authCancel").style.display = mandatory ? "none" : "inline-flex";
+    // "Cerrar sesión" solo tiene sentido si hay alguien conectado ahora mismo (no en el inicio obligatorio).
+    document.getElementById("authLogout").style.display = (!mandatory && state.profile.activeUser) ? "inline-flex" : "none";
     var dlg = document.getElementById("authDialog");
     dlg.dataset.mandatory = mandatory ? "1" : "0";
     if(!dlg.open) dlg.showModal();
+    setTimeout(function(){ document.getElementById("loginEmail").focus(); }, 30);
   }
 
   function completeLogin(user, silent){
@@ -1156,37 +1135,43 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(!silent) toast("Sesión iniciada como " + user.name);
   }
 
+  // Cierra la sesión activa y exige volver a iniciar sesión — no deja la app abierta a nombre de
+  // nadie. Es la forma correcta de dejar el computador compartido sin dejar tu sesión expuesta.
+  function logout(){
+    commitCurrentEdits();
+    state.profile.activeUser = null;
+    state.records = []; state.history = []; state.activeId = null;
+    renderProfileUI();
+    renderAll();
+    toast("Sesión cerrada");
+    openAuthDialog(true);
+  }
+
   document.getElementById("userBadge").addEventListener("click", function(){ openAuthDialog(false); });
   document.getElementById("authCancel").addEventListener("click", function(){ document.getElementById("authDialog").close(); });
+  document.getElementById("authLogout").addEventListener("click", logout);
   document.getElementById("authDialog").addEventListener("cancel", function(e){
     if(this.dataset.mandatory === "1") e.preventDefault();
   });
-  document.getElementById("profileList").addEventListener("click", function(e){
-    var opt = e.target.closest(".profile-option[data-email]");
-    if(!opt) return;
-    var user = findUserByEmail(opt.getAttribute("data-email"));
-    if(!user) return;
-    if(!user.hash){ completeLogin(user); return; } // salvaguarda: cuenta sin contraseña, entra directo
-    selectedLoginEmail = user.email;
-    Array.prototype.forEach.call(document.querySelectorAll(".profile-option"), function(el){
-      el.classList.toggle("current", el===opt);
-    });
-    document.getElementById("loginAsName").textContent = user.name;
-    document.getElementById("loginPasswordRow").style.display = "block";
-    document.getElementById("loginPassword").focus();
-  });
   document.getElementById("loginBtn").addEventListener("click", function(){
-    var user = findUserByEmail(selectedLoginEmail);
+    var email = document.getElementById("loginEmail").value.trim().toLowerCase();
     var pwd = document.getElementById("loginPassword").value;
-    if(!user){ toast("Elige tu cuenta de la lista"); return; }
+    if(!email){ toast("Escribe tu correo de Gmail"); return; }
     if(!pwd){ toast("Escribe tu contraseña"); return; }
+    var user = findUserByEmail(email);
+    // Mensaje genérico a propósito: no revela si el correo existe o no en este navegador —
+    // esa información es de cada persona, no de quien intenta entrar.
+    if(!user){ toast("Correo o contraseña incorrectos"); return; }
     hashPassword(pwd, user.salt).then(function(hash){
       if(hash === user.hash) completeLogin(user);
-      else toast("Contraseña incorrecta");
+      else toast("Correo o contraseña incorrectos");
     });
   });
   document.getElementById("loginPassword").addEventListener("keydown", function(e){
     if(e.key === "Enter"){ e.preventDefault(); document.getElementById("loginBtn").click(); }
+  });
+  document.getElementById("loginEmail").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){ e.preventDefault(); document.getElementById("loginPassword").focus(); }
   });
   document.getElementById("registerBtn").addEventListener("click", function(){
     var name = document.getElementById("reg_name").value.trim();
@@ -1324,11 +1309,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // ---------- Ajustes: cuenta y almacenamiento ----------
   function renderAccountInfo(){
     var user = currentUser();
-    var n = state.profile.users.length;
     var storageOk = state.storageAvailable !== false;
+    // No se muestra cuántas cuentas hay creadas en este navegador: es información de otras
+    // personas del equipo, no propia de la sesión activa.
     document.getElementById("accountInfoBox").innerHTML =
       '<div class="ai-row"><span>Sesión activa</span><b>'+escapeHtml((user&&user.name)||"—")+' · '+escapeHtml((user&&user.email)||"—")+'</b></div>'+
-      '<div class="ai-row"><span>Cuentas creadas en este navegador</span><b>'+n+'</b></div>'+
       '<div class="ai-row"><span>Radicados en tu semana actual</span><b>'+state.records.length+'</b></div>'+
       '<div class="ai-row"><span>Guardado permanente en este navegador</span><b class="'+(storageOk?"ok-dot":"warn-dot")+'">'+(storageOk?"● Activo":"● No disponible")+'</b></div>';
   }
