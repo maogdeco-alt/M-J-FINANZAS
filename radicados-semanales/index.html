@@ -753,7 +753,7 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div><label for="myAliasInput">Alias corto (ASIGNADOS_A)</label><input id="myAliasInput" placeholder="ej. MA ALEJANDRA"></div>
           <div><label for="myFullNameInput">Nombre completo (USUARIO)</label><input id="myFullNameInput"></div>
-          <div><label for="ciudadInput">Ciudad</label><input id="ciudadInput" placeholder="BOGOTÁ"></div>
+          <div><label for="ciudadInput">Ciudad</label><input id="ciudadInput" placeholder="BOGOTA"></div>
           <div><label for="departamentoInput">Departamento</label><input id="departamentoInput" placeholder="D.C."></div>
         </div>
       </div>
@@ -953,7 +953,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       "DEVUELTO": "DEVUELTO",
       "AGENDAMIENTO": "AGENDAMIENTO"
     },
-    ciudad: "BOGOTÁ",
+    ciudad: "BOGOTA",
     departamento: "D.C."
   };
 
@@ -2639,12 +2639,16 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var asignadosA = (user && (user.alias || user.name)) || "";
     var usuario = (user && (user.usuarioDocumento || user.name)) || "";
     var anexo = rec.res ? ("Res. " + rec.res + " de " + (parseDMY(normalizeDate(rec.fechaRes)) ? parseDMY(normalizeDate(rec.fechaRes)).getFullYear() : "")) : "";
-    var tipoComparendoOut = deriveTipoComparendo(rec.medio); // siempre derivado de MEDIO, nunca de una elección manual
+    // IMPORTANTE: la columna "TIPO DE COMPARENDO" del documento final lleva el valor de MEDIO tal
+    // cual viene en la línea pegada (p. ej. "CAMARAS SALVAVIDAS", "COMPARENDERA", "CAMARAS FIJAS
+    // CENTRO DE GESTION") — NO la etiqueta interna Manual/Electrónico. Esa categoría derivada
+    // (deriveTipoComparendo) solo se usa para las reglas imperativas y el aviso en pantalla, nunca
+    // para lo que se escribe en el Excel. Confirmado campo por campo contra un documento final real.
     // cleanSpaces() como red de seguridad final: limpia también radicados capturados antes de este ajuste.
     return [
       rec.radicado, formatDateEs(rec.fechaRadicacion), corto, plantilla,
       rec.nombreF || rec.nombre, rec.direccion, state.settings.ciudad, state.settings.departamento,
-      formatDateEs(rec.fechaAsignacion), asignadosA, rec.estado, tipoComparendoOut, formatDateEs(rec.imposicion),
+      formatDateEs(rec.fechaAsignacion), asignadosA, rec.estado, rec.medio, formatDateEs(rec.imposicion),
       corto, rec.cod, formatDateEs(rec.notificacion), rec.res, formatDateEs(rec.fechaRes), anexo, plantilla,
       usuario, rec.tipoId, rec.idNum, "", "", "", ""
     ].map(cleanSpaces);
