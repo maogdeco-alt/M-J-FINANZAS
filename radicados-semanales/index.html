@@ -190,7 +190,11 @@
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   @media (prefers-reduced-motion: reduce){.toast{transition:none;}}
 
-  dialog{border:none;border-radius:var(--radius);padding:0;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);overflow:hidden;}
+  /* max-height + overflow en TODOS los diálogos: en el celular, cuando el teclado virtual abre y
+     reduce el alto visible, el contenido nunca debe quedar cortado sin forma de llegar a él con
+     scroll (el bug real que hacía "fallar" el inicio de sesión en pantallas chicas). */
+  dialog{border:none;border-radius:var(--radius);padding:0;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);overflow-y:auto;overflow-x:hidden;max-height:88vh;}
+  @supports (max-height: 88dvh){ dialog{ max-height:88dvh; } }
   dialog::backdrop{background:rgba(8,16,13,0.6);}
   dialog.small{max-width:420px;width:92vw;}
   dialog .panel-body{padding:20px 22px;}
@@ -208,6 +212,7 @@
 
   /* ---- workbench: queue + capture card, built for speed ---- */
   .workbench{display:grid;grid-template-columns:290px 1fr;gap:16px;align-items:start;}
+  .workbench > *{min-width:0;} /* si no, el contenido interno evita que la columna angoste (celular) */
   @media (max-width:900px){.workbench{grid-template-columns:1fr;}}
 
   .queue-panel{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:600px;overflow-y:auto;}
@@ -256,6 +261,17 @@
   .cc-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}
   .cc-actions .spacer{flex:1;}
   .cc-shortcut-hint{color:var(--muted);font-size:0.8rem;margin-top:9px;}
+  /* En celular, un botón de texto largo dentro de una fila que se envuelve puede terminar más
+     ancho que la pantalla (el texto no se parte). Apilados a ancho completo, eso no puede pasar,
+     y de paso queda la acción principal arriba y "Borrar" al final, lejos del pulgar. */
+  @media (max-width:480px){
+    .cc-actions{flex-direction:column;align-items:stretch;}
+    .cc-actions .spacer{display:none;}
+    .cc-actions .btn{width:100%;justify-content:center;white-space:normal;}
+    #cc_saveNext{order:-3;}
+    #cc_save{order:-2;}
+    #cc_copyRow{order:-1;}
+  }
   .cc-shortcut-hint kbd{background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:inherit;}
 
   .capture-empty{padding:70px 20px;text-align:center;color:var(--muted);}
@@ -272,6 +288,15 @@
   .term-calc-btn svg{width:16px;height:16px;flex:none;}
   .term-calc-btn:hover{background:var(--accent);color:var(--accent-ink);filter:none;}
   @media (max-width:640px){ .term-calc-btn{padding:9px 12px;} .term-calc-btn .btn-label{display:none;} }
+
+  /* Objetivos de toque más grandes en pantallas táctiles (celular/tablet) — evita que un botón
+     pequeño en el dedo se sienta impreciso o "no responda" a la primera. */
+  @media (hover:none) and (pointer:coarse){
+    .icon-btn{width:44px;height:44px;}
+    .btn{min-height:40px;}
+    .qi-del{padding:8px 10px;}
+    .filter-tabs button{padding:9px 13px;}
+  }
 
   #themeToggleBtn svg{width:19px;height:19px;}
   #themeToggleBtn .icon-moon{display:none;}
@@ -292,7 +317,7 @@
   .profile-new{display:flex;gap:8px;margin-top:4px;}
   .profile-new input{flex:1;}
 
-  dialog.wide-settings{max-width:640px;width:94vw;max-height:88vh;overflow:auto;}
+  dialog.wide-settings{max-width:640px;width:94vw;}
   .auth-security-note{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:0.82rem;color:var(--muted);margin:0 0 14px;}
   .auth-tabs{display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:3px;margin-bottom:16px;}
   .auth-tabs button{flex:1;border:none;background:transparent;padding:8px 10px;border-radius:6px;font:inherit;font-size:0.86rem;font-weight:600;color:var(--muted);cursor:pointer;}
@@ -857,6 +882,24 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 <script>
 (function(){
   "use strict";
+
+  // Red de seguridad: si algo inesperado falla en cualquier parte de la app, se avisa con un
+  // aviso visible en vez de dejar un botón "sin responder" en silencio (que es indistinguible de
+  // que la app esté trabada). No reemplaza corregir la causa real, pero asegura que la persona
+  // que la usa siempre sepa que algo pasó, en vez de quedarse mirando un botón que no hizo nada.
+  var lastGlobalErrorAt = 0;
+  function reportUnexpectedError(err){
+    try{
+      var now = Date.now();
+      if(now - lastGlobalErrorAt < 4000) return; // evita saturar de avisos si algo falla en cadena
+      lastGlobalErrorAt = now;
+      if(typeof console !== "undefined" && console.error) console.error(err);
+      if(typeof toast === "function") toast("Algo no funcionó como debía. Intenta de nuevo — si persiste, recarga la página.");
+    }catch(e){}
+  }
+  window.addEventListener("error", function(e){ reportUnexpectedError(e.error || e.message); });
+  window.addEventListener("unhandledrejection", function(e){ reportUnexpectedError(e.reason); });
+
   var STORAGE_PREFIX = "radicados_semanales_v2";
   var HISTORY_PREFIX = "radicados_historial_v1"; // resumen por semana cerrada, uno por usuario
   var THEME_KEY = "radicados_theme_pref"; // "light" | "dark" | ausente = sigue el sistema
@@ -934,16 +977,86 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // mantiene abierta entre visitas: cada vez que se abre la app hay que
   // volver a iniciar sesión, para que las asignaciones sigan siendo personales.
   // ============================================================
+  // Sal aleatoria: si Web Crypto no está disponible por algún motivo (navegador viejo,
+  // o la página abierta como archivo local en vez de por su enlace https), se usa
+  // Math.random() como respaldo — no necesita ser criptográficamente perfecta, solo
+  // distinta por cuenta, y esto nunca debe impedir crear una cuenta.
   function randomSaltHex(){
     var arr = new Uint8Array(16);
-    (window.crypto || window.msCrypto).getRandomValues(arr);
+    var gotRandom = false;
+    try{
+      var c = window.crypto || window.msCrypto;
+      if(c && c.getRandomValues){ c.getRandomValues(arr); gotRandom = true; }
+    }catch(e){}
+    if(!gotRandom){
+      for(var i=0;i<arr.length;i++) arr[i] = Math.floor(Math.random()*256);
+    }
     return Array.prototype.map.call(arr, function(b){ return b.toString(16).padStart(2,"0"); }).join("");
   }
+  // SHA-256 en JS puro (probada contra vectores conocidos) — respaldo para cuando
+  // crypto.subtle no existe (requiere "contexto seguro": https, o algunos navegadores
+  // móviles al abrir el archivo directo en vez de por su enlace). Iniciar o crear sesión
+  // NUNCA debe quedar roto por esto, sea cual sea el dispositivo o cómo se abrió la página.
+  function sha256Fallback(str){
+    function rotr(x,n){ return (x>>>n)|(x<<(32-n)); }
+    var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+      0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+      0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+      0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+      0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+      0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+      0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+      0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+    var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+    var utf8 = unescape(encodeURIComponent(str));
+    var bitLen = utf8.length * 8;
+    var withOne = utf8 + String.fromCharCode(0x80);
+    while((withOne.length % 64) !== 56) withOne += String.fromCharCode(0);
+    var bytes = [];
+    for(var i=0;i<withOne.length;i++) bytes.push(withOne.charCodeAt(i) & 0xff);
+    for(var b=7;b>=4;b--) bytes.push(0);
+    bytes.push((bitLen>>>24)&0xff,(bitLen>>>16)&0xff,(bitLen>>>8)&0xff,bitLen&0xff);
+    for(var chunkStart=0; chunkStart<bytes.length; chunkStart+=64){
+      var w = new Array(64);
+      for(var t=0;t<16;t++){
+        var o = chunkStart + t*4;
+        w[t] = ((bytes[o]<<24)|(bytes[o+1]<<16)|(bytes[o+2]<<8)|(bytes[o+3])) >>> 0;
+      }
+      for(var t2=16;t2<64;t2++){
+        var s0 = rotr(w[t2-15],7) ^ rotr(w[t2-15],18) ^ (w[t2-15]>>>3);
+        var s1 = rotr(w[t2-2],17) ^ rotr(w[t2-2],19) ^ (w[t2-2]>>>10);
+        w[t2] = (w[t2-16] + s0 + w[t2-7] + s1) >>> 0;
+      }
+      var a=H[0],b2=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+      for(var t3=0;t3<64;t3++){
+        var S1 = rotr(e,6) ^ rotr(e,11) ^ rotr(e,25);
+        var ch = (e & f) ^ (~e & g);
+        var temp1 = (h + S1 + ch + K[t3] + w[t3]) >>> 0;
+        var S0 = rotr(a,2) ^ rotr(a,13) ^ rotr(a,22);
+        var maj = (a & b2) ^ (a & c) ^ (b2 & c);
+        var temp2 = (S0 + maj) >>> 0;
+        h=g; g=f; f=e; e=(d+temp1)>>>0; d=c; c=b2; b2=a; a=(temp1+temp2)>>>0;
+      }
+      H[0]=(H[0]+a)>>>0; H[1]=(H[1]+b2)>>>0; H[2]=(H[2]+c)>>>0; H[3]=(H[3]+d)>>>0;
+      H[4]=(H[4]+e)>>>0; H[5]=(H[5]+f)>>>0; H[6]=(H[6]+g)>>>0; H[7]=(H[7]+h)>>>0;
+    }
+    return H.map(function(x){ return (x>>>0).toString(16).padStart(8,"0"); }).join("");
+  }
   function hashPassword(password, saltHex){
-    var data = new TextEncoder().encode(saltHex + ":" + password);
-    return crypto.subtle.digest("SHA-256", data).then(function(buf){
-      return Array.prototype.map.call(new Uint8Array(buf), function(b){ return b.toString(16).padStart(2,"0"); }).join("");
-    });
+    var input = saltHex + ":" + password;
+    var hasSubtle = false;
+    try{ hasSubtle = !!(window.crypto && window.crypto.subtle && window.crypto.subtle.digest); }catch(e){}
+    if(hasSubtle){
+      try{
+        var data = new TextEncoder().encode(input);
+        return crypto.subtle.digest("SHA-256", data).then(function(buf){
+          return Array.prototype.map.call(new Uint8Array(buf), function(b){ return b.toString(16).padStart(2,"0"); }).join("");
+        }).catch(function(){ return sha256Fallback(input); });
+      }catch(e){
+        return Promise.resolve(sha256Fallback(input));
+      }
+    }
+    return Promise.resolve(sha256Fallback(input));
   }
 
   // ---------- perfiles de usuario (cuentas) ----------
