@@ -317,6 +317,15 @@
 
   dialog.wide-settings{max-width:640px;width:94vw;}
   .auth-security-note{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:0.82rem;color:var(--muted);margin:0 0 14px;}
+
+  /* ---- tarjeta de sesión activa: a quién pertenece y cómo cerrarla, separado de cambiar de cuenta ---- */
+  .session-card{display:flex;align-items:center;gap:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;flex-wrap:wrap;}
+  .session-card .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(180deg,var(--accent),var(--accent-2));color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;flex:none;}
+  .session-card-body{flex:1;min-width:120px;}
+  .session-card-body .session-card-name{font-weight:700;font-size:0.95rem;color:var(--ink);}
+  .session-card-body .session-card-email{color:var(--muted);font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .session-divider{display:flex;align-items:center;gap:10px;margin:2px 0 16px;color:var(--muted);font-size:0.74rem;text-transform:uppercase;letter-spacing:.05em;}
+  .session-divider::before,.session-divider::after{content:"";flex:1;height:1px;background:var(--border);}
   .auth-tabs{display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:3px;margin-bottom:16px;}
   .auth-tabs button{flex:1;border:none;background:transparent;padding:8px 10px;border-radius:6px;font:inherit;font-size:0.86rem;font-weight:600;color:var(--muted);cursor:pointer;}
   .auth-tabs button.active{background:var(--surface);color:var(--accent);box-shadow:var(--shadow);}
@@ -678,6 +687,17 @@
     <h2 id="authTitle">Iniciar sesión</h2>
   </div>
   <div class="panel-body">
+    <div id="authSessionCard" style="display:none;">
+      <div class="session-card">
+        <span class="avatar" id="authSessionAvatar" aria-hidden="true">—</span>
+        <div class="session-card-body">
+          <div class="session-card-name" id="authSessionName">—</div>
+          <div class="session-card-email" id="authSessionEmail">—</div>
+        </div>
+        <button class="btn danger" id="authLogout" type="button">Cerrar sesión</button>
+      </div>
+      <div class="session-divider"><span>O entra con otra cuenta</span></div>
+    </div>
     <p class="auth-security-note">Esta app funciona solo en tu navegador, sin servidor propio: tu contraseña se guarda cifrada localmente en este computador. Protege que otra persona abra por error tu sesión en el mismo equipo, pero <b>no es un sistema de seguridad institucional</b> ni sincroniza entre computadores.</p>
     <div class="auth-tabs" id="authTabs">
       <button data-tab="login" class="active" type="button">Iniciar sesión</button>
@@ -707,7 +727,6 @@
     </div>
   </div>
   <div class="form-actions">
-    <button class="btn ghost" id="authLogout" type="button" style="display:none;margin-right:auto;">Cerrar sesión</button>
     <button class="btn ghost" id="authCancel" type="button">Cancelar</button>
   </div>
 </dialog>
@@ -1113,10 +1132,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function openAuthDialog(mandatory){
     ["reg_name","reg_email","reg_password","reg_password2","loginEmail","loginPassword"].forEach(function(id){ document.getElementById(id).value = ""; });
     setAuthTab(state.profile.users.length ? "login" : "register");
-    document.getElementById("authTitle").textContent = mandatory ? "Bienvenido — inicia sesión" : "Cambiar de usuario";
     document.getElementById("authCancel").style.display = mandatory ? "none" : "inline-flex";
-    // "Cerrar sesión" solo tiene sentido si hay alguien conectado ahora mismo (no en el inicio obligatorio).
-    document.getElementById("authLogout").style.display = (!mandatory && state.profile.activeUser) ? "inline-flex" : "none";
+
+    // Con sesión activa, lo primero que se ve es DE QUIÉN es esa sesión y un botón claro para
+    // cerrarla — no un botón perdido entre los campos de "entrar con otra cuenta". Cambiar de
+    // cuenta queda como una acción aparte, después de una línea divisoria, no mezclada con salir.
+    var user = currentUser();
+    var showSession = !mandatory && !!user;
+    document.getElementById("authSessionCard").style.display = showSession ? "block" : "none";
+    // Se limpia el texto también cuando se oculta, no solo el display: aunque esté escondida,
+    // la tarjeta no debe seguir cargando en el HTML el nombre/correo de quien cerró sesión.
+    document.getElementById("authSessionAvatar").textContent = showSession ? initials(user.name) : "—";
+    document.getElementById("authSessionName").textContent = showSession ? user.name : "";
+    document.getElementById("authSessionEmail").textContent = showSession ? user.email : "";
+    document.getElementById("authTitle").textContent = mandatory ? "Bienvenido — inicia sesión" : (showSession ? "Tu cuenta" : "Iniciar sesión");
+
     var dlg = document.getElementById("authDialog");
     dlg.dataset.mandatory = mandatory ? "1" : "0";
     if(!dlg.open) dlg.showModal();
