@@ -3035,6 +3035,7 @@ function renderDeudas(){
       <div style="margin:10px 0 2px">${estado}</div>
       <div class="acts">
         ${saldada ? '' : `<button class="btn ghost sm" data-abonar-deuda="${d.id}">${abonadoEsteMes ? 'Desmarcar' : '<span class="icono">'+ICONS.check+'</span> Abonar esta cuota'}</button>`}
+        ${saldada ? '' : `<button class="btn ghost sm" data-saldar-deuda="${d.id}">Ya no debo esto</button>`}
         <button class="btn ghost sm" data-del-deuda="${d.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button>
       </div>
     </div>`;
@@ -3881,7 +3882,7 @@ document.addEventListener('click', async e=>{
      SVG adentro, y un clic que caiga sobre el ícono reporta el <svg>
      como e.target, no el <button> con el data-* — sin esto, tocar el
      ícono (en vez del texto) no hacía nada. */
-  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-del-negocio],[data-color],[data-avatar],[data-del-prestamo],[data-marcar-prestamo],[data-del-mercado],[data-toggle-mercado],[data-cal-dia],[data-cal-ir],[data-del-nota],[data-cal-guardar-nota],[data-legal]');
+  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-saldar-deuda],[data-del-negocio],[data-color],[data-avatar],[data-del-prestamo],[data-marcar-prestamo],[data-del-mercado],[data-toggle-mercado],[data-cal-dia],[data-cal-ir],[data-del-nota],[data-cal-guardar-nota],[data-legal]');
   if(!t) return;
   if(t.dataset.legal){ e.preventDefault(); return abrirLegal(t.dataset.legal); }
   if(t.dataset.irNegocio) return cambiarNegocio(t.dataset.irNegocio);
@@ -4039,6 +4040,24 @@ document.addEventListener('click', async e=>{
     }
     await save(); renderAll();
     toast(cuota > 0 ? `Cuota abonada a "${d.nombre}" — se agregó a Lo que sale` : `Cuota abonada a "${d.nombre}"`);
+    return;
+  }
+  if(t.dataset.saldarDeuda){
+    // Para cuando ya no se debe nada — porque se terminó de pagar por
+    // fuera de la app, o porque el crédito ya no aplica — sin tener que
+    // apretar "Abonar" una y otra vez (eso además iría agregando cuotas
+    // de a una a "Lo que sale", como si fueran pagos nuevos que en
+    // realidad no están pasando ahora mismo). Esto solo corrige el
+    // registro: no mueve plata ni toca ninguna cuenta ni el libro de
+    // gastos.
+    const d = S.deudas.find(x=>x.id===t.dataset.saldarDeuda);
+    if(!d || deudaSaldada(d)) return;
+    if(!(await confirmar('¿Ya no debe esto?',
+      `"${d.nombre}" va a quedar marcado como saldado del todo. Esto NO agrega ningún gasto nuevo — úselo cuando ya terminó de pagarlo por su cuenta, o cuando el crédito ya no aplica. Si todavía debe una parte, mejor use "Abonar esta cuota".`))) return;
+    d.saldo = 0;
+    if(d.cuotasTotal) d.cuotasPagadas = d.cuotasTotal;
+    await save(); renderAll();
+    toast(`"${d.nombre}" quedó marcado como saldado`);
     return;
   }
   if(t.dataset.delPrestamo){
