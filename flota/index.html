@@ -5408,6 +5408,24 @@ async function mostrarApp(){
   renderMenu();
   go('tablero');
   await load();
+  atenderAtajoDeInicio();
+}
+/* Atajo "Gasto rápido" desde el ícono de la app — al mantener
+   presionado el ícono en el celular (o clic derecho en la barra de
+   tareas), aparece "Gasto rápido" como opción aparte, gracias al
+   manifest.json (PWA shortcuts). Entra directo por acá, con la
+   sesión ya guardada en el dispositivo (nunca vuelve a pedir usuario
+   ni clave), y en vez de aterrizar en el Tablero a mirar, abre de
+   una vez el diálogo de anotar un gasto — así de instantáneo se
+   siente. Si la cuenta tiene varios proyectos, primero pregunta en
+   cuál (como siempre), y abre el diálogo apenas se entra a ese.
+   Se limpia el parámetro de la URL enseguida para que un refresco de
+   pantalla no reabra el diálogo solo, una y otra vez. */
+function atenderAtajoDeInicio(){
+  const params = new URLSearchParams(location.search);
+  if(params.get('accion') !== 'gasto-rapido') return;
+  history.replaceState(null, '', location.pathname);
+  if(!DEMO) abrirGastoRapido();
 }
 
 async function arrancar(){
