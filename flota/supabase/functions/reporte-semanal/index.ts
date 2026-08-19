@@ -238,7 +238,7 @@ function construirResumenPersonal(estado: Estado, desdeISO: string) {
     .filter((f) => f.pagadoMes !== mesActual)
     .map((f) => haceAlerta(f.dia - diaHoy, f.nombre, f.monto));
   const deTarjetas = (estado.cuentas || [])
-    .filter((c) => c.tipo === "tarjeta_credito" && c.recordatorio && c.diaPago)
+    .filter((c) => c.tipo === "tarjeta_credito" && c.recordatorio && c.diaPago && saldoCuentaPersonal(estado, c.id) > 0)
     .map((c) => haceAlerta((c.diaPago as number) - diaHoy, c.nombre, saldoCuentaPersonal(estado, c.id)));
   const deudaSaldada = (d: DeudaPersonal) => {
     const total = d.cuotasTotal || 0;

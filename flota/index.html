@@ -1507,6 +1507,10 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
   <div class="dialog" id="dialog">
     <h4 id="dlgTitle">Confirmar</h4>
     <p id="dlgText"></p>
+    <div class="f hidden" id="dlgInputBox" style="margin:2px 0 16px">
+      <label for="dlgInput" id="dlgInputLbl">Valor</label>
+      <input id="dlgInput" inputmode="numeric" placeholder="$0" autocomplete="off">
+    </div>
     <div class="acts">
       <button class="btn danger" id="dlgOk">Sí, continuar</button>
       <button class="btn ghost" id="dlgCancel">Cancelar</button>
@@ -1610,6 +1614,30 @@ function confirmar(titulo, texto){
     const cerrar = v => { $('scrim').classList.remove('on'); $('dlgOk').onclick=null; $('dlgCancel').onclick=null; resolve(v); };
     $('dlgOk').onclick = ()=>cerrar(true);
     $('dlgCancel').onclick = ()=>cerrar(false);
+  });
+}
+/* Mismo cuadro de diálogo que confirmar(), pero con una casilla para
+   escribir un número — para pedir un valor (p. ej. "¿cuánto abonó?")
+   sin usar prompt() del navegador, que se ve feo y no combina con el
+   resto de la app. Devuelve el número, o null si cancela o deja vacío. */
+function pedirValor(titulo, texto, etiqueta){
+  return new Promise(resolve=>{
+    $('dlgTitle').textContent = titulo; $('dlgText').textContent = texto;
+    $('dlgInputLbl').textContent = etiqueta || 'Valor';
+    const input = $('dlgInput');
+    input.value = ''; $('dlgInputBox').classList.remove('hidden');
+    $('dlgOk').textContent = 'Guardar'; $('dlgOk').classList.remove('danger');
+    $('scrim').classList.add('on');
+    setTimeout(()=>input.focus(), 60);
+    const cerrar = v => {
+      $('scrim').classList.remove('on'); $('dlgInputBox').classList.add('hidden');
+      $('dlgOk').textContent = 'Sí, continuar'; $('dlgOk').classList.add('danger');
+      $('dlgOk').onclick=null; $('dlgCancel').onclick=null; input.onkeydown=null;
+      resolve(v);
+    };
+    $('dlgOk').onclick = ()=>cerrar(num(input.value) || null);
+    $('dlgCancel').onclick = ()=>cerrar(null);
+    input.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); cerrar(num(input.value) || null); } };
   });
 }
 $('scrim').addEventListener('click', e=>{ if(e.target===$('scrim')) $('scrim').classList.remove('on'); });
@@ -2895,6 +2923,7 @@ function renderMetas(){
   box.innerHTML = S.metas.map(m=>{
     const pct = m.objetivo ? Math.min(100, Math.round((m.ahorrado||0)/m.objetivo*100)) : 0;
     const falta = Math.max(m.objetivo - (m.ahorrado||0), 0);
+    const cumplida = m.objetivo > 0 && (m.ahorrado||0) >= m.objetivo;
     let proyeccion = '';
     if(falta > 0 && m.aporteMensual > 0){
       const meses = Math.ceil(falta / m.aporteMensual);
@@ -2907,6 +2936,7 @@ function renderMetas(){
     return `<div class="card">
       <h3><span class="icono">${ICONS.meta}</span> ${esc(m.nombre)}</h3>
       <div class="meta">${m.fecha?('para '+fmtDate(m.fecha)):'sin fecha límite'}</div>
+      ${cumplida ? `<div style="margin:8px 0 2px"><span class="tag ok">🎉 Meta cumplida</span></div>` : ''}
       <div class="figs">
         <div class="fig"><div class="k">Ahorrado</div><div class="v">${money(m.ahorrado||0)}</div></div>
         <div class="fig"><div class="k">Objetivo</div><div class="v">${money(m.objetivo)}</div></div>
@@ -3010,7 +3040,7 @@ function renderPrestamos(){
     <td><span class="name">${esc(p.prestaEl)} → ${esc(p.recibeEl)}</span><span class="sub">${esc(p.motivo||'')}</span></td>
     <td class="num money">${money(p.monto)}</td>
     <td class="num">${p.pagado ? '<span class="tag ok">Pagado</span>' : '<span class="tag due">Pendiente</span>'}</td>
-    <td class="num">${!p.pagado ? `<button class="btn ghost sm" data-marcar-prestamo="${p.id}"><span class="icono">${ICONS.check}</span> Marcar pagado</button>` : ''}</td>
+    <td class="num"><button class="btn ghost sm" data-marcar-prestamo="${p.id}">${p.pagado ? 'Desmarcar' : '<span class="icono">'+ICONS.check+'</span> Marcar pagado'}</button></td>
     <td class="num"><button class="rowdel" data-del-prestamo="${p.id}" aria-label="Eliminar"><span class="icono">${ICONS.trash}</span></button></td>
   </tr>`).join('');
   box.innerHTML = `<div class="ledger-wrap"><table class="ledger">
@@ -3056,7 +3086,7 @@ function renderHoyPersonal(){
   };
   const deFijos = (S.fijos||[]).filter(f=>f.pagadoMes !== mesActual)
     .map(f=>haceAlerta(f.dia - diaHoy, f.nombre, f.monto));
-  const deTarjetas = (S.cuentas||[]).filter(c=>c.tipo==='tarjeta_credito' && c.recordatorio && c.diaPago)
+  const deTarjetas = (S.cuentas||[]).filter(c=>c.tipo==='tarjeta_credito' && c.recordatorio && c.diaPago && saldoCuenta(c.id) > 0)
     .map(c=>haceAlerta(c.diaPago - diaHoy, c.nombre, saldoCuenta(c.id)));
   const deCreditos = (S.deudas||[]).filter(d=>d.recordatorio && d.diaPago && d.abonadoMes !== mesActual && !deudaSaldada(d))
     .map(d=>haceAlerta(d.diaPago - diaHoy, d.nombre, d.cuotaMensual));
@@ -3910,7 +3940,7 @@ document.addEventListener('click', async e=>{
   if(t.dataset.abonarMeta){
     const m = S.metas.find(x=>x.id===t.dataset.abonarMeta);
     if(!m) return;
-    const v = num(prompt(`¿Cuánto quiere abonar a "${m.nombre}"?`, ''));
+    const v = await pedirValor(`Abonar a "${m.nombre}"`, 'Lo que aparte hoy para esta meta se suma a lo ya ahorrado.', '¿Cuánto va a apartar?');
     if(!v) return;
     m.ahorrado = (m.ahorrado||0) + v;
     await save(); renderAll(); toast(`Abonado ${money(v)} a "${m.nombre}"`);
@@ -3988,7 +4018,7 @@ document.addEventListener('click', async e=>{
   }
   if(t.dataset.marcarPrestamo){
     const p = S.prestamos.find(x=>x.id===t.dataset.marcarPrestamo);
-    if(p){ p.pagado = true; await save(); renderAll(); toast('Marcado como pagado'); }
+    if(p){ p.pagado = !p.pagado; await save(); renderAll(); toast(p.pagado ? 'Marcado como pagado' : 'Marcado como pendiente'); }
     return;
   }
   if(t.dataset.delMercado){
@@ -5017,7 +5047,8 @@ function exportXLSXFlex(){
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
       (S.deudas||[]).map(d=>({ Nombre:d.nombre, Entidad:d.entidad||'', Saldo:d.saldo,
         'Cuota mensual':d.cuotaMensual, 'Cuotas totales':d.cuotasTotal, 'Cuotas pagadas':d.cuotasPagadas,
-        'Día de pago':d.diaPago||'' }))
+        'Día de pago':d.diaPago||'', '¿Saldado?': deudaSaldada(d) ? 'Sí' : 'No',
+        '¿Abonado este mes?': (d.abonadoMes===hoy.slice(0,7)) ? 'Sí' : 'No' }))
     ), 'Créditos');
 
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
