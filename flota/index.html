@@ -2941,15 +2941,30 @@ function renderFijos(){
     <thead><tr><th>Nombre</th><th class="num">Valor</th><th class="num">Estado</th><th></th><th></th></tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 }
+/* Una deuda está "saldada" cuando ya no queda saldo, o cuando ya se
+   pagaron todas las cuotas que se dijeron al crearla — lo que pase
+   primero. A partir de ahí, no tiene sentido seguir "abonando" (eso
+   generaría gastos de plata que ya no se debe), así que en todos
+   lados (esta vista, el Tablero) se deja de tratar como pendiente. */
+function deudaSaldada(d){
+  const total = d.cuotasTotal||0;
+  return (d.saldo||0) <= 0 || (total > 0 && (d.cuotasPagadas||0) >= total);
+}
 function renderDeudas(){
   const box = $('deudasList'); if(!box || !esPersonal()) return;
   if(!S.deudas.length){
     box.innerHTML = `<div class="empty"><span class="ic icono">${ICONS.fijos}</span><strong>Sin créditos registrados</strong>
       Si le debe a un banco o a alguien más, regístrelo aquí para ver el avance.</div>`; return;
   }
+  const mesActual = todayISO().slice(0,7);
   box.innerHTML = S.deudas.map(d=>{
     const total = d.cuotasTotal||0, pagadas = Math.min(d.cuotasPagadas||0, total);
     const pct = total ? Math.round(pagadas/total*100) : 0;
+    const saldada = deudaSaldada(d);
+    const abonadoEsteMes = d.abonadoMes === mesActual;
+    const estado = saldada
+      ? `<span class="tag ok">✅ Crédito saldado</span>`
+      : (abonadoEsteMes ? `<span class="tag ok">Al día este mes</span>` : `<span class="tag due">Pendiente este mes</span>`);
     return `<div class="card">
       <h3><span class="icono">${ICONS.fijos}</span> ${esc(d.nombre)}</h3>
       <div class="meta">${esc(d.entidad||'')}${d.entidad?' · ':''}${pagadas} de ${total||'—'} cuotas · ${pct}% pagado</div>
@@ -2958,8 +2973,9 @@ function renderDeudas(){
         <div class="fig"><div class="k">Saldo</div><div class="v">${money(d.saldo)}</div></div>
         <div class="fig"><div class="k">Cuota</div><div class="v">${money(d.cuotaMensual)}</div></div>
       </div>
+      <div style="margin:10px 0 2px">${estado}</div>
       <div class="acts">
-        <button class="btn ghost sm" data-abonar-deuda="${d.id}"><span class="icono">${ICONS.check}</span> Abonar una cuota</button>
+        ${saldada ? '' : `<button class="btn ghost sm" data-abonar-deuda="${d.id}">${abonadoEsteMes ? 'Desmarcar' : '<span class="icono">'+ICONS.check+'</span> Abonar esta cuota'}</button>`}
         <button class="btn ghost sm" data-del-deuda="${d.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button>
       </div>
     </div>`;
@@ -3042,7 +3058,7 @@ function renderHoyPersonal(){
     .map(f=>haceAlerta(f.dia - diaHoy, f.nombre, f.monto));
   const deTarjetas = (S.cuentas||[]).filter(c=>c.tipo==='tarjeta_credito' && c.recordatorio && c.diaPago)
     .map(c=>haceAlerta(c.diaPago - diaHoy, c.nombre, saldoCuenta(c.id)));
-  const deCreditos = (S.deudas||[]).filter(d=>d.recordatorio && d.diaPago)
+  const deCreditos = (S.deudas||[]).filter(d=>d.recordatorio && d.diaPago && d.abonadoMes !== mesActual && !deudaSaldada(d))
     .map(d=>haceAlerta(d.diaPago - diaHoy, d.nombre, d.cuotaMensual));
   const items = [...deFijos, ...deTarjetas, ...deCreditos].filter(Boolean).sort((a,b)=>a.orden-b.orden);
 
@@ -3690,7 +3706,8 @@ $('dbSave').addEventListener('click', async ()=>{
   if(!nombre) return toast('Escriba el nombre del crédito.', true);
   S.deudas.push({ id:uid(), nombre, entidad:$('dbEntidad').value.trim(), saldo:num($('dbSaldo').value), cuotaMensual:num($('dbCuota').value),
     cuotasTotal:num($('dbCuotasTotal').value), cuotasPagadas:num($('dbCuotasPagadas').value),
-    diaPago: num($('dbDia').value)||null, recordatorio: $('dbRecordatorio').checked, cuentaId:$('dbCuenta').value||null, creadoPor:quien() });
+    diaPago: num($('dbDia').value)||null, recordatorio: $('dbRecordatorio').checked, cuentaId:$('dbCuenta').value||null,
+    abonadoMes:'', gastoId:'', creadoPor:quien() });
   await save(); renderAll();
   ['dbNombre','dbEntidad','dbSaldo','dbCuota','dbCuotasTotal','dbCuotasPagadas','dbDia'].forEach(i=>$(i).value='');
   $('dbRecordatorio').checked = false; $('dbCuenta').value = '';
@@ -3869,7 +3886,11 @@ document.addEventListener('click', async e=>{
     }
     if(g && g.origen === 'deuda'){
       const d = S.deudas.find(x=>x.id===g.origenId);
-      if(d){ d.saldo = (d.saldo||0) + g.valor; d.cuotasPagadas = Math.max(0, (d.cuotasPagadas||0) - 1); }
+      if(d){
+        d.saldo = (d.saldo||0) + g.valor;
+        d.cuotasPagadas = Math.max(0, (d.cuotasPagadas||0) - 1);
+        if(d.gastoId === g.id){ d.abonadoMes = ''; d.gastoId = ''; }
+      }
     }
     return rm('gastos', t.dataset.delGasto, 'Gasto eliminado');
   }
@@ -3932,14 +3953,30 @@ document.addEventListener('click', async e=>{
   }
   if(t.dataset.abonarDeuda){
     const d = S.deudas.find(x=>x.id===t.dataset.abonarDeuda);
-    if(!d) return;
+    if(!d || deudaSaldada(d)) return;
+    const mesActual = todayISO().slice(0,7);
+    if(d.abonadoMes === mesActual){
+      // Desmarcar: se revierte el abono de este mes, igual que con los
+      // pagos fijos — así "Lo que sale" y "Créditos" nunca quedan en
+      // desacuerdo sobre si esto ya se pagó o no.
+      if(d.gastoId){ S.gastos = S.gastos.filter(g=>g.id!==d.gastoId); }
+      d.saldo = (d.saldo||0) + (d.cuotaMensual||0);
+      d.cuotasPagadas = Math.max(0, (d.cuotasPagadas||0) - 1);
+      d.abonadoMes = ''; d.gastoId = '';
+      await save(); renderAll();
+      toast('Se quitó el abono de este mes');
+      return;
+    }
     const cuota = d.cuotaMensual || 0;
     d.saldo = Math.max(0, (d.saldo||0) - cuota);
     d.cuotasPagadas = (d.cuotasPagadas||0) + 1;
+    d.abonadoMes = mesActual; d.gastoId = '';
     if(cuota > 0){
-      S.gastos.push({ id:uid(), fecha:todayISO(), cat:'💳 Abono a crédito', desc:d.nombre, valor:cuota,
+      const gasto = { id:uid(), fecha:todayISO(), cat:'💳 Abono a crédito', desc:d.nombre, valor:cuota,
         cargo:'Empresa', cuentaId:d.cuentaId||null, pagadoPor:'', reparto:'', recuperado:false,
-        creadoPor:quien(), origen:'deuda', origenId:d.id });
+        creadoPor:quien(), origen:'deuda', origenId:d.id };
+      S.gastos.push(gasto);
+      d.gastoId = gasto.id;
     }
     await save(); renderAll();
     toast(cuota > 0 ? `Cuota abonada a "${d.nombre}" — se agregó a Lo que sale` : `Cuota abonada a "${d.nombre}"`);

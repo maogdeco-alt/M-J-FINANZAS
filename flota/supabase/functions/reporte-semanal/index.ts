@@ -72,6 +72,7 @@ type CuentaPersonal = {
 };
 type DeudaPersonal = {
   nombre: string; recordatorio?: boolean; diaPago?: number; cuotaMensual?: number;
+  saldo?: number; cuotasTotal?: number; cuotasPagadas?: number; abonadoMes?: string;
 };
 type Prestamo = { prestaEl: string; recibeEl: string; monto: number; pagado?: boolean };
 type Estado = {
@@ -239,8 +240,12 @@ function construirResumenPersonal(estado: Estado, desdeISO: string) {
   const deTarjetas = (estado.cuentas || [])
     .filter((c) => c.tipo === "tarjeta_credito" && c.recordatorio && c.diaPago)
     .map((c) => haceAlerta((c.diaPago as number) - diaHoy, c.nombre, saldoCuentaPersonal(estado, c.id)));
+  const deudaSaldada = (d: DeudaPersonal) => {
+    const total = d.cuotasTotal || 0;
+    return (d.saldo || 0) <= 0 || (total > 0 && (d.cuotasPagadas || 0) >= total);
+  };
   const deCreditos = (estado.deudas || [])
-    .filter((d) => d.recordatorio && d.diaPago)
+    .filter((d) => d.recordatorio && d.diaPago && d.abonadoMes !== mesActual && !deudaSaldada(d))
     .map((d) => haceAlerta((d.diaPago as number) - diaHoy, d.nombre, d.cuotaMensual || 0));
 
   const atencion: Item[] = [];
