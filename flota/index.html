@@ -1079,6 +1079,8 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       </div>
 
       <div class="form">
+        <h2 style="margin-bottom:8px" id="gastoLibreTitulo">Registrar un gasto</h2>
+        <p class="sub" id="gastoLibreSub">Lo que no es fijo ni un crédito de los de arriba: una compra puntual, un gasto ocasional, un imprevisto — cualquier cosa que salió una sola vez.</p>
         <div class="fgrid">
           <div class="f"><label for="gFecha">Fecha</label><input type="date" id="gFecha"></div>
           <div class="f" id="gMotoBox"><label for="gMoto">Moto</label><select id="gMoto"></select></div>
@@ -1843,7 +1845,7 @@ const CATS_FLEX = ['Compras o insumos','Servicios públicos','Arriendo del local
 const CATS_PERSONAL = ['🍽️ Comida y mercado','🏠 Vivienda (arriendo o cuota)','💡 Servicios públicos',
   '🚌 Transporte','🏥 Salud','📚 Educación','👕 Ropa y accesorios','🎉 Entretenimiento y ocio',
   '📱 Suscripciones','🐾 Mascotas','🎁 Regalos','💳 Pago de tarjeta o crédito','👶 Hijos y familia',
-  '✈️ Viajes','🔧 Mantenimiento y reparaciones','🛒 Compras varias','❓ Otro'];
+  '✈️ Viajes','🔧 Mantenimiento y reparaciones','🚨 Imprevisto o emergencia','🛒 Compras varias','❓ Otro'];
 
 /* Plantillas de negocio: "motos" es la app completa de renta de vehículos
    (todo lo que ya existía). "flexible" sirve para cualquier otro tipo de
@@ -2367,7 +2369,12 @@ function aplicarPlantillaUI(){
   const gt = $('gastosTitulo'); if(gt) gt.textContent = motos ? 'Gastos' : (personal ? 'Lo que sale' : 'Gastos');
   const gs = $('gastosSub'); if(gs) gs.textContent = motos
     ? 'Lo que sale. Marque si lo asume el negocio o si se le cobra al conductor.'
-    : (personal ? 'Lo fijo de cada mes, los créditos, o un gasto cualquiera — todo lo que sale, en un solo lugar.' : 'Lo que sale del negocio.');
+    : (personal ? 'Organizado en tres partes: lo fijo de cada mes arriba, los créditos debajo, y cualquier otro gasto — ocasional o imprevisto — aquí abajo.' : 'Lo que sale del negocio.');
+  const glt = $('gastoLibreTitulo'); if(glt) glt.textContent = personal ? 'Cualquier otro gasto' : 'Registrar un gasto';
+  const gls = $('gastoLibreSub'); if(gls) gls.textContent = motos
+    ? ''
+    : (personal ? 'Lo que no es fijo ni un crédito de los de arriba: una compra puntual, un gasto ocasional, un imprevisto — cualquier cosa que salió una sola vez.' : 'Anote aquí lo que va saliendo del negocio.');
+  setHidden('gastoLibreSub', motos);
   const gCat = $('gCat');
   if(gCat){
     const set = motos ? 'motos' : (personal ? 'personal' : 'flex');
