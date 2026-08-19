@@ -678,6 +678,27 @@
 </dialog>
 
 <!-- Dialog: inicio de sesión / crear cuenta -->
+<!-- Dialog: conectar con el servidor (Supabase) — una sola vez por computador -->
+<dialog id="connectDialog" class="small auth-dialog" aria-labelledby="connectTitle">
+  <div class="auth-brand">
+    <span class="auth-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-7.4-7-12a7 7 0 0 1 14 0c0 4.6-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+    </span>
+    <span class="auth-org">Secretaría de Movilidad de Bogotá</span>
+    <h2 id="connectTitle">Conectar con el servidor</h2>
+  </div>
+  <div class="panel-body">
+    <p class="auth-security-note">Esta app guarda el trabajo de todo el equipo en un servidor propio de la entidad (Supabase), no solo en este navegador. Pide estos dos datos a quien administra el proyecto — se piden una sola vez por computador.</p>
+    <div style="display:grid;gap:12px;">
+      <div><label for="connectUrl">URL del proyecto</label><input id="connectUrl" placeholder="https://xxxxxxxx.supabase.co" autocomplete="off"></div>
+      <div><label for="connectKey">Llave pública (anon key)</label><input id="connectKey" placeholder="eyJhbGciOi..." autocomplete="off"></div>
+    </div>
+    <div class="import-actions" style="margin-top:14px;">
+      <button class="btn primary" id="connectBtn" type="button">Conectar</button>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="authDialog" class="small auth-dialog" aria-labelledby="authTitle">
   <div class="auth-brand">
     <span class="auth-mark" aria-hidden="true">
@@ -755,8 +776,9 @@
 
       <div class="settings-section">
         <h3>Tu cuenta y almacenamiento</h3>
-        <p class="hint">Esta app guarda todo únicamente en este navegador — no hay servidor ni nube. Si abres el mismo enlace en otro computador, o tu jefe lo abre desde el suyo, cada quien ve solo lo que haya cargado en su propia máquina.</p>
+        <p class="hint">Tu trabajo se guarda en el servidor de la entidad (Supabase) y también, como copia local, en este navegador — así sigues trabajando aunque se corte la conexión. Cada cuenta ve únicamente sus propios datos, sin importar desde qué computador entre.</p>
         <div class="account-info" id="accountInfoBox"></div>
+        <button class="link-btn" id="changeServerBtn" type="button">Cambiar servidor (Supabase)</button>
       </div>
 
       <div class="settings-section">
@@ -935,9 +957,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     try{ localStorage.setItem(THEME_KEY, next); }catch(e){}
     applyThemePref(next);
   });
-  var LEGACY_STORAGE_KEY = "radicados_semanales_v2"; // pre-usuario, migrated into the first profile created
-  var PROFILE_KEY = "radicados_profiles_v1";
   var SETTINGS_KEY = "radicados_settings_v1";
+  var SUPA_CONFIG_KEY = "radicados_supabase_config"; // URL + llave anon del proyecto — persiste entre visitas, no es secreta
 
   var REQUIRED_FIELD_META = [
     {key:"formato", id:"cc_formato", wrapId:"wrap_formato", label:"Formato"},
@@ -965,6 +986,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       "DEVUELTO": "DEVUELTO",
       "AGENDAMIENTO": "AGENDAMIENTO"
     },
+    alias: "",
+    usuarioDocumento: "",
     ciudad: "BOGOTA",
     departamento: "D.C."
   };
@@ -981,122 +1004,118 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     {k:"tipoId", label:"Tipo ID"}, {k:"idNum", label:"ID"}, {k:"nombreF", label:"Nombre F"}
   ];
 
-  var state = { records: [], filter: "pend", activeId: null, profile: {users:[], activeUser:null}, settings: null, history: [] };
+  var state = { records: [], filter: "pend", activeId: null, profile: {activeUser:null}, settings: null, history: [] };
 
   // ============================================================
-  // Autenticación local (correo + contraseña). IMPORTANTE: esta app no tiene
-  // servidor propio — la contraseña se verifica por completo en este navegador,
-  // guardada como hash SHA-256 con sal, nunca en texto plano. Es una barrera
-  // razonable para que nadie abra por error la sesión de otro compañero en el
-  // mismo computador, pero NO es un sistema de seguridad institucional: no hay
-  // recuperación de contraseña, no sincroniza entre equipos, y alguien con
-  // acceso a las herramientas del navegador podría evadirla. La sesión NO se
-  // mantiene abierta entre visitas: cada vez que se abre la app hay que
-  // volver a iniciar sesión, para que las asignaciones sigan siendo personales.
+  // Autenticación y datos en la nube (Supabase). Cada persona se registra con
+  // su correo real de Gmail y una contraseña — Supabase Auth valida todo en su
+  // servidor (nunca se guarda ninguna contraseña a mano en esta página). El
+  // trabajo (radicados, ajustes, historial) vive en la tabla radicados_datos,
+  // protegida por seguridad por fila (RLS): cada cuenta ve únicamente su propia
+  // fila, sin importar desde qué computador entre. En paralelo se mantiene una
+  // copia local (localStorage) como caché de resiliencia: si se corta la
+  // conexión, se sigue trabajando con esa copia y se sincroniza sola en cuanto
+  // vuelve. La sesión NO se mantiene abierta entre visitas: cada vez que se
+  // abre la app hay que volver a iniciar sesión.
   // ============================================================
-  // Sal aleatoria: si Web Crypto no está disponible por algún motivo (navegador viejo,
-  // o la página abierta como archivo local en vez de por su enlace https), se usa
-  // Math.random() como respaldo — no necesita ser criptográficamente perfecta, solo
-  // distinta por cuenta, y esto nunca debe impedir crear una cuenta.
-  function randomSaltHex(){
-    var arr = new Uint8Array(16);
-    var gotRandom = false;
-    try{
-      var c = window.crypto || window.msCrypto;
-      if(c && c.getRandomValues){ c.getRandomValues(arr); gotRandom = true; }
-    }catch(e){}
-    if(!gotRandom){
-      for(var i=0;i<arr.length;i++) arr[i] = Math.floor(Math.random()*256);
-    }
-    return Array.prototype.map.call(arr, function(b){ return b.toString(16).padStart(2,"0"); }).join("");
+  var supaConfig = null; // {url, anonKey} — persiste entre visitas, no es secreto
+  function loadSupaConfig(){
+    try{ var raw = localStorage.getItem(SUPA_CONFIG_KEY); supaConfig = raw ? JSON.parse(raw) : null; }
+    catch(e){ supaConfig = null; }
   }
-  // SHA-256 en JS puro (probada contra vectores conocidos) — respaldo para cuando
-  // crypto.subtle no existe (requiere "contexto seguro": https, o algunos navegadores
-  // móviles al abrir el archivo directo en vez de por su enlace). Iniciar o crear sesión
-  // NUNCA debe quedar roto por esto, sea cual sea el dispositivo o cómo se abrió la página.
-  function sha256Fallback(str){
-    function rotr(x,n){ return (x>>>n)|(x<<(32-n)); }
-    var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
-      0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
-      0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
-      0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
-      0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
-      0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
-      0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
-      0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
-    var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
-    var utf8 = unescape(encodeURIComponent(str));
-    var bitLen = utf8.length * 8;
-    var withOne = utf8 + String.fromCharCode(0x80);
-    while((withOne.length % 64) !== 56) withOne += String.fromCharCode(0);
-    var bytes = [];
-    for(var i=0;i<withOne.length;i++) bytes.push(withOne.charCodeAt(i) & 0xff);
-    for(var b=7;b>=4;b--) bytes.push(0);
-    bytes.push((bitLen>>>24)&0xff,(bitLen>>>16)&0xff,(bitLen>>>8)&0xff,bitLen&0xff);
-    for(var chunkStart=0; chunkStart<bytes.length; chunkStart+=64){
-      var w = new Array(64);
-      for(var t=0;t<16;t++){
-        var o = chunkStart + t*4;
-        w[t] = ((bytes[o]<<24)|(bytes[o+1]<<16)|(bytes[o+2]<<8)|(bytes[o+3])) >>> 0;
-      }
-      for(var t2=16;t2<64;t2++){
-        var s0 = rotr(w[t2-15],7) ^ rotr(w[t2-15],18) ^ (w[t2-15]>>>3);
-        var s1 = rotr(w[t2-2],17) ^ rotr(w[t2-2],19) ^ (w[t2-2]>>>10);
-        w[t2] = (w[t2-16] + s0 + w[t2-7] + s1) >>> 0;
-      }
-      var a=H[0],b2=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
-      for(var t3=0;t3<64;t3++){
-        var S1 = rotr(e,6) ^ rotr(e,11) ^ rotr(e,25);
-        var ch = (e & f) ^ (~e & g);
-        var temp1 = (h + S1 + ch + K[t3] + w[t3]) >>> 0;
-        var S0 = rotr(a,2) ^ rotr(a,13) ^ rotr(a,22);
-        var maj = (a & b2) ^ (a & c) ^ (b2 & c);
-        var temp2 = (S0 + maj) >>> 0;
-        h=g; g=f; f=e; e=(d+temp1)>>>0; d=c; c=b2; b2=a; a=(temp1+temp2)>>>0;
-      }
-      H[0]=(H[0]+a)>>>0; H[1]=(H[1]+b2)>>>0; H[2]=(H[2]+c)>>>0; H[3]=(H[3]+d)>>>0;
-      H[4]=(H[4]+e)>>>0; H[5]=(H[5]+f)>>>0; H[6]=(H[6]+g)>>>0; H[7]=(H[7]+h)>>>0;
-    }
-    return H.map(function(x){ return (x>>>0).toString(16).padStart(8,"0"); }).join("");
-  }
-  function hashPassword(password, saltHex){
-    var input = saltHex + ":" + password;
-    var hasSubtle = false;
-    try{ hasSubtle = !!(window.crypto && window.crypto.subtle && window.crypto.subtle.digest); }catch(e){}
-    if(hasSubtle){
-      try{
-        var data = new TextEncoder().encode(input);
-        return crypto.subtle.digest("SHA-256", data).then(function(buf){
-          return Array.prototype.map.call(new Uint8Array(buf), function(b){ return b.toString(16).padStart(2,"0"); }).join("");
-        }).catch(function(){ return sha256Fallback(input); });
-      }catch(e){
-        return Promise.resolve(sha256Fallback(input));
-      }
-    }
-    return Promise.resolve(sha256Fallback(input));
+  function saveSupaConfig(cfg){
+    supaConfig = cfg;
+    try{ localStorage.setItem(SUPA_CONFIG_KEY, JSON.stringify(cfg)); }catch(e){}
   }
 
-  // ---------- perfiles de usuario (cuentas) ----------
-  function loadProfiles(){
-    try{
-      var raw = localStorage.getItem(PROFILE_KEY);
-      var parsed = raw ? JSON.parse(raw) : {users:[]};
-      state.profile = {users: parsed.users || [], activeUser: null}; // activeUser nunca persiste: sesión nueva cada visita
-    }catch(e){
-      // No se pierde el trabajo real (vive aparte, por correo), pero se respalda la lista de cuentas
-      // antes de reemplazarla, y se avisa por si el correo exacto no se recuerda de memoria.
-      try{
-        var brokenRaw = localStorage.getItem(PROFILE_KEY);
-        if(brokenRaw) localStorage.setItem(PROFILE_KEY + "__recovery_" + Date.now(), brokenRaw);
-      }catch(e2){}
-      state.profile = {users:[], activeUser:null};
-      toast("No se pudo leer la lista de cuentas guardadas. Si ya tenías una cuenta, vuelve a crearla con el MISMO correo para recuperar tus radicados.");
-    }
+  // La sesión (tokens de acceso) vive SOLO en memoria — nunca en localStorage — a propósito:
+  // así una recarga de página siempre exige iniciar sesión de nuevo, igual que antes.
+  var supaSession = null; // {access_token, refresh_token, user:{id,email,user_metadata}}
+  var supaProfile = null; // {nombre, correo} de la tabla profiles, cacheado tras iniciar sesión
+
+  function supaFetch(path, opts, _retried){
+    opts = opts || {};
+    var headers = Object.assign({"apikey": supaConfig.anonKey, "Content-Type": "application/json"}, opts.headers || {});
+    if(supaSession && supaSession.access_token) headers["Authorization"] = "Bearer " + supaSession.access_token;
+    return fetch(supaConfig.url.replace(/\/$/, "") + path, {method: opts.method || "GET", headers: headers, body: opts.body})
+      .then(function(res){
+        return res.text().then(function(text){
+          var data = null;
+          if(text){ try{ data = JSON.parse(text); }catch(e){} }
+          if(res.status === 401 && !_retried && supaSession && supaSession.refresh_token){
+            return supaRefreshSession().then(function(){ return supaFetch(path, opts, true); });
+          }
+          if(!res.ok){
+            var msg = (data && (data.msg || data.message || data.error_description || (data.errors && data.errors[0] && data.errors[0].message))) || ("Error " + res.status);
+            var err = new Error(msg); err.status = res.status; err.data = data;
+            throw err;
+          }
+          return data;
+        });
+      });
   }
-  function saveProfiles(){
-    try{ localStorage.setItem(PROFILE_KEY, JSON.stringify({users: state.profile.users})); }
-    catch(e){ showDataSafetyBanner("No se pudo guardar la cuenta/ajustes de usuario en este navegador."); }
+  function supaSignup(email, password, nombre){
+    return supaFetch("/auth/v1/signup", {method:"POST", body: JSON.stringify({email:email, password:password, data:{nombre:nombre}})})
+      .then(function(data){
+        if(data && data.access_token) supaSession = {access_token:data.access_token, refresh_token:data.refresh_token, user:data.user};
+        return data;
+      });
   }
+  function supaLogin(email, password){
+    return supaFetch("/auth/v1/token?grant_type=password", {method:"POST", body: JSON.stringify({email:email, password:password})})
+      .then(function(data){
+        supaSession = {access_token:data.access_token, refresh_token:data.refresh_token, user:data.user};
+        return data;
+      });
+  }
+  function supaRefreshSession(){
+    if(!supaSession || !supaSession.refresh_token) return Promise.reject(new Error("Sin sesión"));
+    return fetch(supaConfig.url.replace(/\/$/, "") + "/auth/v1/token?grant_type=refresh_token", {
+      method:"POST", headers:{"apikey":supaConfig.anonKey, "Content-Type":"application/json"},
+      body: JSON.stringify({refresh_token: supaSession.refresh_token})
+    }).then(function(res){
+      return res.json().then(function(data){ if(!res.ok) throw new Error("No se pudo renovar la sesión"); return data; });
+    }).then(function(data){
+      supaSession = {access_token:data.access_token, refresh_token:data.refresh_token, user: data.user || (supaSession && supaSession.user)};
+      return data;
+    });
+  }
+  function supaSignout(){
+    var p = (supaSession && supaSession.access_token) ? supaFetch("/auth/v1/logout", {method:"POST"}).catch(function(){}) : Promise.resolve();
+    return p.then(function(){ supaSession = null; });
+  }
+  function supaFetchProfile(){
+    return supaFetch("/rest/v1/profiles?id=eq." + supaSession.user.id + "&select=nombre,correo")
+      .then(function(rows){ return (rows && rows[0]) || null; });
+  }
+  function supaFetchDatos(){
+    return supaFetch("/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id + "&select=records,settings,history")
+      .then(function(rows){ return (rows && rows[0]) || null; });
+  }
+
+  // ---------- sincronización a la nube: se dispara sola después de cada guardado local ----------
+  var cloudSyncTimer = null;
+  var cloudRetryTimer = null;
+  function queueCloudSync(){
+    if(!supaSession) return;
+    clearTimeout(cloudSyncTimer);
+    cloudSyncTimer = setTimeout(pushCloudNow, 900);
+  }
+  function pushCloudNow(){
+    if(!supaSession || !supaConfig) return;
+    clearTimeout(cloudRetryTimer);
+    setSaveStatus("syncing");
+    supaFetch("/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id, {
+      method:"PATCH", headers:{"Prefer":"return=minimal"},
+      body: JSON.stringify({records: state.records, settings: state.settings, history: state.history, actualizado: new Date().toISOString()})
+    }).then(function(){
+      setSaveStatus("ok");
+    }).catch(function(){
+      setSaveStatus("cloud_error");
+      cloudRetryTimer = setTimeout(pushCloudNow, 15000); // reintenta sola si hubo un corte de conexión
+    });
+  }
+
   function storageKeyFor(emailId){ return STORAGE_PREFIX + "::" + emailId; }
   function historyKeyFor(emailId){ return HISTORY_PREFIX + "::" + emailId; }
   function initials(name){
@@ -1105,17 +1124,41 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(parts.length>1) s += (parts[1][0]||"");
     return s.toUpperCase();
   }
-  function findUserByEmail(email){
-    email = (email||"").trim().toLowerCase();
-    return state.profile.users.find(function(u){ return u.email === email; }) || null;
+  function currentUser(){
+    if(!supaSession || !supaSession.user) return null;
+    return {
+      name: (supaProfile && supaProfile.nombre) || (supaSession.user.user_metadata && supaSession.user.user_metadata.nombre) || supaSession.user.email,
+      email: supaSession.user.email,
+      id: supaSession.user.id
+    };
   }
-  function currentUser(){ return findUserByEmail(state.profile.activeUser); }
 
   function renderProfileUI(){
     var user = currentUser();
     document.getElementById("userLabel").textContent = user ? user.name : "Iniciar sesión";
     document.getElementById("userAvatar").textContent = user ? initials(user.name) : "—";
   }
+
+  // ---------- pantalla de conexión (URL + llave del proyecto de Supabase) ----------
+  function openConnectDialog(){
+    document.getElementById("connectUrl").value = (supaConfig && supaConfig.url) || "";
+    document.getElementById("connectKey").value = (supaConfig && supaConfig.anonKey) || "";
+    var dlg = document.getElementById("connectDialog");
+    if(!dlg.open) dlg.showModal();
+  }
+  document.getElementById("connectBtn").addEventListener("click", function(){
+    var url = document.getElementById("connectUrl").value.trim().replace(/\/+$/, "");
+    var key = document.getElementById("connectKey").value.trim();
+    if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){ toast("La URL debe verse como https://xxxxxxxx.supabase.co"); return; }
+    if(!key || key.length < 20){ toast("Pega la llave pública (anon key) completa"); return; }
+    saveSupaConfig({url:url, anonKey:key});
+    document.getElementById("connectDialog").close();
+    openAuthDialog(true);
+  });
+  document.getElementById("changeServerBtn").addEventListener("click", function(){
+    document.getElementById("settingsDialog").close();
+    openConnectDialog();
+  });
 
   function setAuthTab(tab){
     Array.prototype.forEach.call(document.querySelectorAll("#authTabs button"), function(b){
@@ -1131,7 +1174,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
   function openAuthDialog(mandatory){
     ["reg_name","reg_email","reg_password","reg_password2","loginEmail","loginPassword"].forEach(function(id){ document.getElementById(id).value = ""; });
-    setAuthTab(state.profile.users.length ? "login" : "register");
+    setAuthTab("login");
     document.getElementById("authCancel").style.display = mandatory ? "none" : "inline-flex";
 
     // Con sesión activa, lo primero que se ve es DE QUIÉN es esa sesión y un botón claro para
@@ -1153,22 +1196,50 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     setTimeout(function(){ document.getElementById("loginEmail").focus(); }, 30);
   }
 
-  function completeLogin(user, silent){
-    commitCurrentEdits(); // guarda cualquier edición pendiente de la sesión saliente, si había una
+  // Tras autenticarse con Supabase: trae los datos reales de la nube. Si la cuenta ya tenía
+  // trabajo guardado ahí, ese manda. Si la cuenta está recién creada y no tiene nada en la nube
+  // pero SÍ había trabajo guardado localmente en este navegador (de antes de conectar, o hecho sin
+  // conexión), se sube automáticamente en vez de perderlo.
+  function completeLogin(silent){
+    commitCurrentEdits();
+    var user = currentUser();
     state.profile.activeUser = user.email;
     renderProfileUI();
     var dlg = document.getElementById("authDialog");
     if(dlg.open) dlg.close();
     state.activeId = null;
     document.getElementById("searchBox").value = "";
-    load(); loadSettings(); loadHistory(); renderAll();
-    if(!silent) toast("Sesión iniciada como " + user.name);
+    setSaveStatus("syncing");
+    supaFetchDatos().then(function(cloud){
+      var hasCloudData = cloud && ((Array.isArray(cloud.records) && cloud.records.length) || (Array.isArray(cloud.history) && cloud.history.length));
+      if(hasCloudData){
+        state.records = Array.isArray(cloud.records) ? cloud.records : [];
+        state.settings = mergeSettings(cloud.settings);
+        state.history = Array.isArray(cloud.history) ? cloud.history : [];
+        save(); saveSettingsToStorage(); saveHistory(); // espejo local, para seguir funcionando sin conexión
+        applyRequiredMarkers(); refreshFormatoDatalist();
+      } else {
+        load(); loadSettings(); loadHistory();
+        if(state.records.length || state.history.length){
+          queueCloudSync();
+          toast("Se subieron a tu cuenta los radicados que tenías guardados en este navegador.");
+        }
+      }
+      renderAll();
+      if(!silent) toast("Sesión iniciada como " + user.name);
+    }).catch(function(){
+      load(); loadSettings(); loadHistory();
+      renderAll();
+      toast("No se pudo conectar con el servidor ahora mismo — se sigue trabajando con la copia guardada en este navegador.");
+    });
   }
 
   // Cierra la sesión activa y exige volver a iniciar sesión — no deja la app abierta a nombre de
   // nadie. Es la forma correcta de dejar el computador compartido sin dejar tu sesión expuesta.
   function logout(){
     commitCurrentEdits();
+    supaSignout();
+    supaProfile = null;
     state.profile.activeUser = null;
     state.records = []; state.history = []; state.activeId = null;
     renderProfileUI();
@@ -1188,13 +1259,18 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var pwd = document.getElementById("loginPassword").value;
     if(!email){ toast("Escribe tu correo de Gmail"); return; }
     if(!pwd){ toast("Escribe tu contraseña"); return; }
-    var user = findUserByEmail(email);
-    // Mensaje genérico a propósito: no revela si el correo existe o no en este navegador —
-    // esa información es de cada persona, no de quien intenta entrar.
-    if(!user){ toast("Correo o contraseña incorrectos"); return; }
-    hashPassword(pwd, user.salt).then(function(hash){
-      if(hash === user.hash) completeLogin(user);
-      else toast("Correo o contraseña incorrectos");
+    var btn = this; btn.disabled = true;
+    supaLogin(email, pwd).then(function(){
+      return supaFetchProfile();
+    }).then(function(profile){
+      btn.disabled = false;
+      supaProfile = profile;
+      completeLogin();
+    }).catch(function(err){
+      btn.disabled = false;
+      // Mensaje genérico a propósito: no revela si el correo existe o no —
+      // esa información es de cada persona, no de quien intenta entrar.
+      toast("Correo o contraseña incorrectos");
     });
   });
   document.getElementById("loginPassword").addEventListener("keydown", function(e){
@@ -1210,40 +1286,43 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var pwd2 = document.getElementById("reg_password2").value;
     if(!name){ toast("Escribe tu nombre completo"); return; }
     if(!/^[^\s@]+@gmail\.com$/.test(email)){ toast("Debes usar tu correo de Gmail real (debe terminar en @gmail.com)"); return; }
-    if(findUserByEmail(email)){ toast("Ya existe una cuenta enlazada a ese correo de Gmail — inicia sesión en la otra pestaña"); return; }
     if(pwd.length < 6){ toast("La contraseña debe tener mínimo 6 caracteres"); return; }
     if(pwd !== pwd2){ toast("Las contraseñas no coinciden"); return; }
-    var salt = randomSaltHex();
-    var wasFirstEver = state.profile.users.length === 0;
-    hashPassword(pwd, salt).then(function(hash){
-      var user = {name: name, email: email, salt: salt, hash: hash};
-      state.profile.users.push(user);
-      // Migra datos de una sesión anterior a la separación por usuarios, solo para la primera cuenta creada jamás.
-      if(wasFirstEver){
-        try{
-          var already = localStorage.getItem(LEGACY_STORAGE_KEY + "__done_migration");
-          var oldData = localStorage.getItem(LEGACY_STORAGE_KEY);
-          if(oldData && !already){
-            localStorage.setItem(storageKeyFor(email), oldData);
-            localStorage.setItem(LEGACY_STORAGE_KEY + "__done_migration", "1");
-          }
-        }catch(err){}
+    var btn = this; btn.disabled = true;
+    supaSignup(email, pwd, name).then(function(data){
+      btn.disabled = false;
+      if(data && data.access_token){
+        supaProfile = {nombre:name, correo:email};
+        completeLogin();
+      } else {
+        // El proyecto tiene activo "Confirm email": la cuenta se creó pero falta confirmarla.
+        toast("Cuenta creada — revisa tu correo de Gmail para confirmarla, luego inicia sesión aquí.");
+        setAuthTab("login");
       }
-      saveProfiles();
-      completeLogin(user);
+    }).catch(function(err){
+      btn.disabled = false;
+      var msg = (err && err.message) || "";
+      if(/already registered|already exists|user_repeated/i.test(msg)) toast("Ya existe una cuenta con ese correo — inicia sesión en la otra pestaña");
+      else if(/gmail/i.test(msg)) toast("Esta aplicación requiere una cuenta real de Gmail (correo@gmail.com).");
+      else toast("No se pudo crear la cuenta" + (msg ? (": " + msg) : "") + ".");
     });
   });
 
   // ---------- ajustes: campos obligatorios + categorías + reglas imperativas ----------
+  // Aplica los valores por defecto a un objeto de ajustes parcial/crudo (de localStorage o de la
+  // nube) — mismo merge en los dos casos, para que un ajuste incompleto nunca deje campos sueltos.
+  function mergeSettings(parsed){
+    return (parsed && Object.keys(parsed).length) ? Object.assign({}, DEFAULT_SETTINGS, parsed, {
+      required: Object.assign({}, DEFAULT_SETTINGS.required, (parsed&&parsed.required)||{}),
+      formatCategories: (parsed && parsed.formatCategories && parsed.formatCategories.length) ? parsed.formatCategories : DEFAULT_SETTINGS.formatCategories.slice(),
+      formatToPlantilla: Object.assign({}, DEFAULT_SETTINGS.formatToPlantilla, (parsed&&parsed.formatToPlantilla)||{})
+    }) : JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+  }
   function loadSettings(){
     try{
       var raw = localStorage.getItem(SETTINGS_KEY);
       var parsed = raw ? JSON.parse(raw) : null;
-      state.settings = parsed ? Object.assign({}, DEFAULT_SETTINGS, parsed, {
-        required: Object.assign({}, DEFAULT_SETTINGS.required, (parsed&&parsed.required)||{}),
-        formatCategories: (parsed && parsed.formatCategories && parsed.formatCategories.length) ? parsed.formatCategories : DEFAULT_SETTINGS.formatCategories.slice(),
-        formatToPlantilla: Object.assign({}, DEFAULT_SETTINGS.formatToPlantilla, (parsed&&parsed.formatToPlantilla)||{})
-      }) : JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+      state.settings = mergeSettings(parsed);
     }catch(e){
       try{
         var brokenRaw = localStorage.getItem(SETTINGS_KEY);
@@ -1256,7 +1335,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     refreshFormatoDatalist();
   }
   function saveSettingsToStorage(){
-    try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); }
+    try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); queueCloudSync(); }
     catch(e){ showDataSafetyBanner("No se pudieron guardar los Ajustes en este navegador."); }
   }
 
@@ -1281,8 +1360,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
   function renderSettingsForm(){
     var user = currentUser();
-    document.getElementById("myAliasInput").value = (user && user.alias) || "";
-    document.getElementById("myFullNameInput").value = (user && (user.usuarioDocumento || user.name)) || "";
+    document.getElementById("myAliasInput").value = state.settings.alias || "";
+    document.getElementById("myFullNameInput").value = state.settings.usuarioDocumento || (user && user.name) || "";
     document.getElementById("ciudadInput").value = state.settings.ciudad || "";
     document.getElementById("departamentoInput").value = state.settings.departamento || "";
 
@@ -1340,12 +1419,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function renderAccountInfo(){
     var user = currentUser();
     var storageOk = state.storageAvailable !== false;
-    // No se muestra cuántas cuentas hay creadas en este navegador: es información de otras
-    // personas del equipo, no propia de la sesión activa.
+    var cloudOk = !!supaSession;
     document.getElementById("accountInfoBox").innerHTML =
       '<div class="ai-row"><span>Sesión activa</span><b>'+escapeHtml((user&&user.name)||"—")+' · '+escapeHtml((user&&user.email)||"—")+'</b></div>'+
       '<div class="ai-row"><span>Radicados en tu semana actual</span><b>'+state.records.length+'</b></div>'+
-      '<div class="ai-row"><span>Guardado permanente en este navegador</span><b class="'+(storageOk?"ok-dot":"warn-dot")+'">'+(storageOk?"● Activo":"● No disponible")+'</b></div>';
+      '<div class="ai-row"><span>Servidor (Supabase)</span><b class="'+(cloudOk?"ok-dot":"warn-dot")+'">'+(cloudOk?"● Conectado":"● Sin conexión")+'</b></div>'+
+      '<div class="ai-row"><span>Copia local en este navegador</span><b class="'+(storageOk?"ok-dot":"warn-dot")+'">'+(storageOk?"● Activa":"● No disponible")+'</b></div>';
   }
 
   // ---------- Ajustes: informes e histórico ----------
@@ -1483,16 +1562,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       formatCategories: cleanCats.length ? cleanCats : DEFAULT_SETTINGS.formatCategories.slice(),
       formatToPlantilla: Object.keys(dict).length ? dict : DEFAULT_SETTINGS.formatToPlantilla,
       ciudad: document.getElementById("ciudadInput").value.trim() || DEFAULT_SETTINGS.ciudad,
-      departamento: document.getElementById("departamentoInput").value.trim() || DEFAULT_SETTINGS.departamento
+      departamento: document.getElementById("departamentoInput").value.trim() || DEFAULT_SETTINGS.departamento,
+      alias: document.getElementById("myAliasInput").value.trim(),
+      usuarioDocumento: document.getElementById("myFullNameInput").value.trim()
     };
     REQUIRED_FIELD_META.forEach(function(f){ next.required[f.key] = document.getElementById("chk_"+f.key).checked; });
     state.settings = next;
-    var user = currentUser();
-    if(user){
-      user.alias = document.getElementById("myAliasInput").value.trim();
-      user.usuarioDocumento = document.getElementById("myFullNameInput").value.trim();
-      saveProfiles();
-    }
     saveSettingsToStorage();
     applyRequiredMarkers();
     refreshFormatoDatalist();
@@ -1624,7 +1699,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
   function saveHistory(){
     if(!state.profile.activeUser) return;
-    try{ localStorage.setItem(historyKeyFor(state.profile.activeUser), JSON.stringify(state.history)); }
+    try{ localStorage.setItem(historyKeyFor(state.profile.activeUser), JSON.stringify(state.history)); queueCloudSync(); }
     catch(e){ toast("No se pudo guardar el historial de esta semana en este navegador (tus radicados no se ven afectados)."); }
   }
   // Mismo cálculo que usa el panel de arriba, reutilizado para el resumen que se guarda al cerrar la semana.
@@ -1677,6 +1752,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var json = JSON.stringify(state.records);
       localStorage.setItem(storageKeyFor(state.profile.activeUser), json);
       setSaveStatus("ok");
+      queueCloudSync();
       warnIfStorageGettingFull(json.length);
       return true;
     }catch(e){
@@ -1713,6 +1789,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(status === "ok"){
       el.textContent = "Guardado " + new Date().toLocaleTimeString("es-CO", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
       el.className = "save-status ok";
+    } else if(status === "syncing"){
+      el.textContent = "Sincronizando…";
+      el.className = "save-status saving";
+    } else if(status === "cloud_error"){
+      el.textContent = "⚠ Guardado local — sin conexión al servidor";
+      el.className = "save-status warn";
     } else if(status === "nostorage"){
       el.textContent = "⚠ Solo en esta pestaña — usa el respaldo";
       el.className = "save-status warn";
@@ -2651,8 +2733,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var plantilla = dict[(rec.formato||"").trim().toUpperCase()] || "Sin definir";
     var corto = right8(rec.comparendoCompleto);
     var user = currentUser();
-    var asignadosA = (user && (user.alias || user.name)) || "";
-    var usuario = (user && (user.usuarioDocumento || user.name)) || "";
+    var asignadosA = state.settings.alias || (user && user.name) || "";
+    var usuario = state.settings.usuarioDocumento || (user && user.name) || "";
     var anexo = rec.res ? ("Res. " + rec.res + " de " + (parseDMY(normalizeDate(rec.fechaRes)) ? parseDMY(normalizeDate(rec.fechaRes)).getFullYear() : "")) : "";
     // IMPORTANTE: la columna "TIPO DE COMPARENDO" del documento final lleva el valor de MEDIO tal
     // cual viene en la línea pegada (p. ej. "CAMARAS SALVAVIDAS", "COMPARENDERA", "CAMARAS FIJAS
@@ -2721,13 +2803,16 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   });
 
   state.storageAvailable = testStorageAvailable();
-  loadProfiles();
-  loadSettings();
+  loadSupaConfig();
+  loadSettings(); // valores por defecto hasta confirmar sesión — se reemplazan tras iniciar sesión
   renderProfileUI();
   // App de producción: cada visita exige iniciar sesión o crear cuenta con Gmail — nunca entra
   // directo. Esto es lo que hace que cada persona (o cada compañero que abra el mismo enlace desde
-  // su propio computador) tenga su espacio individual y separado, con su propia contraseña.
-  openAuthDialog(true);
+  // su propio computador) tenga su espacio individual y separado, con su propia contraseña. Si este
+  // computador todavía no tiene la conexión al servidor configurada, se pide primero esa (una sola
+  // vez); ya conectado, siempre se pide iniciar sesión.
+  if(!supaConfig) openConnectDialog();
+  else openAuthDialog(true);
 
   if(state.storageAvailable === false){
     setSaveStatus("nostorage");
