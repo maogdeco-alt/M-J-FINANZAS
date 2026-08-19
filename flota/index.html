@@ -1521,6 +1521,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <div class="fgrid">
       <div class="f"><label for="grValor">¿Cuánto fue?</label><input id="grValor" inputmode="numeric" placeholder="$0" autocomplete="off"></div>
       <div class="f"><label for="grCat">Categoría</label><select id="grCat"></select></div>
+      <div class="f hidden" id="grDestinoBox"><label for="grDestino" id="grDestinoLbl">¿A dónde va? (opcional)</label><select id="grDestino"></select></div>
       <div class="f"><label for="grDesc">¿En qué? (opcional)</label><input id="grDesc" placeholder="Almuerzo, gasolina…" autocomplete="off"></div>
     </div>
     <div class="acts">
@@ -1614,17 +1615,39 @@ function confirmar(titulo, texto){
 $('scrim').addEventListener('click', e=>{ if(e.target===$('scrim')) $('scrim').classList.remove('on'); });
 
 /* Gasto rápido desde el Tablero — el botón flotante que se ve en la
-   página de inicio. A propósito son solo 3 campos (valor, categoría,
-   qué fue) para que anotar algo en el momento no se sienta como
-   llenar un formulario — todo lo demás (moto, cuenta, quién lo puso)
-   se puede completar después editando desde "Lo que sale" si hace
-   falta. Guarda como un gasto normal, así que aparece igual de
-   completo en el libro y en los totales. */
+   página de inicio. A propósito sigue siendo mínimo (valor, categoría,
+   a dónde va, qué fue) para que anotar algo en el momento no se
+   sienta como llenar un formulario — el "a dónde va" es opcional a
+   propósito: la meta real es que el gasto QUEDE registrado ya mismo;
+   pedir un dato de más como obligatorio es exactamente lo que hace
+   que alguien lo posponga y termine sin anotarlo nunca. Lo que no se
+   diga aquí se puede completar después editando desde "Lo que sale".
+   Guarda como un gasto normal, así que aparece igual de completo en
+   el libro y en los totales — y si se elige cuenta, también debita
+   el saldo real de una vez (saldoCuenta ya lo suma automáticamente). */
 function categoriasParaGastoRapido(){ return esMotos() ? CATS : (esPersonal() ? CATS_PERSONAL : CATS_FLEX); }
 function abrirGastoRapido(){
   if(!ready || !S) return;
   const cat = $('grCat');
   cat.innerHTML = categoriasParaGastoRapido().map(c=>`<option>${esc(c)}</option>`).join('');
+
+  const destino = $('grDestino');
+  if(esMotos()){
+    $('grDestinoLbl').textContent = '¿De qué moto? (opcional)';
+    fillSelect(destino, S.motos.map(m=>({ v:m.id, t:`${m.placa} · ${m.ref||''}`.trim() })), 'agregue una moto');
+    destino.insertAdjacentHTML('afterbegin', `<option value="">Sin especificar</option>`);
+    destino.value = '';
+    setHidden('grDestinoBox', !S.motos.length);
+  } else if(esPersonal()){
+    $('grDestinoLbl').textContent = '¿De qué cuenta sale? (opcional)';
+    fillSelect(destino, (S.cuentas||[]).map(c=>({ v:c.id, t:c.nombre })), 'agregue una cuenta en Mi plata');
+    destino.insertAdjacentHTML('afterbegin', `<option value="">Sin especificar</option>`);
+    destino.value = '';
+    setHidden('grDestinoBox', !(S.cuentas||[]).length);
+  } else {
+    setHidden('grDestinoBox', true);
+  }
+
   $('grValor').value = ''; $('grDesc').value = '';
   $('gastoRapidoScrim').classList.add('on');
   setTimeout(()=>$('grValor').focus(), 50);
@@ -1633,9 +1656,10 @@ function cerrarGastoRapido(){ $('gastoRapidoScrim').classList.remove('on'); }
 async function guardarGastoRapido(){
   const valor = num($('grValor').value);
   if(!valor) return toast('Escriba cuánto fue.', true);
+  const destinoId = $('grDestino').value || null;
   S.gastos.push({ id:uid(), fecha:todayISO(), cat:$('grCat').value, desc:$('grDesc').value.trim(),
-    valor, cargo:'Empresa', motoId:null, cuentaId:null, pagadoPor:'', reparto:'',
-    recuperado:false, creadoPor:quien() });
+    valor, cargo:'Empresa', motoId: esMotos() ? destinoId : null, cuentaId: esPersonal() ? destinoId : null,
+    pagadoPor:'', reparto:'', recuperado:false, creadoPor:quien() });
   await save(); renderAll();
   cerrarGastoRapido();
   toast('Gasto agregado');
