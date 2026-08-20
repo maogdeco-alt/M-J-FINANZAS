@@ -1664,6 +1664,33 @@ function pedirValor(titulo, texto, etiqueta){
     input.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); cerrar(num(input.value) || null); } };
   });
 }
+/* Mismo cuadro, pero con un selector de fecha nativo — para "posponer
+   hasta cuándo" sin tener que escribir nada. valorInicial sugiere una
+   fecha ya puesta (p. ej. una semana) para que alcance con tocar
+   "Posponer" una sola vez si esa fecha ya sirve. Devuelve la fecha en
+   formato AAAA-MM-DD, o null si cancela. */
+function pedirFecha(titulo, texto, etiqueta, valorInicial){
+  return new Promise(resolve=>{
+    $('dlgTitle').textContent = titulo; $('dlgText').textContent = texto;
+    $('dlgInputLbl').textContent = etiqueta || 'Fecha';
+    const input = $('dlgInput');
+    input.type = 'date'; input.value = valorInicial || '';
+    $('dlgInputBox').classList.remove('hidden');
+    $('dlgOk').textContent = 'Posponer'; $('dlgOk').classList.remove('danger');
+    $('scrim').classList.add('on');
+    setTimeout(()=>input.focus(), 60);
+    const cerrar = v => {
+      $('scrim').classList.remove('on'); $('dlgInputBox').classList.add('hidden');
+      input.type = 'text'; input.inputMode = 'numeric';
+      $('dlgOk').textContent = 'Sí, continuar'; $('dlgOk').classList.add('danger');
+      $('dlgOk').onclick=null; $('dlgCancel').onclick=null; input.onkeydown=null;
+      resolve(v);
+    };
+    $('dlgOk').onclick = ()=>cerrar(input.value || null);
+    $('dlgCancel').onclick = ()=>cerrar(null);
+    input.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); cerrar(input.value || null); } };
+  });
+}
 $('scrim').addEventListener('click', e=>{ if(e.target===$('scrim')) $('scrim').classList.remove('on'); });
 
 /* Gasto rápido desde el Tablero — el botón flotante que se ve en la
@@ -3015,14 +3042,19 @@ function renderDeudas(){
     box.innerHTML = `<div class="empty"><span class="ic icono">${ICONS.fijos}</span><strong>Sin créditos registrados</strong>
       Si le debe a un banco o a alguien más, regístrelo aquí para ver el avance.</div>`; return;
   }
-  const mesActual = todayISO().slice(0,7);
+  const mesActual = todayISO().slice(0,7), hoy = todayISO();
   box.innerHTML = S.deudas.map(d=>{
     const total = d.cuotasTotal||0, pagadas = Math.min(d.cuotasPagadas||0, total);
     const pct = total ? Math.round(pagadas/total*100) : 0;
     const saldada = deudaSaldada(d);
     const abonadoEsteMes = d.abonadoMes === mesActual;
+    // Pospuesta: se eligió una fecha para que la app deje de insistir
+    // hasta entonces — sigue contando como deuda real (no se toca el
+    // saldo ni las cuotas), solo se calla el aviso una temporada.
+    const pospuesta = !saldada && !!d.posponerHasta && d.posponerHasta >= hoy;
     const estado = saldada
       ? `<span class="tag ok">✅ Crédito saldado</span>`
+      : pospuesta ? `<span class="tag">⏸️ Pospuesto hasta ${fmtDate(d.posponerHasta)}</span>`
       : (abonadoEsteMes ? `<span class="tag ok">Al día este mes</span>` : `<span class="tag due">Pendiente este mes</span>`);
     return `<div class="card">
       <h3><span class="icono">${ICONS.fijos}</span> ${esc(d.nombre)}</h3>
@@ -3036,6 +3068,9 @@ function renderDeudas(){
       <div class="acts">
         ${saldada ? '' : `<button class="btn ghost sm" data-abonar-deuda="${d.id}">${abonadoEsteMes ? 'Desmarcar' : '<span class="icono">'+ICONS.check+'</span> Abonar esta cuota'}</button>`}
         ${saldada ? '' : `<button class="btn ghost sm" data-saldar-deuda="${d.id}">Ya no debo esto</button>`}
+        ${saldada ? '' : (pospuesta
+          ? `<button class="btn ghost sm" data-quitar-posponer="${d.id}">Quitar posponer</button>`
+          : `<button class="btn ghost sm" data-posponer-deuda="${d.id}"><span class="icono">${ICONS.calendario}</span> Posponer</button>`)}
         <button class="btn ghost sm" data-del-deuda="${d.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button>
       </div>
     </div>`;
@@ -3105,7 +3140,7 @@ function renderMercado(){
 function renderHoyPersonal(){
   const box = $('hoyPersonal'); if(!box || !esPersonal()) return;
   setHidden('hoyPersonalBox', false);
-  const diaHoy = new Date().getDate(), mesActual = todayISO().slice(0,7);
+  const diaHoy = new Date().getDate(), hoy = todayISO(), mesActual = hoy.slice(0,7);
   const haceAlerta = (df, nombre, valor) => {
     const tier = df < 0 ? 'mora' : (df <= 5 ? 'due' : null);
     if(!tier) return null;
@@ -3118,7 +3153,10 @@ function renderHoyPersonal(){
     .map(f=>haceAlerta(f.dia - diaHoy, f.nombre, f.monto));
   const deTarjetas = (S.cuentas||[]).filter(c=>c.tipo==='tarjeta_credito' && c.recordatorio && c.diaPago && saldoCuenta(c.id) > 0)
     .map(c=>haceAlerta(c.diaPago - diaHoy, c.nombre, saldoCuenta(c.id)));
-  const deCreditos = (S.deudas||[]).filter(d=>d.recordatorio && d.diaPago && d.abonadoMes !== mesActual && !deudaSaldada(d))
+  // Pospuesta: no se calla del todo (sigue en Créditos, sigue en las
+  // cuentas), solo se calla ESTE aviso hasta la fecha que se eligió.
+  const deCreditos = (S.deudas||[]).filter(d=>d.recordatorio && d.diaPago && d.abonadoMes !== mesActual && !deudaSaldada(d)
+      && !(d.posponerHasta && d.posponerHasta >= hoy))
     .map(d=>haceAlerta(d.diaPago - diaHoy, d.nombre, d.cuotaMensual));
   const items = [...deFijos, ...deTarjetas, ...deCreditos].filter(Boolean).sort((a,b)=>a.orden-b.orden);
 
@@ -3767,7 +3805,7 @@ $('dbSave').addEventListener('click', async ()=>{
   S.deudas.push({ id:uid(), nombre, entidad:$('dbEntidad').value.trim(), saldo:num($('dbSaldo').value), cuotaMensual:num($('dbCuota').value),
     cuotasTotal:num($('dbCuotasTotal').value), cuotasPagadas:num($('dbCuotasPagadas').value),
     diaPago: num($('dbDia').value)||null, recordatorio: $('dbRecordatorio').checked, cuentaId:$('dbCuenta').value||null,
-    abonadoMes:'', gastoId:'', creadoPor:quien() });
+    abonadoMes:'', gastoId:'', posponerHasta:'', creadoPor:quien() });
   await save(); renderAll();
   ['dbNombre','dbEntidad','dbSaldo','dbCuota','dbCuotasTotal','dbCuotasPagadas','dbDia'].forEach(i=>$(i).value='');
   $('dbRecordatorio').checked = false; $('dbCuenta').value = '';
@@ -3882,7 +3920,7 @@ document.addEventListener('click', async e=>{
      SVG adentro, y un clic que caiga sobre el ícono reporta el <svg>
      como e.target, no el <button> con el data-* — sin esto, tocar el
      ícono (en vez del texto) no hacía nada. */
-  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-saldar-deuda],[data-del-negocio],[data-color],[data-avatar],[data-del-prestamo],[data-marcar-prestamo],[data-del-mercado],[data-toggle-mercado],[data-cal-dia],[data-cal-ir],[data-del-nota],[data-cal-guardar-nota],[data-legal]');
+  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-saldar-deuda],[data-posponer-deuda],[data-quitar-posponer],[data-del-negocio],[data-color],[data-avatar],[data-del-prestamo],[data-marcar-prestamo],[data-del-mercado],[data-toggle-mercado],[data-cal-dia],[data-cal-ir],[data-del-nota],[data-cal-guardar-nota],[data-legal]');
   if(!t) return;
   if(t.dataset.legal){ e.preventDefault(); return abrirLegal(t.dataset.legal); }
   if(t.dataset.irNegocio) return cambiarNegocio(t.dataset.irNegocio);
@@ -4030,7 +4068,7 @@ document.addEventListener('click', async e=>{
     const cuota = d.cuotaMensual || 0;
     d.saldo = Math.max(0, (d.saldo||0) - cuota);
     d.cuotasPagadas = (d.cuotasPagadas||0) + 1;
-    d.abonadoMes = mesActual; d.gastoId = '';
+    d.abonadoMes = mesActual; d.gastoId = ''; d.posponerHasta = '';
     if(cuota > 0){
       const gasto = { id:uid(), fecha:todayISO(), cat:'💳 Abono a crédito', desc:d.nombre, valor:cuota,
         cargo:'Empresa', cuentaId:d.cuentaId||null, pagadoPor:'', reparto:'', recuperado:false,
@@ -4056,8 +4094,33 @@ document.addEventListener('click', async e=>{
       `"${d.nombre}" va a quedar marcado como saldado del todo. Esto NO agrega ningún gasto nuevo — úselo cuando ya terminó de pagarlo por su cuenta, o cuando el crédito ya no aplica. Si todavía debe una parte, mejor use "Abonar esta cuota".`))) return;
     d.saldo = 0;
     if(d.cuotasTotal) d.cuotasPagadas = d.cuotasTotal;
+    d.posponerHasta = '';
     await save(); renderAll();
     toast(`"${d.nombre}" quedó marcado como saldado`);
+    return;
+  }
+  if(t.dataset.posponerDeuda){
+    // Para cuando de verdad no se puede pagar todavía: silencia el
+    // aviso del Tablero y del correo hasta la fecha elegida, SIN
+    // marcarlo pagado ni tocar el saldo — sigue contando en las
+    // cuentas como lo que es, una deuda real, solo que la app deja de
+    // insistir con eso hasta que la persona diga que ya puede verlo
+    // de nuevo.
+    const d = S.deudas.find(x=>x.id===t.dataset.posponerDeuda);
+    if(!d || deudaSaldada(d)) return;
+    const sugerida = sumarDias(todayISO(), 7);
+    const fecha = await pedirFecha(`Posponer "${d.nombre}"`,
+      'La deuda sigue contando igual — solo dejamos de avisarle hasta esta fecha. Después, si sigue sin pagarse, vuelve a aparecer.',
+      '¿Hasta cuándo posponer?', sugerida);
+    if(!fecha) return;
+    d.posponerHasta = fecha;
+    await save(); renderAll();
+    toast(`"${d.nombre}" no va a avisar hasta el ${fmtDate(fecha)}`);
+    return;
+  }
+  if(t.dataset.quitarPosponer){
+    const d = S.deudas.find(x=>x.id===t.dataset.quitarPosponer);
+    if(d){ d.posponerHasta = ''; await save(); renderAll(); toast('Se quitó el posponer — vuelve a avisar normal'); }
     return;
   }
   if(t.dataset.delPrestamo){
