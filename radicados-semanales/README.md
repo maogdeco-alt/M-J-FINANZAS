@@ -39,7 +39,7 @@ final.
 
 **Opción rápida — arrastrar y soltar (sin cuenta de GitHub):**
 1. Entra a https://app.netlify.com/drop
-2. Arrastra la carpeta `radicados-semanales` completa (o solo `index.html`) a la página.
+2. Arrastra la carpeta `radicados-semanales` **completa** (con `manifest.webmanifest`, `sw.js` y la carpeta `icons/` adentro — ya no basta con arrastrar solo `index.html`, porque esos archivos son justo los que hacen que la app se pueda "instalar" en el computador o el celular).
 3. Netlify genera un enlace al instante (`https://algo-random.netlify.app`). Puedes renombrarlo desde "Site settings → Change site name".
 
 **Opción recomendada — conectada a este repositorio de GitHub (se actualiza sola con cada cambio):**
@@ -71,6 +71,34 @@ final.
    sesión no queda guardada de una visita a otra) — pero tus datos
    siempre están ahí, entres desde el computador que entres.
 
+## 5. Instalarla como aplicación (PC y celular)
+
+La app es "instalable": queda con su propio ícono, abre en su propia ventana
+(sin la barra de direcciones del navegador) y se ve exactamente igual de
+profesional que cualquier programa instalado normalmente.
+
+**En el computador (Chrome o Edge):**
+1. Abre la URL de la app.
+2. En la barra de direcciones aparece un ícono de instalar (una pantallita
+   con una flecha hacia abajo, a la derecha de la URL). Si no lo ves, abre
+   el menú de tres puntos → "Instalar Radicados Semanales…" (o "MASIVOS").
+3. Confirma. Queda un ícono en el escritorio y en el menú de aplicaciones,
+   como cualquier otro programa.
+
+**En el celular (Android, con Chrome):**
+1. Abre la URL de la app.
+2. Menú de tres puntos → **"Instalar app"** (o "Agregar a pantalla de inicio").
+3. Confirma. Queda el ícono en la pantalla de inicio, igual que cualquier app descargada.
+
+**En iPhone/iPad (Safari):**
+1. Abre la URL de la app.
+2. Botón de **Compartir** (el cuadrito con la flecha hacia arriba) → **"Agregar a pantalla de inicio"**.
+3. Confirma. Queda el ícono en la pantalla de inicio.
+
+Ese ícono es el mismo pin verde que ya ves en el favicon y en la pantalla de
+inicio de sesión — no es un ícono genérico del navegador, sino uno propio de
+la app.
+
 ## Cosas importantes que debes saber
 
 - **Si el servidor de Supabase no responde** (sin internet, proyecto
@@ -87,4 +115,16 @@ final.
 
 ## Desarrollo
 
-Es un único archivo HTML/CSS/JS sin build ni dependencias externas (incluye la librería SheetJS embebida para generar archivos `.xlsx` reales, y llama a Supabase directamente por `fetch()`, sin el SDK oficial). Para probarlo localmente basta con abrir `index.html` en el navegador.
+El programa en sí sigue siendo un único archivo HTML/CSS/JS sin build ni
+dependencias externas (incluye la librería SheetJS embebida para generar
+archivos `.xlsx` reales, y llama a Supabase directamente por `fetch()`, sin
+el SDK oficial). Para probarlo localmente basta con abrir `index.html` en
+el navegador — aunque abierto como archivo local (`file://`) no se puede
+"instalar" (eso exige `https://` o `localhost`, por seguridad del propio
+navegador; funciona normal una vez está publicado en Netlify).
+
+Junto a `index.html` viven tres cosas más, solo para la instalación como
+app — no afectan en nada la lógica de negocio ni los datos:
+- `manifest.webmanifest`: nombre, colores e íconos que usa el sistema operativo al instalarla.
+- `sw.js`: Service Worker mínimo, solo para que el navegador la ofrezca como instalable y cargue el "cascarón" de la app aunque se abra sin conexión. Va "primero la red" a propósito — nunca sirve una versión vieja cacheada mientras haya internet, así que un redeploy nuevo siempre se ve reflejado de inmediato.
+- `icons/`: el ícono de la app (el mismo pin verde de siempre) en los tamaños que exige cada plataforma, incluida la variante "maskable" que necesita Android.

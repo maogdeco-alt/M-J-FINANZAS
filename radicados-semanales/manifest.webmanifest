@@ -1,0 +1,19 @@
+{
+  "name": "MASIVOS SISTEMA — Radicados Semanales",
+  "short_name": "MASIVOS",
+  "description": "Sistema de gestión de radicados semanales de comparendos — Secretaría de Movilidad de Bogotá.",
+  "id": "/",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "lang": "es-CO",
+  "background_color": "#f2f7f4",
+  "theme_color": "#0f7a4d",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
