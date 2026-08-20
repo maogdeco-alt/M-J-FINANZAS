@@ -3059,7 +3059,25 @@ function renderDeudas(){
       Si le debe a un banco o a alguien más, regístrelo aquí para ver el avance.</div>`; return;
   }
   const mesActual = todayISO().slice(0,7), hoy = todayISO();
-  box.innerHTML = S.deudas.map(d=>{
+  // Mismo resumen que ya tiene "Pagos fijos": cuánto sale del bolsillo
+  // cada mes en créditos, y cuánto de eso ya quedó cubierto. Solo
+  // cuenta los créditos activos — uno ya saldado no compromete nada
+  // hacia adelante, así que no debe inflar "cuánto pago cada mes".
+  const activos = S.deudas.filter(d=>!deudaSaldada(d));
+  const cuotaMensual = activos.reduce((a,d)=>a+(d.cuotaMensual||0), 0);
+  const abonadoEsteMesTotal = activos.filter(d=>d.abonadoMes===mesActual).reduce((a,d)=>a+(d.cuotaMensual||0), 0);
+  const faltaPorAbonar = Math.max(0, cuotaMensual - abonadoEsteMesTotal);
+  const resumen = activos.length ? `<div class="resumen" style="grid-column:1/-1;margin-bottom:14px">
+    <div class="hero">
+      <div class="num">${money(cuotaMensual)}</div>
+      <div class="tx"><b>Cuota mensual en créditos</b><span>Sumando los ${activos.length} crédito${activos.length===1?'':'s'} que sigue${activos.length===1?'':'n'} activo${activos.length===1?'':'s'}</span></div>
+    </div>
+    <div class="fila">
+      <div class="item"><div class="lbl">Ya abonado este mes</div><div class="val">${money(abonadoEsteMesTotal)}</div></div>
+      <div class="item"><div class="lbl">Falta por abonar</div><div class="val ${faltaPorAbonar>0?'neg':''}">${money(faltaPorAbonar)}</div></div>
+    </div>
+  </div>` : '';
+  box.innerHTML = resumen + S.deudas.map(d=>{
     const total = d.cuotasTotal||0, pagadas = Math.min(d.cuotasPagadas||0, total);
     const pct = total ? Math.round(pagadas/total*100) : 0;
     const saldada = deudaSaldada(d);
