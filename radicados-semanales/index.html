@@ -309,6 +309,7 @@
   .install-app-btn{background:linear-gradient(155deg,var(--accent),var(--accent-2));border-color:transparent;color:var(--accent-ink);font-weight:700;}
   .install-app-btn svg{width:16px;height:16px;flex:none;}
   .install-app-btn:hover{filter:brightness(1.08);}
+  .install-app-btn[hidden]{display:none;} /* el atributo hidden nativo pierde contra el display:inline-flex de .btn sin esta regla */
   @media (max-width:640px){ .install-app-btn{padding:9px 12px;} .install-app-btn .btn-label{display:none;} }
 
   /* Objetivos de toque más grandes en pantallas táctiles (celular/tablet) — evita que un botón
