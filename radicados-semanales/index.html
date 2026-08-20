@@ -1268,9 +1268,19 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       completeLogin();
     }).catch(function(err){
       btn.disabled = false;
-      // Mensaje genérico a propósito: no revela si el correo existe o no —
-      // esa información es de cada persona, no de quien intenta entrar.
-      toast("Correo o contraseña incorrectos");
+      var msg = (err && err.message) || "";
+      if(/email not confirmed|confirm/i.test(msg)){
+        // Este sí se muestra explícito: la persona necesita saber que falta
+        // un paso (abrir el correo), no que escribió mal su contraseña.
+        toast("Tu correo aún no está confirmado. Revisa tu bandeja de Gmail (y la carpeta de spam) y haz clic en el enlace de confirmación antes de iniciar sesión.");
+      } else if(/network|failed to fetch/i.test(msg)){
+        toast("No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo.");
+      } else {
+        // Para credenciales inválidas sí dejamos el mensaje genérico a propósito:
+        // no revela si el correo existe o no — esa información es de cada
+        // persona, no de quien intenta entrar.
+        toast("Correo o contraseña incorrectos");
+      }
     });
   });
   document.getElementById("loginPassword").addEventListener("keydown", function(e){
@@ -1302,7 +1312,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }).catch(function(err){
       btn.disabled = false;
       var msg = (err && err.message) || "";
-      if(/already registered|already exists|user_repeated/i.test(msg)) toast("Ya existe una cuenta con ese correo — inicia sesión en la otra pestaña");
+      if(/already registered|already exists|user_repeated/i.test(msg)) toast("Ya existe una cuenta con ese correo. Si no la habías confirmado, revisa tu Gmail (y spam) por el correo de confirmación; si ya la confirmaste, inicia sesión en la otra pestaña.");
       else if(/gmail/i.test(msg)) toast("Esta aplicación requiere una cuenta real de Gmail (correo@gmail.com).");
       else toast("No se pudo crear la cuenta" + (msg ? (": " + msg) : "") + ".");
     });
