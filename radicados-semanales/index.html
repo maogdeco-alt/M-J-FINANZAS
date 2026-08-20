@@ -2953,36 +2953,31 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(state.records.length) toast("Recuerda descargar tu respaldo de trabajo (.json) — este navegador no guarda solo.");
     }, 10*60*1000);
   }
-})();
-</script>
-
-<script>
-  // Registro del Service Worker: es lo único que le falta al navegador para ofrecer "Instalar app"
-  // (en PC, el ícono de instalar en la barra de direcciones; en Android, "Instalar app" o "Agregar
-  // a pantalla de inicio"). En iPhone/iPad no hace falta esto — Safari usa directamente el
-  // apple-touch-icon y el botón "Compartir → Agregar a pantalla de inicio", así que si algo aquí
-  // falla, no afecta esa vía. Se deja fuera del script principal a propósito: si por lo que sea no
-  // se pudiera registrar, la app entera sigue funcionando exactamente igual, solo sin el ícono de
-  // instalar.
-  if("serviceWorker" in navigator){
-    window.addEventListener("load", function(){
-      navigator.serviceWorker.register("sw.js").catch(function(){});
-    });
-  }
 
   // ---------- botón "Instalar app": el ícono nativo del navegador es chiquito y muchas personas
-  // nunca lo notan, así que se ofrece un botón propio, bien visible, en el encabezado. ----------
+  // nunca lo notan, así que se ofrece un botón propio, bien visible, en el encabezado. Va dentro de
+  // este mismo bloque (y no del <script> suelto de más abajo) a propósito: usa toast(), y desde un
+  // <script> separado ese nombre queda tapado por el <div id="toast"> del HTML en vez de la función.
   (function(){
     var installBtn = document.getElementById("installAppBtn");
+    var INSTALLED_KEY = "radicados_pwa_installed";
     var isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-    if(isStandalone) return; // ya está instalada — no tiene sentido ofrecerlo de nuevo
+    // "display-mode: standalone" solo es true DENTRO de la ventana ya instalada — no en la pestaña
+    // normal del navegador donde se dio clic en "Instalar". Por eso, además, se guarda la bandera
+    // en localStorage al instalar: así, aunque se vuelva a esa misma pestaña del navegador (no la
+    // ventana instalada), el botón no reaparece pensando que todavía hace falta instalar.
+    var alreadyInstalled = isStandalone;
+    try{ if(localStorage.getItem(INSTALLED_KEY) === "1") alreadyInstalled = true; }catch(e){}
+    if(isStandalone){ try{ localStorage.setItem(INSTALLED_KEY, "1"); }catch(e){} }
+    if(alreadyInstalled) return; // ya está instalada — no tiene sentido ofrecerlo de nuevo
 
     var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     var deferredPrompt = null;
 
     if(isIOS){
-      // Safari en iOS nunca dispara "beforeinstallprompt" — no hay forma de instalar con un clic,
-      // así que el botón abre las instrucciones manuales en vez de un prompt nativo.
+      // Safari en iOS nunca dispara "beforeinstallprompt" ni "appinstalled" — no hay forma de saber
+      // con certeza si ya se instaló, así que el botón se deja siempre disponible y solo abre las
+      // instrucciones manuales (no hace daño volver a mostrarlas si ya la instalaste).
       installBtn.hidden = false;
       installBtn.addEventListener("click", function(){
         var dlg = document.getElementById("installHelpDialog");
@@ -3006,10 +3001,30 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       deferredPrompt.prompt();
       deferredPrompt.userChoice.finally(function(){ deferredPrompt = null; });
     });
+    // "appinstalled" avisa tanto si se instaló con este botón como si se instaló por el ícono propio
+    // del navegador (barra de direcciones o menú) — de cualquier forma, se oculta y se recuerda.
     window.addEventListener("appinstalled", function(){
       installBtn.hidden = true;
       deferredPrompt = null;
+      try{ localStorage.setItem(INSTALLED_KEY, "1"); }catch(e){}
       toast("¡App instalada! Ya la puedes abrir directo desde el escritorio o el menú de aplicaciones.");
     });
   })();
+})();
+</script>
+
+<script>
+  // Registro del Service Worker: es lo único que le falta al navegador para ofrecer "Instalar app"
+  // (en PC, el ícono de instalar en la barra de direcciones; en Android, "Instalar app" o "Agregar
+  // a pantalla de inicio"). En iPhone/iPad no hace falta esto — Safari usa directamente el
+  // apple-touch-icon y el botón "Compartir → Agregar a pantalla de inicio", así que si algo aquí
+  // falla, no afecta esa vía. Se deja fuera del script principal a propósito: si por lo que sea no
+  // se pudiera registrar, la app entera sigue funcionando exactamente igual, solo sin el ícono de
+  // instalar. (No usa toast(), así que no tiene el problema de nombres que sí tenía el botón de
+  // instalar — puede vivir tranquilamente en su propio bloque, aislado del resto.)
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){});
+    });
+  }
 </script>
