@@ -717,33 +717,36 @@
         </div>
         <button class="btn danger" id="authLogout" type="button">Cerrar sesión</button>
       </div>
-      <div class="session-divider"><span>O entra con otra cuenta</span></div>
-    </div>
-    <p class="auth-security-note">Cada cuenta se verifica en el servidor de la entidad (Supabase) — tu contraseña nunca se guarda en este navegador. Tu información queda en la nube y aparece igual sin importar desde qué computador entres. Si ves la tarjeta de arriba es porque ya había una sesión abierta en este equipo: solo puede haber <b>una cuenta activa a la vez</b> por navegador — para entrar con otra, primero se cierra la anterior.</p>
-    <div class="auth-tabs" id="authTabs">
-      <button data-tab="login" class="active" type="button">Iniciar sesión</button>
-      <button data-tab="register" type="button">Crear cuenta</button>
+      <p class="auth-security-note">Ya hay una cuenta activa en este navegador — solo puede haber <b>una a la vez</b>. Para entrar con otra cuenta, primero cierra esta sesión.</p>
     </div>
 
-    <div id="authLoginTab">
-      <div style="display:grid;gap:12px;">
-        <div><label for="loginEmail">Correo de Gmail</label><input id="loginEmail" type="email" autocomplete="username" placeholder="tunombre@gmail.com"></div>
-        <div><label for="loginPassword">Contraseña</label><input id="loginPassword" type="password" placeholder="Tu contraseña" autocomplete="current-password"></div>
+    <div id="authFormsBlock">
+      <p class="auth-security-note">Cada cuenta se verifica en el servidor de la entidad (Supabase) — tu contraseña nunca se guarda en este navegador. Tu información queda en la nube y aparece igual sin importar desde qué computador entres.</p>
+      <div class="auth-tabs" id="authTabs">
+        <button data-tab="login" class="active" type="button">Iniciar sesión</button>
+        <button data-tab="register" type="button">Crear cuenta</button>
       </div>
-      <div class="import-actions" style="margin-top:14px;">
-        <button class="btn primary" id="loginBtn" type="button">Ingresar</button>
-      </div>
-    </div>
 
-    <div id="authRegisterTab" style="display:none;">
-      <div style="display:grid;gap:12px;">
-        <div><label for="reg_name">Nombre completo</label><input id="reg_name" autocomplete="name"></div>
-        <div><label for="reg_email">Correo de Gmail</label><input id="reg_email" type="email" autocomplete="username" placeholder="tunombre@gmail.com"><small class="hint">Debe ser tu cuenta real de Gmail (@gmail.com) — cada persona del equipo queda enlazada a su propio correo.</small></div>
-        <div><label for="reg_password">Contraseña</label><input id="reg_password" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"></div>
-        <div><label for="reg_password2">Confirmar contraseña</label><input id="reg_password2" type="password" autocomplete="new-password"></div>
+      <div id="authLoginTab">
+        <div style="display:grid;gap:12px;">
+          <div><label for="loginEmail">Correo de Gmail</label><input id="loginEmail" type="email" autocomplete="username" placeholder="tunombre@gmail.com"></div>
+          <div><label for="loginPassword">Contraseña</label><input id="loginPassword" type="password" placeholder="Tu contraseña" autocomplete="current-password"></div>
+        </div>
+        <div class="import-actions" style="margin-top:14px;">
+          <button class="btn primary" id="loginBtn" type="button">Ingresar</button>
+        </div>
       </div>
-      <div class="import-actions" style="margin-top:14px;">
-        <button class="btn primary" id="registerBtn" type="button">Crear cuenta e ingresar</button>
+
+      <div id="authRegisterTab" style="display:none;">
+        <div style="display:grid;gap:12px;">
+          <div><label for="reg_name">Nombre completo</label><input id="reg_name" autocomplete="name"></div>
+          <div><label for="reg_email">Correo de Gmail</label><input id="reg_email" type="email" autocomplete="username" placeholder="tunombre@gmail.com"><small class="hint">Debe ser tu cuenta real de Gmail (@gmail.com) — cada persona del equipo queda enlazada a su propio correo.</small></div>
+          <div><label for="reg_password">Contraseña</label><input id="reg_password" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"></div>
+          <div><label for="reg_password2">Confirmar contraseña</label><input id="reg_password2" type="password" autocomplete="new-password"></div>
+        </div>
+        <div class="import-actions" style="margin-top:14px;">
+          <button class="btn primary" id="registerBtn" type="button">Crear cuenta e ingresar</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1081,8 +1084,20 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     });
   }
   function supaSignout(){
-    var p = (supaSession && supaSession.access_token) ? supaFetch("/auth/v1/logout", {method:"POST"}).catch(function(){}) : Promise.resolve();
-    return p.then(function(){ supaSession = null; });
+    // supaSession se borra de forma SÍNCRONA, antes de avisarle al servidor — no después de que
+    // responda. Si se esperara la respuesta de red (como antes), currentUser() seguía devolviendo
+    // a la persona que se está yendo durante ese instante, y cualquier pantalla que se vuelva a
+    // dibujar justo después de pedir "cerrar sesión" (la propia pantalla de cuenta, Ajustes, etc.)
+    // terminaba re-escribiendo su nombre y correo en el HTML antes de que la sesión realmente
+    // desapareciera. El aviso al servidor se manda igual, pero ya no bloquea el cierre local.
+    var token = supaSession && supaSession.access_token;
+    var cfg = supaConfig;
+    supaSession = null;
+    if(!token || !cfg) return Promise.resolve();
+    return fetch(cfg.url.replace(/\/$/, "") + "/auth/v1/logout", {
+      method: "POST",
+      headers: {"apikey": cfg.anonKey, "Content-Type": "application/json", "Authorization": "Bearer " + token}
+    }).catch(function(){});
   }
   function supaFetchProfile(){
     return supaFetch("/rest/v1/profiles?id=eq." + supaSession.user.id + "&select=nombre,correo")
@@ -1118,6 +1133,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
   function storageKeyFor(emailId){ return STORAGE_PREFIX + "::" + emailId; }
   function historyKeyFor(emailId){ return HISTORY_PREFIX + "::" + emailId; }
+  function settingsKeyFor(emailId){ return SETTINGS_KEY + "::" + emailId; }
   function initials(name){
     var parts = String(name||"").trim().split(/\s+/);
     var s = (parts[0]||"")[0] || "?";
@@ -1177,12 +1193,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     setAuthTab("login");
     document.getElementById("authCancel").style.display = mandatory ? "none" : "inline-flex";
 
-    // Con sesión activa, lo primero que se ve es DE QUIÉN es esa sesión y un botón claro para
-    // cerrarla — no un botón perdido entre los campos de "entrar con otra cuenta". Cambiar de
-    // cuenta queda como una acción aparte, después de una línea divisoria, no mezclada con salir.
+    // Con sesión activa, lo ÚNICO que se ve es de quién es esa sesión y el botón para cerrarla —
+    // nunca junto con el formulario de entrar/crear cuenta. Cambiar de cuenta en este mismo
+    // navegador exige primero cerrar sesión explícitamente; solo entonces aparece el formulario.
     var user = currentUser();
     var showSession = !mandatory && !!user;
     document.getElementById("authSessionCard").style.display = showSession ? "block" : "none";
+    document.getElementById("authFormsBlock").style.display = showSession ? "none" : "block";
     // Se limpia el texto también cuando se oculta, no solo el display: aunque esté escondida,
     // la tarjeta no debe seguir cargando en el HTML el nombre/correo de quien cerró sesión.
     document.getElementById("authSessionAvatar").textContent = showSession ? initials(user.name) : "—";
@@ -1236,12 +1253,27 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
   // Cierra la sesión activa y exige volver a iniciar sesión — no deja la app abierta a nombre de
   // nadie. Es la forma correcta de dejar el computador compartido sin dejar tu sesión expuesta.
+  // Se limpia TODO lo que identifique a la persona que se va (radicados, historial y también los
+  // Ajustes — alias, cédula, ciudad — que antes se quedaban en memoria y en pantalla incluso
+  // después de cerrar sesión) y se cierra cualquier panel (Ajustes) que pudiera seguir mostrándolo.
+  // No basta con cerrar el diálogo de Ajustes: su contenido (accountInfoBox, informes) se dibuja
+  // una sola vez al abrirlo, así que si no se vuelve a dibujar aquí, el nombre/correo/cifras de
+  // quien se fue quedan escritos en el HTML aunque el diálogo esté oculto — visibles con solo
+  // inspeccionar la página, aunque nadie los vea en pantalla. Se vuelven a dibujar ya con los
+  // datos reiniciados para que ese HTML quede realmente vacío, no solo escondido.
   function logout(){
     commitCurrentEdits();
     supaSignout();
     supaProfile = null;
     state.profile.activeUser = null;
     state.records = []; state.history = []; state.activeId = null;
+    state.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+    var settingsDlg = document.getElementById("settingsDialog");
+    if(settingsDlg.open) settingsDlg.close();
+    applyRequiredMarkers();
+    refreshFormatoDatalist();
+    renderAccountInfo();
+    renderReportSection();
     renderProfileUI();
     renderAll();
     toast("Sesión cerrada");
@@ -1328,15 +1360,28 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       formatToPlantilla: Object.assign({}, DEFAULT_SETTINGS.formatToPlantilla, (parsed&&parsed.formatToPlantilla)||{})
     }) : JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
   }
+  // IMPORTANTE: los Ajustes (alias, cédula, ciudad, categorías...) se guardan bajo una llave
+  // separada POR CUENTA (settingsKeyFor), igual que los radicados y el historial — nunca bajo la
+  // llave global vieja (SETTINGS_KEY a secas), que antes era compartida entre todas las cuentas de
+  // este navegador y podía dejar el alias/cédula de una persona visibles para la siguiente que
+  // iniciara sesión aquí. Si esta cuenta nunca guardó nada bajo su propia llave pero SÍ existe algo
+  // en la llave vieja (instalaciones de antes de este arreglo), se adopta una sola vez y de una vez
+  // se limpia la llave vieja, para no perder ajustes ya configurados ni dejarla dando vueltas.
   function loadSettings(){
+    if(!state.profile.activeUser){ state.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS)); applyRequiredMarkers(); refreshFormatoDatalist(); return; }
+    var key = settingsKeyFor(state.profile.activeUser);
     try{
-      var raw = localStorage.getItem(SETTINGS_KEY);
+      var raw = localStorage.getItem(key);
+      if(!raw){
+        var legacy = localStorage.getItem(SETTINGS_KEY);
+        if(legacy){ raw = legacy; try{ localStorage.setItem(key, legacy); localStorage.removeItem(SETTINGS_KEY); }catch(e3){} }
+      }
       var parsed = raw ? JSON.parse(raw) : null;
       state.settings = mergeSettings(parsed);
     }catch(e){
       try{
-        var brokenRaw = localStorage.getItem(SETTINGS_KEY);
-        if(brokenRaw) localStorage.setItem(SETTINGS_KEY + "__recovery_" + Date.now(), brokenRaw);
+        var brokenRaw = localStorage.getItem(key);
+        if(brokenRaw) localStorage.setItem(key + "__recovery_" + Date.now(), brokenRaw);
       }catch(e2){}
       state.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
       toast("No se pudieron leer tus Ajustes guardados (categorías, diccionario, etc.) — se restauraron los valores por defecto. Tus radicados no se ven afectados.");
@@ -1345,7 +1390,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     refreshFormatoDatalist();
   }
   function saveSettingsToStorage(){
-    try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); queueCloudSync(); }
+    if(!state.profile.activeUser) return;
+    try{ localStorage.setItem(settingsKeyFor(state.profile.activeUser), JSON.stringify(state.settings)); queueCloudSync(); }
     catch(e){ showDataSafetyBanner("No se pudieron guardar los Ajustes en este navegador."); }
   }
 
