@@ -77,27 +77,34 @@ La app es "instalable": queda con su propio ícono, abre en su propia ventana
 (sin la barra de direcciones del navegador) y se ve exactamente igual de
 profesional que cualquier programa instalado normalmente.
 
-**En el computador (Chrome o Edge):**
-1. Abre la URL de la app.
-2. En la barra de direcciones aparece un ícono de instalar (una pantallita
-   con una flecha hacia abajo, a la derecha de la URL). Si no lo ves, abre
-   el menú de tres puntos → "Instalar Radicados Semanales…" (o "MASIVOS").
-3. Confirma. Queda un ícono en el escritorio y en el menú de aplicaciones,
-   como cualquier otro programa.
+**La forma más fácil: el botón "Instalar app" dentro de la app.** Una vez
+iniciada sesión, en el encabezado aparece un botón verde con ese nombre —
+aparece solo cuando el navegador ya detectó que la app se puede instalar
+(en Chrome/Edge de PC y Android). Un clic ahí y listo, sin tener que buscar
+nada en menús. En iPhone/iPad ese mismo botón abre las instrucciones paso a
+paso (ver abajo), porque Safari no permite instalar con un solo clic.
 
-**En el celular (Android, con Chrome):**
-1. Abre la URL de la app.
-2. Menú de tres puntos → **"Instalar app"** (o "Agregar a pantalla de inicio").
-3. Confirma. Queda el ícono en la pantalla de inicio, igual que cualquier app descargada.
+**Si no ves ese botón**, lo más probable es que el sitio en Netlify no tenga
+la carpeta completa — revisa el paso 2 de arriba: hay que subir `index.html`
+**junto con** `manifest.webmanifest`, `sw.js` y la carpeta `icons/`, no solo
+`index.html` solo. Sin esos archivos el navegador nunca ofrece instalar,
+así el botón no tiene nada que mostrar.
 
-**En iPhone/iPad (Safari):**
-1. Abre la URL de la app.
-2. Botón de **Compartir** (el cuadrito con la flecha hacia arriba) → **"Agregar a pantalla de inicio"**.
-3. Confirma. Queda el ícono en la pantalla de inicio.
+**Alternativa manual, si prefieres no usar el botón:**
 
-Ese ícono es el mismo pin verde que ya ves en el favicon y en la pantalla de
-inicio de sesión — no es un ícono genérico del navegador, sino uno propio de
-la app.
+En el computador (Chrome o Edge): en la barra de direcciones aparece un
+ícono de instalar (una pantallita con una flecha hacia abajo, a la derecha
+de la URL), o en el menú de tres puntos → "Instalar…".
+
+En el celular (Android, con Chrome): menú de tres puntos → **"Instalar app"**
+(o "Agregar a pantalla de inicio").
+
+En iPhone/iPad (Safari): botón de **Compartir** (el cuadrito con la flecha
+hacia arriba) → **"Agregar a pantalla de inicio"**.
+
+El ícono que queda instalado es el mismo carro verde que ya ves en el
+favicon y en la pantalla de inicio de sesión — no es un ícono genérico del
+navegador, sino uno propio de la app.
 
 ## Cosas importantes que debes saber
 

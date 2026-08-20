@@ -304,6 +304,11 @@
   .term-calc-btn:hover{background:var(--accent);color:var(--accent-ink);filter:none;}
   @media (max-width:640px){ .term-calc-btn{padding:9px 12px;} .term-calc-btn .btn-label{display:none;} }
 
+  .install-app-btn{background:linear-gradient(155deg,var(--accent),var(--accent-2));border-color:transparent;color:var(--accent-ink);font-weight:700;}
+  .install-app-btn svg{width:16px;height:16px;flex:none;}
+  .install-app-btn:hover{filter:brightness(1.08);}
+  @media (max-width:640px){ .install-app-btn{padding:9px 12px;} .install-app-btn .btn-label{display:none;} }
+
   /* Objetivos de toque más grandes en pantallas táctiles (celular/tablet) — evita que un botón
      pequeño en el dedo se sienta impreciso o "no responda" a la primera. */
   @media (hover:none) and (pointer:coarse){
@@ -439,6 +444,10 @@
       <button class="btn term-calc-btn" id="termCalcBtn" type="button" title="Abrir la calculadora de términos" aria-label="Abrir la calculadora de términos">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 3.2"/></svg>
         <span class="btn-label" aria-hidden="true">Calculadora de términos</span>
+      </button>
+      <button class="btn install-app-btn" id="installAppBtn" type="button" title="Instalar esta app en tu computador o celular" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        <span class="btn-label" aria-hidden="true">Instalar app</span>
       </button>
       <button class="icon-btn" id="themeToggleBtn" type="button" title="Cambiar entre tema claro y oscuro" aria-label="Cambiar entre tema claro y oscuro">
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>
@@ -668,6 +677,23 @@
 </dialog>
 
 <!-- Dialog: calculadora de términos -->
+<dialog id="installHelpDialog" class="small" aria-labelledby="installHelpTitle">
+  <div class="panel-head">
+    <div><span class="step">Instalar</span><h2 id="installHelpTitle">Instalar en iPhone o iPad</h2></div>
+  </div>
+  <div class="panel-body">
+    <p class="panel-desc" style="margin-top:0;">Safari en iOS no deja instalar apps con un solo botón como Chrome o Android — pero sí se puede, en tres pasos:</p>
+    <ol style="margin:0 0 16px;padding-left:22px;line-height:1.7;">
+      <li>Toca el botón de <b>Compartir</b> (el cuadrito con la flecha hacia arriba, abajo o arriba de la pantalla según tu Safari).</li>
+      <li>Busca <b>"Agregar a pantalla de inicio"</b> en la lista (puede que tengas que bajar un poco).</li>
+      <li>Confirma. Queda el ícono en tu pantalla de inicio, igual que cualquier app descargada.</li>
+    </ol>
+    <div class="import-actions" style="margin-top:14px;">
+      <button class="btn primary" id="installHelpClose" type="button">Entendido</button>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="termCalcDialog" class="small" aria-labelledby="termCalcTitle">
   <div class="panel-head">
     <div><span class="step">Herramienta</span><h2 id="termCalcTitle">Calculadora de términos</h2></div>
@@ -2943,4 +2969,47 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       navigator.serviceWorker.register("sw.js").catch(function(){});
     });
   }
+
+  // ---------- botón "Instalar app": el ícono nativo del navegador es chiquito y muchas personas
+  // nunca lo notan, así que se ofrece un botón propio, bien visible, en el encabezado. ----------
+  (function(){
+    var installBtn = document.getElementById("installAppBtn");
+    var isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    if(isStandalone) return; // ya está instalada — no tiene sentido ofrecerlo de nuevo
+
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    var deferredPrompt = null;
+
+    if(isIOS){
+      // Safari en iOS nunca dispara "beforeinstallprompt" — no hay forma de instalar con un clic,
+      // así que el botón abre las instrucciones manuales en vez de un prompt nativo.
+      installBtn.hidden = false;
+      installBtn.addEventListener("click", function(){
+        var dlg = document.getElementById("installHelpDialog");
+        if(!dlg.open) dlg.showModal();
+      });
+      document.getElementById("installHelpClose").addEventListener("click", function(){
+        document.getElementById("installHelpDialog").close();
+      });
+      return;
+    }
+
+    // Chrome/Edge (PC y Android): el navegador avisa cuando la app cumple los requisitos para
+    // instalarse (manifest + service worker) disparando este evento — ahí es cuando se muestra el botón.
+    window.addEventListener("beforeinstallprompt", function(e){
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.hidden = false;
+    });
+    installBtn.addEventListener("click", function(){
+      if(!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.finally(function(){ deferredPrompt = null; });
+    });
+    window.addEventListener("appinstalled", function(){
+      installBtn.hidden = true;
+      deferredPrompt = null;
+      toast("¡App instalada! Ya la puedes abrir directo desde el escritorio o el menú de aplicaciones.");
+    });
+  })();
 </script>
