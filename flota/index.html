@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MA|OG — Finanzas saludables</title>
 <meta name="description" content="Finanzas saludables: tus negocios y tus cuentas, cada uno por su lado, sin enredos y sin números que den miedo.">
-<meta name="theme-color" content="#F5F5F6">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%8D%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#F1EEE3">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -46,8 +46,16 @@ html,body{margin:0;padding:0}
 body{
   background:var(--papel);color:var(--negro);
   font-family:var(--sans);font-size:15.5px;line-height:1.52;
-  -webkit-font-smoothing:antialiased;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
 }
+/* Red de seguridad para el celular: un correo largo, una URL de
+   error, o cualquier palabra sin espacios que no quepa en la
+   pantalla, se parte en vez de empujar toda la página hacia un lado
+   (scroll horizontal indeseado). overflow-wrap (no word-break: ese
+   partía palabras normales como "Arriendo" en dos aunque cupieran
+   bien en la línea de abajo) solo actúa cuando de verdad no hay otra
+   forma de evitar el desborde. */
+body,input,textarea{overflow-wrap:break-word}
 button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 input,select{font-size:16px}
 :focus-visible{outline:2px solid var(--acento);outline-offset:2px;border-radius:4px}
@@ -925,6 +933,15 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         </div>
       </div>
 
+      <div class="section bienvenida hidden" id="instalarBannerBox">
+        <div class="bienvenida-card">
+          <h2>📲 Instale la app en su celular</h2>
+          <p class="sub">Así la abre directo desde un ícono, sin buscar el navegador cada vez.</p>
+          <div id="instalarBannerCuerpo"></div>
+          <button class="linkbtn" id="instalarBannerCerrar" style="margin-top:10px">Ahora no</button>
+        </div>
+      </div>
+
       <div class="section pizarra" id="notasBox">
         <div class="pizarra-cab">
           <h2>Notas</h2>
@@ -1499,6 +1516,12 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         <p class="sub" style="margin-top:16px">
           <button class="linkbtn" data-legal="terminos">Ver Términos de uso</button> · <button class="linkbtn" data-legal="privacidad">Ver Política de privacidad</button>
         </p>
+      </div>
+
+      <div class="section form" id="instalarBox">
+        <h2 style="margin-bottom:8px">Instalar la app</h2>
+        <p class="sub">Ponga un ícono de MA|OG en la pantalla de inicio de su celular, como cualquier otra app — abre más rápido y no tiene que buscar el navegador cada vez.</p>
+        <div id="instalarCuerpo"></div>
       </div>
 
       <div class="section" style="text-align:center">
@@ -5674,6 +5697,71 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(()=>{});
   });
 }
+
+/* ============================================================
+   "Instalar app": la mayoría de la gente nunca encuentra sola la
+   opción de instalar un sitio como app, así que en vez de depender
+   del ícono chiquito del navegador, se muestra un botón propio.
+   Android/Chrome/Edge avisan con este evento cuando SÍ pueden
+   instalarla de un clic; iPhone (Safari) nunca dispara este evento
+   — ahí toca explicar los 3 toques a mano, porque Apple no deja
+   activarlo por código. Todo esto es "mejor esfuerzo": si nada
+   aplica, se cae a un aviso genérico y la app sigue igual de
+   funcional sin instalarse nunca. */
+let INSTALL_PROMPT = null;
+const IKEY = 'maog:flota:instalar-oculto';
+const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+const appInstalada = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault(); INSTALL_PROMPT = e; renderInstalarApp();
+});
+window.addEventListener('appinstalled', ()=>{
+  INSTALL_PROMPT = null; toast('¡Listo! Ya la puede abrir desde el ícono en su pantalla de inicio.');
+  renderInstalarApp();
+});
+async function dispararInstalar(){
+  if(!INSTALL_PROMPT) return;
+  INSTALL_PROMPT.prompt();
+  await INSTALL_PROMPT.userChoice;
+  INSTALL_PROMPT = null; renderInstalarApp();
+}
+function ocultarInstalarBanner(){
+  try{ localStorage.setItem(IKEY, '1'); }catch(e){}
+  setHidden('instalarBannerBox', true);
+}
+function renderInstalarApp(){
+  const cuerpoAjustes = $('instalarCuerpo'), cuerpoBanner = $('instalarBannerCuerpo');
+  if(!cuerpoAjustes && !cuerpoBanner) return;
+  const bannerOculto = (()=>{ try{ return localStorage.getItem(IKEY) === '1'; }catch(e){ return false; } })();
+  let ocultarBox = false;
+  if(appInstalada()){
+    if(cuerpoAjustes) cuerpoAjustes.innerHTML = `<div class="gate-ok" style="margin:0"><span class="icono">${ICONS.check}</span><span>Ya la tiene instalada — ábrala siempre desde el ícono de su pantalla de inicio.</span></div>`;
+    setHidden('instalarBannerBox', true);
+    return;
+  }
+  if(INSTALL_PROMPT){
+    const html = `<button class="btn block" id="instalarBtnAjustes"><span class="icono">${ICONS.check}</span> Instalar app</button>`;
+    if(cuerpoAjustes) cuerpoAjustes.innerHTML = html;
+    if(cuerpoBanner) cuerpoBanner.innerHTML = `<button class="btn" id="instalarBtnBanner"><span class="icono">${ICONS.check}</span> Instalar app</button>`;
+    document.querySelectorAll('#instalarBtnAjustes,#instalarBtnBanner').forEach(b=>b && b.addEventListener('click', dispararInstalar));
+  } else if(esIOS()){
+    const pasos = `<ol class="bienvenida-pasos" style="list-style:none;padding:0">
+      <li class="bienvenida-paso" style="cursor:default;align-items:flex-start"><span class="num">1</span><span>Toque el ícono <b>Compartir</b> (el cuadrito con la flecha hacia arriba) abajo en Safari.</span></li>
+      <li class="bienvenida-paso" style="cursor:default;align-items:flex-start"><span class="num">2</span><span>Baje y toque <b>«Agregar a inicio»</b>.</span></li>
+      <li class="bienvenida-paso" style="cursor:default;align-items:flex-start"><span class="num">3</span><span>Toque <b>«Agregar»</b> — listo, ya tiene su ícono.</span></li>
+    </ol>`;
+    if(cuerpoAjustes) cuerpoAjustes.innerHTML = pasos;
+    if(cuerpoBanner) cuerpoBanner.innerHTML = pasos;
+  } else {
+    const aviso = `<p class="sub" style="margin:0">Busque la opción <b>«Instalar app»</b> o <b>«Agregar a pantalla de inicio»</b> en el menú de su navegador (usualmente los tres puntos ⋮ arriba a la derecha).</p>`;
+    if(cuerpoAjustes) cuerpoAjustes.innerHTML = aviso;
+    ocultarBox = true; // sin pasos confiables que dar acá — no se satura el Tablero con un aviso vago
+  }
+  setHidden('instalarBannerBox', ocultarBox || bannerOculto);
+  const btnCerrar = $('instalarBannerCerrar');
+  if(btnCerrar) btnCerrar.onclick = ocultarInstalarBanner;
+}
+renderInstalarApp();
 </script>
 </body>
 </html>
