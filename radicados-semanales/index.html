@@ -261,6 +261,8 @@
   /* Una sola columna vertical, como llenar celda por celda en Excel: pensado para pantalla de computador. */
   .work-fields{display:flex;flex-direction:column;gap:16px;max-width:600px;}
   .work-fields .formato-field input{font-weight:700;}
+  .simit-btn{margin-left:8px;padding:3px 11px;font-size:0.76rem;border-radius:999px;background:var(--accent-soft);border-color:transparent;color:var(--accent);vertical-align:middle;}
+  .simit-btn:hover{background:var(--accent);color:var(--accent-ink);filter:none;}
 
   .breakdown{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;margin-top:10px;}
   .breakdown .bd-item{background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:6px 9px;}
@@ -584,7 +586,10 @@
                 <div class="insights" id="ccInsights"></div>
               </div>
 
-              <div id="wrap_res"><label for="cc_res">Res.<span class="required-mark" id="req_res" hidden>*</span></label><input id="cc_res" placeholder="pega directo de SIMIT: se separa sola de la fecha">
+              <div id="wrap_res">
+                <label for="cc_res">Res.<span class="required-mark" id="req_res" hidden>*</span></label>
+                <button class="btn small simit-btn" id="cc_simitBtn" type="button" title="Copia la cédula y abre la consulta de SIMIT en una pestaña nueva">🔎 Buscar cédula en SIMIT</button>
+                <input id="cc_res" placeholder="pega directo de SIMIT: se separa sola de la fecha">
                 <div class="field-hint">Puedes pegar tal cual copias de SIMIT ("1368706 Fecha: 26/07/2024") — separa el número y la fecha solo.</div>
               </div>
               <div id="wrap_fechaRes"><label for="cc_fechaRes">Fecha res.<span class="required-mark" id="req_fechaRes" hidden>*</span></label><input id="cc_fechaRes" placeholder="dd/mm/aaaa"></div>
@@ -2346,6 +2351,34 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
   document.getElementById("cc_res").addEventListener("paste", handleSimitPaste);
   document.getElementById("cc_fechaRes").addEventListener("paste", handleSimitPaste);
+
+  // ---------- atajo a SIMIT: copia la cédula del comparendo pegado y abre la consulta pública ----------
+  // SIMIT (fcm.org.co) no tiene una API pública ni permite consultarlo automáticamente desde aquí
+  // (usa CAPTCHA a propósito, como cualquier consulta oficial) — lo que sí se puede hacer es ahorrar
+  // el paso de escribir la cédula a mano: se copia sola y se abre la pestaña ya lista para pegar.
+  document.getElementById("cc_simitBtn").addEventListener("click", function(){
+    // Se lee en vivo de la caja de texto (igual que renderInsights), no del último registro
+    // guardado -- si no, habría que darle Guardar antes de poder usar este botón, y todo el punto
+    // es que funcione en el mismo momento en que se acaba de pegar la línea del comparendo.
+    var parsed = parseComparendoLine(document.getElementById("cc_comparendo").value);
+    var cedula = (parsed && parsed.idNum) ? String(parsed.idNum).trim() : "";
+    if(!cedula){
+      toast("Todavía no hay una cédula detectada — pega primero la línea del comparendo arriba.");
+      return;
+    }
+    var copied = false;
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(cedula);
+        copied = true;
+      }
+    }catch(e){}
+    window.open("https://www.fcm.org.co/simit/#/home-public", "_blank", "noopener");
+    // La fecha de imposición del comparendo pegado es la mejor guía para elegir cuál de los varios
+    // resultados de SIMIT corresponde a este caso, cuando la persona tiene más de un comparendo.
+    var fechaGuia = (parsed && parsed.imposicion) ? (" Si aparece más de uno, compara con la fecha de imposición: " + parsed.imposicion + ".") : " Si aparece más de uno, compara con la fecha de imposición del comparendo para identificar cuál es.";
+    toast((copied ? "Cédula " + cedula + " copiada — pégala en SIMIT." : "Abriendo SIMIT — copia la cédula " + cedula + " a mano, tu navegador no permitió copiarla sola.") + fechaGuia);
+  });
 
   // ---------- insights en vivo: término por caso, plantilla resultante, titular ≠ peticionario, duplicados ----------
   function renderInsights(){
