@@ -3013,6 +3013,22 @@ function renderFijos(){
       Arriendo, servicios, suscripciones — lo que se repite cada mes.</div>`; return;
   }
   const mesActual = todayISO().slice(0,7);
+  // Total: para que de una mirada se sepa cuánto compromete cada mes,
+  // sin tener que sumar tarjeta por tarjeta — y de paso, cuánto de eso
+  // ya quedó cubierto este mes y cuánto sigue pendiente.
+  const totalMensual = S.fijos.reduce((a,f)=>a+(f.monto||0), 0);
+  const pagadoEsteMes = S.fijos.filter(f=>f.pagadoMes===mesActual).reduce((a,f)=>a+(f.monto||0), 0);
+  const faltaPorPagar = Math.max(0, totalMensual - pagadoEsteMes);
+  const resumen = `<div class="resumen" style="margin-bottom:14px">
+    <div class="hero">
+      <div class="num">${money(totalMensual)}</div>
+      <div class="tx"><b>Total fijo cada mes</b><span>Sumando los ${S.fijos.length} pago${S.fijos.length===1?'':'s'} fijo${S.fijos.length===1?'':'s'} de aquí abajo</span></div>
+    </div>
+    <div class="fila">
+      <div class="item"><div class="lbl">Ya pagado este mes</div><div class="val">${money(pagadoEsteMes)}</div></div>
+      <div class="item"><div class="lbl">Falta por pagar</div><div class="val ${faltaPorPagar>0?'neg':''}">${money(faltaPorPagar)}</div></div>
+    </div>
+  </div>`;
   const rows = [...S.fijos].sort((a,b)=>(a.dia||0)-(b.dia||0)).map(f=>{
     const pagado = f.pagadoMes === mesActual;
     return `<tr>
@@ -3023,7 +3039,7 @@ function renderFijos(){
       <td class="num"><button class="rowdel" data-del-fijo="${f.id}" aria-label="Eliminar"><span class="icono">${ICONS.trash}</span></button></td>
     </tr>`;
   }).join('');
-  box.innerHTML = `<div class="ledger-wrap"><table class="ledger">
+  box.innerHTML = resumen + `<div class="ledger-wrap"><table class="ledger">
     <thead><tr><th>Nombre</th><th class="num">Valor</th><th class="num">Estado</th><th></th><th></th></tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 }
