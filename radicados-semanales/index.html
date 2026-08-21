@@ -2763,23 +2763,25 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       violations.push({wraps:["wrap_formato","wrap_res"], message:formatoVal + " requiere Resolución (Res. y/o Fecha res.) — no puede quedar sin diligenciar."});
     }
 
-    // Brecha entre la fecha de radicación (datos importados de ORFEO) y la fecha de notificación
-    // (línea pegada de Fénix): más de 11 días hábiles si es Electrónico, o más de 5 si es Manual,
-    // es señal de que algo no cuadra entre las fechas (posible línea de comparendo equivocada, o
-    // fechas mal digitadas) -- se advierte, no se asume automáticamente cuál de las dos está mal.
-    if(rec.fechaRadicacion && rec.notificacion){
+    // Brecha entre la fecha de radicación y la fecha de asignación -- las DOS del bloque inicial que
+    // se pega en masivo (Radicado, Fecha de radicación, Fecha de asignación, Nombre). La línea de
+    // Fénix (comparendo, notificación, etc.) se pega y se conserva TAL CUAL, textual -- de ahí NUNCA
+    // sale ninguna fecha para esta cuenta, solo el nombre del infractor (para la validación de
+    // arriba). Más de 11 días hábiles si es Electrónico, o más de 5 si es Manual, es señal de una
+    // demora inusual en la asignación -- se advierte, sin asumir cuál de las dos fechas está mal.
+    if(rec.fechaRadicacion && rec.fechaAsignacion){
       var tipoGap = deriveTipoComparendo(rec.medio);
       var umbralGap = tipoGap === "ELECTRONICO" ? 11 : (tipoGap === "MANUAL" ? 5 : null);
       if(umbralGap !== null){
         var dRad = parseDMY(normalizeDate(rec.fechaRadicacion));
-        var dNotif = parseDMY(normalizeDate(rec.notificacion));
-        if(dRad && dNotif){
-          var early = dRad <= dNotif ? dRad : dNotif;
-          var late = dRad <= dNotif ? dNotif : dRad;
+        var dAsig = parseDMY(normalizeDate(rec.fechaAsignacion));
+        if(dRad && dAsig){
+          var early = dRad <= dAsig ? dRad : dAsig;
+          var late = dRad <= dAsig ? dAsig : dRad;
           var startGap = new Date(early.getFullYear(), early.getMonth(), early.getDate()+1);
           var gapDias = startGap > late ? 0 : countBusinessDays(startGap, late);
           if(gapDias !== null && gapDias > umbralGap){
-            violations.push({wraps:["wrap_comparendo"], message:"Entre la fecha de radicación y la fecha de notificación hay " + gapDias + " días hábiles (más de los " + umbralGap + " esperados para " + tipoGap.toLowerCase() + ") — revisa las fechas."});
+            violations.push({wraps:["wrap_formato"], message:"Entre la fecha de radicación y la fecha de asignación hay " + gapDias + " días hábiles (más de los " + umbralGap + " esperados para " + tipoGap.toLowerCase() + ") — revisa esas fechas."});
           }
         }
       }
