@@ -1310,10 +1310,58 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     setTimeout(function(){ document.getElementById("loginEmail").focus(); }, 30);
   }
 
+  // ---------- recuperación de una copia local "plana" de antes de que existieran cuentas ----------
+  // Antes de conectar la nube (Supabase), los radicados y el historial se guardaban en este
+  // navegador bajo una única llave sin distinguir de quién eran (STORAGE_PREFIX/HISTORY_PREFIX a
+  // secas, SIN "::correo"). Al agregar cuentas, cada quien pasó a tener su propia llave -- pero esa
+  // llave vieja pudo quedar con trabajo real sin migrar (sobre todo si se llenó antes de que el
+  // login en la nube funcionara). Se revisa SIEMPRE al iniciar sesión y se FUSIONA (nunca se
+  // reemplaza) con lo que ya haya en la nube o en la copia de esta cuenta -- para no perder nada de
+  // ningún lado. Es intencional que la llave vieja nunca se borre sola: queda como respaldo extra,
+  // sin costo real, tratándose de radicados reales de una entidad estatal.
+  function readLegacyFlatList(key){
+    try{
+      var raw = localStorage.getItem(key);
+      if(!raw) return null;
+      var parsed = JSON.parse(raw);
+      return (Array.isArray(parsed) && parsed.length) ? parsed : null;
+    }catch(e){ return null; }
+  }
+  function fieldFillScore(rec){
+    var score = 0;
+    Object.keys(rec || {}).forEach(function(k){ if(String(rec[k]==null?"":rec[k]).trim()) score++; });
+    return score;
+  }
+  // Combina dos listas de radicados sin perder ninguno: si el mismo No. de radicado aparece en las
+  // dos, se conserva la versión con más campos llenos (empate = la primera, "preferido"). Los que no
+  // tengan número de radicado se identifican por su id interno, para no descartar por error un
+  // registro incompleto.
+  function mergeRecordLists(preferido, otro){
+    var byKey = {}, order = [];
+    function keyOf(r){ var rad = String(r.radicado || "").trim().toUpperCase(); return rad ? ("R::"+rad) : ("ID::"+r.id); }
+    (preferido||[]).forEach(function(r){ var k = keyOf(r); byKey[k]=r; order.push(k); });
+    (otro||[]).forEach(function(r){
+      var k = keyOf(r);
+      if(!(k in byKey)){ byKey[k]=r; order.push(k); }
+      else if(fieldFillScore(r) > fieldFillScore(byKey[k])){ byKey[k]=r; }
+    });
+    return order.map(function(k){ return byKey[k]; });
+  }
+  function recoverLegacyFlatDataInto(){
+    var legacyRecords = readLegacyFlatList(STORAGE_PREFIX); // llave vieja, SIN "::correo"
+    var legacyHistory = readLegacyFlatList(HISTORY_PREFIX);
+    if(!legacyRecords && !legacyHistory) return {addedRecords:0};
+    var before = state.records.length;
+    if(legacyRecords) state.records = mergeRecordLists(state.records, legacyRecords);
+    if(legacyHistory && !state.history.length) state.history = legacyHistory;
+    return {addedRecords: state.records.length - before};
+  }
+
   // Tras autenticarse con Supabase: trae los datos reales de la nube. Si la cuenta ya tenía
   // trabajo guardado ahí, ese manda. Si la cuenta está recién creada y no tiene nada en la nube
   // pero SÍ había trabajo guardado localmente en este navegador (de antes de conectar, o hecho sin
-  // conexión), se sube automáticamente en vez de perderlo.
+  // conexión), se sube automáticamente en vez de perderlo. Además, cualquier radicado que haya
+  // quedado en la llave "plana" de antes de las cuentas se fusiona aquí mismo, siempre.
   function completeLogin(silent){
     commitCurrentEdits();
     var user = currentUser();
@@ -1330,19 +1378,25 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         state.records = Array.isArray(cloud.records) ? cloud.records : [];
         state.settings = mergeSettings(cloud.settings);
         state.history = Array.isArray(cloud.history) ? cloud.history : [];
-        save(); saveSettingsToStorage(); saveHistory(); // espejo local, para seguir funcionando sin conexión
-        applyRequiredMarkers(); refreshFormatoDatalist();
       } else {
         load(); loadSettings(); loadHistory();
-        if(state.records.length || state.history.length){
-          queueCloudSync();
-          toast("Se subieron a tu cuenta los radicados que tenías guardados en este navegador.");
-        }
+      }
+      var recovered = recoverLegacyFlatDataInto();
+      save(); saveSettingsToStorage(); saveHistory(); // espejo local, para seguir funcionando sin conexión
+      applyRequiredMarkers(); refreshFormatoDatalist();
+      if(recovered.addedRecords > 0){
+        queueCloudSync();
+        toast("Se recuperaron " + recovered.addedRecords + " radicado(s) guardados en este navegador de una versión anterior de la app — subiéndolos a tu cuenta ahora.");
+      } else if(!hasCloudData && (state.records.length || state.history.length)){
+        queueCloudSync();
+        toast("Se subieron a tu cuenta los radicados que tenías guardados en este navegador.");
+      } else if(!silent){
+        toast("Sesión iniciada como " + user.name);
       }
       renderAll();
-      if(!silent) toast("Sesión iniciada como " + user.name);
     }).catch(function(){
       load(); loadSettings(); loadHistory();
+      recoverLegacyFlatDataInto(); // aunque falle la nube, no se pierde lo que hay en este navegador
       renderAll();
       toast("No se pudo conectar con el servidor ahora mismo — se sigue trabajando con la copia guardada en este navegador.");
     });
