@@ -239,6 +239,10 @@
   .queue-item .qi-name{font-size:0.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
   .queue-item .qi-del{border:none;background:transparent;color:var(--muted);cursor:pointer;padding:2px 4px;font-size:0.8rem;line-height:1;flex:none;}
   .queue-item .qi-del:hover{color:var(--stamp);}
+  .queue-item.prioritario{background:var(--stamp-soft);border-color:var(--stamp);}
+  .queue-item.prioritario.active{background:var(--stamp-soft);border-color:var(--stamp);box-shadow:0 0 0 2px var(--stamp) inset;}
+  .qi-priority-badge{display:inline-block;background:var(--stamp);color:#fff;font-size:0.66rem;font-weight:800;letter-spacing:.02em;padding:1px 6px;border-radius:999px;vertical-align:middle;margin-right:4px;}
+  .qi-priority-badge[hidden]{display:none;} /* mismo problema de especificidad que installAppBtn -- sin esto, display:inline-block gana y el hidden no oculta nada */
   .dot{width:8px;height:8px;border-radius:50%;flex:none;margin-top:5px;}
   .dot.pend{background:var(--warn);}
   .dot.done{background:var(--ok);}
@@ -551,7 +555,7 @@
           <div id="captureForm" style="display:none;">
             <div class="cc-head">
               <div>
-                <h3 id="cc_radicadoLabel">Radicado</h3>
+                <h3><span class="qi-priority-badge" id="cc_priorityBadge" hidden>🔴 PRIORITARIO</span><span id="cc_radicadoLabel">Radicado</span></h3>
                 <div class="cc-sub" id="cc_nombreLabel"></div>
               </div>
               <div class="cc-nav">
@@ -2124,6 +2128,26 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     refreshFinalDocCount();
   }
 
+  // ---------- prioridad por vencimiento: días hábiles transcurridos desde la Fecha de radicación ----------
+  // Término fijo: 13 días hábiles desde el día siguiente a la radicación. Con 12 o más transcurridos
+  // (o sea, 1 día hábil o menos de margen) el radicado se marca prioritario y sube al principio de la
+  // cola -- así el trabajo más urgente siempre aparece primero, sin tener que revisar caso por caso.
+  var TERMINO_RADICADO_DIAS_HABILES = 13;
+  var UMBRAL_PRIORITARIO_DIAS = 12;
+  function diasHabilesTranscurridosDesdeRadicacion(rec){
+    var radDate = parseDMY(normalizeDate(rec.fechaRadicacion));
+    if(!radDate) return null; // fecha ausente o no reconocida -- no se puede calcular, no se prioriza
+    var start = new Date(radDate.getFullYear(), radDate.getMonth(), radDate.getDate()+1);
+    var hoy = new Date(); hoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+    if(start > hoy) return 0; // fecha de radicación en el futuro (dato atípico) -- tratar como recién llegado
+    return countBusinessDays(start, hoy);
+  }
+  function esPrioritario(rec){
+    if(isDone(rec)) return false; // ya clasificado -- no hace falta seguir marcándolo urgente
+    var d = diasHabilesTranscurridosDesdeRadicacion(rec);
+    return d !== null && d >= UMBRAL_PRIORITARIO_DIAS;
+  }
+
   // ---------- queue (Paso 2 list) ----------
   function matchesFilter(r){
     if(state.filter === "pend") return !isDone(r);
@@ -2139,7 +2163,16 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var q = document.getElementById("searchBox").value.trim();
     return state.records
       .filter(function(r){ return matchesFilter(r) && matchesSearch(r,q); })
-      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+      .sort(function(a,b){
+        // Prioridad por vencimiento: los pendientes con más días hábiles transcurridos desde su
+        // radicación (más cerca de vencer) van primero. Los ya clasificados quedan siempre al final
+        // de este criterio (valor -1), y dentro de un mismo nivel de urgencia se conserva el orden
+        // original de importación, para que la lista no se reordene sola sin razón.
+        var aDias = isDone(a) ? -1 : (diasHabilesTranscurridosDesdeRadicacion(a) || 0);
+        var bDias = isDone(b) ? -1 : (diasHabilesTranscurridosDesdeRadicacion(b) || 0);
+        if(aDias !== bDias) return bDias - aDias;
+        return (a.order||0)-(b.order||0);
+      });
   }
 
   function renderQueue(){
@@ -2153,9 +2186,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }
     panel.innerHTML = list.map(function(r){
       var done = isDone(r);
-      return '<div class="queue-item'+(r.id===state.activeId?" active":"")+'" data-id="'+r.id+'">'+
+      var prioritario = esPrioritario(r);
+      return '<div class="queue-item'+(r.id===state.activeId?" active":"")+(prioritario?" prioritario":"")+'" data-id="'+r.id+'">'+
         '<span class="dot '+(done?"done":"pend")+'"></span>'+
-        '<span class="qi-body"><span class="qi-radicado">'+escapeHtml(r.radicado)+'</span>'+
+        '<span class="qi-body"><span class="qi-radicado">'+(prioritario?'<span class="qi-priority-badge" title="'+TERMINO_RADICADO_DIAS_HABILES+' días hábiles de término, ya van '+UMBRAL_PRIORITARIO_DIAS+' o más desde la radicación">🔴 PRIORITARIO</span> ':'')+escapeHtml(r.radicado)+'</span>'+
         '<span class="qi-name">'+escapeHtml(r.nombre||"(sin nombre)")+'</span></span>'+
         '<button class="qi-del" data-del="'+r.id+'" title="Borrar" type="button" aria-label="Borrar radicado '+escapeHtml(r.radicado)+'">✕</button>'+
       '</div>';
@@ -2273,7 +2307,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var text = ta.value;
     if(!text.trim()){ toast("Pega primero el bloque de radicados"); return; }
     var res = parseBulkImport(text);
-    if(res.firstNewId && !state.activeId) state.activeId = res.firstNewId;
+    // No se fija aquí el activo al "primero pegado" -- se deja que renderAll() elija el primero de
+    // la cola YA ordenada por prioridad (visibleList()), para que al importar se abra directo el
+    // radicado más urgente, no simplemente el primero de la lista pegada.
     save(); renderAll();
     ta.value = "";
     var msg = res.added + " radicados importados.";
@@ -2537,6 +2573,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
     document.getElementById("cc_radicadoLabel").textContent = "Radicado " + rec.radicado;
     document.getElementById("cc_nombreLabel").textContent = rec.nombre || "(sin nombre)";
+    document.getElementById("cc_priorityBadge").hidden = !esPrioritario(rec);
     document.getElementById("bf_fechaRadicacion").textContent = rec.fechaRadicacion || "—";
     document.getElementById("bf_fechaAsignacion").textContent = rec.fechaAsignacion || "—";
 
