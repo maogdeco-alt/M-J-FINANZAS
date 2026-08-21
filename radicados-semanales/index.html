@@ -594,15 +594,6 @@
                 <input id="cc_direccion" placeholder="correo o dirección de notificación">
               </div>
 
-              <div class="full" id="wrap_fenixNum">
-                <label for="cc_fenixNum">Número de comparendo (para abrir Fénix)</label>
-                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                  <input id="cc_fenixNum" placeholder="ej. 11001000000052464701" style="max-width:260px;">
-                  <a class="btn small simit-btn is-disabled" id="cc_fenixBtn" href="#" target="_blank" rel="noopener" aria-disabled="true" title="Escribe primero el número de comparendo arriba">🔗 Abrir en Fénix</a>
-                </div>
-                <div class="field-hint">Este número NO es el Radicado del Paso 1 -- es el número de comparendo propiamente dicho. Abre el expediente exacto en Fénix.</div>
-              </div>
-
               <div class="full" id="wrap_comparendo">
                 <label for="cc_comparendo">Pegar línea completa del comparendo<span class="required-mark" id="req_comparendo" hidden>*</span></label>
                 <textarea id="cc_comparendo" rows="2" placeholder="Pega aquí toda la línea copiada (comparendo, cod, imposición, notificación, curso, medio, estado...)"></textarea>
@@ -2635,32 +2626,6 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     toast((copied ? doc.shown + " copiado — pégalo en SIMIT." : "Abriendo SIMIT — copia " + doc.shown + " a mano, tu navegador no permitió copiarlo solo.") + fechaGuia);
   });
 
-  // ---------- atajo a Fénix: abre el expediente exacto por número de comparendo ----------
-  // Fénix sí permite enlazar directo al expediente si se conoce el número de comparendo (distinto
-  // del Radicado de ORFEO/Paso 1) -- se pega aquí ANTES de entrar a Fénix, no se obtiene de la línea
-  // pegada abajo (esa llega DESPUÉS, cuando ya se copió desde Fénix).
-  function updateFenixBtnState(){
-    var num = document.getElementById("cc_fenixNum").value.trim();
-    var a = document.getElementById("cc_fenixBtn");
-    if(num){
-      a.href = "https://webfenix.movilidadbogota.gov.co/#/consulta-expedientes?comparendo=" + encodeURIComponent(num);
-      a.classList.remove("is-disabled");
-      a.setAttribute("aria-disabled", "false");
-      a.title = "Abre este expediente en Fénix en una pestaña nueva";
-    } else {
-      a.href = "#";
-      a.classList.add("is-disabled");
-      a.setAttribute("aria-disabled", "true");
-      a.title = "Escribe primero el número de comparendo arriba";
-    }
-  }
-  document.getElementById("cc_fenixNum").addEventListener("input", updateFenixBtnState);
-  document.getElementById("cc_fenixBtn").addEventListener("click", function(e){
-    var num = document.getElementById("cc_fenixNum").value.trim();
-    if(this.classList.contains("is-disabled") || !num){ e.preventDefault(); return; }
-    toast("Abriendo el expediente " + num + " en Fénix — copia la línea completa y pégala abajo.");
-  });
-
   // ---------- insights en vivo: término por caso, plantilla resultante, titular ≠ peticionario, duplicados ----------
   function renderInsights(){
     var formato = document.getElementById("cc_formato").value.trim();
@@ -2758,10 +2723,6 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("cc_comparendo").value = rec.comparendoRaw || "";
     renderBreakdown(parseComparendoLine(rec.comparendoRaw || ""));
     renderInsights();
-    // El número que abre Fénix es solo un atajo momentáneo, no un dato del radicado -- se limpia al
-    // cambiar de caso para no dejar pegado por error el número de un radicado distinto.
-    document.getElementById("cc_fenixNum").value = "";
-    updateFenixBtnState();
 
     document.getElementById("baseEditFields").classList.remove("open");
     clearFieldErrors();
