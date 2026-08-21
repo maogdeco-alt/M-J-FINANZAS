@@ -117,6 +117,7 @@
   .stat-card.pend .num{color:var(--warn);}
   .stat-card.ok .num{color:var(--ok);}
   .stat-card.warn2 .num{color:var(--stamp);}
+  .stat-card.urgent .num{color:#b3261e;}
 
   .history-table{width:100%;border-collapse:collapse;font-size:0.86rem;min-width:560px;}
   .history-table th{text-align:left;color:var(--muted);font-size:0.76rem;text-transform:uppercase;letter-spacing:.04em;padding:6px 10px;border-bottom:1px solid var(--border);}
@@ -504,6 +505,10 @@
       <div class="stat-card warn2" title="Radicados con Formato = DEVUELTO, sobre el total importado esta semana">
         <div class="num" id="statDevuelto">0%</div>
         <div class="label">% Devuelto</div>
+      </div>
+      <div class="stat-card urgent" id="statPrioritariosCard">
+        <div class="num" id="statPrioritarios">0</div>
+        <div class="label">Prioritarios</div>
       </div>
     </div>
     <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
@@ -1988,11 +1993,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var total = recs.length;
     var done = recs.filter(isDone).length;
     var devuelto = recs.filter(function(r){ return (r.formato||"").trim().toUpperCase() === "DEVUELTO"; }).length;
+    var prioritarios = recs.filter(esPrioritario).length;
     return {
       total: total, done: done, pend: total - done,
       pct: total ? Math.round(done/total*100) : 0,
       devuelto: devuelto,
-      pctDevuelto: total ? Math.round(devuelto/total*100) : 0
+      pctDevuelto: total ? Math.round(devuelto/total*100) : 0,
+      prioritarios: prioritarios
     };
   }
   function renderHistory(){
@@ -2222,6 +2229,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("statPct").textContent = pct + "%";
     document.getElementById("statDevuelto").textContent = summary.pctDevuelto + "%";
     document.getElementById("statDevuelto").parentElement.title = summary.devuelto + " de " + total + " radicados con Formato = DEVUELTO";
+    document.getElementById("statPrioritarios").textContent = summary.prioritarios;
+    document.getElementById("statPrioritariosCard").title = "Pendientes que ya llevan " + UMBRAL_PRIORITARIO_DIAS + " o más días hábiles desde su asignación -- se te acaba el término de " + TERMINO_RADICADO_DIAS_HABILES + " días hábiles";
     var fill = document.getElementById("progressFill");
     fill.style.width = pct + "%";
     // Same 5-band color scale as the conditional formatting on REVISION MANUAL!A1.
