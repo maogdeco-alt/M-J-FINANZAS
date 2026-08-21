@@ -159,7 +159,7 @@
 
   label{display:block;font-size:0.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;font-weight:600;}
   input,select,textarea{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--ink);font:inherit;font-size:0.98rem;font-variant-numeric:tabular-nums;}
-  .work-fields input,.work-fields textarea,.work-fields select{padding:11px 13px;font-size:1.02rem;}
+  .work-fields input,.work-fields textarea,.work-fields select{padding:9px 12px;font-size:1rem;}
   textarea{resize:vertical;font-variant-numeric:normal;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:0.88rem;}
   input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent);}
   button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
@@ -259,11 +259,14 @@
   .base-fields{display:flex;flex-wrap:wrap;gap:6px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:18px;font-size:0.88rem;color:var(--muted);}
   .base-fields b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600;}
   .base-edit-toggle{margin-left:auto;}
-  .base-edit-fields{display:none;grid-template-columns:1fr 1fr;gap:10px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;max-width:600px;}
+  .base-edit-fields{display:none;grid-template-columns:1fr 1fr;gap:10px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;max-width:640px;}
   .base-edit-fields.open{display:grid;}
 
-  /* Una sola columna vertical, como llenar celda por celda en Excel: pensado para pantalla de computador. */
-  .work-fields{display:flex;flex-direction:column;gap:16px;max-width:600px;}
+  /* Dos columnas para los campos cortos (Formato/Dirección, Res./Fecha res.) -- el pegado del
+     comparendo y el Comentario ocupan las dos columnas (.full). Pensado para que el formulario quepa
+     en pantalla de computador sin tener que bajar tanto el cursor. */
+  .work-fields{display:grid;grid-template-columns:1fr 1fr;gap:11px 16px;max-width:640px;}
+  .work-fields > .full{grid-column:1 / -1;}
   .work-fields .formato-field input{font-weight:700;}
   .simit-btn{margin-left:8px;padding:3px 11px;font-size:0.76rem;border-radius:999px;background:var(--accent-soft);border-color:transparent;color:var(--accent);vertical-align:middle;text-decoration:none;}
   .simit-btn:hover{background:var(--accent);color:var(--accent-ink);filter:none;}
@@ -276,8 +279,8 @@
   .simit-btn.is-disabled{background:var(--surface-2);color:var(--muted);cursor:not-allowed;opacity:0.7;pointer-events:none;}
   .simit-btn.is-disabled:hover{background:var(--surface-2);color:var(--muted);}
 
-  .breakdown{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;margin-top:10px;}
-  .breakdown .bd-item{background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:6px 9px;}
+  .breakdown{display:grid;grid-template-columns:repeat(auto-fill,minmax(102px,1fr));gap:6px;margin-top:8px;}
+  .breakdown .bd-item{background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:5px 8px;}
   .breakdown .bd-item .k{font-size:0.68rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
   .breakdown .bd-item .v{font-size:0.86rem;font-variant-numeric:tabular-nums;word-break:break-word;}
   .breakdown .bd-item.empty .v{color:var(--muted);}
@@ -287,7 +290,7 @@
   .insight-chip.warn{background:var(--warn-soft);color:var(--warn);}
   .insight-chip.alert{background:var(--stamp-soft);color:var(--stamp);}
 
-  .cc-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}
+  .cc-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
   .cc-actions .spacer{flex:1;}
   .cc-shortcut-hint{color:var(--muted);font-size:0.8rem;margin-top:9px;}
   /* En celular, un botón de texto largo dentro de una fila que se envuelve puede terminar más
@@ -313,10 +316,16 @@
   .icon-btn{background:var(--surface);border:1px solid var(--border);border-radius:999px;width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);color:var(--muted);font-size:1.1rem;}
   .icon-btn:hover{color:var(--accent);}
 
-  .term-calc-btn{background:var(--accent-soft);border-color:transparent;color:var(--accent);}
-  .term-calc-btn svg{width:16px;height:16px;flex:none;}
-  .term-calc-btn:hover{background:var(--accent);color:var(--accent-ink);filter:none;}
-  @media (max-width:640px){ .term-calc-btn{padding:9px 12px;} .term-calc-btn .btn-label{display:none;} }
+  /* Botón flotante de la calculadora: pequeño, fijo en la esquina, alcanzable sin importar cuánto
+     se haya bajado la página (el encabezado no es "sticky", así que un botón ahí se perdía de
+     vista al bajar por un formulario largo). */
+  .term-calc-fab{position:fixed;right:18px;bottom:18px;z-index:45;width:44px;height:44px;border-radius:50%;
+    background:var(--accent-soft);color:var(--accent);border:1px solid transparent;box-shadow:var(--shadow);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;appearance:none;}
+  .term-calc-fab svg{width:20px;height:20px;flex:none;}
+  .term-calc-fab:hover{background:var(--accent);color:var(--accent-ink);transform:translateY(-1px);}
+  .term-calc-fab:active{transform:translateY(0);}
+  @media (max-width:640px){ .term-calc-fab{right:12px;bottom:12px;width:42px;height:42px;} }
 
   .install-app-btn{background:linear-gradient(155deg,var(--accent),var(--accent-2));border-color:transparent;color:var(--accent-ink);font-weight:700;}
   .install-app-btn svg{width:16px;height:16px;flex:none;}
@@ -419,6 +428,7 @@
 
   @media (max-width:760px){
     .base-edit-fields{grid-template-columns:1fr;}
+    .work-fields{grid-template-columns:1fr;}
   }
 </style>
 </head>
@@ -456,10 +466,6 @@
     <div class="header-actions">
       <span class="save-status ok" id="saveStatus">Guardado</span>
       <span class="badge-week" id="weekBadge">Semana —</span>
-      <button class="btn term-calc-btn" id="termCalcBtn" type="button" title="Abrir la calculadora de términos" aria-label="Abrir la calculadora de términos">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 3.2"/></svg>
-        <span class="btn-label" aria-hidden="true">Calculadora de términos</span>
-      </button>
       <button class="btn install-app-btn" id="installAppBtn" type="button" title="Instalar esta app en tu computador o celular" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         <span class="btn-label" aria-hidden="true">Instalar app</span>
@@ -597,7 +603,7 @@
               <div class="full" id="wrap_comparendo">
                 <label for="cc_comparendo">Pegar línea completa del comparendo<span class="required-mark" id="req_comparendo" hidden>*</span></label>
                 <textarea id="cc_comparendo" rows="2" placeholder="Pega aquí toda la línea copiada (comparendo, cod, imposición, notificación, curso, medio, estado...)"></textarea>
-                <div class="field-hint">Se separa sola en No. Comparendo, Código infracción, Fecha de imposición, Fecha notificación, Tiene curso, Medio de imposición, Estado comparendo, Motivo de cierre, Número de proceso GC, Estado proceso GC, Tipo de documento, No. Documento infractor y Nombre infractor.</div>
+                <div class="field-hint">Se separa sola en No. Comparendo, Código infracción, Fecha de imposición, Fecha notificación, Tiene curso, Medio de imposición, Estado comparendo, Motivo de cierre, Número de proceso GC, Estado proceso GC, Tipo de documento, No. Documento infractor, Nombre infractor y Placa (esta última no es obligatoria, útil para prórrogas).</div>
                 <div class="breakdown" id="cc_breakdown"></div>
                 <div class="insights" id="ccInsights"></div>
               </div>
@@ -950,6 +956,10 @@
 
 <div class="toast" id="toast"></div>
 
+<button class="term-calc-fab" id="termCalcBtn" type="button" title="Abrir la calculadora de términos" aria-label="Abrir la calculadora de términos">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 3.2"/></svg>
+</button>
+
 <script>
 /* SheetJS (xlsx) build core — MIT/Apache-2.0, https://sheetjs.com — usada para generar el .xlsx real de Excel. */
 /*! xlsx.js (C) 2013-present SheetJS -- http://sheetjs.com */
@@ -1051,7 +1061,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     {k:"comparendoCompleto", label:"No. Comparendo"}, {k:"cod", label:"Cód. infracción"}, {k:"imposicion", label:"Fecha imposición"},
     {k:"notificacion", label:"Fecha notif."}, {k:"curso", label:"Tiene curso"}, {k:"medio", label:"Medio imposición"},
     {k:"estado", label:"Estado comparendo"}, {k:"f8", label:"Motivo cierre"}, {k:"f9", label:"Proceso GC (No.)"}, {k:"f10", label:"Proceso GC (Estado)"},
-    {k:"tipoId", label:"Tipo documento"}, {k:"idNum", label:"No. documento"}, {k:"nombreF", label:"Nombre infractor"}
+    {k:"tipoId", label:"Tipo documento"}, {k:"idNum", label:"No. documento"}, {k:"nombreF", label:"Nombre infractor"},
+    // Campo adicional, ÚTIL sobre todo para prórrogas -- nunca obligatorio, ninguna regla depende de él.
+    {k:"placa", label:"Placa"}
   ];
 
   var state = { records: [], filter: "pend", activeId: null, profile: {activeUser:null}, settings: null, history: [] };
@@ -2463,7 +2475,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // ---------- capture card (Paso 2 fast entry) ----------
   function parseComparendoLine(text){
     var parts = String(text||"").split("\t"); // el tab separa las columnas; se limpia CADA parte después de separar, nunca antes
-    var keys = ["comparendoCompleto","cod","imposicion","notificacion","curso","medio","estado","f8","f9","f10","tipoId","idNum","nombreF"];
+    var keys = ["comparendoCompleto","cod","imposicion","notificacion","curso","medio","estado","f8","f9","f10","tipoId","idNum","nombreF","placa"];
     var out = {};
     keys.forEach(function(k,i){ out[k] = cleanSpaces(parts[i]||""); });
     return out;
@@ -2724,6 +2736,37 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       violations.push({wraps:["wrap_comparendo","wrap_formato"], message:"Estado " + rec.estado.trim() + " (no VIGENTE) es imperativamente DEVUELTO — corrige el Formato."});
     }
 
+    // Resolución: T6 nunca debe tenerla; T1, T5, T11 y T14 siempre deben tenerla.
+    var tieneRes = !!((rec.res||"").trim() || (rec.fechaRes||"").trim());
+    if(formatoVal === "T6" && tieneRes){
+      violations.push({wraps:["wrap_formato","wrap_res"], message:"T6 no debe tener Resolución (ni Res. ni Fecha res.) — revisa el Formato o borra esos datos."});
+    }
+    if(["T1","T5","T11","T14"].indexOf(formatoVal) !== -1 && !tieneRes){
+      violations.push({wraps:["wrap_formato","wrap_res"], message:formatoVal + " requiere Resolución (Res. y/o Fecha res.) — no puede quedar sin diligenciar."});
+    }
+
+    // Brecha entre la fecha de radicación (datos importados de ORFEO) y la fecha de notificación
+    // (línea pegada de Fénix): más de 11 días hábiles si es Electrónico, o más de 5 si es Manual,
+    // es señal de que algo no cuadra entre las fechas (posible línea de comparendo equivocada, o
+    // fechas mal digitadas) -- se advierte, no se asume automáticamente cuál de las dos está mal.
+    if(rec.fechaRadicacion && rec.notificacion){
+      var tipoGap = deriveTipoComparendo(rec.medio);
+      var umbralGap = tipoGap === "ELECTRONICO" ? 11 : (tipoGap === "MANUAL" ? 5 : null);
+      if(umbralGap !== null){
+        var dRad = parseDMY(normalizeDate(rec.fechaRadicacion));
+        var dNotif = parseDMY(normalizeDate(rec.notificacion));
+        if(dRad && dNotif){
+          var early = dRad <= dNotif ? dRad : dNotif;
+          var late = dRad <= dNotif ? dNotif : dRad;
+          var startGap = new Date(early.getFullYear(), early.getMonth(), early.getDate()+1);
+          var gapDias = startGap > late ? 0 : countBusinessDays(startGap, late);
+          if(gapDias !== null && gapDias > umbralGap){
+            violations.push({wraps:["wrap_comparendo"], message:"Entre la fecha de radicación y la fecha de notificación hay " + gapDias + " días hábiles (más de los " + umbralGap + " esperados para " + tipoGap.toLowerCase() + ") — revisa las fechas."});
+          }
+        }
+      }
+    }
+
     // Del propio informe, sección "Reglas obligatorias antes de exportar":
     var dict = (state.settings && state.settings.formatToPlantilla) || DEFAULT_SETTINGS.formatToPlantilla;
     if(formatoVal){
@@ -2824,6 +2867,30 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     return rec;
   }
 
+  // ---------- validación: ¿el solicitante (datos importados) y el infractor (línea de Fénix) son
+  // la misma persona? ---------- Los nombres pueden venir escritos distinto entre ORFEO y Fénix
+  // (orden de apellidos, tildes, mayúsculas...) sin que eso signifique un error real -- por eso esto
+  // no se bloquea solo, se le pregunta a la persona y se recuerda su respuesta mientras los nombres
+  // no cambien, para no volver a preguntar lo mismo en cada guardado del mismo radicado.
+  function normalizeNombrePersona(s){
+    return String(s||"").trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ");
+  }
+  function checkNombreMismatch(rec){
+    var nombreImportado = normalizeNombrePersona(rec.nombre);
+    var nombreInfractor = normalizeNombrePersona(rec.nombreF);
+    if(!nombreImportado || !nombreInfractor || nombreImportado === nombreInfractor) return true; // nada que confirmar
+    var clave = nombreImportado + "||" + nombreInfractor;
+    if(rec._nombreConfirmado === clave) return true; // ya se confirmó este mismo par de nombres
+    var confirmado = confirm(
+      "El nombre del solicitante (datos importados de ORFEO):\n\"" + (rec.nombre||"").trim() + "\"\n\n" +
+      "es DIFERENTE al nombre del infractor (línea pegada de Fénix):\n\"" + (rec.nombreF||"").trim() + "\"\n\n" +
+      "¿Confirmas que de todas formas es la MISMA persona (puede haber variaciones de escritura, orden de apellidos, etc.)?\n\n" +
+      "Aceptar = sí, es la misma persona, continuar. Cancelar = detente, hay que revisar esto antes de guardar."
+    );
+    if(confirmado) rec._nombreConfirmado = clave;
+    return confirmado;
+  }
+
   document.getElementById("cc_delete").addEventListener("click", function(){
     var rec = state.records.find(function(r){ return r.id===state.activeId; });
     if(rec && confirm("¿Borrar el radicado " + rec.radicado + "?")){
@@ -2843,12 +2910,25 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   document.getElementById("cc_save").addEventListener("click", function(){
     var rec = readCaptureIntoRecord();
     if(!rec) return;
+    if(!checkNombreMismatch(rec)){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
+    // "Guardar" (a diferencia de "Guardar y siguiente") nunca exigió los campos obligatorios
+    // configurables en Ajustes -- eso se deja igual, para poder guardar un avance parcial. Pero las
+    // reglas IMPERATIVAS (fijas, sin excepción) sí deben cumplirse siempre, sin importar qué botón
+    // se use -- si no, bastaba con usar "Guardar" para saltárselas por completo.
+    clearFieldErrors();
+    var imperative = checkImperativeRules(rec);
+    if(imperative.length){
+      imperative.forEach(function(v){ v.wraps.forEach(markError); });
+      toast("No se guardó — " + imperative[0].message);
+      return;
+    }
     save(); renderAll();
     toast("Radicado " + rec.radicado + " guardado");
   });
   document.getElementById("cc_saveNext").addEventListener("click", function(){
     var rec = readCaptureIntoRecord();
     if(!rec) return;
+    if(!checkNombreMismatch(rec)){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
     save(); renderQueue(); renderStats();
     var check = validateAdvance(rec);
     if(!check.ok){ warnMissing(check); return; }
@@ -2883,6 +2963,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   document.getElementById("cc_next").addEventListener("click", function(){
     var rec = readCaptureIntoRecord();
     if(!rec) return;
+    if(!checkNombreMismatch(rec)){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
     save(); renderQueue(); renderStats();
     var check = validateAdvance(rec);
     if(!check.ok){ warnMissing(check); return; }
