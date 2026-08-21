@@ -741,35 +741,10 @@
   </div>
 </dialog>
 
-<!-- Dialog: inicio de sesión / crear cuenta -->
-<!-- Dialog: conectar con el servidor (Supabase) — una sola vez por computador -->
-<dialog id="connectDialog" class="small auth-dialog" aria-labelledby="connectTitle">
-  <div class="auth-brand">
-    <span class="auth-mark" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-        <g transform="translate(4.56,3.72) scale(0.62)" stroke-width="2.6">
-          <path d="M4 15.5v-2c0-.7.5-1.4 1.2-1.6l1.6-.5 1.9-3.2c.4-.6 1-1 1.7-1h6.2c.7 0 1.3.4 1.7 1l1.9 3.2 1.6.5c.7.2 1.2.9 1.2 1.6v2"/>
-          <path d="M4 15.5h16"/>
-          <circle cx="7.5" cy="16" r="1.9" fill="currentColor" stroke="none"/>
-          <circle cx="16.5" cy="16" r="1.9" fill="currentColor" stroke="none"/>
-        </g>
-      </svg>
-    </span>
-    <span class="auth-org">Secretaría de Movilidad de Bogotá</span>
-    <h2 id="connectTitle">Conectar con el servidor</h2>
-  </div>
-  <div class="panel-body">
-    <p class="auth-security-note">Esta app guarda el trabajo de todo el equipo en un servidor propio de la entidad (Supabase), no solo en este navegador. Pide estos dos datos a quien administra el proyecto — se piden una sola vez por computador.</p>
-    <div style="display:grid;gap:12px;">
-      <div><label for="connectUrl">URL del proyecto</label><input id="connectUrl" placeholder="https://xxxxxxxx.supabase.co" autocomplete="off"></div>
-      <div><label for="connectKey">Llave pública (anon key)</label><input id="connectKey" placeholder="eyJhbGciOi..." autocomplete="off"></div>
-    </div>
-    <div class="import-actions" style="margin-top:14px;">
-      <button class="btn primary" id="connectBtn" type="button">Conectar</button>
-    </div>
-  </div>
-</dialog>
-
+<!-- Dialog: inicio de sesión -->
+<!-- Ya no hay pantalla de "conectar con el servidor": la app queda fija a un único proyecto de
+     Supabase (el de la entidad), embebido en el código -- no depende de que cada persona/computador
+     lo configure. -->
 <dialog id="authDialog" class="small auth-dialog" aria-labelledby="authTitle">
   <div class="auth-brand">
     <span class="auth-mark" aria-hidden="true">
@@ -799,11 +774,7 @@
     </div>
 
     <div id="authFormsBlock">
-      <p class="auth-security-note">Cada cuenta se verifica en el servidor de la entidad (Supabase) — tu contraseña nunca se guarda en este navegador. Tu información queda en la nube y aparece igual sin importar desde qué computador entres.</p>
-      <div class="auth-tabs" id="authTabs">
-        <button data-tab="login" class="active" type="button">Iniciar sesión</button>
-        <button data-tab="register" type="button">Crear cuenta</button>
-      </div>
+      <p class="auth-security-note">Cada cuenta se verifica en el servidor de la entidad (Supabase) — tu contraseña nunca se guarda en este navegador. Tu información queda en la nube y aparece igual sin importar desde qué computador entres. Las cuentas las crea quien administra esta app; si olvidaste tu contraseña, comunícate con esa persona.</p>
 
       <div id="authLoginTab">
         <div style="display:grid;gap:12px;">
@@ -812,18 +783,6 @@
         </div>
         <div class="import-actions" style="margin-top:14px;">
           <button class="btn primary" id="loginBtn" type="button">Ingresar</button>
-        </div>
-      </div>
-
-      <div id="authRegisterTab" style="display:none;">
-        <div style="display:grid;gap:12px;">
-          <div><label for="reg_name">Nombre completo</label><input id="reg_name" autocomplete="name"></div>
-          <div><label for="reg_email">Correo de Gmail</label><input id="reg_email" type="email" autocomplete="username" placeholder="tunombre@gmail.com"><small class="hint">Debe ser tu cuenta real de Gmail (@gmail.com) — cada persona del equipo queda enlazada a su propio correo.</small></div>
-          <div><label for="reg_password">Contraseña</label><input id="reg_password" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"></div>
-          <div><label for="reg_password2">Confirmar contraseña</label><input id="reg_password2" type="password" autocomplete="new-password"></div>
-        </div>
-        <div class="import-actions" style="margin-top:14px;">
-          <button class="btn primary" id="registerBtn" type="button">Crear cuenta e ingresar</button>
         </div>
       </div>
     </div>
@@ -859,7 +818,18 @@
         <h3>Tu cuenta y almacenamiento</h3>
         <p class="hint">Tu trabajo se guarda en el servidor de la entidad (Supabase) y también, como copia local, en este navegador — así sigues trabajando aunque se corte la conexión. Cada cuenta ve únicamente sus propios datos, sin importar desde qué computador entre.</p>
         <div class="account-info" id="accountInfoBox"></div>
-        <button class="link-btn" id="changeServerBtn" type="button">Cambiar servidor (Supabase)</button>
+      </div>
+
+      <div class="settings-section">
+        <h3>Cambiar mi contraseña</h3>
+        <p class="hint">Las cuentas las crea quien administra esta app, con una contraseña inicial. Aquí puedes reemplazarla por una tuya. Si la olvidas más adelante, no hay recuperación por correo — comunícate con quien administra la app para que te asigne una nueva.</p>
+        <div style="display:grid;gap:12px;max-width:360px;">
+          <div><label for="newPasswordInput">Nueva contraseña</label><input id="newPasswordInput" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"></div>
+          <div><label for="newPasswordInput2">Confirmar nueva contraseña</label><input id="newPasswordInput2" type="password" autocomplete="new-password"></div>
+        </div>
+        <div class="import-actions" style="margin-top:10px;">
+          <button class="btn" id="changePasswordBtn" type="button">Cambiar contraseña</button>
+        </div>
       </div>
 
       <div class="settings-section">
@@ -1039,7 +1009,6 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     applyThemePref(next);
   });
   var SETTINGS_KEY = "radicados_settings_v1";
-  var SUPA_CONFIG_KEY = "radicados_supabase_config"; // URL + llave anon del proyecto — persiste entre visitas, no es secreta
 
   var REQUIRED_FIELD_META = [
     {key:"formato", id:"cc_formato", wrapId:"wrap_formato", label:"Formato"},
@@ -1099,16 +1068,18 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // vuelve. La sesión NO se mantiene abierta entre visitas: cada vez que se
   // abre la app hay que volver a iniciar sesión.
   // ============================================================
-  var supaConfig = null; // {url, anonKey} — persiste entre visitas, no es secreto
+  // La app queda fija a UN SOLO proyecto de Supabase, el de la entidad -- a propósito, ya no se le
+  // pregunta esto a quien usa la app ni queda a su criterio. La llave aquí es la pública ("anon" /
+  // "publishable"): está hecha para ir embebida en el código de cualquier app cliente, no es secreta
+  // -- la protección real la da la seguridad por fila (RLS) de cada tabla, no ocultar esta llave.
+  var HARDCODED_SUPABASE_CONFIG = {
+    url: "https://hgfqoodogpxhqbdyubsd.supabase.co",
+    anonKey: "sb_publishable_iCRdHg1fDvtG481Zw7nxsg_w8CWmrFo"
+  };
+  var supaConfig = null; // {url, anonKey}
   function loadSupaConfig(){
-    try{ var raw = localStorage.getItem(SUPA_CONFIG_KEY); supaConfig = raw ? JSON.parse(raw) : null; }
-    catch(e){ supaConfig = null; }
+    supaConfig = HARDCODED_SUPABASE_CONFIG;
   }
-  function saveSupaConfig(cfg){
-    supaConfig = cfg;
-    try{ localStorage.setItem(SUPA_CONFIG_KEY, JSON.stringify(cfg)); }catch(e){}
-  }
-
   // La sesión (tokens de acceso) vive SOLO en memoria — nunca en localStorage — a propósito:
   // así una recarga de página siempre exige iniciar sesión de nuevo, igual que antes.
   var supaSession = null; // {access_token, refresh_token, user:{id,email,user_metadata}}
@@ -1170,19 +1141,20 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         });
       });
   }
-  function supaSignup(email, password, nombre){
-    return supaFetch("/auth/v1/signup", {method:"POST", body: JSON.stringify({email:email, password:password, data:{nombre:nombre}})})
-      .then(function(data){
-        if(data && data.access_token) supaSession = {access_token:data.access_token, refresh_token:data.refresh_token, user:data.user};
-        return data;
-      });
-  }
   function supaLogin(email, password){
     return supaFetch("/auth/v1/token?grant_type=password", {method:"POST", body: JSON.stringify({email:email, password:password})})
       .then(function(data){
         supaSession = {access_token:data.access_token, refresh_token:data.refresh_token, user:data.user};
         return data;
       });
+  }
+  // Cambiar la propia contraseña, YA estando adentro con sesión activa -- la única forma de tocar
+  // contraseñas en esta app. No hay registro por cuenta propia ni "olvidé mi contraseña" por correo
+  // a propósito: las cuentas las crea quien administra el proyecto de Supabase, con una contraseña
+  // inicial, y cualquier olvido se resuelve con esa misma persona (ella la puede reasignar desde el
+  // panel de Supabase). Esto solo permite cambiarla una vez ya se entró con la inicial.
+  function supaUpdatePassword(newPassword){
+    return supaFetch("/auth/v1/user", {method:"PUT", body: JSON.stringify({password: newPassword})});
   }
   function supaRefreshSession(){
     if(!supaSession || !supaSession.refresh_token) return Promise.reject(new Error("Sin sesión"));
@@ -1284,42 +1256,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("userAvatar").textContent = user ? initials(user.name) : "—";
   }
 
-  // ---------- pantalla de conexión (URL + llave del proyecto de Supabase) ----------
-  function openConnectDialog(){
-    document.getElementById("connectUrl").value = (supaConfig && supaConfig.url) || "";
-    document.getElementById("connectKey").value = (supaConfig && supaConfig.anonKey) || "";
-    var dlg = document.getElementById("connectDialog");
-    if(!dlg.open) dlg.showModal();
-  }
-  document.getElementById("connectBtn").addEventListener("click", function(){
-    var url = document.getElementById("connectUrl").value.trim().replace(/\/+$/, "");
-    var key = document.getElementById("connectKey").value.trim();
-    if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){ toast("La URL debe verse como https://xxxxxxxx.supabase.co"); return; }
-    if(!key || key.length < 20){ toast("Pega la llave pública (anon key) completa"); return; }
-    saveSupaConfig({url:url, anonKey:key});
-    document.getElementById("connectDialog").close();
-    openAuthDialog(true);
-  });
-  document.getElementById("changeServerBtn").addEventListener("click", function(){
-    document.getElementById("settingsDialog").close();
-    openConnectDialog();
-  });
-
-  function setAuthTab(tab){
-    Array.prototype.forEach.call(document.querySelectorAll("#authTabs button"), function(b){
-      b.classList.toggle("active", b.getAttribute("data-tab")===tab);
-    });
-    document.getElementById("authLoginTab").style.display = tab==="login" ? "block" : "none";
-    document.getElementById("authRegisterTab").style.display = tab==="register" ? "block" : "none";
-  }
-  document.getElementById("authTabs").addEventListener("click", function(e){
-    var btn = e.target.closest("button[data-tab]");
-    if(btn) setAuthTab(btn.getAttribute("data-tab"));
-  });
-
   function openAuthDialog(mandatory){
-    ["reg_name","reg_email","reg_password","reg_password2","loginEmail","loginPassword"].forEach(function(id){ document.getElementById(id).value = ""; });
-    setAuthTab("login");
+    ["loginEmail","loginPassword"].forEach(function(id){ document.getElementById(id).value = ""; });
     document.getElementById("authCancel").style.display = mandatory ? "none" : "inline-flex";
 
     // Con sesión activa, lo ÚNICO que se ve es de quién es esa sesión y el botón para cerrarla —
@@ -1547,8 +1485,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       } else {
         // Para credenciales inválidas sí dejamos el mensaje genérico a propósito:
         // no revela si el correo existe o no — esa información es de cada
-        // persona, no de quien intenta entrar.
-        toast("Correo o contraseña incorrectos");
+        // persona, no de quien intenta entrar. Como ya no hay registro por cuenta propia
+        // ni recuperación de contraseña por correo, se recuerda a quién acudir.
+        toast("Correo o contraseña incorrectos. Si olvidaste tu contraseña, contacta a quien administra esta app.");
       }
     });
   });
@@ -1558,32 +1497,24 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   document.getElementById("loginEmail").addEventListener("keydown", function(e){
     if(e.key === "Enter"){ e.preventDefault(); document.getElementById("loginPassword").focus(); }
   });
-  document.getElementById("registerBtn").addEventListener("click", function(){
-    var name = document.getElementById("reg_name").value.trim();
-    var email = document.getElementById("reg_email").value.trim().toLowerCase();
-    var pwd = document.getElementById("reg_password").value;
-    var pwd2 = document.getElementById("reg_password2").value;
-    if(!name){ toast("Escribe tu nombre completo"); return; }
-    if(!/^[^\s@]+@gmail\.com$/.test(email)){ toast("Debes usar tu correo de Gmail real (debe terminar en @gmail.com)"); return; }
+
+  // ---------- cambiar mi propia contraseña (Ajustes) ----------
+  document.getElementById("changePasswordBtn").addEventListener("click", function(){
+    var pwd = document.getElementById("newPasswordInput").value;
+    var pwd2 = document.getElementById("newPasswordInput2").value;
+    if(!supaSession){ toast("Debes tener una sesión activa para cambiar tu contraseña."); return; }
     if(pwd.length < 6){ toast("La contraseña debe tener mínimo 6 caracteres"); return; }
     if(pwd !== pwd2){ toast("Las contraseñas no coinciden"); return; }
     var btn = this; btn.disabled = true;
-    supaSignup(email, pwd, name).then(function(data){
+    supaUpdatePassword(pwd).then(function(){
       btn.disabled = false;
-      if(data && data.access_token){
-        supaProfile = {nombre:name, correo:email};
-        completeLogin();
-      } else {
-        // El proyecto tiene activo "Confirm email": la cuenta se creó pero falta confirmarla.
-        toast("Cuenta creada — revisa tu correo de Gmail para confirmarla, luego inicia sesión aquí.");
-        setAuthTab("login");
-      }
+      document.getElementById("newPasswordInput").value = "";
+      document.getElementById("newPasswordInput2").value = "";
+      toast("Contraseña actualizada correctamente.");
     }).catch(function(err){
       btn.disabled = false;
       var msg = (err && err.message) || "";
-      if(/already registered|already exists|user_repeated/i.test(msg)) toast("Ya existe una cuenta con ese correo. Si no la habías confirmado, revisa tu Gmail (y spam) por el correo de confirmación; si ya la confirmaste, inicia sesión en la otra pestaña.");
-      else if(/gmail/i.test(msg)) toast("Esta aplicación requiere una cuenta real de Gmail (correo@gmail.com).");
-      else toast("No se pudo crear la cuenta" + (msg ? (": " + msg) : "") + ".");
+      toast("No se pudo cambiar la contraseña" + (msg ? (": " + msg) : "") + ".");
     });
   });
 
@@ -3250,13 +3181,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   loadSupaConfig();
   loadSettings(); // valores por defecto hasta confirmar sesión — se reemplazan tras iniciar sesión
   renderProfileUI();
-  // App de producción: cada visita exige iniciar sesión o crear cuenta con Gmail — nunca entra
-  // directo. Esto es lo que hace que cada persona (o cada compañero que abra el mismo enlace desde
-  // su propio computador) tenga su espacio individual y separado, con su propia contraseña. Si este
-  // computador todavía no tiene la conexión al servidor configurada, se pide primero esa (una sola
-  // vez); ya conectado, siempre se pide iniciar sesión.
-  if(!supaConfig) openConnectDialog();
-  else openAuthDialog(true);
+  // App de producción: cada visita exige iniciar sesión — nunca entra directo, y ya no hay forma de
+  // crear una cuenta desde aquí (eso lo hace quien administra el proyecto de Supabase). Esto es lo
+  // que hace que cada persona (o cada compañero que abra el mismo enlace desde su propio computador)
+  // tenga su espacio individual y separado, con su propia contraseña.
+  openAuthDialog(true);
 
   if(state.storageAvailable === false){
     setSaveStatus("nostorage");
