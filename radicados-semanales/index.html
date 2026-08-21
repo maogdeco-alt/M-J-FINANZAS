@@ -942,6 +942,24 @@
   </div>
 </dialog>
 
+<!-- Dialog: ¿solicitante e infractor son la misma persona? -- propio de la app (NO usa confirm()
+     del navegador: ese se puede quedar bloqueado en silencio para siempre después de varios usos,
+     dejando esta validación imposible de pasar). -->
+<dialog id="nombreMismatchDialog" class="small" aria-labelledby="nombreMismatchTitle">
+  <div class="panel-head"><h2 id="nombreMismatchTitle">¿Es la misma persona?</h2></div>
+  <div class="panel-body">
+    <p>El nombre del solicitante (datos importados) es distinto al nombre del infractor (línea de Fénix). Es normal que no coincidan del todo (nombre incompleto, orden de apellidos, etc.) — solo confirma que se trata de la misma persona antes de continuar.</p>
+    <div style="display:grid;gap:10px;margin-top:10px;">
+      <div><label>Solicitante (importado)</label><div class="account-info" id="nombreMismatchSolicitante" style="font-weight:700;"></div></div>
+      <div><label>Infractor (línea de Fénix)</label><div class="account-info" id="nombreMismatchInfractor" style="font-weight:700;"></div></div>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn ghost" id="nombreMismatchNo" type="button">No, voy a revisar</button>
+    <button class="btn primary" id="nombreMismatchYes" type="button">Sí, es la misma persona</button>
+  </div>
+</dialog>
+
 <!-- Dialog: copia manual (respaldo si el portapapeles del navegador está bloqueado) -->
 <dialog id="manualCopyDialog" class="small" aria-labelledby="manualCopyLabel">
   <div class="panel-head"><h2 id="manualCopyLabel">Copia este contenido</h2></div>
@@ -2875,21 +2893,40 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function normalizeNombrePersona(s){
     return String(s||"").trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ");
   }
-  function checkNombreMismatch(rec){
+  // checkNombreMismatch(rec, callback): callback(true) si no hace falta preguntar (nombres iguales,
+  // o ya confirmados antes) o si la persona confirmó que sí es la misma; callback(false) si dijo
+  // que no. Es ASÍNCRONA a propósito -- usa el diálogo propio de arriba (nombreMismatchDialog), NUNCA
+  // el confirm() nativo del navegador: ese puede quedar bloqueado en silencio para siempre después de
+  // varios usos seguidos (el navegador ofrece una casilla "no volver a mostrar diálogos de esta
+  // página" que, si se marca sin querer, deja esta validación de aquí en adelante imposible de
+  // pasar, sin ningún aviso ni forma de arreglarlo desde la pantalla).
+  var pendingNombreConfirm = null;
+  function checkNombreMismatch(rec, callback){
     var nombreImportado = normalizeNombrePersona(rec.nombre);
     var nombreInfractor = normalizeNombrePersona(rec.nombreF);
-    if(!nombreImportado || !nombreInfractor || nombreImportado === nombreInfractor) return true; // nada que confirmar
+    if(!nombreImportado || !nombreInfractor || nombreImportado === nombreInfractor){ callback(true); return; }
     var clave = nombreImportado + "||" + nombreInfractor;
-    if(rec._nombreConfirmado === clave) return true; // ya se confirmó este mismo par de nombres
-    var confirmado = confirm(
-      "El nombre del solicitante (datos importados de ORFEO):\n\"" + (rec.nombre||"").trim() + "\"\n\n" +
-      "es DIFERENTE al nombre del infractor (línea pegada de Fénix):\n\"" + (rec.nombreF||"").trim() + "\"\n\n" +
-      "¿Confirmas que de todas formas es la MISMA persona (puede haber variaciones de escritura, orden de apellidos, etc.)?\n\n" +
-      "Aceptar = sí, es la misma persona, continuar. Cancelar = detente, hay que revisar esto antes de guardar."
-    );
-    if(confirmado) rec._nombreConfirmado = clave;
-    return confirmado;
+    if(rec._nombreConfirmado === clave){ callback(true); return; }
+    document.getElementById("nombreMismatchSolicitante").textContent = (rec.nombre||"").trim();
+    document.getElementById("nombreMismatchInfractor").textContent = (rec.nombreF||"").trim();
+    pendingNombreConfirm = {rec:rec, clave:clave, callback:callback};
+    document.getElementById("nombreMismatchDialog").showModal();
   }
+  document.getElementById("nombreMismatchYes").addEventListener("click", function(){
+    if(!pendingNombreConfirm) return;
+    pendingNombreConfirm.rec._nombreConfirmado = pendingNombreConfirm.clave;
+    var cb = pendingNombreConfirm.callback;
+    pendingNombreConfirm = null;
+    document.getElementById("nombreMismatchDialog").close();
+    cb(true);
+  });
+  document.getElementById("nombreMismatchNo").addEventListener("click", function(){
+    if(!pendingNombreConfirm) return;
+    var cb = pendingNombreConfirm.callback;
+    pendingNombreConfirm = null;
+    document.getElementById("nombreMismatchDialog").close();
+    cb(false);
+  });
 
   document.getElementById("cc_delete").addEventListener("click", function(){
     var rec = state.records.find(function(r){ return r.id===state.activeId; });
@@ -2910,48 +2947,52 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   document.getElementById("cc_save").addEventListener("click", function(){
     var rec = readCaptureIntoRecord();
     if(!rec) return;
-    if(!checkNombreMismatch(rec)){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
-    // "Guardar" (a diferencia de "Guardar y siguiente") nunca exigió los campos obligatorios
-    // configurables en Ajustes -- eso se deja igual, para poder guardar un avance parcial. Pero las
-    // reglas IMPERATIVAS (fijas, sin excepción) sí deben cumplirse siempre, sin importar qué botón
-    // se use -- si no, bastaba con usar "Guardar" para saltárselas por completo.
-    clearFieldErrors();
-    var imperative = checkImperativeRules(rec);
-    if(imperative.length){
-      imperative.forEach(function(v){ v.wraps.forEach(markError); });
-      toast("No se guardó — " + imperative[0].message);
-      return;
-    }
-    save(); renderAll();
-    toast("Radicado " + rec.radicado + " guardado");
+    checkNombreMismatch(rec, function(ok){
+      if(!ok){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
+      // "Guardar" (a diferencia de "Guardar y siguiente") nunca exigió los campos obligatorios
+      // configurables en Ajustes -- eso se deja igual, para poder guardar un avance parcial. Pero las
+      // reglas IMPERATIVAS (fijas, sin excepción) sí deben cumplirse siempre, sin importar qué botón
+      // se use -- si no, bastaba con usar "Guardar" para saltárselas por completo.
+      clearFieldErrors();
+      var imperative = checkImperativeRules(rec);
+      if(imperative.length){
+        imperative.forEach(function(v){ v.wraps.forEach(markError); });
+        toast("No se guardó — " + imperative[0].message);
+        return;
+      }
+      save(); renderAll();
+      toast("Radicado " + rec.radicado + " guardado");
+    });
   });
   document.getElementById("cc_saveNext").addEventListener("click", function(){
     var rec = readCaptureIntoRecord();
     if(!rec) return;
-    if(!checkNombreMismatch(rec)){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
-    save(); renderQueue(); renderStats();
-    var check = validateAdvance(rec);
-    if(!check.ok){ warnMissing(check); return; }
-    // Siempre busca en toda la base, no solo en la pestaña/filtro activo, para que el botón
-    // nunca "deje de funcionar" al estar viendo Completos o con una búsqueda escrita.
-    var pending = state.records.filter(function(r){ return !isDone(r); }).sort(function(a,b){ return (a.order||0)-(b.order||0); });
-    if(!pending.length){
-      renderAll();
-      toast("¡Completaste todos los radicados de la semana!");
-      return;
-    }
-    var next = pending.find(function(r){ return (r.order||0) > (rec.order||0); }) || pending[0];
-    // Si el filtro o la búsqueda activa esconderían al siguiente pendiente, se limpian para que sí se vea en la cola.
-    if(!matchesFilter(next) || !matchesSearch(next, document.getElementById("searchBox").value.trim())){
-      state.filter = "pend";
-      document.getElementById("searchBox").value = "";
-      Array.prototype.forEach.call(document.querySelectorAll("#filterTabs button"), function(b){
-        b.classList.toggle("active", b.getAttribute("data-filter")==="pend");
-      });
-    }
-    toast("Radicado " + rec.radicado + " guardado");
-    selectRecord(next.id, "cc_formato");
-    renderStats();
+    checkNombreMismatch(rec, function(ok){
+      if(!ok){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
+      save(); renderQueue(); renderStats();
+      var check = validateAdvance(rec);
+      if(!check.ok){ warnMissing(check); return; }
+      // Siempre busca en toda la base, no solo en la pestaña/filtro activo, para que el botón
+      // nunca "deje de funcionar" al estar viendo Completos o con una búsqueda escrita.
+      var pending = state.records.filter(function(r){ return !isDone(r); }).sort(function(a,b){ return (a.order||0)-(b.order||0); });
+      if(!pending.length){
+        renderAll();
+        toast("¡Completaste todos los radicados de la semana!");
+        return;
+      }
+      var next = pending.find(function(r){ return (r.order||0) > (rec.order||0); }) || pending[0];
+      // Si el filtro o la búsqueda activa esconderían al siguiente pendiente, se limpian para que sí se vea en la cola.
+      if(!matchesFilter(next) || !matchesSearch(next, document.getElementById("searchBox").value.trim())){
+        state.filter = "pend";
+        document.getElementById("searchBox").value = "";
+        Array.prototype.forEach.call(document.querySelectorAll("#filterTabs button"), function(b){
+          b.classList.toggle("active", b.getAttribute("data-filter")==="pend");
+        });
+      }
+      toast("Radicado " + rec.radicado + " guardado");
+      selectRecord(next.id, "cc_formato");
+      renderStats();
+    });
   });
   document.getElementById("cc_prev").addEventListener("click", function(){
     var rec = readCaptureIntoRecord();
@@ -2963,13 +3004,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   document.getElementById("cc_next").addEventListener("click", function(){
     var rec = readCaptureIntoRecord();
     if(!rec) return;
-    if(!checkNombreMismatch(rec)){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
-    save(); renderQueue(); renderStats();
-    var check = validateAdvance(rec);
-    if(!check.ok){ warnMissing(check); return; }
-    var nextRec = findAdjacent(rec, 1);
-    if(nextRec) selectRecord(nextRec.id);
-    else toast("No hay más radicados en esta vista");
+    checkNombreMismatch(rec, function(ok){
+      if(!ok){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
+      save(); renderQueue(); renderStats();
+      var check = validateAdvance(rec);
+      if(!check.ok){ warnMissing(check); return; }
+      var nextRec = findAdjacent(rec, 1);
+      if(nextRec) selectRecord(nextRec.id);
+      else toast("No hay más radicados en esta vista");
+    });
   });
   document.getElementById("captureForm").addEventListener("keydown", function(e){
     if((e.ctrlKey || e.metaKey) && e.key === "Enter"){
