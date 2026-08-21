@@ -1139,11 +1139,35 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   var supaSession = null; // {access_token, refresh_token, user:{id,email,user_metadata}}
   var supaProfile = null; // {nombre, correo} de la tabla profiles, cacheado tras iniciar sesión
 
+  // Freno contra quedarse "pegado" para siempre: un fetch() normal no tiene límite de tiempo -- si
+  // la conexión se cuelga (un firewall/proxy que descarta paquetes en silencio, por ejemplo, en vez
+  // de rechazarlos de una vez) la promesa nunca se resuelve NI se rechaza, y la app se queda
+  // mostrando "Sincronizando…" para siempre, sin nunca llegar al código que recupera lo guardado en
+  // este navegador. Con este límite, a los 15 segundos se da por perdida esa conexión puntual y se
+  // sigue trabajando con la copia local -- igual que si de verdad no hubiera internet.
+  function fetchConTiempoLimite(url, opts, timeoutMs){
+    timeoutMs = timeoutMs || 15000;
+    return new Promise(function(resolve, reject){
+      var listo = false;
+      var timer = setTimeout(function(){
+        if(listo) return;
+        listo = true;
+        reject(new Error("Tiempo de espera agotado — el servidor no respondió a tiempo."));
+      }, timeoutMs);
+      fetch(url, opts).then(function(res){
+        if(listo) return;
+        listo = true; clearTimeout(timer); resolve(res);
+      }, function(err){
+        if(listo) return;
+        listo = true; clearTimeout(timer); reject(err);
+      });
+    });
+  }
   function supaFetch(path, opts, _retried){
     opts = opts || {};
     var headers = Object.assign({"apikey": supaConfig.anonKey, "Content-Type": "application/json"}, opts.headers || {});
     if(supaSession && supaSession.access_token) headers["Authorization"] = "Bearer " + supaSession.access_token;
-    return fetch(supaConfig.url.replace(/\/$/, "") + path, {method: opts.method || "GET", headers: headers, body: opts.body})
+    return fetchConTiempoLimite(supaConfig.url.replace(/\/$/, "") + path, {method: opts.method || "GET", headers: headers, body: opts.body})
       .then(function(res){
         return res.text().then(function(text){
           var data = null;
@@ -1176,7 +1200,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
   function supaRefreshSession(){
     if(!supaSession || !supaSession.refresh_token) return Promise.reject(new Error("Sin sesión"));
-    return fetch(supaConfig.url.replace(/\/$/, "") + "/auth/v1/token?grant_type=refresh_token", {
+    return fetchConTiempoLimite(supaConfig.url.replace(/\/$/, "") + "/auth/v1/token?grant_type=refresh_token", {
       method:"POST", headers:{"apikey":supaConfig.anonKey, "Content-Type":"application/json"},
       body: JSON.stringify({refresh_token: supaSession.refresh_token})
     }).then(function(res){
@@ -1463,10 +1487,17 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       maybeRemindBackup(user.email);
     }).catch(function(){
       load(); loadSettings(); loadHistory();
-      recoverLegacyFlatDataInto(); // aunque falle la nube, no se pierde lo que hay en este navegador
+      var recovered = recoverLegacyFlatDataInto(); // aunque falle la nube, no se pierde lo que hay en este navegador
       lastKnownSafeCount = state.records.length;
+      save(); saveSettingsToStorage(); saveHistory();
+      applyRequiredMarkers(); refreshFormatoDatalist();
+      setSaveStatus("cloud_error"); // el estado NUNCA debe quedarse en "Sincronizando…" -- eso es lo que se veía cuando la conexión se colgaba en vez de fallar rápido
       renderAll();
-      toast("No se pudo conectar con el servidor ahora mismo — se sigue trabajando con la copia guardada en este navegador.");
+      if(recovered.addedRecords > 0){
+        toast("No se pudo conectar con el servidor ahora mismo, pero se recuperaron " + recovered.addedRecords + " radicado(s) guardados en este navegador de una versión anterior de la app. Se subirán solos en cuanto vuelva la conexión.");
+      } else {
+        toast("No se pudo conectar con el servidor ahora mismo — se sigue trabajando con la copia guardada en este navegador.");
+      }
     });
   }
 
