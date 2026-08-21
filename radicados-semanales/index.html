@@ -579,7 +579,11 @@
                 <datalist id="formatoOptions"></datalist>
                 <div class="field-hint" id="plantillaPreview"></div>
               </div>
-              <div id="wrap_direccion"><label for="cc_direccion">Dirección<span class="required-mark" id="req_direccion" hidden>*</span></label><input id="cc_direccion" placeholder="correo o dirección de notificación"></div>
+              <div id="wrap_direccion">
+                <label for="cc_direccion">Dirección<span class="required-mark" id="req_direccion" hidden>*</span></label>
+                <button class="btn small simit-btn" id="cc_orfeoBtn" type="button" title="Abre ORFEO (Entrada) en una pestaña nueva para copiar el Email del solicitante">📂 Abrir ORFEO</button>
+                <input id="cc_direccion" placeholder="correo o dirección de notificación">
+              </div>
 
               <div class="full" id="wrap_comparendo">
                 <label for="cc_comparendo">Pegar línea completa del comparendo<span class="required-mark" id="req_comparendo" hidden>*</span></label>
@@ -2401,6 +2405,16 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // resultados de SIMIT corresponde a este caso, cuando la persona tiene más de un comparendo.
     var fechaGuia = (parsed && parsed.imposicion) ? (" Si aparece más de uno, compara con la fecha de imposición: " + parsed.imposicion + ".") : " Si aparece más de uno, compara con la fecha de imposición del comparendo para identificar cuál es.";
     toast((copied ? doc.shown + " copiado — pégalo en SIMIT." : "Abriendo SIMIT — copia " + doc.shown + " a mano, tu navegador no permitió copiarlo solo.") + fechaGuia);
+  });
+
+  // ---------- atajo a ORFEO: abre la bandeja de Entrada para copiar el Email del solicitante ----------
+  // A diferencia de SIMIT, aquí no hay ningún dato para copiar de antemano ni un número para armar un
+  // enlace directo al radicado exacto -- ORFEO se abre siempre en la misma URL de consulta, y el correo
+  // se copia a mano desde ahí y se pega en Dirección. El inicio de sesión (con Gmail) queda igual: nunca
+  // se automatiza ni se guardan credenciales en esta app.
+  document.getElementById("cc_orfeoBtn").addEventListener("click", function(){
+    window.open("https://gestiondocumental.movilidadbogota.gov.co/index_frames.php?&fechah=" + toISODate(new Date()).replace(/-/g,"") + "_&swLog=1&orno=1", "_blank", "noopener");
+    toast("Abriendo ORFEO — busca el radicado en “Entrada” y copia el Email del solicitante para pegarlo en Dirección.");
   });
 
   // ---------- insights en vivo: término por caso, plantilla resultante, titular ≠ peticionario, duplicados ----------
