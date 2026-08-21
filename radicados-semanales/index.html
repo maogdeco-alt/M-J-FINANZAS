@@ -265,10 +265,16 @@
   /* Una sola columna vertical, como llenar celda por celda en Excel: pensado para pantalla de computador. */
   .work-fields{display:flex;flex-direction:column;gap:16px;max-width:600px;}
   .work-fields .formato-field input{font-weight:700;}
-  .simit-btn{margin-left:8px;padding:3px 11px;font-size:0.76rem;border-radius:999px;background:var(--accent-soft);border-color:transparent;color:var(--accent);vertical-align:middle;}
+  .simit-btn{margin-left:8px;padding:3px 11px;font-size:0.76rem;border-radius:999px;background:var(--accent-soft);border-color:transparent;color:var(--accent);vertical-align:middle;text-decoration:none;}
   .simit-btn:hover{background:var(--accent);color:var(--accent-ink);filter:none;}
   .simit-btn:disabled{background:var(--surface-2);color:var(--muted);cursor:default;opacity:0.7;}
   .simit-btn:disabled:hover{background:var(--surface-2);color:var(--muted);}
+  /* Estos atajos son enlaces <a> reales (no <button>), a propósito: un window.open() por JavaScript
+     puede quedar bloqueado en silencio por el navegador o por políticas de la entidad, sin ningún
+     aviso -- una navegación de enlace normal, en cambio, prácticamente nunca se bloquea. Como los
+     enlaces no tienen un ":disabled" nativo, el estado deshabilitado se maneja con esta clase. */
+  .simit-btn.is-disabled{background:var(--surface-2);color:var(--muted);cursor:not-allowed;opacity:0.7;pointer-events:none;}
+  .simit-btn.is-disabled:hover{background:var(--surface-2);color:var(--muted);}
 
   .breakdown{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;margin-top:10px;}
   .breakdown .bd-item{background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:6px 9px;}
@@ -585,7 +591,7 @@
               </div>
               <div id="wrap_direccion">
                 <label for="cc_direccion">Dirección<span class="required-mark" id="req_direccion" hidden>*</span></label>
-                <button class="btn small simit-btn" id="cc_orfeoBtn" type="button" title="Abre ORFEO (Entrada) en una pestaña nueva para copiar el Email del solicitante">📂 Abrir ORFEO</button>
+                <a class="btn small simit-btn" id="cc_orfeoBtn" href="https://gestiondocumental.movilidadbogota.gov.co/index_frames.php?&swLog=1&orno=1" target="_blank" rel="noopener" title="Abre ORFEO (Entrada) en una pestaña nueva para copiar el Email del solicitante">📂 Abrir ORFEO</a>
                 <input id="cc_direccion" placeholder="correo o dirección de notificación">
               </div>
 
@@ -593,7 +599,7 @@
                 <label for="cc_fenixNum">Número de comparendo (para abrir Fénix)</label>
                 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                   <input id="cc_fenixNum" placeholder="ej. 11001000000052464701" style="max-width:260px;">
-                  <button class="btn small simit-btn" id="cc_fenixBtn" type="button" title="Abre este expediente en Fénix en una pestaña nueva" disabled>🔗 Abrir en Fénix</button>
+                  <a class="btn small simit-btn is-disabled" id="cc_fenixBtn" href="#" target="_blank" rel="noopener" aria-disabled="true" title="Escribe primero el número de comparendo arriba">🔗 Abrir en Fénix</a>
                 </div>
                 <div class="field-hint">Este número NO es el Radicado del Paso 1 -- es el número de comparendo propiamente dicho. Abre el expediente exacto en Fénix.</div>
               </div>
@@ -608,7 +614,7 @@
 
               <div id="wrap_res">
                 <label for="cc_res">Res.<span class="required-mark" id="req_res" hidden>*</span></label>
-                <button class="btn small simit-btn" id="cc_simitBtn" type="button" title="Copia el número de documento y abre la consulta de SIMIT en una pestaña nueva" disabled>🔎 <span id="cc_simitBtnLabel">Buscar en SIMIT</span></button>
+                <a class="btn small simit-btn is-disabled" id="cc_simitBtn" href="https://www.fcm.org.co/simit/#/home-public" target="_blank" rel="noopener" aria-disabled="true" title="Pega primero la línea del comparendo -- de ahí sale el número de documento">🔎 <span id="cc_simitBtnLabel">Buscar en SIMIT</span></a>
                 <input id="cc_res" placeholder="pega directo de SIMIT: se separa sola de la fecha">
                 <div class="field-hint">Puedes pegar tal cual copias de SIMIT ("1368706 Fecha: 26/07/2024") — separa el número y la fecha solo.</div>
               </div>
@@ -1454,6 +1460,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         toast("Sesión iniciada como " + user.name);
       }
       renderAll();
+      maybeRemindBackup(user.email);
     }).catch(function(){
       load(); loadSettings(); loadHistory();
       recoverLegacyFlatDataInto(); // aunque falle la nube, no se pierde lo que hay en este navegador
@@ -2435,6 +2442,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(res.dup) msg += " " + res.dup + " ya existían y se omitieron.";
     if(res.tooShort) msg += " " + res.tooShort + " líneas no se reconocieron.";
     toast(msg);
+    // El recordatorio de respaldo también se revisa aquí (no solo al iniciar sesión): es muy común
+    // pegar la masiva de la semana recién se entra, así que a esa altura, en el login, todavía no
+    // había nada que respaldar.
+    if(res.added > 0){ var u = currentUser(); if(u) maybeRemindBackup(u.email); }
   });
 
   // ---------- Paso 1b: agregar uno manual ----------
@@ -2552,24 +2563,36 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var tipo = (parsed && parsed.tipoId) ? String(parsed.tipoId).trim().toUpperCase() : "";
     return {num: num, shown: (tipo && num) ? (tipo + " " + num) : num};
   }
+  // IMPORTANTE: estos tres atajos (SIMIT, ORFEO, Fénix) son enlaces <a target="_blank"> REALES, no
+  // botones que llaman a window.open() por JavaScript. Se cambiaron a propósito: un window.open()
+  // disparado desde JS puede quedar bloqueado en silencio por el bloqueador de ventanas emergentes
+  // del navegador (o por una política de seguridad de la entidad) sin mostrar ningún aviso -- el
+  // clic simplemente "no hace nada". Una navegación de enlace normal, en cambio, es tratada como
+  // cualquier clic en un link y prácticamente nunca se bloquea. El estado deshabilitado se maneja
+  // con la clase .is-disabled (que además desactiva los clics con pointer-events:none), ya que los
+  // enlaces no tienen un ":disabled" nativo como los botones.
   function updateSimitBtnState(parsed){
     var btn = document.getElementById("cc_simitBtn");
     var label = document.getElementById("cc_simitBtnLabel");
     var doc = docLabel(parsed);
-    btn.disabled = !doc.num;
+    btn.classList.toggle("is-disabled", !doc.num);
+    btn.setAttribute("aria-disabled", doc.num ? "false" : "true");
     label.textContent = doc.num ? ("Buscar " + doc.shown + " en SIMIT") : "Buscar en SIMIT";
     btn.title = doc.num
       ? "Copia " + doc.shown + " y abre la consulta de SIMIT en una pestaña nueva"
       : "Pega primero la línea del comparendo arriba -- de ahí sale el número de documento (casilla \"ID\")";
   }
-  document.getElementById("cc_simitBtn").addEventListener("click", function(){
-    if(this.disabled) return;
+  document.getElementById("cc_simitBtn").addEventListener("click", function(e){
+    if(this.classList.contains("is-disabled")){ e.preventDefault(); return; }
     // Se lee en vivo de la caja de texto (igual que renderInsights), no del último registro
     // guardado -- si no, habría que darle Guardar antes de poder usar este botón, y todo el punto
-    // es que funcione en el mismo momento en que se acaba de pegar la línea del comparendo.
+    // es que funcione en el mismo momento en que se acaba de pegar la línea del comparendo. No se
+    // hace e.preventDefault(): el enlace navega solo, de forma nativa: aquí solo se copia el
+    // número al portapapeles y se avisa, en paralelo a esa navegación.
     var parsed = parseComparendoLine(document.getElementById("cc_comparendo").value);
     var doc = docLabel(parsed);
     if(!doc.num){
+      e.preventDefault();
       toast("Todavía no hay un número de documento detectado — pega primero la línea del comparendo arriba.");
       return;
     }
@@ -2579,8 +2602,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         navigator.clipboard.writeText(doc.num);
         copied = true;
       }
-    }catch(e){}
-    window.open("https://www.fcm.org.co/simit/#/home-public", "_blank", "noopener");
+    }catch(e2){}
     // La fecha de imposición del comparendo pegado es la mejor guía para elegir cuál de los varios
     // resultados de SIMIT corresponde a este caso, cuando la persona tiene más de un comparendo.
     var fechaGuia = (parsed && parsed.imposicion) ? (" Si aparece más de uno, compara con la fecha de imposición: " + parsed.imposicion + ".") : " Si aparece más de uno, compara con la fecha de imposición del comparendo para identificar cuál es.";
@@ -2589,11 +2611,16 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
   // ---------- atajo a ORFEO: abre la bandeja de Entrada para copiar el Email del solicitante ----------
   // A diferencia de SIMIT, aquí no hay ningún dato para copiar de antemano ni un número para armar un
-  // enlace directo al radicado exacto -- ORFEO se abre siempre en la misma URL de consulta, y el correo
-  // se copia a mano desde ahí y se pega en Dirección. El inicio de sesión (con Gmail) queda igual: nunca
-  // se automatiza ni se guardan credenciales en esta app.
+  // enlace directo al radicado exacto -- ORFEO se abre siempre en la misma URL de consulta (con la
+  // fecha de hoy), y el correo se copia a mano desde ahí y se pega en Dirección. El inicio de sesión
+  // (con Gmail) queda igual: nunca se automatiza ni se guardan credenciales en esta app.
+  function updateOrfeoHref(){
+    var a = document.getElementById("cc_orfeoBtn");
+    if(a) a.href = "https://gestiondocumental.movilidadbogota.gov.co/index_frames.php?&fechah=" + toISODate(new Date()).replace(/-/g,"") + "_&swLog=1&orno=1";
+  }
+  updateOrfeoHref();
   document.getElementById("cc_orfeoBtn").addEventListener("click", function(){
-    window.open("https://gestiondocumental.movilidadbogota.gov.co/index_frames.php?&fechah=" + toISODate(new Date()).replace(/-/g,"") + "_&swLog=1&orno=1", "_blank", "noopener");
+    updateOrfeoHref(); // por si el enlace se dejó abierto de un día para otro, se actualiza justo antes de navegar
     toast("Abriendo ORFEO — busca el radicado en “Entrada” y copia el Email del solicitante para pegarlo en Dirección.");
   });
 
@@ -2603,13 +2630,23 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // pegada abajo (esa llega DESPUÉS, cuando ya se copió desde Fénix).
   function updateFenixBtnState(){
     var num = document.getElementById("cc_fenixNum").value.trim();
-    document.getElementById("cc_fenixBtn").disabled = !num;
+    var a = document.getElementById("cc_fenixBtn");
+    if(num){
+      a.href = "https://webfenix.movilidadbogota.gov.co/#/consulta-expedientes?comparendo=" + encodeURIComponent(num);
+      a.classList.remove("is-disabled");
+      a.setAttribute("aria-disabled", "false");
+      a.title = "Abre este expediente en Fénix en una pestaña nueva";
+    } else {
+      a.href = "#";
+      a.classList.add("is-disabled");
+      a.setAttribute("aria-disabled", "true");
+      a.title = "Escribe primero el número de comparendo arriba";
+    }
   }
   document.getElementById("cc_fenixNum").addEventListener("input", updateFenixBtnState);
-  document.getElementById("cc_fenixBtn").addEventListener("click", function(){
+  document.getElementById("cc_fenixBtn").addEventListener("click", function(e){
     var num = document.getElementById("cc_fenixNum").value.trim();
-    if(!num) return;
-    window.open("https://webfenix.movilidadbogota.gov.co/#/consulta-expedientes?comparendo=" + encodeURIComponent(num), "_blank", "noopener");
+    if(this.classList.contains("is-disabled") || !num){ e.preventDefault(); return; }
     toast("Abriendo el expediente " + num + " en Fénix — copia la línea completa y pégala abajo.");
   });
 
@@ -3066,7 +3103,30 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     };
     var filename = "respaldo_" + userSlug() + "_" + new Date().toISOString().slice(0,16).replace(/[:T]/g,"-") + ".json";
     downloadFile(filename, JSON.stringify(payload), "Respaldo descargado — guárdalo en un lugar seguro");
+    var user = currentUser();
+    if(user) rememberLastBackup(user.email);
   });
+
+  // ---------- recordatorio de respaldo manual: una capa MÁS, independiente de la nube ----------
+  // La nube (Supabase) y los frenos de sincronización ya protegen contra una pérdida silenciosa,
+  // pero un respaldo .json en un lugar aparte (correo, disco compartido de la Secretaría, etc.) es
+  // la única copia que sobrevive incluso si algún día fallara la cuenta de Supabase por completo.
+  // Se avisa una sola vez por sesión, sin bloquear nada, si nunca se ha descargado un respaldo para
+  // esta cuenta o si el último tiene más de 14 días.
+  var LAST_BACKUP_KEY = "radicados_last_backup_at_v1";
+  function lastBackupKeyFor(email){ return LAST_BACKUP_KEY + "::" + email; }
+  function rememberLastBackup(email){ try{ localStorage.setItem(lastBackupKeyFor(email), String(Date.now())); }catch(e){} }
+  function maybeRemindBackup(email){
+    if(!state.records.length) return; // nada que respaldar todavía
+    var last = 0;
+    try{ last = parseInt(localStorage.getItem(lastBackupKeyFor(email)) || "0", 10) || 0; }catch(e){}
+    var catorceDias = 14 * 24 * 60 * 60 * 1000;
+    if(!last || (Date.now() - last) > catorceDias){
+      setTimeout(function(){
+        toast("Recuerda descargar un respaldo (.json) de vez en cuando -- Ajustes → Respaldo de trabajo. Guárdalo en un lugar aparte de este navegador (correo, disco compartido...).");
+      }, 2500); // no compite con el aviso de "sesión iniciada"
+    }
+  }
 
   document.getElementById("loadJsonBtn").addEventListener("click", function(){
     document.getElementById("jsonFileInput").click();

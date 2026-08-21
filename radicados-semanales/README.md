@@ -120,6 +120,53 @@ navegador, sino uno propio de la app.
 - El Excel oficial de tu Secretaría **nunca se toca ni se modifica** — esta
   app solo genera un archivo nuevo con el formato de la plantilla MASIVA.
 
+## Protocolo de seguridad de la información (léelo con todo el equipo)
+
+Esta app maneja radicados reales de una entidad estatal — un dato perdido no
+es aceptable. Además de la nube (Supabase) y la copia local del navegador,
+la app tiene **tres frenos automáticos** para que nadie pierda su trabajo
+por un fallo técnico:
+
+1. **Recuperación automática de versiones anteriores.** Si alguna vez se
+   trabajó con una versión más vieja de la app en este navegador, al iniciar
+   sesión se revisa y se fusiona sola con lo que haya en la nube — nunca se
+   reemplaza nada.
+2. **Freno dentro de la sesión.** La app se niega a subir a la nube una
+   lista que se quede en cero de golpe, salvo que la propia persona la haya
+   vaciado a propósito (borrar un radicado puntual, o "Cerrar semana").
+3. **Aviso al iniciar sesión.** Cada navegador recuerda cuántos radicados
+   vio la última vez para cada cuenta. Si un inicio de sesión futuro
+   encuentra muchos menos de golpe, se detiene **antes** de guardar o
+   sincronizar nada y pregunta directamente — nunca asume sola que la
+   cantidad menor es la correcta.
+
+Estas tres protecciones son automáticas: no requieren que cada persona del
+equipo configure nada, ya vienen incluidas para toda cuenta que use la app.
+
+### Qué debe hacer cada persona del equipo, de todos modos
+
+- **Si alguna vez ves tu lista de radicados en "0" o con muchos menos de los
+  que esperabas: DETENTE.** No importes nada, no borres nada, no le des
+  "Cerrar semana". Avisa antes de seguir usando la app. Casi siempre la
+  información sigue intacta en algún lado (la nube, o una copia local) y
+  hay que ubicarla antes de que cualquier guardado nuevo la sobrescriba.
+- **Descarga un respaldo manual de vez en cuando** (Ajustes → "Descargar
+  respaldo (.json)") y guárdalo en un lugar aparte de este navegador —
+  correo, disco compartido de la Secretaría, etc. Es la única copia que
+  sobrevive incluso si algún día fallara la cuenta de Supabase por completo.
+  La app recuerda el último respaldo hecho en cada navegador y avisa
+  (sin bloquear nada) si ya pasaron más de 14 días sin uno nuevo.
+- **No trabajes en modo incógnito/privado** para tu trabajo real: al cerrar
+  esa ventana, la copia local de respaldo de ese navegador desaparece por
+  completo (aunque la nube siga intacta, es una capa de seguridad menos).
+- **Cada persona usa su propio correo de Gmail real**, nunca uno compartido
+  entre varias personas — así cada quien tiene su propia fila protegida en
+  la base de datos (seguridad por fila / RLS), sin cruces posibles con el
+  trabajo de otro compañero.
+- **Si tu equipo comparte un mismo computador**, cierra sesión (botón junto
+  a tu nombre → "Cerrar sesión") al terminar, para que la siguiente persona
+  no vea ni edite por accidente tus radicados.
+
 ## Desarrollo
 
 El programa en sí sigue siendo un único archivo HTML/CSS/JS sin build ni
