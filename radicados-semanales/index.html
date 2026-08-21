@@ -1208,6 +1208,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // ---------- sincronización a la nube: se dispara sola después de cada guardado local ----------
   var cloudSyncTimer = null;
   var cloudRetryTimer = null;
+  // Freno de seguridad contra pérdidas silenciosas: si la lista en memoria se queda en CERO justo
+  // cuando antes había radicados reales, NUNCA se sube sola a la nube -- se bloquea y se avisa en
+  // grande. Así, si algún día vuelve a fallar la carga (como pasó una vez, por una llave de
+  // localStorage que dejó de migrarse), ese fallo se queda contenido en esta pestaña y jamás
+  // sobrescribe lo que ya está guardado del lado del servidor. Solo se permite bajar a cero cuando
+  // la propia persona lo pidió de forma explícita (borrar un radicado puntual, o "Cerrar semana").
+  var lastKnownSafeCount = 0;
+  var explicitRemovalPending = false;
   function queueCloudSync(){
     if(!supaSession) return;
     clearTimeout(cloudSyncTimer);
@@ -1216,12 +1224,20 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function pushCloudNow(){
     if(!supaSession || !supaConfig) return;
     clearTimeout(cloudRetryTimer);
+    if(state.records.length === 0 && lastKnownSafeCount > 0 && !explicitRemovalPending){
+      setSaveStatus("blocked");
+      showDataSafetyBanner("Se bloqueó una sincronización que iba a dejar tu cuenta en la nube completamente vacía (antes de esto tenías " + lastKnownSafeCount + " radicado(s) en esta sesión). Tu información en el servidor NO se tocó. Si de verdad quieres vaciar la lista, usa \"Cerrar semana\". Si no reconoces esta situación, no sigas usando la app y avisa antes de continuar.", "warn");
+      return;
+    }
+    explicitRemovalPending = false;
     setSaveStatus("syncing");
     supaFetch("/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id, {
       method:"PATCH", headers:{"Prefer":"return=minimal"},
       body: JSON.stringify({records: state.records, settings: state.settings, history: state.history, actualizado: new Date().toISOString()})
     }).then(function(){
       setSaveStatus("ok");
+      lastKnownSafeCount = state.records.length;
+      if(supaSession && supaSession.user) rememberSafeCount(supaSession.user.email, state.records.length);
     }).catch(function(){
       setSaveStatus("cloud_error");
       cloudRetryTimer = setTimeout(pushCloudNow, 15000); // reintenta sola si hubo un corte de conexión
@@ -1357,6 +1373,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     return {addedRecords: state.records.length - before};
   }
 
+  // ---------- memoria persistente de "última cantidad confirmada", por cuenta y por navegador ----------
+  // Esto es justamente lo que habría avisado del incidente real que motivó este arreglo: si un día
+  // el inicio de sesión resuelve muchos MENOS radicados que la última vez confirmada en este mismo
+  // navegador, se le pregunta explícitamente a la persona antes de tocar la nube -- nunca se asume
+  // en automático que la cantidad menor es correcta.
+  var LAST_SEEN_COUNT_KEY = "radicados_last_seen_count_v1";
+  function lastSeenCountKeyFor(email){ return LAST_SEEN_COUNT_KEY + "::" + email; }
+  function getRememberedSafeCount(email){
+    try{ return parseInt(localStorage.getItem(lastSeenCountKeyFor(email)) || "0", 10) || 0; }
+    catch(e){ return 0; }
+  }
+  function rememberSafeCount(email, n){
+    try{ localStorage.setItem(lastSeenCountKeyFor(email), String(n)); }catch(e){}
+  }
+
   // Tras autenticarse con Supabase: trae los datos reales de la nube. Si la cuenta ya tenía
   // trabajo guardado ahí, ese manda. Si la cuenta está recién creada y no tiene nada en la nube
   // pero SÍ había trabajo guardado localmente en este navegador (de antes de conectar, o hecho sin
@@ -1382,6 +1413,35 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         load(); loadSettings(); loadHistory();
       }
       var recovered = recoverLegacyFlatDataInto();
+
+      // Comparación contra la memoria persistente de este navegador: si la última vez que se
+      // confirmó esta cuenta aquí había bastantes más radicados de los que se acaban de resolver
+      // ahora, se detiene ANTES de guardar o sincronizar nada, y se pregunta directamente. Nunca se
+      // decide en automático que la cantidad menor es la correcta.
+      var remembered = getRememberedSafeCount(user.email);
+      var nowCount = state.records.length;
+      if(remembered >= 5 && nowCount < remembered * 0.5){
+        var proceed = confirm(
+          "⚠ Aviso de seguridad: la última vez que se confirmó esta cuenta en este navegador había " + remembered +
+          " radicado(s), y ahora mismo solo se encontraron " + nowCount + ".\n\n" +
+          "Esto puede ser normal (si tú misma borraste varios o cerraste una semana), pero también puede ser " +
+          "un problema de sincronización -- como el que ya ocurrió una vez.\n\n" +
+          "Presiona Aceptar SOLO si estás segura de que " + nowCount + " es la cantidad correcta ahora mismo. " +
+          "Presiona Cancelar para detenerte aquí sin subir ni guardar nada, y avisa antes de seguir usando la app."
+        );
+        if(!proceed){
+          setSaveStatus("blocked");
+          showDataSafetyBanner("Sincronización detenida por seguridad: se esperaban al menos " + remembered + " radicado(s) y solo aparecieron " + nowCount + ". No se guardó ni se subió nada todavía. No sigas usando la app y avisa antes de continuar.", "warn");
+          renderAll();
+          return;
+        }
+      }
+
+      // A partir de aquí, en esta sesión, se considera "segura" la cantidad de radicados que
+      // acabamos de confirmar (de la nube, de este navegador, o de ambos ya fusionados). El freno
+      // de seguridad de pushCloudNow() nunca deja que se suba menos que esto de la nada.
+      lastKnownSafeCount = nowCount;
+      rememberSafeCount(user.email, nowCount);
       save(); saveSettingsToStorage(); saveHistory(); // espejo local, para seguir funcionando sin conexión
       applyRequiredMarkers(); refreshFormatoDatalist();
       if(recovered.addedRecords > 0){
@@ -1397,6 +1457,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }).catch(function(){
       load(); loadSettings(); loadHistory();
       recoverLegacyFlatDataInto(); // aunque falle la nube, no se pierde lo que hay en este navegador
+      lastKnownSafeCount = state.records.length;
       renderAll();
       toast("No se pudo conectar con el servidor ahora mismo — se sigue trabajando con la copia guardada en este navegador.");
     });
@@ -1419,6 +1480,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     state.profile.activeUser = null;
     state.records = []; state.history = []; state.activeId = null;
     state.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+    lastKnownSafeCount = 0; explicitRemovalPending = false; // el freno de sincronización se reinicia para la próxima cuenta que entre en esta pestaña
     var settingsDlg = document.getElementById("settingsDialog");
     if(settingsDlg.open) settingsDlg.close();
     applyRequiredMarkers();
@@ -2017,6 +2079,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     } else if(status === "nostorage"){
       el.textContent = "⚠ Solo en esta pestaña — usa el respaldo";
       el.className = "save-status warn";
+    } else if(status === "blocked"){
+      el.textContent = "⛔ Sincronización bloqueada — revisa el aviso";
+      el.className = "save-status error";
     } else {
       el.textContent = "⚠ Sin guardar — revisa el aviso";
       el.className = "save-status error";
@@ -2416,6 +2481,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var rec = state.records.find(function(r){ return r.id===did; });
       if(rec && confirm("¿Borrar el radicado " + rec.radicado + "?")){
         state.records = state.records.filter(function(r){ return r.id!==did; });
+        explicitRemovalPending = true; // borrado deliberado por la persona -- el freno de la nube no debe bloquear esto
         save(); renderAll();
         toast("Radicado borrado");
       }
@@ -2817,6 +2883,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(rec && confirm("¿Borrar el radicado " + rec.radicado + "?")){
       state.records = state.records.filter(function(r){ return r.id!==state.activeId; });
       state.activeId = null;
+      explicitRemovalPending = true; // borrado deliberado por la persona -- el freno de la nube no debe bloquear esto
       save(); renderAll();
       toast("Radicado borrado");
     }
@@ -3131,6 +3198,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     saveHistory();
     state.records = [];
     state.activeId = null;
+    explicitRemovalPending = true; // vaciado deliberado ("Cerrar semana") -- el freno de la nube no debe bloquear esto
     save(); renderAll();
     confirmDialog.close();
     toast("Lista borrada — se guardó el resumen de esta semana en tu Historial de asignaciones");
