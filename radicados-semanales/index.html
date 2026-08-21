@@ -585,6 +585,15 @@
                 <input id="cc_direccion" placeholder="correo o dirección de notificación">
               </div>
 
+              <div class="full" id="wrap_fenixNum">
+                <label for="cc_fenixNum">Número de comparendo (para abrir Fénix)</label>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                  <input id="cc_fenixNum" placeholder="ej. 11001000000052464701" style="max-width:260px;">
+                  <button class="btn small simit-btn" id="cc_fenixBtn" type="button" title="Abre este expediente en Fénix en una pestaña nueva" disabled>🔗 Abrir en Fénix</button>
+                </div>
+                <div class="field-hint">Este número NO es el Radicado del Paso 1 -- es el número de comparendo propiamente dicho. Abre el expediente exacto en Fénix.</div>
+              </div>
+
               <div class="full" id="wrap_comparendo">
                 <label for="cc_comparendo">Pegar línea completa del comparendo<span class="required-mark" id="req_comparendo" hidden>*</span></label>
                 <textarea id="cc_comparendo" rows="2" placeholder="Pega aquí toda la línea copiada (comparendo, cod, imposición, notificación, curso, medio, estado...)"></textarea>
@@ -851,6 +860,21 @@
         <p class="hint">Tu trabajo se guarda en el servidor de la entidad (Supabase) y también, como copia local, en este navegador — así sigues trabajando aunque se corte la conexión. Cada cuenta ve únicamente sus propios datos, sin importar desde qué computador entre.</p>
         <div class="account-info" id="accountInfoBox"></div>
         <button class="link-btn" id="changeServerBtn" type="button">Cambiar servidor (Supabase)</button>
+      </div>
+
+      <div class="settings-section">
+        <h3>Atajos de navegador (ORFEO / Fénix)</h3>
+        <p class="hint">Dos "marcadores" que arrastras a la barra de marcadores de tu navegador (no son botones de esta app -- se ejecutan DENTRO de ORFEO o Fénix, con tu propia sesión ya iniciada). Nunca tocan tu contraseña ni pasan por ningún servidor. Son una primera versión: si algo no encaja con la pantalla real, avísame para afinarlos.</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div>
+            <a href="javascript:%28function%28%29%7B%20function%20banner%28msg%2C%20ok%29%7B%20var%20b%20%3D%20document.createElement%28%27div%27%29%3B%20b.textContent%20%3D%20msg%3B%20b.style.cssText%20%3D%20%27position%3Afixed%3Btop%3A16px%3Bright%3A16px%3Bz-index%3A999999%3Bbackground%3A%27%2B%28ok%3F%27%230f7a4d%27%3A%27%23b3261e%27%29%2B%27%3Bcolor%3A%23fff%3Bpadding%3A12px%2018px%3Bborder-radius%3A8px%3Bfont%3A14px%20sans-serif%3Bbox-shadow%3A0%204px%2014px%20rgba%280%2C0%2C0%2C.3%29%3Bmax-width%3A340px%3B%27%3B%20document.body.appendChild%28b%29%3B%20setTimeout%28function%28%29%7B%20try%7B%20b.remove%28%29%3B%20%7Dcatch%28e%29%7B%7D%20%7D%2C%207000%29%3B%20%7D%20function%20allDocs%28%29%7B%20var%20docs%20%3D%20%5Bdocument%5D%3B%20try%7B%20for%28var%20i%3D0%3Bi%3Cwindow.frames.length%3Bi%2B%2B%29%7B%20try%7B%20if%28window.frames%5Bi%5D.document%29%20docs.push%28window.frames%5Bi%5D.document%29%3B%20%7Dcatch%28e%29%7B%7D%20%7D%20%7Dcatch%28e%29%7B%7D%20return%20docs%3B%20%7D%20var%20emailRe%20%3D%20%2F%5Ba-zA-Z0-9._%25%2B-%5D%2B%40%5Ba-zA-Z0-9.-%5D%2B%5C.%5Ba-zA-Z%5D%7B2%2C%7D%2F%3B%20function%20findEmail%28root%29%7B%20var%20all%20%3D%20root.querySelectorAll%28%27%2A%27%29%3B%20for%28var%20i%3D0%3Bi%3Call.length%3Bi%2B%2B%29%7B%20var%20el%20%3D%20all%5Bi%5D%3B%20if%28el.children.length%29%20continue%3B%20var%20txt%20%3D%20%28el.textContent%7C%7C%22%22%29.trim%28%29%3B%20var%20label%20%3D%20txt.toLowerCase%28%29%3B%20if%28%2Fe-%3Fmail%7Ccorreo%2F.test%28label%29%20%26%26%20label.length%20%3C%2040%29%7B%20var%20m%20%3D%20txt.match%28emailRe%29%3B%20if%28m%29%20return%20m%5B0%5D%3B%20var%20sib%20%3D%20el.nextElementSibling%3B%20if%28sib%29%7B%20var%20m2%20%3D%20%28sib.textContent%7C%7C%22%22%29.match%28emailRe%29%3B%20if%28m2%29%20return%20m2%5B0%5D%3B%20%7D%20var%20parentTxt%20%3D%20el.parentElement%20%3F%20el.parentElement.textContent%20%3A%20%22%22%3B%20var%20m3%20%3D%20parentTxt.match%28emailRe%29%3B%20if%28m3%29%20return%20m3%5B0%5D%3B%20%7D%20%7D%20var%20full%20%3D%20%28root.body%20%3F%20root.body.innerText%20%3A%20%22%22%29%20%7C%7C%20%22%22%3B%20var%20m4%20%3D%20full.match%28emailRe%29%3B%20return%20m4%20%3F%20m4%5B0%5D%20%3A%20null%3B%20%7D%20var%20radicado%20%3D%20prompt%28%22N%C3%BAmero%20de%20Radicado%20a%20buscar%20en%20esta%20pantalla%20de%20ORFEO%3A%22%29%3B%20if%28%21radicado%29%20return%3B%20radicado%20%3D%20radicado.trim%28%29%3B%20if%28%21radicado%29%7B%20return%3B%20%7D%20var%20docs%20%3D%20allDocs%28%29%3B%20var%20foundCell%20%3D%20null%3B%20for%28var%20d%3D0%3B%20d%3Cdocs.length%20%26%26%20%21foundCell%3B%20d%2B%2B%29%7B%20var%20cells%20%3D%20docs%5Bd%5D.querySelectorAll%28%27td%2C%20a%2C%20span%2C%20div%27%29%3B%20for%28var%20i%3D0%3Bi%3Ccells.length%3Bi%2B%2B%29%7B%20var%20t%20%3D%20%28cells%5Bi%5D.textContent%7C%7C%22%22%29.trim%28%29%3B%20if%28t%20%3D%3D%3D%20radicado%29%7B%20foundCell%20%3D%20cells%5Bi%5D%3B%20break%3B%20%7D%20%7D%20%7D%20if%28%21foundCell%29%7B%20banner%28%27No%20encontre%20el%20radicado%20%27%20%2B%20radicado%20%2B%20%27%20en%20esta%20pantalla.%20Revisa%20que%20estes%20en%20%22Entrada%22.%27%2C%20false%29%3B%20return%3B%20%7D%20var%20clickable%20%3D%20foundCell.closest%28%27a%2C%20tr%5Bonclick%5D%2C%20%5Bonclick%5D%27%29%20%7C%7C%20foundCell%3B%20clickable.click%28%29%3B%20var%20intentos%20%3D%200%3B%20var%20maxIntentos%20%3D%2040%3B%20var%20timer%20%3D%20setInterval%28function%28%29%7B%20intentos%2B%2B%3B%20var%20email%20%3D%20findEmail%28document%29%3B%20if%28%21email%29%7B%20var%20fdocs%20%3D%20allDocs%28%29%3B%20for%28var%20d2%3D0%3B%20d2%3Cfdocs.length%20%26%26%20%21email%3B%20d2%2B%2B%29%7B%20email%20%3D%20findEmail%28fdocs%5Bd2%5D%29%3B%20%7D%20%7D%20if%28email%29%7B%20clearInterval%28timer%29%3B%20try%7B%20navigator.clipboard.writeText%28email%29%3B%20%7Dcatch%28e%29%7B%7D%20banner%28%27Email%20copiado%3A%20%27%20%2B%20email%2C%20true%29%3B%20%7D%20else%20if%28intentos%20%3E%3D%20maxIntentos%29%7B%20clearInterval%28timer%29%3B%20banner%28%27No%20encontre%20un%20correo%20en%20este%20radicado%20--%20puede%20ser%20de%20los%20casos%20sin%20correo.%20Revisalo%20a%20mano.%27%2C%20false%29%3B%20%7D%20%7D%2C%20250%29%3B%20%7D%29%28%29%3B" onclick="return false;" style="display:inline-block;padding:8px 14px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:700;text-decoration:none;cursor:grab;">📂 Copiar Email de ORFEO</a>
+            <div class="hint" style="margin-top:4px;">Arrástralo a tu barra de marcadores. Úsalo estando en "Entrada": te pregunta el Radicado, abre esa fila y copia el Email a tu portapapeles.</div>
+          </div>
+          <div>
+            <a href="javascript:%28function%28%29%7B%20function%20banner%28msg%2C%20ok%29%7B%20var%20b%20%3D%20document.createElement%28%27div%27%29%3B%20b.textContent%20%3D%20msg%3B%20b.style.cssText%20%3D%20%27position%3Afixed%3Btop%3A16px%3Bright%3A16px%3Bz-index%3A999999%3Bbackground%3A%27%2B%28ok%3F%27%230f7a4d%27%3A%27%23b3261e%27%29%2B%27%3Bcolor%3A%23fff%3Bpadding%3A12px%2018px%3Bborder-radius%3A8px%3Bfont%3A14px%20sans-serif%3Bbox-shadow%3A0%204px%2014px%20rgba%280%2C0%2C0%2C.3%29%3Bmax-width%3A360px%3Bwhite-space%3Apre-wrap%3B%27%3B%20document.body.appendChild%28b%29%3B%20setTimeout%28function%28%29%7B%20try%7B%20b.remove%28%29%3B%20%7Dcatch%28e%29%7B%7D%20%7D%2C%208000%29%3B%20%7D%20var%20headerWords%20%3D%20%5B%22COMPARENDO%22%2C%22COD%22%2C%22IMPOSICION%22%2C%22IMPOSICI%C3%93N%22%2C%22NOTIFICACION%22%2C%22NOTIFICACI%C3%93N%22%2C%22CURSO%22%2C%22MEDIO%22%2C%22ESTADO%22%5D%3B%20var%20tables%20%3D%20document.querySelectorAll%28%27table%27%29%3B%20var%20linea%20%3D%20null%3B%20for%28var%20t%3D0%3B%20t%3Ctables.length%20%26%26%20%21linea%3B%20t%2B%2B%29%7B%20var%20rows%20%3D%20tables%5Bt%5D.querySelectorAll%28%27tr%27%29%3B%20for%28var%20r%3D0%3B%20r%3Crows.length%3B%20r%2B%2B%29%7B%20var%20cells%20%3D%20rows%5Br%5D.querySelectorAll%28%27th%2Ctd%27%29%3B%20var%20texts%20%3D%20Array.prototype.map.call%28cells%2C%20function%28c%29%7B%20return%20%28c.textContent%7C%7C%22%22%29.trim%28%29%3B%20%7D%29%3B%20var%20joined%20%3D%20texts.join%28%22%20%22%29.toUpperCase%28%29%3B%20var%20hits%20%3D%20headerWords.filter%28function%28w%29%7B%20return%20joined.indexOf%28w%29%20%21%3D%3D%20-1%3B%20%7D%29.length%3B%20if%28hits%20%3E%3D%203%20%26%26%20rows%5Br%2B1%5D%29%7B%20var%20dataCells%20%3D%20rows%5Br%2B1%5D.querySelectorAll%28%27th%2Ctd%27%29%3B%20var%20dataTexts%20%3D%20Array.prototype.map.call%28dataCells%2C%20function%28c%29%7B%20return%20%28c.textContent%7C%7C%22%22%29.trim%28%29%3B%20%7D%29%3B%20linea%20%3D%20dataTexts.join%28%22%5Ct%22%29%3B%20break%3B%20%7D%20%7D%20%7D%20if%28linea%29%7B%20try%7B%20navigator.clipboard.writeText%28linea%29%3B%20%7Dcatch%28e%29%7B%7D%20banner%28%27Linea%20copiada%20--%20pegala%20en%20%22Radicados%20Semanales%22.%27%2C%20true%29%3B%20%7D%20else%20%7B%20var%20texto%20%3D%20%28document.body.innerText%20%7C%7C%20%22%22%29.trim%28%29%3B%20try%7B%20navigator.clipboard.writeText%28texto%29%3B%20%7Dcatch%28e%29%7B%7D%20banner%28%27No%20reconoci%20la%20tabla%20exacta%20--%20copie%20todo%20el%20texto%20visible%20como%20respaldo.%20Revisa%20y%20ajusta%20al%20pegar%2C%20y%20avisame%20para%20afinar%20esto.%27%2C%20false%29%3B%20%7D%20%7D%29%28%29%3B" onclick="return false;" style="display:inline-block;padding:8px 14px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:700;text-decoration:none;cursor:grab;">🔗 Copiar línea de Fénix</a>
+            <div class="hint" style="margin-top:4px;">Arrástralo a tu barra de marcadores. Úsalo ya adentro del expediente en Fénix: copia la línea completa a tu portapapeles, lista para pegar aquí.</div>
+          </div>
+        </div>
       </div>
 
       <div class="settings-section">
@@ -2417,6 +2441,22 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     toast("Abriendo ORFEO — busca el radicado en “Entrada” y copia el Email del solicitante para pegarlo en Dirección.");
   });
 
+  // ---------- atajo a Fénix: abre el expediente exacto por número de comparendo ----------
+  // Fénix sí permite enlazar directo al expediente si se conoce el número de comparendo (distinto
+  // del Radicado de ORFEO/Paso 1) -- se pega aquí ANTES de entrar a Fénix, no se obtiene de la línea
+  // pegada abajo (esa llega DESPUÉS, cuando ya se copió desde Fénix).
+  function updateFenixBtnState(){
+    var num = document.getElementById("cc_fenixNum").value.trim();
+    document.getElementById("cc_fenixBtn").disabled = !num;
+  }
+  document.getElementById("cc_fenixNum").addEventListener("input", updateFenixBtnState);
+  document.getElementById("cc_fenixBtn").addEventListener("click", function(){
+    var num = document.getElementById("cc_fenixNum").value.trim();
+    if(!num) return;
+    window.open("https://webfenix.movilidadbogota.gov.co/#/consulta-expedientes?comparendo=" + encodeURIComponent(num), "_blank", "noopener");
+    toast("Abriendo el expediente " + num + " en Fénix — copia la línea completa y pégala abajo.");
+  });
+
   // ---------- insights en vivo: término por caso, plantilla resultante, titular ≠ peticionario, duplicados ----------
   function renderInsights(){
     var formato = document.getElementById("cc_formato").value.trim();
@@ -2513,6 +2553,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("cc_comparendo").value = rec.comparendoRaw || "";
     renderBreakdown(parseComparendoLine(rec.comparendoRaw || ""));
     renderInsights();
+    // El número que abre Fénix es solo un atajo momentáneo, no un dato del radicado -- se limpia al
+    // cambiar de caso para no dejar pegado por error el número de un radicado distinto.
+    document.getElementById("cc_fenixNum").value = "";
+    updateFenixBtnState();
 
     document.getElementById("baseEditFields").classList.remove("open");
     clearFieldErrors();
