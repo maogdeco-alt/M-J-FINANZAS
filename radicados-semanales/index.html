@@ -263,6 +263,8 @@
   .work-fields .formato-field input{font-weight:700;}
   .simit-btn{margin-left:8px;padding:3px 11px;font-size:0.76rem;border-radius:999px;background:var(--accent-soft);border-color:transparent;color:var(--accent);vertical-align:middle;}
   .simit-btn:hover{background:var(--accent);color:var(--accent-ink);filter:none;}
+  .simit-btn:disabled{background:var(--surface-2);color:var(--muted);cursor:default;opacity:0.7;}
+  .simit-btn:disabled:hover{background:var(--surface-2);color:var(--muted);}
 
   .breakdown{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;margin-top:10px;}
   .breakdown .bd-item{background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:6px 9px;}
@@ -589,7 +591,7 @@
 
               <div id="wrap_res">
                 <label for="cc_res">Res.<span class="required-mark" id="req_res" hidden>*</span></label>
-                <button class="btn small simit-btn" id="cc_simitBtn" type="button" title="Copia la cédula y abre la consulta de SIMIT en una pestaña nueva">🔎 Buscar cédula en SIMIT</button>
+                <button class="btn small simit-btn" id="cc_simitBtn" type="button" title="Copia la cédula y abre la consulta de SIMIT en una pestaña nueva" disabled>🔎 <span id="cc_simitBtnLabel">Buscar cédula en SIMIT</span></button>
                 <input id="cc_res" placeholder="pega directo de SIMIT: se separa sola de la fecha">
                 <div class="field-hint">Puedes pegar tal cual copias de SIMIT ("1368706 Fecha: 26/07/2024") — separa el número y la fecha solo.</div>
               </div>
@@ -1067,7 +1069,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     {k:"comparendoCompleto", label:"Comparendo"}, {k:"cod", label:"Cod"}, {k:"imposicion", label:"Imposición"},
     {k:"notificacion", label:"Notificación"}, {k:"curso", label:"Curso"}, {k:"medio", label:"Medio"},
     {k:"estado", label:"Estado"}, {k:"f8", label:"F8"}, {k:"f9", label:"F9"}, {k:"f10", label:"F10"},
-    {k:"tipoId", label:"Tipo ID"}, {k:"idNum", label:"ID"}, {k:"nombreF", label:"Nombre F"}
+    {k:"tipoId", label:"Tipo ID"}, {k:"idNum", label:"ID / Cédula"}, {k:"nombreF", label:"Nombre F"}
   ];
 
   var state = { records: [], filter: "pend", activeId: null, profile: {activeUser:null}, settings: null, history: [] };
@@ -2357,7 +2359,20 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // SIMIT (fcm.org.co) no tiene una API pública ni permite consultarlo automáticamente desde aquí
   // (usa CAPTCHA a propósito, como cualquier consulta oficial) — lo que sí se puede hacer es ahorrar
   // el paso de escribir la cédula a mano: se copia sola y se abre la pestaña ya lista para pegar.
+  // La cédula sale de "ID" (idNum) -- el mismo número de cédula de ciudadanía que ya viene incluido
+  // en la línea que se pega textual desde Fénix, justo al lado de "Tipo ID" en el desglose de arriba.
+  function updateSimitBtnState(parsed){
+    var btn = document.getElementById("cc_simitBtn");
+    var label = document.getElementById("cc_simitBtnLabel");
+    var cedula = (parsed && parsed.idNum) ? String(parsed.idNum).trim() : "";
+    btn.disabled = !cedula;
+    label.textContent = cedula ? ("Buscar " + cedula + " en SIMIT") : "Buscar cédula en SIMIT";
+    btn.title = cedula
+      ? "Copia la cédula " + cedula + " y abre la consulta de SIMIT en una pestaña nueva"
+      : "Pega primero la línea del comparendo arriba -- de ahí sale la cédula (casilla \"ID\")";
+  }
   document.getElementById("cc_simitBtn").addEventListener("click", function(){
+    if(this.disabled) return;
     // Se lee en vivo de la caja de texto (igual que renderInsights), no del último registro
     // guardado -- si no, habría que darle Guardar antes de poder usar este botón, y todo el punto
     // es que funcione en el mismo momento en que se acaba de pegar la línea del comparendo.
@@ -2388,6 +2403,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var nombre = document.getElementById("cc_nombre").value.trim();
     var parsed = parseComparendoLine(document.getElementById("cc_comparendo").value);
     var res = document.getElementById("cc_res").value.trim();
+    updateSimitBtnState(parsed);
 
     // Vista previa de plantilla (diccionario clasificación → plantilla, editable en Ajustes).
     var dict = (state.settings && state.settings.formatToPlantilla) || DEFAULT_SETTINGS.formatToPlantilla;
