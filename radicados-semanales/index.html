@@ -597,7 +597,7 @@
               <div class="full" id="wrap_comparendo">
                 <label for="cc_comparendo">Pegar línea completa del comparendo<span class="required-mark" id="req_comparendo" hidden>*</span></label>
                 <textarea id="cc_comparendo" rows="2" placeholder="Pega aquí toda la línea copiada (comparendo, cod, imposición, notificación, curso, medio, estado...)"></textarea>
-                <div class="field-hint">Se separa sola en COMPARENDO COMPLETO, COD, IMPOSICION, NOTIFICACION, CURSO, MEDIO, ESTADO, F8, F9, F10, TIPO ID, ID y NOMBRE F.</div>
+                <div class="field-hint">Se separa sola en No. Comparendo, Código infracción, Fecha de imposición, Fecha notificación, Tiene curso, Medio de imposición, Estado comparendo, Motivo de cierre, Número de proceso GC, Estado proceso GC, Tipo de documento, No. Documento infractor y Nombre infractor.</div>
                 <div class="breakdown" id="cc_breakdown"></div>
                 <div class="insights" id="ccInsights"></div>
               </div>
@@ -871,8 +871,8 @@
             <div class="hint" style="margin-top:4px;">Arrástralo a tu barra de marcadores. Úsalo estando en "Entrada": te pregunta el Radicado, abre esa fila y copia el Email a tu portapapeles.</div>
           </div>
           <div>
-            <a href="javascript:%28function%28%29%7B%20function%20banner%28msg%2C%20ok%29%7B%20var%20b%20%3D%20document.createElement%28%27div%27%29%3B%20b.textContent%20%3D%20msg%3B%20b.style.cssText%20%3D%20%27position%3Afixed%3Btop%3A16px%3Bright%3A16px%3Bz-index%3A999999%3Bbackground%3A%27%2B%28ok%3F%27%230f7a4d%27%3A%27%23b3261e%27%29%2B%27%3Bcolor%3A%23fff%3Bpadding%3A12px%2018px%3Bborder-radius%3A8px%3Bfont%3A14px%20sans-serif%3Bbox-shadow%3A0%204px%2014px%20rgba%280%2C0%2C0%2C.3%29%3Bmax-width%3A360px%3Bwhite-space%3Apre-wrap%3B%27%3B%20document.body.appendChild%28b%29%3B%20setTimeout%28function%28%29%7B%20try%7B%20b.remove%28%29%3B%20%7Dcatch%28e%29%7B%7D%20%7D%2C%208000%29%3B%20%7D%20var%20headerWords%20%3D%20%5B%22COMPARENDO%22%2C%22COD%22%2C%22IMPOSICION%22%2C%22IMPOSICI%C3%93N%22%2C%22NOTIFICACION%22%2C%22NOTIFICACI%C3%93N%22%2C%22CURSO%22%2C%22MEDIO%22%2C%22ESTADO%22%5D%3B%20var%20tables%20%3D%20document.querySelectorAll%28%27table%27%29%3B%20var%20linea%20%3D%20null%3B%20for%28var%20t%3D0%3B%20t%3Ctables.length%20%26%26%20%21linea%3B%20t%2B%2B%29%7B%20var%20rows%20%3D%20tables%5Bt%5D.querySelectorAll%28%27tr%27%29%3B%20for%28var%20r%3D0%3B%20r%3Crows.length%3B%20r%2B%2B%29%7B%20var%20cells%20%3D%20rows%5Br%5D.querySelectorAll%28%27th%2Ctd%27%29%3B%20var%20texts%20%3D%20Array.prototype.map.call%28cells%2C%20function%28c%29%7B%20return%20%28c.textContent%7C%7C%22%22%29.trim%28%29%3B%20%7D%29%3B%20var%20joined%20%3D%20texts.join%28%22%20%22%29.toUpperCase%28%29%3B%20var%20hits%20%3D%20headerWords.filter%28function%28w%29%7B%20return%20joined.indexOf%28w%29%20%21%3D%3D%20-1%3B%20%7D%29.length%3B%20if%28hits%20%3E%3D%203%20%26%26%20rows%5Br%2B1%5D%29%7B%20var%20dataCells%20%3D%20rows%5Br%2B1%5D.querySelectorAll%28%27th%2Ctd%27%29%3B%20var%20dataTexts%20%3D%20Array.prototype.map.call%28dataCells%2C%20function%28c%29%7B%20return%20%28c.textContent%7C%7C%22%22%29.trim%28%29%3B%20%7D%29%3B%20linea%20%3D%20dataTexts.join%28%22%5Ct%22%29%3B%20break%3B%20%7D%20%7D%20%7D%20if%28linea%29%7B%20try%7B%20navigator.clipboard.writeText%28linea%29%3B%20%7Dcatch%28e%29%7B%7D%20banner%28%27Linea%20copiada%20--%20pegala%20en%20%22Radicados%20Semanales%22.%27%2C%20true%29%3B%20%7D%20else%20%7B%20var%20texto%20%3D%20%28document.body.innerText%20%7C%7C%20%22%22%29.trim%28%29%3B%20try%7B%20navigator.clipboard.writeText%28texto%29%3B%20%7Dcatch%28e%29%7B%7D%20banner%28%27No%20reconoci%20la%20tabla%20exacta%20--%20copie%20todo%20el%20texto%20visible%20como%20respaldo.%20Revisa%20y%20ajusta%20al%20pegar%2C%20y%20avisame%20para%20afinar%20esto.%27%2C%20false%29%3B%20%7D%20%7D%29%28%29%3B" onclick="return false;" style="display:inline-block;padding:8px 14px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:700;text-decoration:none;cursor:grab;">🔗 Copiar línea de Fénix</a>
-            <div class="hint" style="margin-top:4px;">Arrástralo a tu barra de marcadores. Úsalo ya adentro del expediente en Fénix: copia la línea completa a tu portapapeles, lista para pegar aquí.</div>
+            <a href="javascript:%28function%28%29%7B%20function%20banner%28msg%2C%20ok%29%7B%20var%20b%20%3D%20document.createElement%28%27div%27%29%3B%20b.textContent%20%3D%20msg%3B%20b.style.cssText%20%3D%20%27position%3Afixed%3Btop%3A16px%3Bright%3A16px%3Bz-index%3A999999%3Bbackground%3A%27%2B%28ok%3F%27%230f7a4d%27%3A%27%23b3261e%27%29%2B%27%3Bcolor%3A%23fff%3Bpadding%3A12px%2018px%3Bborder-radius%3A8px%3Bfont%3A14px%20sans-serif%3Bbox-shadow%3A0%204px%2014px%20rgba%280%2C0%2C0%2C.3%29%3Bmax-width%3A360px%3Bwhite-space%3Apre-wrap%3B%27%3B%20document.body.appendChild%28b%29%3B%20setTimeout%28function%28%29%7B%20try%7B%20b.remove%28%29%3B%20%7Dcatch%28e%29%7B%7D%20%7D%2C%208000%29%3B%20%7D%20function%20stripAccents%28s%29%7B%20return%20String%28s%7C%7C%22%22%29.normalize%28%22NFD%22%29.replace%28%2F%5B%5Cu0300-%5Cu036f%5D%2Fg%2C%20%22%22%29%3B%20%7D%20%2F%2F%20Los%2013%20encabezados%20reales%20de%20la%20seccion%20%22Historial%22%20de%20Fenix%2C%20sin%20tildes%20y%20en%20mayusculas%2C%20para%20%2F%2F%20comparar%20sin%20depender%20de%20acentos%2Fmayusculas%20exactas%20del%20HTML%20real.%20var%20headerWords%20%3D%20%5B%20%22COMPARENDO%22%2C%22INFRACCION%22%2C%22IMPOSICION%22%2C%22NOTIFICACION%22%2C%22CURSO%22%2C%22MEDIO%22%2C%20%22ESTADO%22%2C%22CIERRE%22%2C%22PROCESO%20GC%22%2C%22DOCUMENTO%22%2C%22INFRACTOR%22%20%5D%3B%20function%20normalize%28s%29%7B%20return%20stripAccents%28s%29.toUpperCase%28%29%3B%20%7D%20var%20tables%20%3D%20document.querySelectorAll%28%27table%27%29%3B%20var%20linea%20%3D%20null%3B%20for%28var%20t%3D0%3B%20t%3Ctables.length%20%26%26%20%21linea%3B%20t%2B%2B%29%7B%20var%20rows%20%3D%20tables%5Bt%5D.querySelectorAll%28%27tr%27%29%3B%20for%28var%20r%3D0%3B%20r%3Crows.length%3B%20r%2B%2B%29%7B%20var%20cells%20%3D%20rows%5Br%5D.querySelectorAll%28%27th%2Ctd%27%29%3B%20if%28cells.length%20%3C%208%29%20continue%3B%20%2F%2F%20la%20linea%20real%20tiene%2013%20columnas%20--%20descarta%20filas%20chicas%20de%20entrada%20var%20texts%20%3D%20Array.prototype.map.call%28cells%2C%20function%28c%29%7B%20return%20%28c.textContent%7C%7C%22%22%29.trim%28%29%3B%20%7D%29%3B%20var%20joined%20%3D%20normalize%28texts.join%28%22%20%22%29%29%3B%20var%20hits%20%3D%20headerWords.filter%28function%28w%29%7B%20return%20joined.indexOf%28w%29%20%21%3D%3D%20-1%3B%20%7D%29.length%3B%20if%28hits%20%3E%3D%206%20%26%26%20rows%5Br%2B1%5D%29%7B%20var%20dataCells%20%3D%20rows%5Br%2B1%5D.querySelectorAll%28%27th%2Ctd%27%29%3B%20var%20dataTexts%20%3D%20Array.prototype.map.call%28dataCells%2C%20function%28c%29%7B%20return%20%28c.textContent%7C%7C%22%22%29.trim%28%29%3B%20%7D%29%3B%20linea%20%3D%20dataTexts.join%28%22%5Ct%22%29%3B%20break%3B%20%7D%20%7D%20%7D%20if%28linea%29%7B%20try%7B%20navigator.clipboard.writeText%28linea%29%3B%20%7Dcatch%28e%29%7B%7D%20banner%28%27Linea%20copiada%20%28%27%20%2B%20linea.split%28%22%5Ct%22%29.length%20%2B%20%27%20columnas%29%20--%20pegala%20en%20%22Radicados%20Semanales%22.%27%2C%20true%29%3B%20%7D%20else%20%7B%20banner%28%27No%20encontre%20la%20tabla%20de%20%22Historial%22%20en%20esta%20pantalla%20--%20entra%20a%20esa%20seccion%20del%20expediente%20y%20vuelve%20a%20intentar.%20Si%20sigue%20sin%20encontrarla%2C%20avisale%20a%20quien%20programo%20esto%20con%20el%20HTML%20real.%27%2C%20false%29%3B%20%7D%20%7D%29%28%29%3B" onclick="return false;" style="display:inline-block;padding:8px 14px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:700;text-decoration:none;cursor:grab;">🔗 Copiar línea de Fénix</a>
+            <div class="hint" style="margin-top:4px;">Arrástralo a tu barra de marcadores. Úsalo en la sección <b>"Historial"</b> del expediente en Fénix: copia la línea completa (13 columnas) a tu portapapeles, lista para pegar aquí.</div>
           </div>
         </div>
       </div>
@@ -1094,10 +1094,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     "CURSO","MEDIO","ESTADO","F8","F9","F10","TIPO ID","ID","NOMBRE F"];
 
   var COMPARENDO_KEYS = [
-    {k:"comparendoCompleto", label:"Comparendo"}, {k:"cod", label:"Cod"}, {k:"imposicion", label:"Imposición"},
-    {k:"notificacion", label:"Notificación"}, {k:"curso", label:"Curso"}, {k:"medio", label:"Medio"},
-    {k:"estado", label:"Estado"}, {k:"f8", label:"F8"}, {k:"f9", label:"F9"}, {k:"f10", label:"F10"},
-    {k:"tipoId", label:"Tipo ID"}, {k:"idNum", label:"ID (documento)"}, {k:"nombreF", label:"Nombre F"}
+    {k:"comparendoCompleto", label:"No. Comparendo"}, {k:"cod", label:"Cód. infracción"}, {k:"imposicion", label:"Fecha imposición"},
+    {k:"notificacion", label:"Fecha notif."}, {k:"curso", label:"Tiene curso"}, {k:"medio", label:"Medio imposición"},
+    {k:"estado", label:"Estado comparendo"}, {k:"f8", label:"Motivo cierre"}, {k:"f9", label:"Proceso GC (No.)"}, {k:"f10", label:"Proceso GC (Estado)"},
+    {k:"tipoId", label:"Tipo documento"}, {k:"idNum", label:"No. documento"}, {k:"nombreF", label:"Nombre infractor"}
   ];
 
   var state = { records: [], filter: "pend", activeId: null, profile: {activeUser:null}, settings: null, history: [] };
@@ -2648,11 +2648,18 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     imperative.forEach(function(v){ problems.push({wraps:v.wraps, message:v.message, isImperative:true}); });
 
     var settings = state.settings;
+    // "Excepción por formato" (ajustable en Ajustes) sigue funcionando igual que antes -- un formato
+    // exento de todos los campos obligatorios.
     var exempt = (settings.exemptFormato||"").trim().toUpperCase();
     var formatoVal = (rec.formato||"").trim().toUpperCase();
-    var exempted = !!(exempt && formatoVal === exempt);
+    // Además, dos reglas FIJAS de negocio (no dependen de los ajustes, para que apliquen siempre):
+    // "DEVUELTO" se regresa al sistema sin trabajarlo -- no debe pedir ninguna información extra.
+    var FIXED_FULL_EXEMPT = ["DEVUELTO"];
+    var exempted = !!(exempt && formatoVal === exempt) || FIXED_FULL_EXEMPT.indexOf(formatoVal) !== -1;
     if(!exempted){
       REQUIRED_FIELD_META.forEach(function(f){
+        // "Petición oscura" (T10) nunca exige pegar la línea del comparendo -- puede no tener uno real.
+        if(f.key === "comparendo" && formatoVal === "T10") return;
         if(settings.required[f.key] && !String(fieldValueFor(rec,f.key)||"").trim()){
           problems.push({wraps:[f.wrapId], message:"Falta completar " + f.label + ".", isImperative:false});
         }
