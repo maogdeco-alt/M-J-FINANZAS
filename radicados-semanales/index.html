@@ -2271,23 +2271,28 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     refreshFinalDocCount();
   }
 
-  // ---------- prioridad por vencimiento: días hábiles transcurridos desde la Fecha de radicación ----------
-  // Término fijo: 13 días hábiles desde el día siguiente a la radicación. Con 12 o más transcurridos
-  // (o sea, 1 día hábil o menos de margen) el radicado se marca prioritario y sube al principio de la
-  // cola -- así el trabajo más urgente siempre aparece primero, sin tener que revisar caso por caso.
+  // ---------- prioridad por vencimiento: días hábiles transcurridos desde la Fecha de ASIGNACIÓN ----------
+  // Se calcula desde la fecha en que el caso se te asignó a ti -- NO desde la fecha de radicación
+  // (esa es de cuándo el ciudadano lo radicó ante la entidad, puede ser muy anterior a cuándo te
+  // llegó a ti). El trabajo se organiza por lotes diarios de asignación: lo del lunes se hace antes
+  // que lo del martes, y así sucesivamente -- por eso la cola ordena por esta fecha, la más antigua
+  // primero. Término fijo: 13 días hábiles desde el día siguiente a la asignación. Con 12 o más
+  // transcurridos (o sea, 1 día hábil o menos de margen) el radicado se marca prioritario y sube al
+  // principio de la cola -- así el trabajo más urgente siempre aparece primero, sin tener que revisar
+  // caso por caso.
   var TERMINO_RADICADO_DIAS_HABILES = 13;
   var UMBRAL_PRIORITARIO_DIAS = 12;
-  function diasHabilesTranscurridosDesdeRadicacion(rec){
-    var radDate = parseDMY(normalizeDate(rec.fechaRadicacion));
-    if(!radDate) return null; // fecha ausente o no reconocida -- no se puede calcular, no se prioriza
-    var start = new Date(radDate.getFullYear(), radDate.getMonth(), radDate.getDate()+1);
+  function diasHabilesTranscurridosDesdeAsignacion(rec){
+    var fechaBase = parseDMY(normalizeDate(rec.fechaAsignacion));
+    if(!fechaBase) return null; // fecha ausente o no reconocida -- no se puede calcular, no se prioriza
+    var start = new Date(fechaBase.getFullYear(), fechaBase.getMonth(), fechaBase.getDate()+1);
     var hoy = new Date(); hoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
-    if(start > hoy) return 0; // fecha de radicación en el futuro (dato atípico) -- tratar como recién llegado
+    if(start > hoy) return 0; // fecha de asignación en el futuro (dato atípico) -- tratar como recién llegado
     return countBusinessDays(start, hoy);
   }
   function esPrioritario(rec){
     if(isDone(rec)) return false; // ya clasificado -- no hace falta seguir marcándolo urgente
-    var d = diasHabilesTranscurridosDesdeRadicacion(rec);
+    var d = diasHabilesTranscurridosDesdeAsignacion(rec);
     return d !== null && d >= UMBRAL_PRIORITARIO_DIAS;
   }
 
@@ -2308,11 +2313,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       .filter(function(r){ return matchesFilter(r) && matchesSearch(r,q); })
       .sort(function(a,b){
         // Prioridad por vencimiento: los pendientes con más días hábiles transcurridos desde su
-        // radicación (más cerca de vencer) van primero. Los ya clasificados quedan siempre al final
-        // de este criterio (valor -1), y dentro de un mismo nivel de urgencia se conserva el orden
-        // original de importación, para que la lista no se reordene sola sin razón.
-        var aDias = isDone(a) ? -1 : (diasHabilesTranscurridosDesdeRadicacion(a) || 0);
-        var bDias = isDone(b) ? -1 : (diasHabilesTranscurridosDesdeRadicacion(b) || 0);
+        // ASIGNACIÓN (el lote más antiguo, ej. el del lunes antes que el del martes) van primero. Los
+        // ya clasificados quedan siempre al final de este criterio (valor -1), y dentro de un mismo
+        // nivel de urgencia se conserva el orden original de importación, para que la lista no se
+        // reordene sola sin razón.
+        var aDias = isDone(a) ? -1 : (diasHabilesTranscurridosDesdeAsignacion(a) || 0);
+        var bDias = isDone(b) ? -1 : (diasHabilesTranscurridosDesdeAsignacion(b) || 0);
         if(aDias !== bDias) return bDias - aDias;
         return (a.order||0)-(b.order||0);
       });
@@ -2332,7 +2338,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var prioritario = esPrioritario(r);
       return '<div class="queue-item'+(r.id===state.activeId?" active":"")+(prioritario?" prioritario":"")+'" data-id="'+r.id+'">'+
         '<span class="dot '+(done?"done":"pend")+'"></span>'+
-        '<span class="qi-body"><span class="qi-radicado">'+(prioritario?'<span class="qi-priority-badge" title="'+TERMINO_RADICADO_DIAS_HABILES+' días hábiles de término, ya van '+UMBRAL_PRIORITARIO_DIAS+' o más desde la radicación">🔴 PRIORITARIO</span> ':'')+escapeHtml(r.radicado)+'</span>'+
+        '<span class="qi-body"><span class="qi-radicado">'+(prioritario?'<span class="qi-priority-badge" title="'+TERMINO_RADICADO_DIAS_HABILES+' días hábiles de término, ya van '+UMBRAL_PRIORITARIO_DIAS+' o más desde la asignación">🔴 PRIORITARIO</span> ':'')+escapeHtml(r.radicado)+'</span>'+
         '<span class="qi-name">'+escapeHtml(r.nombre||"(sin nombre)")+'</span></span>'+
         '<button class="qi-del" data-del="'+r.id+'" title="Borrar" type="button" aria-label="Borrar radicado '+escapeHtml(r.radicado)+'">✕</button>'+
       '</div>';
