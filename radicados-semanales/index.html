@@ -615,7 +615,7 @@
 
               <div id="wrap_res">
                 <label for="cc_res">Res.<span class="required-mark" id="req_res" hidden>*</span></label>
-                <a class="btn small simit-btn is-disabled" id="cc_simitBtn" href="https://www.fcm.org.co/simit/#/home-public" target="_blank" rel="noopener" aria-disabled="true" title="Pega primero la línea del comparendo -- de ahí sale el número de documento">🔎 <span id="cc_simitBtnLabel">Buscar en SIMIT</span></a>
+                <a class="btn small simit-btn is-disabled" id="cc_simitBtn" href="https://www.fcm.org.co/simit/#/home-public" target="simitConsultaMJ" aria-disabled="true" title="Pega primero la línea del comparendo -- de ahí sale el número de documento">🔎 <span id="cc_simitBtnLabel">Buscar en SIMIT</span></a>
                 <input id="cc_res" placeholder="pega directo de SIMIT: se separa sola de la fecha">
                 <div class="field-hint">Puedes pegar tal cual copias de SIMIT ("1368706 Fecha: 26/07/2024") — separa el número y la fecha solo.</div>
               </div>
@@ -2571,14 +2571,37 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var tipo = (parsed && parsed.tipoId) ? String(parsed.tipoId).trim().toUpperCase() : "";
     return {num: num, shown: (tipo && num) ? (tipo + " " + num) : num};
   }
-  // IMPORTANTE: estos tres atajos (SIMIT, ORFEO, Fénix) son enlaces <a target="_blank"> REALES, no
-  // botones que llaman a window.open() por JavaScript. Se cambiaron a propósito: un window.open()
-  // disparado desde JS puede quedar bloqueado en silencio por el bloqueador de ventanas emergentes
-  // del navegador (o por una política de seguridad de la entidad) sin mostrar ningún aviso -- el
-  // clic simplemente "no hace nada". Una navegación de enlace normal, en cambio, es tratada como
+  // IMPORTANTE: estos tres atajos (SIMIT, ORFEO, Fénix) son enlaces <a> REALES, no botones que
+  // llaman a window.open() por JavaScript. Se cambiaron a propósito: un window.open() disparado
+  // desde JS puede quedar bloqueado en silencio por el bloqueador de ventanas emergentes del
+  // navegador (o por una política de seguridad de la entidad) sin mostrar ningún aviso -- el clic
+  // simplemente "no hace nada". Una navegación de enlace normal, en cambio, es tratada como
   // cualquier clic en un link y prácticamente nunca se bloquea. El estado deshabilitado se maneja
   // con la clase .is-disabled (que además desactiva los clics con pointer-events:none), ya que los
   // enlaces no tienen un ":disabled" nativo como los botones.
+  //
+  // El de SIMIT usa target="simitConsultaMJ" (un nombre fijo) en vez de target="_blank": con
+  // "_blank" el navegador SIEMPRE abre una pestaña nueva y en blanco, así ya haya una abierta -- por
+  // eso se sentía como si "cada clic recargara todo desde cero" y tardara 1-2 min. Con un nombre
+  // fijo, el navegador reutiliza la MISMA pestaña si sigue abierta (la trae al frente en vez de
+  // crear otra), y como SIMIT es una app de una sola página que solo cambia de sección por el
+  // fragmento de la URL (todo lo que va después del "#"), volver a "home-public" dentro de esa misma
+  // pestaña ya abierta no fuerza una recarga completa de la página -- solo si ella cierra esa
+  // pestaña, el próximo clic sí vuelve a abrir y cargar todo desde cero (eso no se puede evitar,
+  // fue SIMIT quien cerró/perdió su sesión de carga, no la app). No usamos window.open() aquí por
+  // la misma razón del párrafo anterior: sigue siendo un <a> nativo, el bloqueador de emergentes no
+  // debería intervenir.
+  //
+  // IMPORTANTE (verificado con pruebas): este enlace, a propósito, NO lleva rel="noopener" ni
+  // rel="noreferrer". Ambos atributos, aunque son buena práctica de seguridad en general, tienen un
+  // efecto secundario real: "desconectan" la pestaña nueva de esta, y por eso el navegador deja de
+  // poder encontrarla por su nombre en el siguiente clic -- terminaba abriendo una pestaña en blanco
+  // nueva cada vez, exactamente el problema reportado, incluso ya con un target fijo. Se decidió
+  // quitarlos SOLO en este enlace puntual porque: (1) el destino es un dominio oficial conocido y
+  // fijo (fcm.org.co), no uno que cambie ni dependa de datos externos; (2) el riesgo que evitan
+  // (que esa pestaña pudiera manipular la ubicación de esta con window.opener) es bajo frente al
+  // beneficio real de que la consulta a SIMIT deje de tardar 1-2 min en cada clic. Si algún día se
+  // agregan más enlaces externos aquí, no copiar este patrón a ciegas -- evaluar destino por destino.
   function updateSimitBtnState(parsed){
     var btn = document.getElementById("cc_simitBtn");
     var label = document.getElementById("cc_simitBtnLabel");
