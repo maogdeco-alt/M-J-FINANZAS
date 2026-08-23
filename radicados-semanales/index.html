@@ -618,7 +618,7 @@
               <div class="full" id="wrap_comparendo">
                 <label for="cc_comparendo">Pegar línea completa del comparendo<span class="required-mark" id="req_comparendo" hidden>*</span></label>
                 <textarea id="cc_comparendo" rows="2" placeholder="Pega aquí toda la línea copiada (comparendo, cod, imposición, notificación, curso, medio, estado...)"></textarea>
-                <div class="field-hint">Se separa sola en No. Comparendo, Código infracción, Fecha de imposición, Fecha notificación, Tiene curso, Medio de imposición, Estado comparendo, Motivo de cierre, Número de proceso GC, Estado proceso GC, Tipo de documento, No. Documento infractor, Nombre infractor y Placa (esta última no es obligatoria, útil para prórrogas).</div>
+                <div class="field-hint">Se separa sola en No. Comparendo, Código infracción, Fecha de imposición, Fecha notificación, Tiene curso, Medio de imposición, Estado comparendo, Motivo de cierre, Número de proceso GC, Estado proceso GC, Tipo de documento, No. Documento infractor, Nombre infractor y Placa. Para la <b>masiva</b> (T1, T5, T6...) basta con pegar hasta el Nombre infractor — la Placa es opcional. Para <b>Formato = AGENDAMIENTO</b>, pega la línea completa <b>hasta la Placa</b>: es obligatoria ahí, la pide la ventana de Agendamientos.</div>
                 <div class="breakdown" id="cc_breakdown"></div>
                 <div class="insights" id="ccInsights"></div>
               </div>
@@ -663,7 +663,10 @@
     <div class="panel-body">
       <p class="panel-desc" style="margin-top:0;">Los radicados que marcaste con <b>Formato = AGENDAMIENTO</b> viven aquí, aparte —
       <b>nunca entran al documento final (masiva)</b>. Pensada para tu revisión de las mañanas: cuáles siguen en término
-      para solicitar audiencia (5 días hábiles si el comparendo es manual, 11 si es electrónico) y cuáles ya se pasaron.</p>
+      para solicitar audiencia (5 días hábiles si el comparendo es manual, 11 si es electrónico) y cuáles ya se pasaron.
+      El término se cuenta <b>solo con las fechas de la línea de Fénix</b> (notificación o, si no hay, imposición) contra
+      tu fecha de radicación — nunca con la fecha de asignación. Por eso aquí necesitas pegar esa línea completa
+      <b>hasta la Placa</b> (a diferencia de la masiva, que solo llega hasta el nombre del infractor).</p>
       <div class="queue-count" id="agendaCount">0 en la lista</div>
       <div class="queue-panel" id="agendaPanel" style="max-height:520px;"></div>
     </div>
@@ -2386,7 +2389,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var info = agendamientoInfo(r);
       var corto = comparendoCorto(r);
       var esDup = corto && dup[corto] > 1;
-      var terminoTxt = info.dias === null ? "sin fecha de asignación"
+      var terminoTxt = info.dias === null ? "faltan fechas de Fénix (notificación/imposición) o de radicación"
         : (info.umbral === null ? (info.dias + " días hábiles (falta el Medio para saber el término)")
         : (info.dias + " / " + info.umbral + " días hábiles (" + (info.tipo === "MANUAL" ? "manual" : "electrónico") + ")"));
       return '<div class="agenda-item'+(info.vencido && !r.agendado ? " vencido" : "")+'" data-id="'+r.id+'">'+
@@ -2895,9 +2898,22 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     return right8(rec.comparendoCompleto);
   }
   function agendamientoInfo(rec){
+    // El Agendador se rige EXCLUSIVAMENTE por las fechas que trae la línea de Fénix (imposición /
+    // notificación) -- nunca por la fecha de asignación. El término de 5/11 días hábiles es del
+    // CIUDADANO para solicitar audiencia, contado desde el día siguiente a que Fénix dice que se le
+    // notificó (o, si no hay notificación, desde la imposición) hasta la fecha en que radicó su
+    // solicitud -- igual que calculaba "CONTROL TERMINO" en el Excel original de este Agendador.
+    // Nunca se usa la fecha de asignación aquí, aunque sí se use para priorizar el resto de la cola.
     var tipo = deriveTipoComparendo(rec.medio);
     var umbral = tipo === "MANUAL" ? 5 : (tipo === "ELECTRONICO" ? 11 : null);
-    var dias = diasHabilesTranscurridosDesdeAsignacion(rec); // mismo criterio de urgencia que el resto de la cola
+    var base = rec.notificacion || rec.imposicion;
+    var fechaBase = parseDMY(normalizeDate(base));
+    var fechaRad = parseDMY(normalizeDate(rec.fechaRadicacion));
+    var dias = null;
+    if(fechaBase && fechaRad){
+      var start = new Date(fechaBase.getFullYear(), fechaBase.getMonth(), fechaBase.getDate()+1);
+      dias = start > fechaRad ? 0 : countBusinessDays(start, fechaRad);
+    }
     var vencido = (umbral !== null && dias !== null) ? dias > umbral : false;
     return { tipo: tipo, umbral: umbral, dias: dias, vencido: vencido };
   }
@@ -2949,6 +2965,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }
     if(["T1","T5","T11","T14"].indexOf(formatoVal) !== -1 && !tieneRes){
       violations.push({wraps:["wrap_formato","wrap_res"], message:formatoVal + " requiere Resolución (Res. y/o Fecha res.) — no puede quedar sin diligenciar."});
+    }
+
+    // AGENDAMIENTO necesita la Placa -- a diferencia de la masiva (que solo pega la línea de Fénix
+    // hasta el nombre del infractor), para Agendamiento hay que pegarla completa HASTA LA PLACA,
+    // porque la ventana de Agendamientos la muestra y la necesita.
+    if(formatoVal === "AGENDAMIENTO" && !(rec.placa||"").trim()){
+      violations.push({wraps:["wrap_formato","wrap_comparendo"], message:"AGENDAMIENTO requiere la Placa — pega la línea de Fénix completa HASTA LA PLACA (a diferencia de la masiva, que solo llega hasta el nombre del infractor)."});
     }
 
     // Brecha entre la fecha de radicación y la fecha de asignación -- las DOS del bloque inicial que
@@ -3159,6 +3182,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(!rec) return;
     checkNombreMismatch(rec, function(ok){
       if(!ok){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
+      // Mismo candado que "Guardar": las reglas IMPERATIVAS rigen sin importar qué botón se use --
+      // si no, "Guardar y siguiente" (el botón que más se usa) se saltaba todas estas reglas.
+      clearFieldErrors();
+      var imperative = checkImperativeRules(rec);
+      if(imperative.length){
+        imperative.forEach(function(v){ v.wraps.forEach(markError); });
+        toast("No se guardó — " + imperative[0].message);
+        return;
+      }
       save(); renderQueue(); renderStats(); renderAgendamientos();
       var check = validateAdvance(rec);
       if(!check.ok){ warnMissing(check); return; }
@@ -3187,6 +3219,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   document.getElementById("cc_prev").addEventListener("click", function(){
     var rec = readCaptureIntoRecord();
     if(!rec) return;
+    clearFieldErrors();
+    var imperativePrev = checkImperativeRules(rec);
+    if(imperativePrev.length){
+      imperativePrev.forEach(function(v){ v.wraps.forEach(markError); });
+      toast("No se guardó — " + imperativePrev[0].message);
+      return;
+    }
     save(); renderQueue(); renderStats(); renderAgendamientos();
     var prevRec = findAdjacent(rec, -1);
     if(prevRec) selectRecord(prevRec.id);
@@ -3196,6 +3235,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(!rec) return;
     checkNombreMismatch(rec, function(ok){
       if(!ok){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
+      clearFieldErrors();
+      var imperativeNext = checkImperativeRules(rec);
+      if(imperativeNext.length){
+        imperativeNext.forEach(function(v){ v.wraps.forEach(markError); });
+        toast("No se guardó — " + imperativeNext[0].message);
+        return;
+      }
       save(); renderQueue(); renderStats(); renderAgendamientos();
       var check = validateAdvance(rec);
       if(!check.ok){ warnMissing(check); return; }
