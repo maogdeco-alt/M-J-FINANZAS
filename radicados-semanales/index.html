@@ -250,6 +250,16 @@
   .queue-empty{padding:26px 10px;text-align:center;color:var(--muted);font-size:0.82rem;}
   .queue-count{padding:4px 8px 8px;color:var(--muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:.04em;}
 
+  .agenda-item{padding:10px 12px;border-radius:8px;border:1px solid var(--border);margin-bottom:7px;background:var(--surface);}
+  .agenda-item.vencido{background:var(--stamp-soft);border-color:var(--stamp);}
+  .agenda-item .ai-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+  .agenda-item .ai-radicado{font-variant-numeric:tabular-nums;font-weight:700;font-size:0.9rem;}
+  .agenda-item .ai-name{color:var(--muted);font-size:0.82rem;margin-top:1px;}
+  .agenda-item .ai-meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:7px;font-size:0.78rem;color:var(--muted);}
+  .agenda-item .ai-meta b{color:var(--ink);font-weight:600;}
+  .agenda-item .ai-dup{margin-top:7px;font-size:0.78rem;color:var(--stamp);font-weight:700;}
+  .agenda-item .ai-actions{margin-top:9px;display:flex;gap:8px;}
+
   .capture-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:sticky;top:12px;}
   .capture-card .cc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px;flex-wrap:wrap;}
   .capture-card .cc-head h3{font-size:1.4rem;font-variant-numeric:tabular-nums;}
@@ -635,6 +645,27 @@
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- VENTANA APARTE: agendamientos (NO va en la masiva -- ver finalDocEligible()) -->
+  <section class="panel">
+    <div class="panel-head">
+      <div><span class="step">Ventana aparte</span><h2>Agendamientos</h2></div>
+      <div class="toolbar">
+        <div class="filter-tabs" id="agendaFilterTabs">
+          <button data-agendafilter="pend" class="active">Pendientes</button>
+          <button data-agendafilter="done">Ya agendados</button>
+          <button data-agendafilter="all">Todos</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <p class="panel-desc" style="margin-top:0;">Los radicados que marcaste con <b>Formato = AGENDAMIENTO</b> viven aquí, aparte —
+      <b>nunca entran al documento final (masiva)</b>. Pensada para tu revisión de las mañanas: cuáles siguen en término
+      para solicitar audiencia (5 días hábiles si el comparendo es manual, 11 si es electrónico) y cuáles ya se pasaron.</p>
+      <div class="queue-count" id="agendaCount">0 en la lista</div>
+      <div class="queue-panel" id="agendaPanel" style="max-height:520px;"></div>
     </div>
   </section>
 
@@ -2214,7 +2245,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       radicado:"", fechaRadicacion:"", fechaAsignacion:"", nombre:"",
       direccion:"", formato:"", tipoComparendo:"", comentario:"", res:"", fechaRes:"",
       comparendoCompleto:"", comparendoRaw:"", cod:"", imposicion:"", notificacion:"", curso:"",
-      medio:"", estado:"", f8:"", f9:"", f10:"", tipoId:"", idNum:"", nombreF:"" };
+      medio:"", estado:"", f8:"", f9:"", f10:"", tipoId:"", idNum:"", nombreF:"", placa:"",
+      agendado:false };
   }
 
   // ---------- stats ----------
@@ -2330,8 +2362,85 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }).join("");
   }
 
+  function renderAgendamientos(){
+    var panel = document.getElementById("agendaPanel");
+    var filter = state.agendaFilter || "pend";
+    var all = agendamientoList();
+    var dup = agendamientoDuplicados();
+    var list = all.filter(function(r){
+      if(filter === "pend") return !r.agendado;
+      if(filter === "done") return !!r.agendado;
+      return true;
+    }).sort(function(a,b){
+      var infoA = agendamientoInfo(a), infoB = agendamientoInfo(b);
+      var da = a.agendado ? -1 : (infoA.dias || 0);
+      var db = b.agendado ? -1 : (infoB.dias || 0);
+      return db - da;
+    });
+    document.getElementById("agendaCount").textContent = list.length + (list.length===1?" radicado":" radicados") + " en la lista ("+all.length+" en total)";
+    if(!list.length){
+      panel.innerHTML = '<div class="queue-empty">'+(all.length ? "Nada con este filtro." : "Aún no tienes radicados con Formato = AGENDAMIENTO.")+'</div>';
+      return;
+    }
+    panel.innerHTML = list.map(function(r){
+      var info = agendamientoInfo(r);
+      var corto = comparendoCorto(r);
+      var esDup = corto && dup[corto] > 1;
+      var terminoTxt = info.dias === null ? "sin fecha de asignación"
+        : (info.umbral === null ? (info.dias + " días hábiles (falta el Medio para saber el término)")
+        : (info.dias + " / " + info.umbral + " días hábiles (" + (info.tipo === "MANUAL" ? "manual" : "electrónico") + ")"));
+      return '<div class="agenda-item'+(info.vencido && !r.agendado ? " vencido" : "")+'" data-id="'+r.id+'">'+
+        '<div class="ai-top"><div><div class="ai-radicado">'+escapeHtml(r.radicado)+'</div>'+
+        '<div class="ai-name">'+escapeHtml(r.nombreF || r.nombre || "(sin nombre)")+'</div></div>'+
+        (r.agendado ? '<span class="pill" style="background:var(--ok-soft,#e6f4ec);color:var(--ok);">Ya agendado</span>'
+          : (info.vencido ? '<span class="pill" style="background:var(--stamp-soft);color:var(--stamp);">FUERA DE TÉRMINO</span>' : ''))+
+        '</div>'+
+        '<div class="ai-meta">'+
+        '<span>Comparendo <b>'+escapeHtml(corto||"—")+'</b></span>'+
+        '<span>Documento <b>'+escapeHtml((r.tipoId||"")+" "+(r.idNum||""))+'</b></span>'+
+        '<span>Correo/dirección <b>'+escapeHtml(r.direccion||"—")+'</b></span>'+
+        '<span>Placa <b>'+escapeHtml(r.placa||"—")+'</b></span>'+
+        '<span>Término <b>'+terminoTxt+'</b></span>'+
+        '</div>'+
+        (esDup ? '<div class="ai-dup">🔴 Este número de comparendo aparece más de una vez entre tus AGENDAMIENTOS -- revisa que no esté duplicado.</div>' : '')+
+        '<div class="ai-actions">'+
+        '<button class="btn small" data-toggleagendado="'+r.id+'" type="button">'+(r.agendado ? "Marcar como pendiente" : "Marcar como ya agendado")+'</button>'+
+        '<button class="btn ghost small" data-editagendado="'+r.id+'" type="button">Editar en el Paso 2</button>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+  }
+  document.getElementById("agendaFilterTabs").addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-agendafilter]");
+    if(!btn) return;
+    state.agendaFilter = btn.getAttribute("data-agendafilter");
+    Array.prototype.forEach.call(document.querySelectorAll("#agendaFilterTabs button"), function(b){
+      b.classList.toggle("active", b===btn);
+    });
+    renderAgendamientos();
+  });
+  document.getElementById("agendaPanel").addEventListener("click", function(e){
+    var toggleBtn = e.target.closest("button[data-toggleagendado]");
+    if(toggleBtn){
+      var id = toggleBtn.getAttribute("data-toggleagendado");
+      var rec = state.records.find(function(r){ return r.id === id; });
+      if(rec){
+        rec.agendado = !rec.agendado;
+        save();
+        renderAgendamientos();
+        toast(rec.agendado ? "Marcado como ya agendado" : "Marcado como pendiente otra vez");
+      }
+      return;
+    }
+    var editBtn = e.target.closest("button[data-editagendado]");
+    if(editBtn){
+      selectRecord(editBtn.getAttribute("data-editagendado"));
+      document.getElementById("captureCard").scrollIntoView({behavior:"smooth", block:"center"});
+    }
+  });
+
   function renderAll(){
-    renderStats(); renderQueue(); renderHistory();
+    renderStats(); renderQueue(); renderHistory(); renderAgendamientos();
     document.getElementById("weekBadge").textContent = isoWeekLabel(new Date());
     // keep the capture card in sync if the active record fell out of view (deleted, or filtered out)
     if(state.activeId && !state.records.some(function(r){ return r.id===state.activeId; })){
@@ -2774,6 +2883,38 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     return m === "COMPARENDERA" ? "MANUAL" : "ELECTRONICO";
   }
 
+  // ---------- ventana aparte: Agendamientos ----------
+  // Un radicado vive aquí (y NUNCA en la masiva -- ver finalDocEligible) mientras su Formato sea
+  // exactamente AGENDAMIENTO. El término para solicitar audiencia es fijo: 5 días hábiles si el
+  // comparendo es manual, 11 si es electrónico -- se reutiliza deriveTipoComparendo(rec.medio),
+  // igual que en el resto de la app, para no duplicar esa regla en dos sitios.
+  function esAgendamiento(rec){
+    return (rec.formato||"").trim().toUpperCase() === "AGENDAMIENTO";
+  }
+  function comparendoCorto(rec){
+    return right8(rec.comparendoCompleto);
+  }
+  function agendamientoInfo(rec){
+    var tipo = deriveTipoComparendo(rec.medio);
+    var umbral = tipo === "MANUAL" ? 5 : (tipo === "ELECTRONICO" ? 11 : null);
+    var dias = diasHabilesTranscurridosDesdeAsignacion(rec); // mismo criterio de urgencia que el resto de la cola
+    var vencido = (umbral !== null && dias !== null) ? dias > umbral : false;
+    return { tipo: tipo, umbral: umbral, dias: dias, vencido: vencido };
+  }
+  function agendamientoList(){
+    return state.records.filter(esAgendamiento);
+  }
+  function agendamientoDuplicados(){
+    // Solo compara contra lo que hay cargado ahora mismo en la app (no guarda histórico aparte).
+    var counts = {};
+    agendamientoList().forEach(function(r){
+      var c = comparendoCorto(r);
+      if(!c) return;
+      counts[c] = (counts[c]||0) + 1;
+    });
+    return counts;
+  }
+
   // Reglas de clasificación IMPERATIVAS: fijas en el código, no configurables desde Ajustes,
   // nunca exceptuadas por el formato de excepción de los "campos obligatorios". Documentadas
   // también en el diálogo de Ajustes para que el equipo las tenga siempre a la vista.
@@ -3018,7 +3159,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(!rec) return;
     checkNombreMismatch(rec, function(ok){
       if(!ok){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
-      save(); renderQueue(); renderStats();
+      save(); renderQueue(); renderStats(); renderAgendamientos();
       var check = validateAdvance(rec);
       if(!check.ok){ warnMissing(check); return; }
       // Siempre busca en toda la base, no solo en la pestaña/filtro activo, para que el botón
@@ -3046,7 +3187,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   document.getElementById("cc_prev").addEventListener("click", function(){
     var rec = readCaptureIntoRecord();
     if(!rec) return;
-    save(); renderQueue(); renderStats();
+    save(); renderQueue(); renderStats(); renderAgendamientos();
     var prevRec = findAdjacent(rec, -1);
     if(prevRec) selectRecord(prevRec.id);
   });
@@ -3055,7 +3196,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(!rec) return;
     checkNombreMismatch(rec, function(ok){
       if(!ok){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
-      save(); renderQueue(); renderStats();
+      save(); renderQueue(); renderStats(); renderAgendamientos();
       var check = validateAdvance(rec);
       if(!check.ok){ warnMissing(check); return; }
       var nextRec = findAdjacent(rec, 1);
@@ -3271,8 +3412,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     "TIPO DE DOCUMENTO","NUMERO DE DOCUMENTO","RES. SALIDA","FECHA RES. SALIDA","PLACA","ANEXO"];
 
   function finalDocEligible(){
-    // Mismo criterio que "completo" en toda la app: Formato lleno (igual que tu Excel original).
-    return state.records.filter(isDone).sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    // Mismo criterio que "completo" en toda la app: Formato lleno (igual que tu Excel original) --
+    // EXCEPTO Formato = AGENDAMIENTO, que nunca entra a la masiva: esos radicados viven aparte, en
+    // la ventana "Agendamientos" (ver renderAgendamientos), porque no son parte del mismo documento
+    // final que el resto de clasificaciones.
+    return state.records.filter(function(r){ return isDone(r) && !esAgendamiento(r); })
+      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
   }
 
   function recordToMasivaRow(rec){
