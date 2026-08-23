@@ -195,6 +195,20 @@
   .filter-tabs button.active{background:var(--surface);color:var(--accent);box-shadow:var(--shadow);}
 
   .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;background:var(--surface-2);border:1px solid var(--border);color:var(--muted);}
+
+  /* Botón de acceso a Agendamientos -- una sola fila, para no ocupar el espacio de toda la lista
+     cuando no la estás usando (el contenido real vive en el dialog #agendaDialog). */
+  .agenda-trigger{width:100%;display:flex;justify-content:space-between;align-items:center;gap:14px;
+    background:transparent;border:none;padding:16px 20px;cursor:pointer;text-align:left;font:inherit;color:var(--ink);}
+  .agenda-trigger:hover{background:var(--surface-2);}
+  .at-left{display:flex;align-items:center;gap:12px;min-width:0;}
+  .at-icon{font-size:1.4rem;line-height:1;}
+  .at-left strong{display:block;font-size:1rem;}
+  .at-sub{display:block;color:var(--muted);font-size:0.8rem;margin-top:1px;}
+  .at-right{display:flex;align-items:center;gap:10px;flex:none;}
+  .at-right .pill.urgent{background:var(--stamp-soft);color:var(--stamp);border-color:transparent;}
+  .at-arrow{color:var(--accent);font-weight:700;font-size:0.86rem;white-space:nowrap;}
+  @media (max-width:520px){ .at-sub{display:none;} }
   .pill.set{background:var(--accent-soft);color:var(--accent);border-color:transparent;}
   .pill.pend{background:var(--warn-soft);color:var(--warn);border-color:transparent;}
   .pill.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent;}
@@ -651,28 +665,23 @@
     </div>
   </section>
 
-  <!-- VENTANA APARTE: agendamientos (NO va en la masiva -- ver finalDocEligible()) -->
+  <!-- VENTANA APARTE: solo un botón de acceso -- el contenido real vive en #agendaDialog, para que
+       no ocupe espacio permanente en la pantalla (antes era una sección siempre visible, aquí queda
+       reducido a una sola fila, igual de rápido de abrir). -->
   <section class="panel">
-    <div class="panel-head">
-      <div><span class="step">Ventana aparte</span><h2>Agendamientos</h2></div>
-      <div class="toolbar">
-        <div class="filter-tabs" id="agendaFilterTabs">
-          <button data-agendafilter="pend" class="active">Pendientes</button>
-          <button data-agendafilter="done">Ya agendados</button>
-          <button data-agendafilter="all">Todos</button>
-        </div>
-      </div>
-    </div>
-    <div class="panel-body">
-      <p class="panel-desc" style="margin-top:0;">Los radicados que marcaste con <b>Formato = AGENDAMIENTO</b> viven aquí, aparte —
-      <b>nunca entran al documento final (masiva)</b>. Pensada para tu revisión de las mañanas: cuáles siguen en término
-      para solicitar audiencia (5 días hábiles si el comparendo es manual, 11 si es electrónico) y cuáles ya se pasaron.
-      El término se cuenta <b>solo con las fechas de la línea de Fénix</b> (notificación o, si no hay, imposición) contra
-      tu fecha de radicación — nunca con la fecha de asignación. Por eso aquí necesitas pegar esa línea completa
-      <b>hasta la Placa</b> (a diferencia de la masiva, que solo llega hasta el nombre del infractor).</p>
-      <div class="queue-count" id="agendaCount">0 en la lista</div>
-      <div class="queue-panel" id="agendaPanel" style="max-height:520px;"></div>
-    </div>
+    <button class="agenda-trigger" id="agendaTriggerBtn" type="button">
+      <span class="at-left">
+        <span class="at-icon">📅</span>
+        <span>
+          <strong>Agendamientos</strong>
+          <span class="at-sub">Formato = AGENDAMIENTO — aparte de la masiva</span>
+        </span>
+      </span>
+      <span class="at-right">
+        <span class="pill" id="agendaTriggerBadge">0 pendientes</span>
+        <span class="at-arrow">Abrir →</span>
+      </span>
+    </button>
   </section>
 
   <!-- PASO 3: entregar y respaldar -->
@@ -786,6 +795,42 @@
   </div>
   <div class="form-actions">
     <button class="btn ghost" id="termCalcClose" type="button">Cerrar</button>
+  </div>
+</dialog>
+
+<!-- Dialog: Agendamientos -- vive completamente aparte, no ocupa espacio en la pantalla principal
+     mientras está cerrado (ver #agendaTriggerBtn). Formato = AGENDAMIENTO nunca entra a la masiva --
+     tiene su propio Excel descargable, distinto al de finalDocEligible(). -->
+<dialog id="agendaDialog" class="wide-settings" aria-labelledby="agendaDialogTitle">
+  <div class="panel-head">
+    <div><span class="step">Ventana aparte</span><h2 id="agendaDialogTitle">Agendamientos</h2></div>
+    <div class="toolbar">
+      <div class="filter-tabs" id="agendaFilterTabs">
+        <button data-agendafilter="pend" class="active">Pendientes</button>
+        <button data-agendafilter="done">Ya agendados</button>
+        <button data-agendafilter="all">Todos</button>
+      </div>
+    </div>
+  </div>
+  <div class="panel-body">
+    <p class="panel-desc" style="margin-top:0;">Los radicados que marcaste con <b>Formato = AGENDAMIENTO</b> viven aquí, aparte —
+    <b>nunca entran al documento final (masiva)</b>. Pensada para tu revisión de las mañanas: cuáles siguen en término
+    para solicitar audiencia (5 días hábiles si el comparendo es manual, 11 si es electrónico) y cuáles ya se pasaron.
+    El término se cuenta <b>solo con las fechas de la línea de Fénix</b> (notificación o, si no hay, imposición) contra
+    tu fecha de radicación — nunca con la fecha de asignación. Por eso aquí necesitas pegar esa línea completa
+    <b>hasta la Placa</b> (a diferencia de la masiva, que solo llega hasta el nombre del infractor).</p>
+    <div class="queue-count" id="agendaCount">0 en la lista</div>
+    <div class="queue-panel" id="agendaPanel" style="max-height:400px;"></div>
+    <div class="import-actions" style="margin-top:14px;flex-wrap:wrap;justify-content:space-between;align-items:center;">
+      <span class="hint" id="agendaDocCount"></span>
+      <span style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn" id="copyAgendaBtn" type="button">Copiar</button>
+        <button class="btn primary" id="downloadAgendaBtn" type="button">Descargar Excel de Agendamientos (.xlsx)</button>
+      </span>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn ghost" id="agendaDialogClose" type="button">Cerrar</button>
   </div>
 </dialog>
 
@@ -2414,6 +2459,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var panel = document.getElementById("agendaPanel");
     var filter = state.agendaFilter || "pend";
     var all = agendamientoList();
+    refreshAgendaTriggerBadge(); // el botón que abre el dialog siempre debe reflejar el conteo actual
     var dup = agendamientoDuplicados();
     var list = all.filter(function(r){
       if(filter === "pend") return !r.agendado;
@@ -3534,6 +3580,56 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       usuario, rec.tipoId, rec.idNum, "", "", "", ""
     ].map(cleanSpaces);
   }
+
+  // ---------- documento aparte para Agendamientos (NUNCA se mezcla con la masiva) ----------
+  var AGENDA_HEADERS = ["RADICADO","NOMBRE Y APELLIDO","NUMERO DE DOCUMENTO","CORREO O DIRECCION",
+    "NUMERO DE COMPARENDO","PLACA","CODIGO DE INFRACCION","FECHA DE COMPARENDO","FECHA DE RADICACION",
+    "MEDIO","DIAS HABILES (TERMINO)","DIAS PERMITIDOS","ESTADO DEL TERMINO","YA AGENDADO","COMENTARIO"];
+  function recordToAgendaRow(rec){
+    var info = agendamientoInfo(rec);
+    var corto = comparendoCorto(rec);
+    return [
+      rec.radicado, rec.nombreF || rec.nombre, ((rec.tipoId||"") + " " + (rec.idNum||"")).trim(), rec.direccion,
+      corto, rec.placa, rec.cod, formatDateEs(rec.imposicion), formatDateEs(rec.fechaRadicacion),
+      info.tipo || "", info.dias === null ? "" : info.dias, info.umbral === null ? "" : info.umbral,
+      info.dias === null ? "SIN FECHAS" : (info.vencido ? "FUERA DE TÉRMINO" : "DENTRO DE TÉRMINO"),
+      rec.agendado ? "SI" : "NO", rec.comentario
+    ].map(cleanSpaces);
+  }
+  function refreshAgendaDocCount(){
+    var n = agendamientoList().length;
+    document.getElementById("agendaDocCount").textContent = n
+      ? n + " radicado" + (n===1?"":"s") + " de AGENDAMIENTO listo" + (n===1?"":"s") + " para exportar"
+      : "Aún no hay radicados con Formato = AGENDAMIENTO";
+  }
+  document.getElementById("downloadAgendaBtn").addEventListener("click", function(){
+    var list = agendamientoList();
+    if(!list.length){ toast("Aún no hay radicados con Formato = AGENDAMIENTO para exportar"); return; }
+    var filename = "AGENDAMIENTOS_" + userSlug() + "_" + new Date().toISOString().slice(0,10);
+    downloadExcel(filename, AGENDA_HEADERS, list.map(recordToAgendaRow), "Excel de Agendamientos descargado — " + list.length + " radicados");
+  });
+  document.getElementById("copyAgendaBtn").addEventListener("click", function(){
+    var list = agendamientoList();
+    if(!list.length){ toast("Aún no hay radicados con Formato = AGENDAMIENTO para exportar"); return; }
+    var text = rowsToTSV(AGENDA_HEADERS, list.map(recordToAgendaRow));
+    copyOrShowManually(text, list.length + " filas copiadas — pégalas en una hoja nueva de Excel", "Agendamientos (" + list.length + " radicados)");
+  });
+  function refreshAgendaTriggerBadge(){
+    var pendientes = agendamientoList().filter(function(r){ return !r.agendado; });
+    var vencidos = pendientes.filter(function(r){ return agendamientoInfo(r).vencido; }).length;
+    var badge = document.getElementById("agendaTriggerBadge");
+    badge.textContent = pendientes.length + (pendientes.length===1 ? " pendiente" : " pendientes");
+    badge.className = "pill" + (vencidos ? " urgent" : "");
+    if(vencidos) badge.textContent += " (" + vencidos + " fuera de término)";
+  }
+  document.getElementById("agendaTriggerBtn").addEventListener("click", function(){
+    renderAgendamientos();
+    refreshAgendaDocCount();
+    document.getElementById("agendaDialog").showModal();
+  });
+  document.getElementById("agendaDialogClose").addEventListener("click", function(){
+    document.getElementById("agendaDialog").close();
+  });
 
   function refreshFinalDocCount(){
     var n = finalDocEligible().length;
