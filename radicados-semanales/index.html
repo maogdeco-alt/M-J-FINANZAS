@@ -164,7 +164,7 @@
   textarea{resize:vertical;font-variant-numeric:normal;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:0.88rem;}
   input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent);}
   button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
-  .field-hint{font-size:0.8rem;color:var(--muted);margin-top:5px;}
+  .field-hint{font-size:0.76rem;color:var(--muted);margin-top:3px;}
 
   .btn{appearance:none;border:1px solid var(--border);background:var(--surface-2);color:var(--ink);padding:9px 16px;border-radius:8px;font:inherit;font-size:0.92rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:filter .12s ease, transform .12s ease, box-shadow .12s ease;}
   .btn:hover{filter:brightness(0.97);transform:translateY(-1px);}
@@ -202,8 +202,11 @@
   footer.note{margin-top:28px;color:var(--muted);font-size:0.88rem;line-height:1.65;}
   footer.note b{color:var(--ink);}
 
-  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:8px;font-size:0.85rem;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .18s ease, transform .18s ease;z-index:60;max-width:88vw;text-align:center;}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);color:var(--bg);padding:14px 24px;border-radius:10px;font-size:1rem;font-weight:600;line-height:1.4;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .18s ease, transform .18s ease;z-index:60;max-width:min(92vw,620px);text-align:center;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  /* Los avisos de reglas de negocio (no bloquean, pero conviene corregirlos) usan este color, más
+     llamativo, y se quedan más tiempo en pantalla que una confirmación normal de "guardado". */
+  .toast.warn{background:var(--stamp);color:#fff;}
   @media (prefers-reduced-motion: reduce){.toast{transition:none;}}
 
   /* max-height + overflow en TODOS los diálogos: en el celular, cuando el teclado virtual abre y
@@ -260,23 +263,23 @@
   .agenda-item .ai-dup{margin-top:7px;font-size:0.78rem;color:var(--stamp);font-weight:700;}
   .agenda-item .ai-actions{margin-top:9px;display:flex;gap:8px;}
 
-  .capture-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:sticky;top:12px;}
-  .capture-card .cc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px;flex-wrap:wrap;}
-  .capture-card .cc-head h3{font-size:1.4rem;font-variant-numeric:tabular-nums;}
-  .cc-sub{color:var(--muted);font-size:0.92rem;margin:2px 0 14px;}
+  .capture-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 16px;position:sticky;top:12px;}
+  .capture-card .cc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:2px;flex-wrap:wrap;}
+  .capture-card .cc-head h3{font-size:1.22rem;font-variant-numeric:tabular-nums;}
+  .cc-sub{color:var(--muted);font-size:0.86rem;margin:1px 0 9px;}
   .cc-nav{display:flex;gap:6px;align-items:center;}
   .cc-nav .pos{color:var(--muted);font-size:0.84rem;font-variant-numeric:tabular-nums;margin-right:2px;}
 
-  .base-fields{display:flex;flex-wrap:wrap;gap:6px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:18px;font-size:0.88rem;color:var(--muted);}
+  .base-fields{display:flex;flex-wrap:wrap;gap:4px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;margin-bottom:11px;font-size:0.84rem;color:var(--muted);}
   .base-fields b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600;}
   .base-edit-toggle{margin-left:auto;}
-  .base-edit-fields{display:none;grid-template-columns:1fr 1fr;gap:10px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;max-width:640px;}
+  .base-edit-fields{display:none;grid-template-columns:1fr 1fr;gap:8px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:9px;max-width:640px;}
   .base-edit-fields.open{display:grid;}
 
   /* Dos columnas para los campos cortos (Formato/Dirección, Res./Fecha res.) -- el pegado del
      comparendo y el Comentario ocupan las dos columnas (.full). Pensado para que el formulario quepa
      en pantalla de computador sin tener que bajar tanto el cursor. */
-  .work-fields{display:grid;grid-template-columns:1fr 1fr;gap:11px 16px;max-width:640px;}
+  .work-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;max-width:640px;}
   .work-fields > .full{grid-column:1 / -1;}
   .work-fields .formato-field input{font-weight:700;}
   .simit-btn{margin-left:8px;padding:3px 11px;font-size:0.76rem;border-radius:999px;background:var(--accent-soft);border-color:transparent;color:var(--accent);vertical-align:middle;text-decoration:none;}
@@ -290,20 +293,20 @@
   .simit-btn.is-disabled{background:var(--surface-2);color:var(--muted);cursor:not-allowed;opacity:0.7;pointer-events:none;}
   .simit-btn.is-disabled:hover{background:var(--surface-2);color:var(--muted);}
 
-  .breakdown{display:grid;grid-template-columns:repeat(auto-fill,minmax(102px,1fr));gap:6px;margin-top:8px;}
-  .breakdown .bd-item{background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:5px 8px;}
-  .breakdown .bd-item .k{font-size:0.68rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
-  .breakdown .bd-item .v{font-size:0.86rem;font-variant-numeric:tabular-nums;word-break:break-word;}
+  .breakdown{display:grid;grid-template-columns:repeat(auto-fill,minmax(102px,1fr));gap:5px;margin-top:6px;}
+  .breakdown .bd-item{background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:4px 7px;}
+  .breakdown .bd-item .k{font-size:0.66rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
+  .breakdown .bd-item .v{font-size:0.82rem;font-variant-numeric:tabular-nums;word-break:break-word;}
   .breakdown .bd-item.empty .v{color:var(--muted);}
 
-  .insights{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
-  .insight-chip{display:flex;align-items:center;gap:6px;font-size:0.82rem;font-weight:600;border-radius:999px;padding:6px 12px;background:var(--accent-soft);color:var(--accent);border:1px solid transparent;}
+  .insights{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;}
+  .insight-chip{display:flex;align-items:center;gap:6px;font-size:0.78rem;font-weight:600;border-radius:999px;padding:4px 10px;background:var(--accent-soft);color:var(--accent);border:1px solid transparent;}
   .insight-chip.warn{background:var(--warn-soft);color:var(--warn);}
   .insight-chip.alert{background:var(--stamp-soft);color:var(--stamp);}
 
-  .cc-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+  .cc-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px solid var(--border);}
   .cc-actions .spacer{flex:1;}
-  .cc-shortcut-hint{color:var(--muted);font-size:0.8rem;margin-top:9px;}
+  .cc-shortcut-hint{color:var(--muted);font-size:0.76rem;margin-top:6px;}
   /* En celular, un botón de texto largo dentro de una fila que se envuelve puede terminar más
      ancho que la pantalla (el texto no se parte). Apilados a ancho completo, eso no puede pasar,
      y de paso queda la acción principal arriba y "Borrar" al final, lejos del pulgar. */
@@ -618,7 +621,7 @@
               <div class="full" id="wrap_comparendo">
                 <label for="cc_comparendo">Pegar línea completa del comparendo<span class="required-mark" id="req_comparendo" hidden>*</span></label>
                 <textarea id="cc_comparendo" rows="2" placeholder="Pega aquí toda la línea copiada (comparendo, cod, imposición, notificación, curso, medio, estado...)"></textarea>
-                <div class="field-hint">Se separa sola en No. Comparendo, Código infracción, Fecha de imposición, Fecha notificación, Tiene curso, Medio de imposición, Estado comparendo, Motivo de cierre, Número de proceso GC, Estado proceso GC, Tipo de documento, No. Documento infractor, Nombre infractor y Placa. Para la <b>masiva</b> (T1, T5, T6...) basta con pegar hasta el Nombre infractor — la Placa es opcional. Para <b>Formato = AGENDAMIENTO</b>, pega la línea completa <b>hasta la Placa</b>: es obligatoria ahí, la pide la ventana de Agendamientos.</div>
+                <div class="field-hint" title="Se separa sola en: No. Comparendo, Código infracción, Fecha de imposición, Fecha notificación, Tiene curso, Medio de imposición, Estado comparendo, Motivo de cierre, Número de proceso GC, Estado proceso GC, Tipo de documento, No. Documento infractor, Nombre infractor y Placa.">Se separa sola en sus campos (pasa el cursor para ver cuáles). Para <b>masiva</b>: hasta el Nombre infractor. Para <b>AGENDAMIENTO</b>: hasta la <b>Placa</b> (obligatoria ahí).</div>
                 <div class="breakdown" id="cc_breakdown"></div>
                 <div class="insights" id="ccInsights"></div>
               </div>
@@ -1663,7 +1666,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
   function refreshFormatoDatalist(){
     var dl = document.getElementById("formatoOptions");
-    dl.innerHTML = state.settings.formatCategories.map(function(c){ return '<option value="'+escapeHtml(c)+'">'; }).join("");
+    var opts = state.settings.formatCategories.slice();
+    // "PETICION OSCURA" se sugiere también, como alias de T10 (ver normalizeFormatoInput) -- para
+    // que se pueda escribir cualquiera de las dos formas y autocompletar igual.
+    Object.keys(FORMATO_ALIASES).forEach(function(a){ if(opts.indexOf(a) === -1) opts.push(a); });
+    dl.innerHTML = opts.map(function(c){ return '<option value="'+escapeHtml(c)+'">'; }).join("");
   }
 
   function renderSettingsForm(){
@@ -2149,6 +2156,17 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     return String(v).replace(/[^\S\n]+/g, " ").trim();
   }
 
+  // T10 y "PETICION OSCURA" son EL MISMO Formato -- "PETICION OSCURA" es solo un alias que se
+  // traduce a su código real (T10) al guardar, para que ambas formas de escribirlo se comporten
+  // exactamente igual en toda la app (plantilla de la masiva, reglas imperativas, campos
+  // obligatorios, etc.) sin tener que duplicar ninguna lógica.
+  var FORMATO_ALIASES = { "PETICION OSCURA": "T10" };
+  function normalizeFormatoInput(raw){
+    var v = cleanSpaces(raw || "");
+    var key = v.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return FORMATO_ALIASES[key] || v;
+  }
+
   var MONTHS = {ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,set:9,oct:10,nov:11,dic:12};
   // Best-effort normalize to dd-mm-yyyy for display/export; if it can't be parsed, the original text is kept as-is.
   function normalizeDate(raw){
@@ -2194,11 +2212,23 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
 
   var toastTimer = null;
-  function toast(msg){
+  function toast(msg, type){
     var el = document.getElementById("toast");
-    el.textContent = msg; el.classList.add("show");
+    el.textContent = msg;
+    el.classList.toggle("warn", type === "warn");
+    el.classList.add("show");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){ el.classList.remove("show"); }, 2600);
+    // Los avisos de reglas de negocio (type "warn") se quedan más tiempo en pantalla que una
+    // confirmación normal de guardado -- son más importantes de leer y de corregir después.
+    toastTimer = setTimeout(function(){ el.classList.remove("show"); }, type === "warn" ? 6000 : 2600);
+  }
+  // Letrero para las reglas imperativas: ya nunca bloquean el guardado (ver cc_save/cc_saveNext/
+  // cc_next/cc_prev), pero deben avisarse fuerte -- letrero más grande y más largo que un toast
+  // normal, listando TODO lo que falta por corregir, no solo el primer aviso.
+  function warnImperative(violations){
+    var msg = (violations.length > 1 ? violations.length + " avisos: " : "") +
+      violations.map(function(v){ return v.message; }).join(" · ");
+    toast(msg, "warn");
   }
 
   function isoWeekLabel(d){
@@ -2766,7 +2796,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var preview = document.getElementById("plantillaPreview");
     if(!formato) preview.textContent = "";
     else{
-      var plantilla = dict[formato.toUpperCase()];
+      var plantilla = dict[normalizeFormatoInput(formato).toUpperCase()];
       preview.textContent = plantilla ? ("Plantilla: " + plantilla) : "Plantilla: Sin definir (formato no está en el diccionario de Ajustes)";
     }
 
@@ -3092,7 +3122,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     rec.fechaRadicacion = cleanSpaces(document.getElementById("cc_fechaRadicacion").value);
     rec.fechaAsignacion = cleanSpaces(document.getElementById("cc_fechaAsignacion").value);
     rec.direccion = cleanSpaces(document.getElementById("cc_direccion").value);
-    rec.formato = cleanSpaces(document.getElementById("cc_formato").value);
+    rec.formato = normalizeFormatoInput(document.getElementById("cc_formato").value);
     rec.res = cleanSpaces(document.getElementById("cc_res").value);
     rec.comentario = cleanSpaces(document.getElementById("cc_comentario").value);
     rec.fechaRes = normalizeDate(cleanSpaces(document.getElementById("cc_fechaRes").value));
@@ -3168,19 +3198,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(!rec) return;
     checkNombreMismatch(rec, function(ok){
       if(!ok){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
-      // "Guardar" (a diferencia de "Guardar y siguiente") nunca exigió los campos obligatorios
-      // configurables en Ajustes -- eso se deja igual, para poder guardar un avance parcial. Pero las
-      // reglas IMPERATIVAS (fijas, sin excepción) sí deben cumplirse siempre, sin importar qué botón
-      // se use -- si no, bastaba con usar "Guardar" para saltárselas por completo.
-      clearFieldErrors();
+      // IMPORTANTE: las reglas IMPERATIVAS ya NUNCA bloquean el guardado -- solo avisan, fuerte y
+      // claro (letrero grande, ver warnImperative), y marcan en rojo el campo a revisar. A veces no
+      // se alcanza a diligenciar todo de una vez, y perder ese avance por una regla sin cumplir
+      // sería peor que guardarlo incompleto y poder corregirlo después.
       var imperative = checkImperativeRules(rec);
+      // renderAll() -> renderCapture() limpia los field-error al redibujar el formulario -- por eso
+      // el marcado en rojo se hace DESPUÉS de renderAll(), no antes, si no, renderCapture() lo borra
+      // de inmediato y el campo se ve como si nada estuviera mal (aunque el aviso grande sí salga).
+      save(); renderAll();
       if(imperative.length){
         imperative.forEach(function(v){ v.wraps.forEach(markError); });
-        toast("No se guardó — " + imperative[0].message);
-        return;
+        warnImperative(imperative);
+      } else {
+        toast("Radicado " + rec.radicado + " guardado");
       }
-      save(); renderAll();
-      toast("Radicado " + rec.radicado + " guardado");
     });
   });
   document.getElementById("cc_saveNext").addEventListener("click", function(){
@@ -3188,15 +3220,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(!rec) return;
     checkNombreMismatch(rec, function(ok){
       if(!ok){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
-      // Mismo candado que "Guardar": las reglas IMPERATIVAS rigen sin importar qué botón se use --
-      // si no, "Guardar y siguiente" (el botón que más se usa) se saltaba todas estas reglas.
       clearFieldErrors();
       var imperative = checkImperativeRules(rec);
-      if(imperative.length){
-        imperative.forEach(function(v){ v.wraps.forEach(markError); });
-        toast("No se guardó — " + imperative[0].message);
-        return;
-      }
+      if(imperative.length){ imperative.forEach(function(v){ v.wraps.forEach(markError); }); }
       save(); renderQueue(); renderStats(); renderAgendamientos();
       var check = validateAdvance(rec);
       if(!check.ok){ warnMissing(check); return; }
@@ -3217,7 +3243,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
           b.classList.toggle("active", b.getAttribute("data-filter")==="pend");
         });
       }
-      toast("Radicado " + rec.radicado + " guardado");
+      if(imperative.length) warnImperative(imperative);
+      else toast("Radicado " + rec.radicado + " guardado");
       selectRecord(next.id, "cc_formato");
       renderStats();
     });
@@ -3227,12 +3254,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(!rec) return;
     clearFieldErrors();
     var imperativePrev = checkImperativeRules(rec);
-    if(imperativePrev.length){
-      imperativePrev.forEach(function(v){ v.wraps.forEach(markError); });
-      toast("No se guardó — " + imperativePrev[0].message);
-      return;
-    }
+    if(imperativePrev.length){ imperativePrev.forEach(function(v){ v.wraps.forEach(markError); }); }
     save(); renderQueue(); renderStats(); renderAgendamientos();
+    if(imperativePrev.length) warnImperative(imperativePrev);
     var prevRec = findAdjacent(rec, -1);
     if(prevRec) selectRecord(prevRec.id);
   });
@@ -3243,14 +3267,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(!ok){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
       clearFieldErrors();
       var imperativeNext = checkImperativeRules(rec);
-      if(imperativeNext.length){
-        imperativeNext.forEach(function(v){ v.wraps.forEach(markError); });
-        toast("No se guardó — " + imperativeNext[0].message);
-        return;
-      }
+      if(imperativeNext.length){ imperativeNext.forEach(function(v){ v.wraps.forEach(markError); }); }
       save(); renderQueue(); renderStats(); renderAgendamientos();
       var check = validateAdvance(rec);
       if(!check.ok){ warnMissing(check); return; }
+      if(imperativeNext.length) warnImperative(imperativeNext);
       var nextRec = findAdjacent(rec, 1);
       if(nextRec) selectRecord(nextRec.id);
       else toast("No hay más radicados en esta vista");
