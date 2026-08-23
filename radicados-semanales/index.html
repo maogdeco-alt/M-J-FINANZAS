@@ -2784,6 +2784,27 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
     if(res) chips.push({cls:"", text:"✓ Con resolución previa"});
 
+    // Brecha entre radicación y asignación (las DOS del bloque inicial de ORFEO -- NUNCA la línea de
+    // Fénix). Solo informativo: la persona que captura no controla cuánto tarda la entidad en asignar
+    // el caso, así que esto nunca debe impedir guardar -- solo avisa, por si hay un typo en una fecha.
+    var fechaAsignacionVal = document.getElementById("cc_fechaAsignacion").value.trim();
+    if(fechaRadicacion && fechaAsignacionVal){
+      var tipoGapIns = deriveTipoComparendo(parsed.medio);
+      var umbralGapIns = tipoGapIns === "ELECTRONICO" ? 11 : (tipoGapIns === "MANUAL" ? 5 : null);
+      var dRadIns = parseDMY(normalizeDate(fechaRadicacion));
+      var dAsigIns = parseDMY(normalizeDate(fechaAsignacionVal));
+      if(dRadIns && dAsigIns){
+        var earlyIns = dRadIns <= dAsigIns ? dRadIns : dAsigIns;
+        var lateIns = dRadIns <= dAsigIns ? dAsigIns : dRadIns;
+        var startGapIns = new Date(earlyIns.getFullYear(), earlyIns.getMonth(), earlyIns.getDate()+1);
+        var gapDiasIns = startGapIns > lateIns ? 0 : countBusinessDays(startGapIns, lateIns);
+        var fueraDeGap = umbralGapIns !== null && gapDiasIns !== null && gapDiasIns > umbralGapIns;
+        if(gapDiasIns !== null){
+          chips.push({cls: fueraDeGap ? "alert" : "", text: "📋 " + gapDiasIns + " días hábiles (radicación → asignación)" + (fueraDeGap ? " -- más de lo habitual" : "")});
+        }
+      }
+    }
+
     // Tipo de comparendo: ya no se elige a mano, se detecta solo del MEDIO pegado (COMPARENDERA = Manual).
     if(parsed.medio){
       var tipoDetectado = deriveTipoComparendo(parsed.medio);
@@ -2974,29 +2995,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       violations.push({wraps:["wrap_formato","wrap_comparendo"], message:"AGENDAMIENTO requiere la Placa — pega la línea de Fénix completa HASTA LA PLACA (a diferencia de la masiva, que solo llega hasta el nombre del infractor)."});
     }
 
-    // Brecha entre la fecha de radicación y la fecha de asignación -- las DOS del bloque inicial que
-    // se pega en masivo (Radicado, Fecha de radicación, Fecha de asignación, Nombre). La línea de
-    // Fénix (comparendo, notificación, etc.) se pega y se conserva TAL CUAL, textual -- de ahí NUNCA
-    // sale ninguna fecha para esta cuenta, solo el nombre del infractor (para la validación de
-    // arriba). Más de 11 días hábiles si es Electrónico, o más de 5 si es Manual, es señal de una
-    // demora inusual en la asignación -- se advierte, sin asumir cuál de las dos fechas está mal.
-    if(rec.fechaRadicacion && rec.fechaAsignacion){
-      var tipoGap = deriveTipoComparendo(rec.medio);
-      var umbralGap = tipoGap === "ELECTRONICO" ? 11 : (tipoGap === "MANUAL" ? 5 : null);
-      if(umbralGap !== null){
-        var dRad = parseDMY(normalizeDate(rec.fechaRadicacion));
-        var dAsig = parseDMY(normalizeDate(rec.fechaAsignacion));
-        if(dRad && dAsig){
-          var early = dRad <= dAsig ? dRad : dAsig;
-          var late = dRad <= dAsig ? dAsig : dRad;
-          var startGap = new Date(early.getFullYear(), early.getMonth(), early.getDate()+1);
-          var gapDias = startGap > late ? 0 : countBusinessDays(startGap, late);
-          if(gapDias !== null && gapDias > umbralGap){
-            violations.push({wraps:["wrap_formato"], message:"Entre la fecha de radicación y la fecha de asignación hay " + gapDias + " días hábiles (más de los " + umbralGap + " esperados para " + tipoGap.toLowerCase() + ") — revisa esas fechas."});
-          }
-        }
-      }
-    }
+    // NOTA: la brecha entre fecha de radicación y fecha de asignación (ambas de ORFEO) YA NO
+    // bloquea el guardado -- se movió a un aviso informativo en renderInsights() (chip "📋 ... días
+    // hábiles (radicación → asignación)"). Bloquear por esto no tenía sentido: esa brecha depende de
+    // cuánto tarda la propia entidad en asignar el caso, algo que la persona que captura NO controla
+    // ni puede "corregir" -- un caso real y válido, asignado tarde, se quedaba sin poder guardarse.
+    // El único chequeo de término que SÍ debe bloquear -- y el único que usa fechas de Fénix -- es el
+    // de la Placa/AGENDAMIENTO de arriba y el propio "Control término" de la ventana Agendamientos
+    // (que compara Fénix contra radicación, nunca contra asignación). Ver agendamientoInfo().
 
     // Del propio informe, sección "Reglas obligatorias antes de exportar":
     var dict = (state.settings && state.settings.formatToPlantilla) || DEFAULT_SETTINGS.formatToPlantilla;
