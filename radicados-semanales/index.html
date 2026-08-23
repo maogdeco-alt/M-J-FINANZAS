@@ -3499,12 +3499,16 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     "COMPARENDO","INFRACCCION","FECHA DE NOTIF","RESOLUCION","FECHA Res","ANEXO","PLANTILLA","USUARIO",
     "TIPO DE DOCUMENTO","NUMERO DE DOCUMENTO","RES. SALIDA","FECHA RES. SALIDA","PLACA","ANEXO"];
 
+  function esDevuelto(rec){
+    return (rec.formato||"").trim().toUpperCase() === "DEVUELTO";
+  }
   function finalDocEligible(){
     // Mismo criterio que "completo" en toda la app: Formato lleno (igual que tu Excel original) --
-    // EXCEPTO Formato = AGENDAMIENTO, que nunca entra a la masiva: esos radicados viven aparte, en
-    // la ventana "Agendamientos" (ver renderAgendamientos), porque no son parte del mismo documento
-    // final que el resto de clasificaciones.
-    return state.records.filter(function(r){ return isDone(r) && !esAgendamiento(r); })
+    // EXCEPTO Formato = AGENDAMIENTO (vive aparte, en la ventana "Agendamientos") y Formato =
+    // DEVUELTO (no se le entrega nada a la entidad de un radicado que se devolvió -- no aplica al
+    // documento final). Ninguno de los dos es parte del mismo documento final que el resto de
+    // clasificaciones.
+    return state.records.filter(function(r){ return isDone(r) && !esAgendamiento(r) && !esDevuelto(r); })
       .sort(function(a,b){ return (a.order||0)-(b.order||0); });
   }
 
