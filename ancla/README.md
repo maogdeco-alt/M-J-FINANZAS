@@ -12,9 +12,54 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.12.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.13.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.12.0" al reportar algo raro.
+> pasó en la v0.13.0" al reportar algo raro.
+
+## Revisión completa antes de Supabase (v0.13.0)
+
+Pasada de auditoría en tres frentes —que todo corra, que todo sirva, y que se vea como una
+app para una adulta— antes de conectar el backend.
+
+### Que corra
+Se escribió un test que **hace clic en todos los botones de todas las pantallas** (119
+acciones) y recarga para comprobar persistencia. Cero errores de ejecución. Se corrieron
+además todas las suites anteriores sin regresiones.
+
+### Que sirva — dos huecos reales encontrados
+Al agregar los módulos nuevos habían quedado desconectados del resto de la app:
+
+- **Los avisos no cubrían ni medicamentos ni perras.** El sistema de recordatorios solo
+  sabía de desayuno, almuerzo, cena, dormir y agua — o sea, ignoraba justo lo dos cosas
+  más importantes que se agregaron. Ahora los medicamentos avisan **a su hora exacta**, una
+  sola vez por casilla y solo si esa toma no está registrada; las perras avisan cuando algo
+  lleva mucho vencido, como máximo una vez por hora para no volverse ruido.
+- **El sistema de recompensas ignoraba los módulos nuevos.** Se agregaron 7 medallas:
+  todas las tomas de un día, 20 tomas registradas, 10 cuidados de las perras, un día
+  completo para ellas, el primer bloque de trabajo, llegar a la meta diaria, y 600 minutos
+  acumulados. Ahora la parte de juego cubre lo que de verdad cuesta.
+
+### Que se vea de adulta
+El problema de fondo era que **los emoji estaban haciendo el trabajo de la interfaz**. Cada
+emoji viene con el estilo, el color y el grosor de otra persona, así que veinte emoji juntos
+son veinte estilos peleando — y eso es lo que hace que una app se vea infantil o barata.
+
+- **Set de iconos propio**: 25 iconos de una sola familia (mismo trazo, mismo tamaño) que
+  **heredan el color del texto**, así el ícono acompaña al estado en vez de gritar por su
+  cuenta — gris cuando está pendiente, teal cuando está hecho, coral cuando toca, rojo
+  cuando lleva mucho. Reemplazan los emoji en la barra, las categorías, los cuidados, la
+  tarjeta *Ahora*, los renglones y Calma.
+- **El cuarto de Boya, ilustrado**: la planta, la lámpara, la alfombra, el cuadro, el
+  estante y la ventana estaban puestos como emoji y se veían como calcomanías pegadas.
+  Ahora están dibujados con el mismo trazo que Boya, así que el cuarto se lee como una sola
+  ilustración. Lo mismo con las cosas tiradas cuando está desordenado.
+- **Se conservan los emoji donde sí son contenido**: los que ella elige para sus
+  recordatorios, la ropa de Boya en la tienda y las medallas.
+- **"Pendiente ahora" ya no abruma**: mostraba las cuatro cosas de cada perra, o sea seis
+  renglones. Ahora muestra solo lo más urgente de cada una, con tope de cuatro y un
+  *"y N más en Cuidados ›"*.
+- **Español de Colombia**: se había colado voseo argentino ("elegí", "por vos", "tocá",
+  "volvés"). Corregido en toda la app.
 
 ## Medicamentos, y una interfaz que se puede leer (v0.12.0)
 
