@@ -321,7 +321,7 @@ h1,h2,h3,p{margin:0}
 
 /* ---- la escena de Boya: es el alma de la app, no un ítem de lista ---- */
 .escena{position:relative; height:148px; border-radius:var(--radius); margin-top:14px; overflow:visible;
-  background:linear-gradient(165deg, #14666e 0%, var(--teal) 55%, var(--teal-d) 100%);
+  background:linear-gradient(165deg, var(--esc1, #14666e) 0%, var(--teal) 52%, var(--esc2, var(--teal-d)) 100%);
   box-shadow:0 6px 20px rgba(11,66,71,.28)}
 .escena:before{content:''; position:absolute; inset:0; border-radius:var(--radius); overflow:hidden;
   background:radial-gradient(ellipse at 22% 18%, rgba(255,255,255,.16), transparent 58%)}
@@ -345,8 +345,8 @@ h1,h2,h3,p{margin:0}
 @media(max-width:359px){ .esc-panel{width:52%} .esc-panel b{font-size:16px} }
 
 /* fondo con algo de profundidad, no un plano beige */
-body{background:linear-gradient(178deg, #f2ebdc 0%, var(--bg) 34%)}
-@media (prefers-color-scheme:dark){ body{background:linear-gradient(178deg, #0e191b 0%, var(--bg) 34%)} }
+body{background:linear-gradient(178deg, var(--bg2, #f2ebdc) 0%, var(--bg) 34%)}
+@media (prefers-color-scheme:dark){ body{background:linear-gradient(178deg, var(--bg2, #0e191b) 0%, var(--bg) 34%)} }
 
 /* la barra de abajo toma el color de su propia sección */
 .nav button[data-value="hoy"].act{color:var(--h-agua)}
@@ -354,6 +354,47 @@ body{background:linear-gradient(178deg, #f2ebdc 0%, var(--bg) 34%)}
 .nav button[data-value="enfoque"].act{color:var(--h-terra)}
 .nav button[data-value="calma"].act{color:var(--h-azul)}
 .nav button[data-value="mas"].act{color:var(--ink)}
+
+/* selector de tema */
+.temas{display:grid; grid-template-columns:repeat(auto-fill, minmax(96px,1fr)); gap:9px; margin-top:14px}
+.tema-op{display:flex; align-items:center; gap:9px; padding:10px 11px; border-radius:var(--radius-s);
+  border:1.5px solid var(--line); background:var(--bg); font-size:12.5px; font-weight:700; color:var(--ink)}
+.tema-op.sel{border-color:var(--coral); box-shadow:0 0 0 1.5px var(--coral)}
+.tema-punto{width:22px; height:22px; border-radius:50%; flex:none; border:1.5px solid rgba(0,0,0,.14)}
+
+/* ---- claridad: los rótulos se leen, los botones se alinean ---- */
+.seccion{margin:24px 3px 11px}
+.seccion span{font-family:var(--font-body); font-size:12px; font-weight:800; text-transform:uppercase;
+  letter-spacing:1.1px; color:var(--ink); opacity:.62}
+.seccion em{font-family:var(--font-body); font-size:11.5px; font-weight:600; color:var(--sub)}
+
+/* la acción principal manda; la secundaria acompaña, no compite */
+.ahora-btns{gap:9px}
+.ahora-btns .btn{flex:2 1 0; min-width:0; padding:11px 12px}
+.ahora-btns .btn-fantasma{flex:1 1 0; background:transparent; border-color:var(--t); color:var(--t)}
+
+/* todos los botones de renglón miden lo mismo: la fila deja de verse rota */
+.f-btn{min-width:74px; text-align:center; padding:9px 12px}
+.fila{padding:12px 13px; gap:12px}
+.f-txt b{font-size:14.5px}
+
+/* qué hay dentro de una franja cerrada, sin abrirla */
+.fr-cab{gap:10px; padding:14px}
+.fr-mini{display:flex; gap:5px; align-items:center}
+.fr-mini span{color:var(--t); opacity:.32; display:flex}
+.fr-mini span.ok{opacity:1}
+.fr-cont{font-family:var(--font-mono); font-size:10.5px; color:var(--sub); white-space:nowrap}
+.franja.abierta .fr-cab{padding-bottom:10px}
+
+/* la cámara quedaba flotando en el hueco entre casillas */
+.foto-agregar, .foto-mini{top:5px; right:5px; width:23px; height:23px}
+.foto-agregar{background:var(--card); border-color:var(--t, var(--line)); color:var(--t, var(--sub))}
+
+/* separar los bloques para que se lean como bloques */
+.filas{margin-top:10px}
+.escena{margin-top:20px}
+.franjas{margin-top:2px}
+.nivel-card{margin-top:22px}
 .huevo-wrap{display:flex; flex-direction:column; align-items:center; padding:26px 0 10px}
 .huevo-svg{width:150px; height:180px; cursor:pointer; filter:drop-shadow(0 10px 18px rgba(0,0,0,.15))}
 .huevo-svg.tambalea{animation:tambaleo .55s ease}
@@ -572,7 +613,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.14.0-beta';
+var VERSION='0.15.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -754,6 +795,7 @@ function estadoInicial(){
     entradas:{},
     contadores:{ ropaUsos:0, tareasUsos:0, miniToques:0, tocarBoyaTotal:0, comprasTotal:0, conchitasGanadasTotal:0, pendientesResueltos:0, fotosTotal:0 },
     medallasGanadas:[],
+    tema:null,
     eventos:[],
     perras:[],
     medicamentos:[],
@@ -802,6 +844,7 @@ function cargar(){
     if(!d.rutinasHechas) d.rutinasHechas={};
     if(!d.pendientes) d.pendientes=[];
     if(!d.medallasGanadas) d.medallasGanadas=[];
+    if(d.tema===undefined) d.tema=null;
     if(!d.eventos) d.eventos=[];
     if(!d.perras) d.perras=[];
     if(!d.medicamentos) d.medicamentos=[];
@@ -1072,6 +1115,49 @@ function ganarConchitas(n){
   S.conchitas=(S.conchitas||0)+n;
   S.contadores.conchitasGanadasTotal=(S.contadores.conchitasGanadasTotal||0)+n;
   V.pulsoConchitas=true;
+}
+
+/* ===================== temas =====================
+   El color de fondo no es un detalle: es la pantalla que se mira veinte
+   veces al día. Cada tema cambia la paleta entera de forma coherente —
+   fondo, tarjetas, texto, acentos y hasta el mundo de Boya — para que
+   nunca quede un tono suelto peleando con el resto. Se aplican como
+   variables en el <html>, así ganan sobre el modo oscuro automático. */
+var TEMAS=[
+  {id:'arena', et:'Arena', punto:'#0b4247', v:{
+    bg:'#ece3d1', bg2:'#f2ebdc', card:'#faf7f0', ink:'#161f22', sub:'#5c6a68', line:'#dccfb3',
+    teal:'#0b4247', 'teal-d':'#082e32', coral:'#b25e39', mint:'#dbe1cd', 'mint-ink':'#37402c',
+    warn:'#9c3a1e', esc1:'#14666e', esc2:'#082e32'}},
+  {id:'bruma', et:'Bruma', punto:'#2b4a5e', v:{
+    bg:'#e3e8ec', bg2:'#eef2f5', card:'#f8fafb', ink:'#16202a', sub:'#5b6b78', line:'#cdd7de',
+    teal:'#2b4a5e', 'teal-d':'#17303f', coral:'#b0614a', mint:'#d9e5e2', 'mint-ink':'#2b4740',
+    warn:'#a8442a', esc1:'#3f6b84', esc2:'#17303f'}},
+  {id:'rosa', et:'Rosa viejo', punto:'#8c4a52', v:{
+    bg:'#f0e2dc', bg2:'#f8ece7', card:'#fdf7f4', ink:'#2a1b19', sub:'#7b6058', line:'#e2cbc1',
+    teal:'#8c4a52', 'teal-d':'#5d2d36', coral:'#b0603a', mint:'#ecdfd2', 'mint-ink':'#4c3a2d',
+    warn:'#9e3320', esc1:'#a85c62', esc2:'#5d2d36'}},
+  {id:'bosque', et:'Bosque', punto:'#2f5136', v:{
+    bg:'#e5e9dc', bg2:'#eff3e6', card:'#f8faf2', ink:'#182116', sub:'#5a6a53', line:'#ced8c2',
+    teal:'#2f5136', 'teal-d':'#1a3421', coral:'#a86c34', mint:'#dde6cd', 'mint-ink':'#33412a',
+    warn:'#96401f', esc1:'#436c48', esc2:'#1a3421'}},
+  {id:'lavanda', et:'Lavanda', punto:'#4a3f6b', v:{
+    bg:'#e8e4ee', bg2:'#f1eef6', card:'#faf8fc', ink:'#211c2b', sub:'#655e74', line:'#d4cce0',
+    teal:'#4a3f6b', 'teal-d':'#2e2747', coral:'#a85f7a', mint:'#e1dced', 'mint-ink':'#3c3450',
+    warn:'#9c3557', esc1:'#63558c', esc2:'#2e2747'}},
+  {id:'noche', et:'Noche', punto:'#2f8f9a', v:{
+    bg:'#0d1417', bg2:'#121b1f', card:'#19242a', ink:'#e9eff1', sub:'#8fa4ac', line:'#293840',
+    teal:'#2f8f9a', 'teal-d':'#1a5e68', coral:'#d9895c', mint:'#20302e', 'mint-ink':'#b6d6cc',
+    warn:'#ff9a6b', esc1:'#1f6e78', esc2:'#0c2b30',
+    'h-ambar':'#e0aa4e', 'h-terra':'#e0866a', 'h-oliva':'#94b56f', 'h-azul':'#74a6c9',
+    'h-ciruela':'#c084a1', 'h-indigo':'#8f95d6', 'h-agua':'#4fc0c6', 'h-humo':'#9fb0a6'}}
+];
+function aplicarTema(){
+  var raiz=document.documentElement;
+  if(!S.tema){ raiz.removeAttribute('style'); return; }
+  var t=TEMAS.filter(function(x){ return x.id===S.tema; })[0];
+  if(!t){ raiz.removeAttribute('style'); return; }
+  raiz.removeAttribute('style');
+  for(var k in t.v){ raiz.style.setProperty('--'+k, t.v[k]); }
 }
 
 /* ===================== iconos =====================
@@ -1350,78 +1436,70 @@ function ultimaTomaDe(m){ return ultimaVez('med:'+m.id); }
    justo lo que se traba. Esto devuelve UNA sola cosa, la que más pesa en
    este momento, con el botón para hacerla ahí mismo. Prioridad: primero
    lo que afecta a alguien que depende de ti, después tú, después trabajo. */
-function queSigueAhora(){
+function listaPendientes(){
   var hr=new Date().getHours();
   var e=entradaHoy();
-  var nb=(S.boya&&S.boya.nombre)||'Boya';
+  var out=[];
 
-  var pm=pendientesMedicamentos();
-  if(pm.length){
-    var m0=pm[0];
-    return { nivel:m0.urgencia, ico:'pastilla', tono:'ciruela',
-      t:m0.med.nombre+' · '+m0.hora,
-      sub:'Esta toma no está registrada'+(m0.med.dosis?' ('+m0.med.dosis+')':'')+'. La última que anotaste fue '+(ultimaTomaDe(m0.med)?haceTexto(ultimaTomaDe(m0.med)):'—')+'.',
-      actos:[{act:'tomar-med', val:m0.med.id+'|'+m0.i, et:'Ya la tomé', cls:'btn-principal'},
-             {act:'nav', val:'cuidados', et:'Ver todo', cls:'btn-fantasma'}] };
-  }
-
-  var pp=pendientesPerras();
-  if(pp.length && pp[0].urgencia===2){
-    var u=pp[0];
-    return { nivel:2, ico:u.cuidado.ico, tono:u.cuidado.tono,
-      t:u.cuidado.et+' de '+u.perra.nombre,
-      sub:(u.ultima===null?'Hoy no hay registro todavía.':'La última vez fue '+haceTexto(u.ultima)+'.')+' Ella no puede recordártelo.',
-      actos:[{act:'registrar-cuidado', val:u.perra.id+'|'+u.cuidado.id, et:u.cuidado.verbo, cls:'btn-principal'},
-             {act:'nav', val:'cuidados', et:'Ver todo', cls:'btn-fantasma'}] };
-  }
+  pendientesMedicamentos().forEach(function(t){
+    out.push({ urg:t.urgencia===2?2:1, ico:'pastilla', tono:'ciruela',
+      t:t.med.nombre, meta:t.hora,
+      sub:'Esta toma no está registrada'+(t.med.dosis?' ('+t.med.dosis+')':'')+'. La última que anotaste fue '+(ultimaTomaDe(t.med)?haceTexto(ultimaTomaDe(t.med)):'—')+'.',
+      btn:'Tomé', actos:[{act:'tomar-med', val:t.med.id+'|'+t.i, et:'Ya la tomé', cls:'btn-principal'},
+                         {act:'nav', val:'cuidados', et:'Ver todo', cls:'btn-fantasma'}] });
+  });
 
   if(S.enfoque && S.enfoque.activa){
-    return { nivel:1, ico:'reloj', tono:'terra', t:'Tienes un bloque corriendo',
+    out.push({ urg:1, ico:'reloj', tono:'terra', t:'Bloque corriendo', meta:mmss(sesionRestanteMs()),
       sub:'Quedan '+mmss(sesionRestanteMs())+'. Vuelve a él, no lo dejes abierto.',
-      actos:[{act:'nav', val:'enfoque', et:'Volver al bloque', cls:'btn-principal'}] };
+      btn:'Volver', actos:[{act:'nav', val:'enfoque', et:'Volver al bloque', cls:'btn-principal'}] });
   }
 
-  if(pp.length){
-    var u1=pp[0];
-    return { nivel:1, ico:u1.cuidado.ico, tono:u1.cuidado.tono,
-      t:u1.cuidado.et+' de '+u1.perra.nombre,
-      sub:(u1.ultima===null?'Sin registro hoy.':'Última vez '+haceTexto(u1.ultima)+'.'),
-      actos:[{act:'registrar-cuidado', val:u1.perra.id+'|'+u1.cuidado.id, et:u1.cuidado.verbo, cls:'btn-principal'},
-             {act:'nav', val:'cuidados', et:'Ver todo', cls:'btn-fantasma'}] };
-  }
+  /* solo lo más urgente de cada perra: cuatro renglones por perra hacían
+     esta lista tan larga como la que se quiso evitar */
+  var yaPerra={};
+  pendientesPerras().forEach(function(u){
+    if(yaPerra[u.perra.id]) return;
+    yaPerra[u.perra.id]=true;
+    out.push({ urg:u.urgencia, ico:u.cuidado.ico, tono:u.cuidado.tono,
+      t:u.perra.nombre+' · '+u.cuidado.et.toLowerCase(),
+      meta:(u.ultima===null?'sin registro':haceTexto(u.ultima)),
+      sub:(u.ultima===null?'Hoy no hay registro todavía.':'La última vez fue '+haceTexto(u.ultima)+'.')+' Ella no puede recordártelo.',
+      btn:'Hecho', actos:[{act:'registrar-cuidado', val:u.perra.id+'|'+u.cuidado.id, et:u.cuidado.verbo, cls:'btn-principal'},
+                          {act:'nav', val:'cuidados', et:'Ver todo', cls:'btn-fantasma'}] });
+  });
 
   if(hr>=6 && hr<13 && S.ropa.length && !(S.ropaHoy && S.ropaHoy.fecha===hoyISO())){
-    return { nivel:0, ico:'camiseta', tono:'indigo', t:'Vestirte',
+    out.push({ urg:0, ico:'camiseta', tono:'indigo', t:'Vestirte', meta:'sin elegir',
       sub:'No lo pienses: deja que Ancla elija de lo que ya guardaste.',
-      actos:[{act:'nav', val:'vestirme', et:'Que elija por mí', cls:'btn-principal'}] };
+      btn:'Elegir', actos:[{act:'nav', val:'vestirme', et:'Que elija por mí', cls:'btn-principal'}] });
   }
 
   var mom=momentoActual();
   var pendCat=CATS.filter(function(c){ return c.momento===mom && !c.contable && !e[c.id]; })[0];
   if(pendCat){
-    return { nivel:0, ico:pendCat.ico, tono:pendCat.tono, t:pendCat.et,
+    out.push({ urg:0, ico:pendCat.ico, tono:pendCat.tono, t:pendCat.et, meta:'de esta franja',
       sub:'Es lo que toca en esta franja. Si ya lo hiciste, márcalo y listo.',
-      actos:[{act:'toggle-cat', val:pendCat.id, et:'Hecho', cls:'btn-principal'}] };
+      btn:'Hecho', actos:[{act:'toggle-cat', val:pendCat.id, et:'Hecho', cls:'btn-principal'}] });
   }
 
   var faltan=metaEnfoque()-minutosHoy();
-  if(faltan>0 && hr>=7 && hr<22){
-    return { nivel:0, ico:'diana', tono:'terra', t:'Tu tiempo de trabajo',
+  if(!(S.enfoque&&S.enfoque.activa) && faltan>0 && hr>=7 && hr<22){
+    out.push({ urg:0, ico:'diana', tono:'terra', t:'Trabajo', meta:minutosHoy()+' de '+metaEnfoque()+' min',
       sub:minutosHoy()>0 ? 'Llevas '+minutosHoy()+' min. Faltan '+faltan+' y no tienen que ser seguidos.'
                           : 'Empieza con 5 minutos. Solo cinco — después decides.',
-      actos:[{act:'iniciar-sesion', val:'5', et:'Arrancar 5 min', cls:'btn-principal'},
-             {act:'nav', val:'enfoque', et:'Otro tramo', cls:'btn-fantasma'}] };
+      btn:'5 min', actos:[{act:'iniciar-sesion', val:'5', et:'Arrancar 5 min', cls:'btn-principal'},
+                          {act:'nav', val:'enfoque', et:'Otro tramo', cls:'btn-fantasma'}] });
   }
 
   if(S.pendientes && S.pendientes.length){
-    return { nivel:0, ico:'caja', tono:'oliva', t:esc(S.pendientes[0].texto),
+    out.push({ urg:0, ico:'caja', tono:'oliva', t:S.pendientes[0].texto, meta:'lo anotaste tú',
       sub:'Lo anotaste tú. Si ya no aplica, bórralo sin culpa.',
-      actos:[{act:'nav', val:'rutinas', et:'Ver pendientes', cls:'btn-principal'}] };
+      btn:'Ver', actos:[{act:'nav', val:'rutinas', et:'Ver pendientes', cls:'btn-principal'}] });
   }
 
-  return { nivel:-1, ico:'ola', tono:'agua', t:'No hay nada urgente',
-    sub:'En serio. Lo de hoy está cubierto — '+nb+' también lo nota.',
-    actos:[] };
+  out.sort(function(a,b){ return b.urg-a.urg; });
+  return out;
 }
 
 /* ===================== dibujar a la nutria ===================== */
@@ -2060,22 +2138,43 @@ function renderHoy(){
     h+='<div class="banner">🫧 <div>¿Sientes que estás revisando esto muchas veces seguidas? Puedes activar el <b>modo suave</b>, que oculta números y rachas.<div class="acciones"><button data-action="activar-suave">Activar modo suave</button><button data-action="descartar-nudge">Ahora no</button></div></div></div>';
   }
 
-  /* ---- 1. lo único fuerte de la pantalla ---- */
-  var ah=queSigueAhora();
-  h+='<div class="ahora n'+ah.nivel+'" style="--t:var(--h-'+(ah.tono||'terra')+')">';
-  h+='<div class="ahora-et">Ahora</div>';
-  h+='<div class="ahora-fila"><span class="ahora-emo">'+(ah.ico?ico(ah.ico,28):ah.emo)+'</span>';
-  h+='<div class="ahora-txt"><b>'+ah.t+'</b><i>'+ah.sub+'</i></div></div>';
-  if(ah.actos.length){
+  /* ---- 1. lo que sigue: el primero en grande, el resto en renglones.
+         Antes esto eran dos bloques ("Ahora" y "Pendiente ahora") y el
+         mismo pendiente salía dos veces seguidas. ---- */
+  var pend=listaPendientes();
+  h+='<div class="seccion"><span>Lo que sigue</span>'+(pend.length>1?'<em>'+pend.length+' cosas</em>':'')+'</div>';
+  if(!pend.length){
+    h+='<div class="ahora n-1" style="--t:var(--h-agua)">';
+    h+='<div class="ahora-fila"><span class="ahora-emo">'+ico('ola',28)+'</span>';
+    h+='<div class="ahora-txt"><b>No hay nada urgente</b><i>En serio. Lo de hoy está cubierto — '+esc((S.boya&&S.boya.nombre)||'Boya')+' también lo nota.</i></div></div>';
+    h+='</div>';
+  } else {
+    var jefe=pend[0];
+    h+='<div class="ahora n'+jefe.urg+'" style="--t:var(--h-'+jefe.tono+')">';
+    h+='<div class="ahora-fila"><span class="ahora-emo">'+ico(jefe.ico,28)+'</span>';
+    h+='<div class="ahora-txt"><b>'+esc(jefe.t)+(jefe.meta&&jefe.meta.indexOf(':')>0?' · '+jefe.meta:'')+'</b><i>'+esc(jefe.sub)+'</i></div></div>';
     h+='<div class="ahora-btns">';
-    ah.actos.forEach(function(a){
+    jefe.actos.forEach(function(a){
       h+='<button class="btn '+a.cls+' btn-chico" data-action="'+a.act+'" data-value="'+esc(a.val)+'">'+esc(a.et)+'</button>';
     });
-    h+='</div>';
-  }
-  h+='</div>';
+    h+='</div></div>';
 
-  /* ---- 2. Boya, compacta: en Hoy acompaña, no protagoniza ---- */
+    var resto=pend.slice(1);
+    if(resto.length){
+      h+='<div class="filas">';
+      resto.slice(0,3).forEach(function(f){
+        h+='<div class="fila u'+f.urg+'" style="--t:var(--h-'+f.tono+')">';
+        h+='<span class="f-emo">'+ico(f.ico,20)+'</span>';
+        h+='<span class="f-txt"><b>'+esc(f.t)+'</b><i>'+esc(f.meta)+'</i></span>';
+        h+='<button class="f-btn" data-action="'+f.actos[0].act+'" data-value="'+esc(f.actos[0].val)+'">'+esc(f.btn)+'</button>';
+        h+='</div>';
+      });
+      if(resto.length>3) h+='<button class="fila-mas" data-action="nav" data-value="cuidados">y '+(resto.length-3)+' más ›</button>';
+      h+='</div>';
+    }
+  }
+
+  /* ---- 2. Boya ---- */
   var fondoEq = S.equipado.fondo && FONDOS_BOYA[S.equipado.fondo];
   h+='<div class="escena" '+(fondoEq?'style="background:'+fondoEq.grad+'"':'')+'>';
   h+='<div class="esc-suelo"></div>';
@@ -2087,48 +2186,6 @@ function renderHoy(){
   h+='</div>';
   if(V.dialogoBoya) h+='<div class="globo-dialogo">'+esc(V.dialogoBoya)+'</div>';
   h+='</div>';
-
-  /* ---- 3. solo lo que está pendiente AHORA, en renglones ---- */
-  var filas=[];
-  pendientesMedicamentos().forEach(function(t){
-    filas.push({ico:'pastilla', tono:'ciruela', et:t.med.nombre, meta:t.hora, urg:t.urgencia,
-      act:'tomar-med', val:t.med.id+'|'+t.i, btn:'Tomé'});
-  });
-  /* solo lo más urgente de cada perra: cuatro renglones por perra volvían
-     esta lista tan larga como la que se quiso evitar */
-  var yaPerra={}, restoPerras=0;
-  pendientesPerras().forEach(function(u){
-    if(yaPerra[u.perra.id]){ restoPerras++; return; }
-    yaPerra[u.perra.id]=true;
-    filas.push({ico:u.cuidado.ico, tono:u.cuidado.tono, et:u.perra.nombre+' · '+u.cuidado.et.toLowerCase(),
-      meta:(u.ultima===null?'sin registro':haceTexto(u.ultima)), urg:u.urgencia,
-      act:'registrar-cuidado', val:u.perra.id+'|'+u.cuidado.id, btn:'Hecho'});
-  });
-  var minH=minutosHoy(), metaH=metaEnfoque();
-  if(!S.enfoque.activa && minH<metaH){
-    filas.push({ico:'diana', tono:'terra', et:'Trabajo', meta:minH+' de '+metaH+' min', urg:0,
-      act:'iniciar-sesion', val:'5', btn:'5 min'});
-  }
-  if(S.enfoque.activa){
-    filas.push({ico:'reloj', tono:'terra', et:'Bloque corriendo', meta:mmss(sesionRestanteMs()), urg:1,
-      act:'nav', val:'enfoque', btn:'Volver'});
-  }
-  if(filas.length){
-    var extraFilas=Math.max(0, filas.length-4)+restoPerras;
-    h+='<div class="seccion"><span>Pendiente ahora</span></div>';
-    h+='<div class="filas">';
-    filas.slice(0,4).forEach(function(f){
-      h+='<div class="fila u'+f.urg+'" style="--t:var(--h-'+(f.tono||'humo')+')">';
-      h+='<span class="f-emo">'+(f.ico?ico(f.ico,20):f.emo)+'</span>';
-      h+='<span class="f-txt"><b>'+esc(f.et)+'</b><i>'+esc(f.meta)+'</i></span>';
-      h+='<button class="f-btn" data-action="'+f.act+'" data-value="'+esc(f.val)+'">'+f.btn+'</button>';
-      h+='</div>';
-    });
-    if(extraFilas){
-      h+='<button class="fila-mas" data-action="nav" data-value="cuidados">y '+extraFilas+' más en Cuidados ›</button>';
-    }
-    h+='</div>';
-  }
 
   /* ---- 4. el día: solo la franja de ahora abierta, el resto plegado ---- */
   var fotos=fotosDeHoy();
@@ -2167,7 +2224,15 @@ function renderHoy(){
     h+='<button class="fr-cab" data-action="abrir-franja" data-value="'+mom.id+'">';
     h+='<span class="fr-et">'+mom.et+'</span>';
     if(esAhora) h+='<span class="fr-chip">ahora</span>';
-    h+='<span class="fr-cont">'+hechas+'/'+cats.length+'</span>';
+    if(!open){
+      h+='<span class="fr-mini">';
+      cats.forEach(function(c){
+        var ok = c.contable ? (e.agua||0)>0 : !!e[c.id];
+        h+='<span class="'+(ok?'ok':'')+'" style="--t:var(--h-'+(c.tono||'humo')+')">'+ico(c.ico,15)+'</span>';
+      });
+      h+='</span>';
+    }
+    h+='<span class="fr-cont">'+hechas+' de '+cats.length+'</span>';
     h+='<span class="fr-fl">'+(open?'▾':'▸')+'</span>';
     h+='</button>';
     if(open){
@@ -2184,7 +2249,7 @@ function renderHoy(){
     h+='<div class="franja'+(openM?' abierta':'')+'">';
     h+='<button class="fr-cab" data-action="abrir-franja" data-value="mios">';
     h+='<span class="fr-et">Tus recordatorios</span>';
-    h+='<span class="fr-cont">'+hechasM+'/'+S.miniRecordatorios.length+'</span>';
+    h+='<span class="fr-cont">'+hechasM+' de '+S.miniRecordatorios.length+'</span>';
     h+='<span class="fr-fl">'+(openM?'▾':'▸')+'</span>';
     h+='</button>';
     if(openM){
@@ -2923,6 +2988,19 @@ function renderAjustes(){
   var h='';
 
   h+='<div class="card">';
+  h+='<h3>Color de la app</h3>';
+  h+='<p class="sub">Cambia la paleta entera, no solo el fondo — incluido el mundo de '+esc((S.boya&&S.boya.nombre)||'Boya')+'.</p>';
+  h+='<div class="temas">';
+  h+='<button class="tema-op '+(!S.tema?'sel':'')+'" data-action="elegir-tema" data-value="auto">'+
+     '<span class="tema-punto" style="background:linear-gradient(135deg,#ece3d1 50%,#0d1417 50%)"></span>Automático</button>';
+  TEMAS.forEach(function(t){
+    h+='<button class="tema-op '+(S.tema===t.id?'sel':'')+'" data-action="elegir-tema" data-value="'+t.id+'">'+
+       '<span class="tema-punto" style="background:'+t.punto+'"></span>'+t.et+'</button>';
+  });
+  h+='</div>';
+  h+='</div>';
+
+  h+='<div class="card">';
   h+='<h3>Recordatorios de horario</h3>';
   h+='<p class="sub">Avisos para comidas, agua y dormir a horas fijas.</p>';
   h+='<button class="btn btn-fantasma btn-chico" style="margin-top:12px" data-action="nav" data-value="recordatorios">Configurar ›</button>';
@@ -3192,6 +3270,10 @@ app.addEventListener('click', function(ev){
       }
     }
   }
+  else if(act==='elegir-tema'){
+    S.tema = (val==='auto') ? null : val;
+    guardar(); aplicarTema(); sonidoPop(640); vibrar(10);
+  }
   else if(act==='elegir-clima'){ V.climaHoy=val; }
   else if(act==='elegir-clima-nueva'){ V.ropaClima=val||null; }
   else if(act==='elegir-perra-emo'){ V.perraEmo=val; }
@@ -3434,6 +3516,7 @@ function importarDatos(file){
 }
 
 /* ===================== arranque ===================== */
+aplicarTema();
 registrarApertura();
 podarFotosViejas();
 podarEventos();

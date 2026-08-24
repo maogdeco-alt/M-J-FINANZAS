@@ -12,9 +12,43 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.14.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.15.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.14.0" al reportar algo raro.
+> pasó en la v0.15.0" al reportar algo raro.
+
+## Temas de color, y una pantalla que se entiende (v0.15.0)
+
+### Elegir el color de la app
+Seis temas completos en Ajustes → *Color de la app*: **Arena, Bruma, Rosa viejo, Bosque,
+Lavanda y Noche**, más *Automático* (sigue el modo claro/oscuro del teléfono).
+
+No cambian solo el fondo: cambian **la paleta entera de forma coherente** — tarjetas, texto,
+líneas, acentos y también el mundo de Boya, que era justo el azul que aburría. Se aplican
+como variables sobre el documento, así que ganan sobre el modo oscuro automático y quedan
+guardados.
+
+### Se veía duplicado
+La pantalla tenía dos bloques, *Ahora* y *Pendiente ahora*, y el pendiente más urgente
+**salía dos veces seguidas**: como tarjeta grande y otra vez como primer renglón. Además los
+dos nombres decían lo mismo. Ahora hay **una sola sección, "Lo que sigue"**: el más urgente
+va en grande con sus botones, el resto en renglones debajo, y un *"y N más"* si sobran. Un
+concepto, un rótulo, sin repeticiones.
+
+### Los botones ya no se ven sueltos
+- En la tarjeta grande, la acción principal ocupa el doble que la secundaria, y la
+  secundaria pasó a ser un contorno del color del tema — se ve que acompaña, no que compite.
+- Todos los botones de renglón miden lo mismo, así la columna queda alineada en vez de
+  quebrada.
+- La cámara para la foto de respaldo quedaba flotando en el hueco entre casillas; ahora va
+  pegada dentro de su casilla y toma el color de esa categoría.
+
+### Se ve qué hay adentro sin abrir
+Las franjas cerradas del día mostraban solo un contador. Ahora muestran **los iconos de lo
+que contienen**, encendidos si ya está hecho y apagados si no — o sea que *Mañana 2 de 2* se
+entiende de un vistazo sin desplegarla.
+
+Los rótulos de sección (*Lo que sigue*, *El día*) pasaron de gris diminuto a un tamaño y
+contraste que sí se leen, y los conteos usan un solo formato en toda la app (*4 de 8*).
 
 ## Color con oficio, y Boya de vuelta al centro (v0.14.0)
 
