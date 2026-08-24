@@ -102,6 +102,14 @@
   h1,h2,h3{font-family:inherit;font-weight:800;letter-spacing:-0.015em;text-wrap:balance;margin:0;}
 
   header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
+
+  /* Modo enfocado: oculta lo decorativo (logo/título) y el resumen del lote -- los controles reales
+     del header (guardar estado, semana, tema, cuenta, ajustes, y este mismo botón) NUNCA se ocultan,
+     para no perder acceso a ellos mientras trabajas. */
+  body.focus-mode header.top{margin-bottom:8px;justify-content:flex-end;}
+  body.focus-mode header.top .brand-row{display:none;}
+  body.focus-mode .summary-panel{display:none;}
+  #focusModeBtn.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
   header.top .brand-row{display:flex;align-items:center;gap:12px;}
   header.top .org-mark{flex:none;width:42px;height:42px;border-radius:11px;background:linear-gradient(155deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);}
   header.top .org-mark svg{width:24px;height:24px;color:var(--accent-ink);}
@@ -512,6 +520,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         <span class="btn-label" aria-hidden="true">Instalar app</span>
       </button>
+      <button class="icon-btn" id="focusModeBtn" type="button" title="Modo enfocado: oculta el resumen para que el Paso 2 use toda la pantalla" aria-label="Modo enfocado">🎯</button>
       <button class="icon-btn" id="themeToggleBtn" type="button" title="Cambiar entre tema claro y oscuro" aria-label="Cambiar entre tema claro y oscuro">
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 13.6A9 9 0 1 1 10.9 3.2a7.2 7.2 0 0 0 10.1 10.4z"/></svg>
@@ -1159,6 +1168,32 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(pref === "light" || pref === "dark") document.documentElement.setAttribute("data-theme", pref);
     else document.documentElement.removeAttribute("data-theme");
   }
+  // ---------- modo enfocado ----------
+  // Oculta la marca del encabezado (logo/título, decorativos) y el resumen del lote -- deja el
+  // Paso 2 con la mayor parte de la pantalla posible. Los controles reales (guardar estado, semana,
+  // tema, cuenta, ajustes) SIGUEN visibles siempre, para nunca perder acceso a ellos. Es solo una
+  // preferencia visual de este navegador (como el tema claro/oscuro) -- no es un dato de trabajo, así
+  // que se guarda en localStorage, no en Supabase.
+  var FOCUS_MODE_KEY = "radicados_focus_mode";
+  function applyFocusMode(on){
+    document.body.classList.toggle("focus-mode", on);
+    var btn = document.getElementById("focusModeBtn");
+    btn.classList.toggle("active", on);
+    btn.title = on
+      ? "Salir del modo enfocado (mostrar el resumen completo otra vez)"
+      : "Modo enfocado: oculta el resumen para que el Paso 2 use toda la pantalla";
+  }
+  document.getElementById("focusModeBtn").addEventListener("click", function(){
+    var next = !document.body.classList.contains("focus-mode");
+    try{ localStorage.setItem(FOCUS_MODE_KEY, next ? "1" : "0"); }catch(e){}
+    applyFocusMode(next);
+  });
+  (function(){
+    var saved = null;
+    try{ saved = localStorage.getItem(FOCUS_MODE_KEY); }catch(e){}
+    applyFocusMode(saved === "1");
+  })();
+
   document.getElementById("themeToggleBtn").addEventListener("click", function(){
     var effective = document.documentElement.getAttribute("data-theme") ||
       (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
