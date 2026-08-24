@@ -1045,7 +1045,7 @@
     <div id="stab-informes" style="display:none;">
       <div class="settings-section">
         <h3>Informe de asignaciones</h3>
-        <p class="hint">Cada vez que cierras la semana con "Nueva semana (borrar todo)", se guarda aquí un resumen con fecha, total asignado, % completado y % devuelto — números concretos para monitorear tu gestión semana a semana. Es tuyo: cada cuenta ve solo su propio historial, en este computador.</p>
+        <p class="hint">Cada vez que cierras la semana con "Nueva semana (borrar todo)", se guarda aquí un resumen (fecha, total, % completado, % devuelto) y también el <b>detalle completo</b> de cada radicado de esa semana — descargable con el botón "Descargar" de cada fila, por si más adelante necesitas revisar uno puntual. Los radicados de <b>AGENDAMIENTO todavía pendientes</b> (sin marcar "ya agendado") nunca se cierran ni se borran con esto — siguen en su propia ventana, porque su plazo no depende de la semana de trabajo. Es tuyo: cada cuenta ve solo su propio historial, en este computador.</p>
 
         <div class="report-kpis" id="reportKpis"></div>
 
@@ -1063,7 +1063,7 @@
         </div>
         <div style="overflow-x:auto;">
           <table class="history-table" id="historyTable">
-            <thead><tr><th>Semana cerrada</th><th>Fecha de cierre</th><th>Total</th><th>Completados</th><th>% Completado</th><th>Devueltos</th><th>% Devuelto</th></tr></thead>
+            <thead><tr><th>Semana cerrada</th><th>Fecha de cierre</th><th>Total</th><th>Completados</th><th>% Completado</th><th>Devueltos</th><th>% Devuelto</th><th>Detalle</th></tr></thead>
             <tbody id="historyTableBody"></tbody>
           </table>
         </div>
@@ -1080,7 +1080,10 @@
 <!-- Dialog: nueva semana -->
 <dialog id="confirmDialog" class="small" aria-labelledby="confirmTitle">
   <div class="panel-head"><h2 id="confirmTitle">Nueva semana</h2></div>
-  <div class="panel-body"><p>Esto borrará los <b id="confirmCount">0</b> radicados guardados en esta app. Tu Excel oficial no se toca. ¿Ya descargaste o copiaste lo que necesitas?</p></div>
+  <div class="panel-body">
+    <p>Esto borrará los <b id="confirmCount">0</b> radicados guardados en esta app. Tu Excel oficial no se toca. ¿Ya descargaste o copiaste lo que necesitas?</p>
+    <p class="hint" id="confirmKeptNote"></p>
+  </div>
   <div class="form-actions">
     <button class="btn ghost" id="confirmCancel" type="button">Cancelar</button>
     <button class="btn danger" id="confirmOk" type="button">Sí, borrar todo</button>
@@ -2183,10 +2186,27 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     table.style.display = "table";
     empty.style.display = "none";
     body.innerHTML = rows.map(function(h){
+      var tieneDetalle = Array.isArray(h.records) && h.records.length;
       return '<tr><td>'+escapeHtml(h.weekLabel||"—")+'</td><td>'+escapeHtml(h.closedAtDisplay||"—")+'</td>'+
-        '<td>'+h.total+'</td><td>'+h.done+'</td><td>'+h.pct+'%</td><td>'+h.devuelto+'</td><td>'+h.pctDevuelto+'%</td></tr>';
+        '<td>'+h.total+'</td><td>'+h.done+'</td><td>'+h.pct+'%</td><td>'+h.devuelto+'</td><td>'+h.pctDevuelto+'%</td>'+
+        '<td>'+(tieneDetalle
+          ? '<button class="btn ghost small" data-history-download="'+escapeHtml(h.closedAt)+'" type="button">Descargar</button>'
+          : '<span class="hint" title="Esta semana se cerró antes de guardar el detalle completo -- solo quedaron los números de arriba.">Sin detalle</span>')+
+        '</td></tr>';
     }).join("");
   }
+  // Descarga el detalle COMPLETO (no solo el resumen) de una semana ya cerrada -- mismas 25 columnas
+  // que "Descargar" en el Paso 3, para poder revisar un radicado puntual de una semana pasada.
+  document.getElementById("historyTableBody").addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-history-download]");
+    if(!btn) return;
+    var closedAt = btn.getAttribute("data-history-download");
+    var entry = state.history.find(function(h){ return h.closedAt === closedAt; });
+    if(!entry || !Array.isArray(entry.records) || !entry.records.length){ toast("Esta semana no tiene detalle guardado."); return; }
+    var ordered = entry.records.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    var filename = "radicados_" + userSlug() + "_semana_cerrada_" + (entry.closedAtDisplay||"").replace(/\//g,"-");
+    downloadExcel(filename, EXPORT_HEADERS, ordered.map(recordToRow25), "Detalle de " + (entry.weekLabel||"esa semana") + " descargado (" + ordered.length + " radicados)");
+  });
   var HISTORY_HEADERS = ["SEMANA","FECHA_DE_CIERRE","TOTAL_ASIGNADOS","COMPLETADOS","PORCENTAJE_COMPLETADO","DEVUELTOS","PORCENTAJE_DEVUELTO"];
   function historyRowsForExport(){
     return state.history.slice().sort(function(a,b){ return (b.closedAt||"").localeCompare(a.closedAt||""); })
@@ -3804,31 +3824,52 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   });
 
   var confirmDialog = document.getElementById("confirmDialog");
+  // "Nueva semana" cierra el lote de la masiva -- pero un AGENDAMIENTO pendiente (todavía no marcado
+  // "ya agendado") no pertenece a ese ciclo semanal: su plazo lo pone el término de 5/11 días de
+  // Fénix, no la semana de trabajo. Si "borrar todo" también se los llevara, se perdería el rastro
+  // de una audiencia por solicitar sin ninguna forma de recuperarla. Por eso NUNCA se incluyen en lo
+  // que se cierra ni se borra aquí -- se quedan tal cual, esperando en su propia ventana.
+  function recordsToCloseThisWeek(){
+    return state.records.filter(function(r){ return !(esAgendamiento(r) && !r.agendado); });
+  }
   document.getElementById("clearAllBtn").addEventListener("click", function(){
-    if(!state.records.length){ toast("La lista ya está vacía"); return; }
-    document.getElementById("confirmCount").textContent = state.records.length;
+    var toClose = recordsToCloseThisWeek();
+    if(!toClose.length){ toast(state.records.length ? "Solo quedan AGENDAMIENTOS pendientes -- esos no se cierran con \"Nueva semana\", viven en su propia ventana." : "La lista ya está vacía"); return; }
+    document.getElementById("confirmCount").textContent = toClose.length;
+    var keptCount = state.records.length - toClose.length;
+    document.getElementById("confirmKeptNote").textContent = keptCount
+      ? keptCount + " radicado" + (keptCount===1?"":"s") + " de AGENDAMIENTO pendiente" + (keptCount===1?"":"s") + " NO se va" + (keptCount===1?"":"n") + " a borrar -- siguen en su ventana aparte."
+      : "";
     confirmDialog.showModal();
   });
   document.getElementById("confirmCancel").addEventListener("click", function(){ confirmDialog.close(); });
   document.getElementById("confirmOk").addEventListener("click", function(){
-    // Antes de borrar, se guarda un resumen de la semana en el historial (números tangibles por usuario).
-    var summary = computeSummary(state.records);
+    var toClose = recordsToCloseThisWeek();
+    var toKeep = state.records.filter(function(r){ return esAgendamiento(r) && !r.agendado; });
+    // Antes de borrar, se guarda un resumen de la semana Y el detalle completo de cada radicado
+    // cerrado en el historial -- no solo los números agregados. Así, si más adelante hace falta
+    // revisar un radicado puntual de una semana ya cerrada (una auditoría, un reclamo), sigue
+    // existiendo -- no se pierde para siempre solo por haber usado "Nueva semana".
+    var summary = computeSummary(toClose);
     var now = new Date();
     state.history.push({
       closedAt: now.toISOString(),
       closedAtDisplay: pad(now.getDate())+"/"+pad(now.getMonth()+1)+"/"+now.getFullYear(),
       weekLabel: isoWeekLabel(now),
       total: summary.total, done: summary.done, pct: summary.pct,
-      devuelto: summary.devuelto, pctDevuelto: summary.pctDevuelto
+      devuelto: summary.devuelto, pctDevuelto: summary.pctDevuelto,
+      records: toClose.map(function(r){ return Object.assign({}, r); }) // copia completa, no solo el resumen
     });
     if(state.history.length > 104) state.history = state.history.slice(state.history.length - 104); // ~2 años, no crece sin límite
     saveHistory();
-    state.records = [];
+    state.records = toKeep;
+    state.records.forEach(function(r,i){ r.order = i; });
     state.activeId = null;
-    explicitRemovalPending = true; // vaciado deliberado ("Cerrar semana") -- el freno de la nube no debe bloquear esto
+    explicitRemovalPending = state.records.length === 0; // el freno de la nube no debe bloquear un vaciado deliberado
     save(); renderAll();
     confirmDialog.close();
-    toast("Lista borrada — se guardó el resumen de esta semana en tu Historial de asignaciones");
+    toast("Semana cerrada (" + toClose.length + " radicados) — el detalle completo quedó guardado en tu Historial de asignaciones" +
+      (toKeep.length ? ". " + toKeep.length + " de AGENDAMIENTO pendiente" + (toKeep.length===1?"":"s") + " no se tocó." : ""));
   });
 
   document.getElementById("manualCopyClose").addEventListener("click", function(){
