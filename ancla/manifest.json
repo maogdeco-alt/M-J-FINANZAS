@@ -1,0 +1,14 @@
+{
+  "name": "Ancla",
+  "short_name": "Ancla",
+  "description": "Un ancla para los días donde todo cuesta.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f2ea",
+  "theme_color": "#0e7c86",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

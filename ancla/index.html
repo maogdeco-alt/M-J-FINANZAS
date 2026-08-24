@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ancla</title>
+<meta name="description" content="Un ancla para los días donde todo cuesta.">
+<meta name="theme-color" content="#0e7c86">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ancla">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon.svg">
+<link rel="icon" href="./icon.svg">
+<style>
+:root{
+  --bg:#f7f2ea; --card:#ffffff; --ink:#1f2a2e; --sub:#5b6b70; --teal:#0e7c86; --teal-d:#0b616a;
+  --coral:#ff8a65; --mint:#d7f0e6; --mint-ink:#0b4a3e; --line:#e7ddcf; --warn:#b3441e;
+  --radius:20px; --radius-s:13px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1719; --card:#182426; --ink:#eef4f3; --sub:#a3b5b9; --teal:#2bbcc9; --teal-d:#1f8f9a;
+    --coral:#ff9d7a; --mint:#123f34; --mint-ink:#a9e8d6; --line:#25373b; --warn:#ffb199;
+  }
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0; padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:calc(80px + env(safe-area-inset-bottom));
+  min-height:100vh;
+}
+button{font-family:inherit; -webkit-appearance:none; appearance:none; border:none; background:none; color:inherit; cursor:pointer}
+input, select, textarea{font-family:inherit; color:inherit}
+h1,h2,h3,p{margin:0}
+.envolt{max-width:540px; margin:0 auto; padding:18px 16px 6px}
+.topbar{display:flex; align-items:baseline; justify-content:space-between; padding:4px 2px 14px}
+.marca{font-weight:800; font-size:22px; letter-spacing:.2px; color:var(--teal-d)}
+.fecha{font-size:13px; color:var(--sub); text-transform:capitalize}
+
+.card{background:var(--card); border-radius:var(--radius); padding:18px; margin-bottom:14px; box-shadow:0 1px 2px rgba(0,0,0,.04); border:1px solid var(--line)}
+.card h3{font-size:15px; margin-bottom:4px}
+.sub{color:var(--sub); font-size:13px; line-height:1.5}
+
+.banner{background:var(--mint); color:var(--mint-ink); border-radius:var(--radius-s); padding:13px 14px; margin-bottom:14px; font-size:13.5px; line-height:1.5; display:flex; gap:10px; align-items:flex-start}
+.banner button.x{margin-left:auto; font-size:16px; color:var(--mint-ink); opacity:.6; flex:none; padding:0 2px}
+.banner .acciones{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
+.banner .acciones button{background:var(--mint-ink); color:var(--mint); padding:7px 12px; border-radius:20px; font-size:12.5px; font-weight:600}
+
+.boya-wrap{display:flex; align-items:center; gap:16px}
+.boya{width:74px; height:74px; flex:none; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:34px; background:linear-gradient(160deg, var(--teal), var(--teal-d)); box-shadow:0 4px 14px rgba(14,124,134,.35); transition:transform .15s}
+.boya:active{transform:scale(.92)}
+.boya-txt{flex:1}
+.boya-txt .titulo{font-weight:700; font-size:15.5px; margin-bottom:2px}
+.boya-txt .sub{font-size:13px}
+
+.grid-cats{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:16px}
+@media(min-width:420px){.grid-cats{grid-template-columns:repeat(4,1fr)}}
+.cat{background:var(--bg); border:1.5px solid var(--line); border-radius:var(--radius-s); padding:14px 8px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:6px; transition:all .12s}
+.cat .emo{font-size:26px; line-height:1}
+.cat .et{font-size:11.5px; font-weight:600; color:var(--sub)}
+.cat.on{background:var(--mint); border-color:var(--teal); }
+.cat.on .et{color:var(--mint-ink)}
+.cat:active{transform:scale(.95)}
+.cat .badge-n{font-size:10.5px; font-weight:700; background:var(--teal); color:#fff; border-radius:20px; padding:1px 7px; margin-top:-2px}
+.cat.on .badge-n{background:var(--teal-d)}
+.agua-row{display:flex; align-items:center; justify-content:center; gap:4px; margin-top:2px}
+.agua-row button{width:22px; height:22px; border-radius:50%; background:rgba(0,0,0,.08); font-size:14px; line-height:1; display:flex; align-items:center; justify-content:center}
+
+.nivel-card{background:linear-gradient(160deg, var(--teal-d), var(--teal)); color:#fff; border-radius:var(--radius); padding:18px; margin-bottom:14px}
+.nivel-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
+.nivel-top .l{font-weight:700; font-size:15px}
+.nivel-top .l span{display:block; font-weight:400; font-size:12.5px; opacity:.85; margin-top:2px}
+.nivel-top .r{font-size:14px; font-weight:700; text-align:right; white-space:nowrap}
+.nivel-top .r span{display:block; font-weight:400; font-size:11px; opacity:.85}
+.bar{background:rgba(255,255,255,.18); height:8px; border-radius:20px; margin-top:14px; overflow:hidden}
+.bar i{display:block; height:100%; background:#fff; border-radius:20px}
+.nivel-card .faltan{font-size:11.5px; opacity:.85; margin-top:6px}
+.medallas-mini{display:flex; gap:8px; margin-top:14px; align-items:center}
+.medallas-mini span{font-size:19px; opacity:.5}
+.medallas-mini span.on{opacity:1}
+.medallas-mini b{margin-left:auto; font-size:12px; font-weight:600; background:rgba(255,255,255,.16); padding:5px 10px; border-radius:20px}
+
+.medallas-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:12px}
+@media(max-width:380px){.medallas-grid{grid-template-columns:repeat(4,1fr)}}
+.medalla{background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:10px 4px; text-align:center; font-size:22px; opacity:.35}
+.medalla.on{opacity:1; background:var(--mint)}
+.medalla-desc{font-size:10.5px; color:var(--sub); margin-top:12px; line-height:1.5}
+
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:13px 18px; border-radius:30px; font-weight:700; font-size:14.5px}
+.btn-principal{background:var(--coral); color:#fff; width:100%}
+.btn-principal:active{opacity:.85}
+.btn-fantasma{background:var(--bg); border:1.5px solid var(--line); color:var(--ink)}
+.btn-chico{padding:8px 14px; font-size:12.5px; border-radius:20px}
+
+.fila-input{display:flex; gap:8px}
+.fila-input input[type=text]{flex:1; padding:12px 14px; border-radius:var(--radius-s); border:1.5px solid var(--line); background:var(--bg); color:var(--ink); font-size:14px}
+
+.ropa-lista{display:flex; flex-direction:column; gap:8px; margin-top:12px}
+.ropa-item{display:flex; align-items:center; gap:10px; background:var(--bg); border-radius:12px; padding:10px 12px; font-size:13.5px}
+.ropa-item .t{flex:1}
+.ropa-item button{color:var(--warn); font-size:16px; padding:2px 4px}
+.elegida{background:var(--mint); color:var(--mint-ink); border-radius:var(--radius-s); padding:20px; text-align:center; margin-top:14px}
+.elegida .grande{font-size:19px; font-weight:800; margin:6px 0 14px}
+
+.pasos{display:flex; flex-direction:column; gap:8px; margin-top:14px}
+.paso{display:flex; align-items:center; gap:10px; background:var(--bg); border-radius:12px; padding:12px 13px; font-size:13.5px}
+.paso .c{width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line); flex:none; display:flex; align-items:center; justify-content:center; font-size:12px}
+.paso.hecho{opacity:.5}
+.paso.hecho .c{background:var(--teal); border-color:var(--teal); color:#fff}
+.paso.hecho .t{text-decoration:line-through}
+
+.campo{margin-bottom:14px}
+.campo:last-child{margin-bottom:0}
+.campo-fila{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px}
+.campo-fila:last-child{margin-bottom:0}
+.campo-fila .l{font-size:14px; font-weight:600}
+.campo-fila .d{font-size:12px; color:var(--sub); margin-top:2px}
+.campo-fila input[type=time]{border:1.5px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:7px 9px; font-size:13.5px}
+.campo-fila select{border:1.5px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:7px 9px; font-size:13.5px}
+
+.switch{position:relative; width:44px; height:26px; flex:none; border-radius:20px; background:var(--line); transition:.15s}
+.switch i{position:absolute; top:2px; left:2px; width:22px; height:22px; border-radius:50%; background:#fff; transition:.15s; box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.switch.on{background:var(--teal)}
+.switch.on i{transform:translateX(18px)}
+.switch-wrap{display:flex; align-items:center; gap:10px}
+
+.pendientes{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+.pendientes button{background:var(--bg); border:1.5px solid var(--line); border-radius:20px; padding:8px 13px; font-size:12.5px; display:flex; align-items:center; gap:6px}
+.pendientes button.armado{opacity:.55}
+
+.aviso-permiso{background:#fff3ea; color:#7a4a1e; border-radius:var(--radius-s); padding:12px 14px; font-size:12.5px; margin-bottom:14px; line-height:1.5}
+@media (prefers-color-scheme:dark){ .aviso-permiso{background:#2c2115; color:#f0c896} }
+
+.nav{position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--line); display:flex; padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
+.nav button{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 2px; border-radius:12px; color:var(--sub); font-size:10.5px; font-weight:600}
+.nav button .ic{font-size:20px}
+.nav button.act{color:var(--teal-d)}
+@media (prefers-color-scheme:dark){ .nav button.act{color:var(--teal)} }
+
+.toast{position:fixed; left:16px; right:16px; bottom:calc(88px + env(safe-area-inset-bottom)); max-width:508px; margin:0 auto; background:var(--ink); color:var(--bg); padding:13px 16px; border-radius:14px; font-size:13.5px; text-align:center; box-shadow:0 6px 20px rgba(0,0,0,.25); z-index:20}
+
+.acerca p{margin-bottom:10px; font-size:13.5px; line-height:1.6; color:var(--sub)}
+.acerca p:last-child{margin-bottom:0}
+.danger-btn{color:var(--warn); font-size:13px; font-weight:600}
+hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
+.file-fake{display:inline-block}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+"use strict";
+
+/* ===================== utilidades ===================== */
+function pad(n){ return n<10 ? '0'+n : ''+n; }
+function toISO(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function hoyISO(){ return toISO(new Date()); }
+function horaMin(d){ return pad(d.getHours())+':'+pad(d.getMinutes()); }
+function normalizar(s){
+  return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+}
+function getPath(obj, path){
+  return path.split('.').reduce(function(o,k){ return (o===undefined||o===null) ? o : o[k]; }, obj);
+}
+function setPath(obj, path, val){
+  var partes=path.split('.'), o=obj;
+  for(var i=0;i<partes.length-1;i++){ o=o[partes[i]]; }
+  o[partes[partes.length-1]]=val;
+}
+function saludo(){
+  var h=new Date().getHours();
+  if(h<12) return 'Buenos días';
+  if(h<19) return 'Buenas tardes';
+  return 'Buenas noches';
+}
+
+/* ===================== datos ===================== */
+var CLAVE='ancla_datos_v1';
+var CATS=[
+  {id:'desayuno', emo:'🍳', et:'Desayuno'},
+  {id:'almuerzo', emo:'🍽️', et:'Almuerzo'},
+  {id:'cena', emo:'🌙', et:'Cena'},
+  {id:'agua', emo:'💧', et:'Agua', contable:true},
+  {id:'ducha', emo:'🚿', et:'Aseo'},
+  {id:'bano', emo:'🚽', et:'Baño'},
+  {id:'mover', emo:'🏃', et:'Moverme'},
+  {id:'dormir', emo:'😴', et:'Dormí'}
+];
+var NIVELES=['Semilla','Brote','Raíz firme','Tallo alto','Copa abierta','Bosque entero'];
+
+var MENSAJES_BOYA=[
+  'No tiene que ser perfecto. Ya cuenta.',
+  'Un paso es un paso.',
+  'Cuando puedas, no cuando debas.',
+  'Estás aquí. Eso ya es algo.',
+  'No hay puntos por sufrir de más.',
+  'Lo pequeño también cuenta como cuidado.',
+  'Hoy no compite con ayer.',
+  'Respira. Vamos de a uno.',
+  'No estás sola en esto.',
+  'Volver también cuenta como avanzar.',
+  'Esto no es examen. Es solo hoy.',
+  'Lo que alcances a hacer, alcanza.'
+];
+
+function estadoInicial(){
+  return {
+    version:1,
+    creado:hoyISO(),
+    bienvenidaVista:false,
+    modoSuave:false,
+    nudgeVisto:null,
+    aperturas:[],
+    entradas:{},
+    contadores:{ ropaUsos:0, tareasUsos:0 },
+    ropa:[],
+    ropaHoy:null,
+    tareaActual:null,
+    recordatorios:{
+      activos:false,
+      desayuno:{on:true, hora:'08:00'},
+      almuerzo:{on:true, hora:'13:00'},
+      cena:{on:true, hora:'19:30'},
+      dormir:{on:true, hora:'22:30'},
+      agua:{on:true, horas:2, ultimoMs:0},
+      ultimoAviso:{}
+    }
+  };
+}
+
+var S = cargar();
+function cargar(){
+  try{
+    var crudo=localStorage.getItem(CLAVE);
+    if(!crudo) return estadoInicial();
+    var d=JSON.parse(crudo);
+    var base=estadoInicial();
+    // fusión superficial para tolerar versiones futuras sin romper datos viejos
+    for(var k in base){ if(d[k]===undefined) d[k]=base[k]; }
+    if(!d.recordatorios) d.recordatorios=base.recordatorios;
+    for(var rk in base.recordatorios){ if(d.recordatorios[rk]===undefined) d.recordatorios[rk]=base.recordatorios[rk]; }
+    if(!d.contadores) d.contadores=base.contadores;
+    return d;
+  }catch(e){ return estadoInicial(); }
+}
+function guardar(){
+  try{ localStorage.setItem(CLAVE, JSON.stringify(S)); }catch(e){}
+}
+function entradaHoy(){
+  var iso=hoyISO();
+  if(!S.entradas[iso]) S.entradas[iso]={ desayuno:false, almuerzo:false, cena:false, agua:0, ducha:false, bano:false, mover:false, dormir:false };
+  return S.entradas[iso];
+}
+
+/* vista efímera, no se guarda */
+var V = { tab:'hoy', mostrarMedallas:false, ropaNueva:'', tareaTexto:'', toast:null, editarRecordatorios:false };
+
+/* ===================== cálculos del juego ===================== */
+function contarCategorias(e){
+  if(!e) return 0;
+  var n=0;
+  ['desayuno','almuerzo','cena','ducha','bano','mover','dormir'].forEach(function(k){ if(e[k]) n++; });
+  if(e.agua>0) n++;
+  return n;
+}
+var UMBRAL_DIA=3;
+
+function calcularRacha(){
+  var hoy=new Date(); hoy.setHours(0,0,0,0);
+  var streak=0, saltos=1, cursor=new Date(hoy), vueltas=0;
+  while(vueltas<370){
+    vueltas++;
+    var iso=toISO(cursor);
+    var cuenta=contarCategorias(S.entradas[iso]);
+    var esHoy=(cursor.getTime()===hoy.getTime());
+    if(cuenta>=UMBRAL_DIA){ streak++; }
+    else if(esHoy){ /* el día de hoy no cuenta en contra, todavía no termina */ }
+    else if(saltos>0){ saltos--; }
+    else{ break; }
+    cursor.setDate(cursor.getDate()-1);
+  }
+  return streak;
+}
+function calcularConsecutivos(campo){
+  var hoy=new Date(); hoy.setHours(0,0,0,0);
+  var n=0, cursor=new Date(hoy), vueltas=0;
+  while(vueltas<370){
+    vueltas++;
+    var iso=toISO(cursor);
+    var e=S.entradas[iso];
+    var esHoy=(cursor.getTime()===hoy.getTime());
+    var val = campo==='agua' ? (e && e.agua>0) : (e && e[campo]);
+    if(val){ n++; }
+    else if(esHoy){ /* hoy aún no cuenta en contra */ }
+    else{ break; }
+    cursor.setDate(cursor.getDate()-1);
+  }
+  return n;
+}
+function detectarRegreso(){
+  var dias=Object.keys(S.entradas).filter(function(k){ return contarCategorias(S.entradas[k])>0; }).sort();
+  for(var i=1;i<dias.length;i++){
+    var a=new Date(dias[i-1]+'T00:00:00'), b=new Date(dias[i]+'T00:00:00');
+    var gap=Math.round((b-a)/86400000);
+    if(gap>=3) return true;
+  }
+  return false;
+}
+function calcularMedallas(stats){
+  return [
+    ['🌅','Primer desayuno','Registraste tu primer desayuno', stats.desayunos>=1],
+    ['💧','Bien hidratada','Un día tomaste agua 5 veces o más', stats.aguaMaxDia>=5],
+    ['🔥','Semana a flote','7 días seguidos cuidándote (con margen)', stats.racha>=7],
+    ['🌊','Un mes a flote','30 días seguidos cuidándote', stats.racha>=30],
+    ['🚿','Me cuidé','Aseo 3 días seguidos', stats.duchaSeguidos>=3],
+    ['🏃','Me moví','Te moviste 5 veces en total', stats.moverTotal>=5],
+    ['😴','Buenas noches','Registraste que dormiste 5 veces', stats.dormirTotal>=5],
+    ['👗','Elegí sin pelear','Dejaste que Ancla eligiera tu ropa 5 veces', stats.ropaUsos>=5],
+    ['🧩','Lo dividí','Partiste una tarea grande en pasitos, 3 veces', stats.tareasUsos>=3],
+    ['🕊️','Volviste','Volviste a abrir Ancla después de unos días sin entrar — eso también cuenta', stats.volviste]
+  ];
+}
+function calcularProgreso(){
+  var totalToques=0, desayunos=0, moverTotal=0, dormirTotal=0, aguaMaxDia=0;
+  Object.keys(S.entradas).forEach(function(k){
+    var e=S.entradas[k];
+    if(e.desayuno) desayunos++;
+    if(e.mover) moverTotal++;
+    if(e.dormir) dormirTotal++;
+    if(e.agua>aguaMaxDia) aguaMaxDia=e.agua;
+    totalToques+=contarCategorias(e);
+  });
+  var racha=calcularRacha();
+  var duchaSeguidos=calcularConsecutivos('ducha');
+  var ropaUsos=S.contadores.ropaUsos||0;
+  var tareasUsos=S.contadores.tareasUsos||0;
+  var volviste=detectarRegreso();
+  var pts=totalToques*3 + racha*5 + ropaUsos*2 + tareasUsos*4;
+  var nivel=Math.min(NIVELES.length, Math.floor(Math.sqrt(pts/40))+1);
+  var sigue=Math.pow(nivel,2)*40, previo=Math.pow(nivel-1,2)*40;
+  var stats={desayunos:desayunos, moverTotal:moverTotal, dormirTotal:dormirTotal, aguaMaxDia:aguaMaxDia, racha:racha, duchaSeguidos:duchaSeguidos, ropaUsos:ropaUsos, tareasUsos:tareasUsos, volviste:volviste};
+  var medallas=calcularMedallas(stats);
+  var esMax = nivel>=NIVELES.length;
+  return {
+    pts:pts, nivel:nivel, nombre:NIVELES[nivel-1], esMax:esMax,
+    prog: esMax ? 100 : Math.max(0, Math.min(100, Math.round((pts-previo)/(sigue-previo)*100))),
+    faltan: esMax ? 0 : Math.max(0, sigue-pts),
+    racha:racha, medallas:medallas, ganadas:medallas.filter(function(m){ return m[3]; }).length
+  };
+}
+function mensajeBoya(cuenta){
+  if(cuenta<=0) return {e:'😶‍🌫️', t:'Boya está a la deriva', s:'Tócala aunque sea solo para saludar. Eso ya suma.'};
+  if(cuenta<=2) return {e:'🙂', t:'Boya flota bajito', s:'Cualquier cosita más ayuda, sin apuro.'};
+  if(cuenta<=4) return {e:'😊', t:'Boya se mantiene a flote', s:'Vas bien, a tu ritmo.'};
+  if(cuenta<=6) return {e:'😌', t:'Boya nada tranquila', s:'Hoy te estás cuidando de verdad.'};
+  return {e:'✨', t:'Boya está que brilla', s:'Día completo. Orgullo, no perfección.'};
+}
+
+/* ===================== notificaciones y recordatorios ===================== */
+function notiSoportada(){ return ('Notification' in window); }
+function pedirPermiso(){
+  if(!notiSoportada()) return Promise.resolve('unsupported');
+  return Notification.requestPermission();
+}
+function notificar(titulo, cuerpo){
+  if(notiSoportada() && Notification.permission==='granted'){
+    try{ new Notification(titulo, {body:cuerpo, icon:'./icon.svg'}); }catch(e){}
+  } else {
+    mostrarToast(titulo+' — '+cuerpo);
+    document.title='• Ancla';
+  }
+}
+var TEXTOS_REC={
+  desayuno:['🍳 Desayuno','¿Ya comiste algo? Aunque sea chiquito.'],
+  almuerzo:['🍽️ Almuerzo','Es hora de parar un momento a comer.'],
+  cena:['🌙 Cena','No se te olvide cenar hoy.'],
+  dormir:['😴 Hora de ir bajando el ritmo','Empieza a cerrar el día cuando puedas.']
+};
+function revisarRecordatorios(){
+  if(!S.recordatorios.activos) return;
+  var ahora=new Date(), hm=horaMin(ahora), hoy=hoyISO();
+  ['desayuno','almuerzo','cena','dormir'].forEach(function(k){
+    var r=S.recordatorios[k];
+    if(r && r.on && r.hora===hm && S.recordatorios.ultimoAviso[k]!==hoy){
+      notificar(TEXTOS_REC[k][0], TEXTOS_REC[k][1]);
+      S.recordatorios.ultimoAviso[k]=hoy; guardar();
+    }
+  });
+  var ag=S.recordatorios.agua;
+  if(ag && ag.on){
+    var h=ahora.getHours();
+    if(h>=7 && h<=22 && (Date.now()-(ag.ultimoMs||0))>=ag.horas*3600000){
+      notificar('💧 Agua','¿Tomaste agua hace rato? Un vasito ahora.');
+      ag.ultimoMs=Date.now(); guardar();
+    }
+  }
+}
+function recordar30(cat){
+  var et=(CATS.filter(function(c){return c.id===cat})[0]||{}).et || cat;
+  mostrarToast('Listo, te lo recuerdo en 30 min.');
+  setTimeout(function(){ notificar('⏰ Recordatorio', '¿'+et+'? Sigue pendiente por si se te fue el tiempo.'); }, 30*60*1000);
+}
+
+/* ===================== nudge de modo suave ===================== */
+function registrarApertura(){
+  var ahora=Date.now();
+  S.aperturas=(S.aperturas||[]).filter(function(t){ return ahora-t < 3600000; });
+  S.aperturas.push(ahora);
+  guardar();
+}
+function debeMostrarNudge(){
+  if(S.modoSuave) return false;
+  if(S.nudgeVisto===hoyISO()) return false;
+  var ahora=Date.now();
+  var recientes=(S.aperturas||[]).filter(function(t){ return ahora-t < 3600000; });
+  return recientes.length>=6;
+}
+
+/* ===================== ropa ===================== */
+function elegirRopa(){
+  var hoy=hoyISO();
+  var candidatos=S.ropa.slice();
+  if(candidatos.length===0) return null;
+  candidatos.sort(function(a,b){
+    var ua=a.ultimoUso||''; var ub=b.ultimoUso||'';
+    return ua<ub ? -1 : ua>ub ? 1 : 0;
+  });
+  var mitad=Math.max(1, Math.ceil(candidatos.length/2));
+  var top=candidatos.slice(0, mitad);
+  var elegido=top[Math.floor(Math.random()*top.length)];
+  return elegido;
+}
+
+/* ===================== divide tarea ===================== */
+var PLANTILLAS=[
+  {claves:['ban','duch'], pasos:['Ve al baño, no pienses en nada más','Abre el agua','Métete, aunque sea 2 minutos','Lávate como puedas','Sal y sécate']},
+  {claves:['plato','trast','cocin'], pasos:['Junta los platos en un solo lugar','Abre el agua','Lava solo 3 platos','Mira cuántos faltan','Lava unos poquitos más, o para aquí']},
+  {claves:['cuarto','ordenar','organizar','limpiar'], pasos:['Escoge SOLO una superficie (la cama o el piso)','Pon un timer de 10 minutos','Mueve lo que hay ahí a su lugar','Cuando suene el timer, para, así no hayas terminado']},
+  {claves:['correo','email','mensaje','whatsapp'], pasos:['Abre solo la bandeja, no respondas nada aún','Marca los 3 más urgentes','Responde el más corto primero','Responde uno más si puedes','Deja el resto para otro rato, ya avanzaste']},
+  {claves:['ejercicio','mover','caminar','gym'], pasos:['Ponte ropa cómoda','Sal por la puerta o pon un video','Muévete 5 minutos','Si quieres seguir, sigue; si no, ya cuenta']},
+  {claves:['estudi','trabaj','tarea','proyecto','informe'], pasos:['Abre solo lo que necesitas para EMPEZAR','Pon un timer de 10 minutos','Trabaja hasta que suene','Para y decide si sigues o descansas']},
+  {claves:['ropa','vestir','armario'], pasos:['Abre el armario sin buscar "lo perfecto"','Saca lo primero cómodo que veas','Pontelo','Listo, ya elegiste']}
+];
+var GENERICA=['Ponte de pie','Ve hacia allá','Toca o agarra UNA sola cosa','Hazlo solo 2 minutos','Para y decide si sigues'];
+function dividirTarea(texto){
+  var norm=normalizar(texto);
+  var plantilla=PLANTILLAS.filter(function(p){ return p.claves.some(function(c){ return norm.indexOf(c)>=0; }); })[0];
+  var pasos=(plantilla ? plantilla.pasos : GENERICA);
+  return { texto:texto, fecha:hoyISO(), pasos:pasos.map(function(t){ return {t:t, hecho:false}; }) };
+}
+
+/* ===================== toast ===================== */
+var toastTimer=null;
+function mostrarToast(msg){
+  V.toast=msg; render();
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ V.toast=null; render(); }, 2600);
+}
+
+/* ===================== render ===================== */
+var app=document.getElementById('app');
+
+function render(){
+  var h='';
+  h+='<div class="envolt">';
+  h+=renderTopbar();
+  if(V.toast) h+='<div class="toast">'+esc(V.toast)+'</div>';
+  if(V.tab==='hoy') h+=renderHoy();
+  else if(V.tab==='herramientas') h+=renderHerramientas();
+  else if(V.tab==='recordatorios') h+=renderRecordatorios();
+  else if(V.tab==='ajustes') h+=renderAjustes();
+  h+='</div>';
+  h+=renderNav();
+  app.innerHTML=h;
+  document.title='Ancla';
+}
+
+function esc(s){
+  return (s||'').replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function renderTopbar(){
+  var f=new Date().toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long'});
+  return '<div class="topbar"><div class="marca">⚓ Ancla</div><div class="fecha">'+esc(f)+'</div></div>';
+}
+
+function renderNav(){
+  var tabs=[
+    ['hoy','🏠','Hoy'],
+    ['herramientas','🧰','Herramientas'],
+    ['recordatorios','⏰','Recordatorios'],
+    ['ajustes','⚙️','Ajustes']
+  ];
+  var h='<div class="nav">';
+  tabs.forEach(function(t){
+    h+='<button data-action="nav" data-value="'+t[0]+'" class="'+(V.tab===t[0]?'act':'')+'"><span class="ic">'+t[1]+'</span>'+t[2]+'</button>';
+  });
+  h+='</div>';
+  return h;
+}
+
+function renderHoy(){
+  var e=entradaHoy();
+  var cuenta=contarCategorias(e);
+  var bm=mensajeBoya(cuenta);
+  var jg=calcularProgreso();
+  var h='';
+
+  if(!S.bienvenidaVista){
+    h+='<div class="banner">🌊 <div>Bienvenida a Ancla. Toca lo que ya hiciste hoy — no hay que llenarlo todo, ni en orden.<div class="acciones"><button data-action="cerrar-bienvenida">Entendido</button></div></div></div>';
+  }
+
+  if(debeMostrarNudge()){
+    h+='<div class="banner">🫧 <div>¿Sientes que estás revisando esto muchas veces seguidas? Puedes activar el <b>modo suave</b>, que oculta números y rachas.<div class="acciones"><button data-action="activar-suave">Activar modo suave</button><button data-action="descartar-nudge">Ahora no</button></div></div></div>';
+  }
+
+  h+='<div class="card">';
+  h+='<div class="boya-wrap">';
+  h+='<button class="boya" data-action="tocar-boya">'+bm.e+'</button>';
+  h+='<div class="boya-txt"><div class="titulo">'+bm.t+'</div><div class="sub">'+bm.s+'</div></div>';
+  h+='</div>';
+
+  h+='<div class="grid-cats">';
+  CATS.forEach(function(c){
+    if(c.contable){
+      var n=e.agua||0;
+      h+='<div class="cat '+(n>0?'on':'')+'"><div class="emo">'+c.emo+'</div><div class="et">'+c.et+'</div>';
+      h+='<div class="agua-row"><button data-action="agua-menos">–</button><span class="badge-n">'+n+'</span><button data-action="agua-mas">+</button></div></div>';
+    } else {
+      h+='<button class="cat '+(e[c.id]?'on':'')+'" data-action="toggle-cat" data-value="'+c.id+'"><div class="emo">'+c.emo+'</div><div class="et">'+c.et+'</div></button>';
+    }
+  });
+  h+='</div>';
+  h+='</div>';
+
+  h+='<div class="nivel-card">';
+  h+='<div class="nivel-top">';
+  if(S.modoSuave){
+    h+='<div class="l">'+jg.nombre+'<span>vas construyendo tu ritmo</span></div>';
+    h+='<div class="r">🔥<span>racha activa</span></div>';
+  } else {
+    h+='<div class="l">Nivel '+jg.nivel+' · '+jg.nombre+'<span>'+(jg.esMax?'nivel máximo — sigues sumando de todas formas':jg.faltan+' pts para el siguiente nivel')+'</span></div>';
+    h+='<div class="r">🔥 '+jg.racha+'<span>'+(jg.racha===1?'día seguido':'días seguidos')+'</span></div>';
+  }
+  h+='</div>';
+  h+='<div class="bar"><i style="width:'+jg.prog+'%"></i></div>';
+  h+='<div class="medallas-mini">';
+  jg.medallas.slice(0,7).forEach(function(m){ h+='<span class="'+(m[3]?'on':'')+'">'+(m[3]?m[0]:'🔒')+'</span>'; });
+  h+='<button data-action="ver-medallas"><b>'+(S.modoSuave?'medallas ›':jg.ganadas+'/'+jg.medallas.length+' medallas ›')+'</b></button>';
+  h+='</div>';
+  h+='</div>';
+
+  if(V.mostrarMedallas){
+    h+='<div class="card">';
+    h+='<h3>🏅 Tus medallas</h3>';
+    h+='<p class="sub">Estas no se pierden nunca, una vez las ganas son tuyas.</p>';
+    h+='<div class="medallas-grid">';
+    jg.medallas.forEach(function(m){ h+='<div class="medalla '+(m[3]?'on':'')+'" title="'+esc(m[1])+'">'+(m[3]?m[0]:'🔒')+'</div>'; });
+    h+='</div>';
+    h+='<div class="medalla-desc">'+jg.medallas.map(function(m){ return (m[3]?m[0]:'🔒')+' <b>'+esc(m[1])+'</b> — '+esc(m[2]); }).join('<br>')+'</div>';
+    h+='</div>';
+  }
+
+  return h;
+}
+
+function renderHerramientas(){
+  var h='';
+  h+='<div class="card">';
+  h+='<h3>👗 Decide tú</h3>';
+  h+='<p class="sub">Guarda combinaciones de ropa que ya sabes que te sirven. Cuando no se te ocurra qué ponerte, deja que Ancla elija por ti.</p>';
+
+  h+='<div class="fila-input" style="margin-top:12px">';
+  h+='<input type="text" id="inp-ropa" placeholder="Ej: jean azul + camiseta gris" value="'+esc(V.ropaNueva)+'">';
+  h+='<button class="btn btn-fantasma btn-chico" data-action="agregar-ropa">Agregar</button>';
+  h+='</div>';
+
+  if(S.ropa.length){
+    h+='<div class="ropa-lista">';
+    S.ropa.forEach(function(r){
+      h+='<div class="ropa-item"><span class="t">'+esc(r.texto)+'</span><button data-action="quitar-ropa" data-value="'+r.id+'">✕</button></div>';
+    });
+    h+='</div>';
+  }
+
+  if(S.ropaHoy && S.ropaHoy.fecha===hoyISO()){
+    var elegido=S.ropa.filter(function(r){ return r.id===S.ropaHoy.id; })[0];
+    h+='<div class="elegida"><div>Hoy ya elegiste 👇</div><div class="grande">'+(elegido?esc(elegido.texto):'—')+'</div>';
+    h+='<button class="btn btn-fantasma btn-chico" data-action="elegir-ropa">Elegir otra vez</button></div>';
+  } else if(S.ropa.length){
+    h+='<button class="btn btn-principal" style="margin-top:14px" data-action="elegir-ropa">Elige por mí</button>';
+  }
+  h+='</div>';
+
+  h+='<div class="card">';
+  h+='<h3>🧩 Divide esta tarea</h3>';
+  h+='<p class="sub">Escribe la tarea que te está abrumando. Ancla te la parte en pasos chiquitos.</p>';
+  if(!S.tareaActual || S.tareaActual.fecha!==hoyISO()){
+    h+='<div class="fila-input" style="margin-top:12px">';
+    h+='<input type="text" id="inp-tarea" placeholder="Ej: lavar la ropa" value="'+esc(V.tareaTexto)+'">';
+    h+='<button class="btn btn-fantasma btn-chico" data-action="dividir-tarea">Divídemela</button>';
+    h+='</div>';
+  } else {
+    var ta=S.tareaActual;
+    h+='<p class="sub" style="margin-top:10px"><b>'+esc(ta.texto)+'</b></p>';
+    h+='<div class="pasos">';
+    ta.pasos.forEach(function(p, i){
+      h+='<div class="paso '+(p.hecho?'hecho':'')+'" data-action="toggle-paso" data-value="'+i+'"><div class="c">'+(p.hecho?'✓':'')+'</div><div class="t">'+esc(p.t)+'</div></div>';
+    });
+    h+='</div>';
+    var todos=ta.pasos.every(function(p){return p.hecho});
+    if(todos){
+      h+='<div class="banner" style="margin-top:14px">🎉 <div>Lo lograste. Eso ya es un montón.<div class="acciones"><button data-action="cerrar-tarea">Listo, cerrar</button></div></div></div>';
+    } else {
+      h+='<button class="btn btn-fantasma btn-chico" style="margin-top:12px" data-action="cerrar-tarea">Dejarla por ahora</button>';
+    }
+  }
+  h+='</div>';
+
+  return h;
+}
+
+function renderRecordatorios(){
+  var r=S.recordatorios;
+  var h='';
+
+  if(notiSoportada() && Notification.permission==='denied'){
+    h+='<div class="aviso-permiso">Bloqueaste las notificaciones para esta página en tu navegador. Los recordatorios seguirán apareciendo dentro de la app (como un aviso), pero no como notificación del sistema.</div>';
+  }
+  if(!notiSoportada()){
+    h+='<div class="aviso-permiso">Tu navegador no soporta notificaciones. Los recordatorios se mostrarán como aviso dentro de la app mientras la tengas abierta.</div>';
+  }
+
+  h+='<div class="card">';
+  h+='<h3>⏰ Recordatorios</h3>';
+  h+='<p class="sub">Funcionan mientras Ancla esté abierta (o instalada en tu pantalla de inicio). No son notificaciones enviadas desde un servidor todavía — eso es un paso a futuro.</p>';
+  h+='<div class="campo-fila" style="margin-top:14px"><div><div class="l">Activar recordatorios</div><div class="d">Pide permiso de notificación la primera vez</div></div>';
+  h+='<button class="switch '+(r.activos?'on':'')+'" data-action="toggle-activos"><i></i></button></div>';
+  h+='</div>';
+
+  if(r.activos){
+    h+='<div class="card">';
+    [['desayuno','🍳 Desayuno'],['almuerzo','🍽️ Almuerzo'],['cena','🌙 Cena'],['dormir','😴 Ir a dormir']].forEach(function(f){
+      var cfg=r[f[0]];
+      h+='<div class="campo-fila"><div class="l">'+f[1]+'</div>';
+      h+='<div class="switch-wrap">';
+      h+='<input type="time" data-bind="recordatorios.'+f[0]+'.hora" value="'+cfg.hora+'" '+(cfg.on?'':'disabled')+'>';
+      h+='<button class="switch '+(cfg.on?'on':'')+'" data-action="toggle-rec" data-value="'+f[0]+'"><i></i></button>';
+      h+='</div></div>';
+    });
+    h+='<hr class="sep">';
+    h+='<div class="campo-fila"><div class="l">💧 Agua</div>';
+    h+='<div class="switch-wrap">';
+    h+='<select data-bind="recordatorios.agua.horas" data-num="1" '+(r.agua.on?'':'disabled')+'>';
+    [1,2,3,4].forEach(function(n){ h+='<option value="'+n+'" '+(r.agua.horas===n?'selected':'')+'>cada '+n+'h</option>'; });
+    h+='</select>';
+    h+='<button class="switch '+(r.agua.on?'on':'')+'" data-action="toggle-rec" data-value="agua"><i></i></button>';
+    h+='</div></div>';
+    h+='</div>';
+  }
+
+  var e=entradaHoy();
+  var pendientes=CATS.filter(function(c){ return c.contable ? !(e.agua>0) : !e[c.id]; });
+  if(pendientes.length){
+    h+='<div class="card">';
+    h+='<h3>Recuérdamelo en 30 min</h3>';
+    h+='<p class="sub">Sin configurar nada: un empujón puntual para lo que todavía falta hoy.</p>';
+    h+='<div class="pendientes">';
+    pendientes.forEach(function(c){
+      h+='<button data-action="snooze" data-value="'+c.id+'">'+c.emo+' '+c.et+'</button>';
+    });
+    h+='</div></div>';
+  }
+
+  return h;
+}
+
+function renderAjustes(){
+  var h='';
+  h+='<div class="card">';
+  h+='<h3>🫧 Modo suave</h3>';
+  h+='<p class="sub">Oculta números, rachas exactas y conteos de medallas — deja solo palabras. Pensado para cuando contar/chequear se vuelve más ansiedad que ayuda.</p>';
+  h+='<div class="campo-fila" style="margin-top:14px"><div class="l">Activar modo suave</div>';
+  h+='<button class="switch '+(S.modoSuave?'on':'')+'" data-action="toggle-modo-suave"><i></i></button></div>';
+  h+='</div>';
+
+  h+='<div class="card">';
+  h+='<h3>💾 Tus datos</h3>';
+  h+='<p class="sub">Todo vive solo en este navegador/celular — no se sube a ningún servidor. Eso también significa que si cambias de celular o borras el navegador, se pierde, salvo que hagas una copia.</p>';
+  h+='<div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap">';
+  h+='<button class="btn btn-fantasma btn-chico" data-action="exportar">Descargar copia</button>';
+  h+='<label class="btn btn-fantasma btn-chico file-fake">Importar copia<input type="file" id="inp-importar" accept="application/json" style="display:none"></label>';
+  h+='</div>';
+  h+='<hr class="sep">';
+  h+='<button class="danger-btn" data-action="borrar-todo">Borrar todos los datos</button>';
+  h+='</div>';
+
+  h+='<div class="card acerca">';
+  h+='<h3>Acerca de Ancla</h3>';
+  h+='<p>Hecha para días donde cosas simples —comer, bañarse, elegir ropa— cuestan de verdad. No mide si lo hiciste "bien", solo te ayuda a que no se te olvide y te da algo con qué celebrar cuando pasa.</p>';
+  h+='<p>No reemplaza acompañamiento médico o psicológico. Si notar patrones como los de hoy (olvidar comer, señales de hambre/sed apagadas) se repite mucho, vale la pena comentarlo con quien te trate.</p>';
+  h+='</div>';
+
+  return h;
+}
+
+/* ===================== interacción ===================== */
+function toggleCategoria(id){
+  var e=entradaHoy();
+  e[id]=!e[id];
+  guardar();
+}
+function cambiarAgua(delta){
+  var e=entradaHoy();
+  e.agua=Math.max(0, (e.agua||0)+delta);
+  guardar();
+}
+
+app.addEventListener('click', function(ev){
+  var b=ev.target.closest('[data-action]');
+  if(!b) return;
+  var act=b.dataset.action, val=b.dataset.value;
+
+  if(act==='nav'){ V.tab=val; V.mostrarMedallas=false; }
+  else if(act==='cerrar-bienvenida'){ S.bienvenidaVista=true; guardar(); }
+  else if(act==='toggle-cat'){ toggleCategoria(val); }
+  else if(act==='agua-mas'){ cambiarAgua(1); }
+  else if(act==='agua-menos'){ cambiarAgua(-1); }
+  else if(act==='tocar-boya'){ mostrarToast(MENSAJES_BOYA[Math.floor(Math.random()*MENSAJES_BOYA.length)]); return; }
+  else if(act==='ver-medallas'){ V.mostrarMedallas=!V.mostrarMedallas; }
+  else if(act==='activar-suave'){ S.modoSuave=true; S.nudgeVisto=hoyISO(); guardar(); }
+  else if(act==='descartar-nudge'){ S.nudgeVisto=hoyISO(); guardar(); }
+  else if(act==='toggle-modo-suave'){ S.modoSuave=!S.modoSuave; guardar(); }
+  else if(act==='agregar-ropa'){
+    var inp=document.getElementById('inp-ropa');
+    var texto=(inp?inp.value:'').trim();
+    if(texto){ S.ropa.push({id:'r'+Date.now(), texto:texto, ultimoUso:null}); V.ropaNueva=''; guardar(); }
+  }
+  else if(act==='quitar-ropa'){
+    S.ropa=S.ropa.filter(function(r){ return r.id!==val; });
+    if(S.ropaHoy && S.ropaHoy.id===val) S.ropaHoy=null;
+    guardar();
+  }
+  else if(act==='elegir-ropa'){
+    var elegido=elegirRopa();
+    if(elegido){
+      elegido.ultimoUso=hoyISO();
+      S.contadores.ropaUsos=(S.contadores.ropaUsos||0)+1;
+      S.ropaHoy={id:elegido.id, fecha:hoyISO()};
+      guardar();
+    }
+  }
+  else if(act==='dividir-tarea'){
+    var inpT=document.getElementById('inp-tarea');
+    var texto=(inpT?inpT.value:'').trim();
+    if(texto){
+      S.tareaActual=dividirTarea(texto);
+      S.contadores.tareasUsos=(S.contadores.tareasUsos||0)+1;
+      V.tareaTexto=''; guardar();
+    }
+  }
+  else if(act==='toggle-paso'){
+    if(S.tareaActual){
+      var p=S.tareaActual.pasos[Number(val)];
+      if(p){ p.hecho=!p.hecho; guardar(); }
+    }
+  }
+  else if(act==='cerrar-tarea'){ S.tareaActual=null; guardar(); }
+  else if(act==='toggle-activos'){
+    if(!S.recordatorios.activos){
+      pedirPermiso().then(function(){ S.recordatorios.activos=true; guardar(); render(); });
+      return;
+    }
+    S.recordatorios.activos=false; guardar();
+  }
+  else if(act==='toggle-rec'){
+    if(val==='agua'){ S.recordatorios.agua.on=!S.recordatorios.agua.on; }
+    else { S.recordatorios[val].on=!S.recordatorios[val].on; }
+    guardar();
+  }
+  else if(act==='snooze'){ recordar30(val); return; }
+  else if(act==='exportar'){ exportarDatos(); return; }
+  else if(act==='borrar-todo'){
+    if(confirm('¿Borrar todos tus datos de Ancla? No se puede deshacer.')){
+      S=estadoInicial(); guardar();
+    } else { return; }
+  }
+
+  render();
+});
+
+app.addEventListener('change', function(ev){
+  var el=ev.target.closest('[data-bind]');
+  if(el){
+    var val = el.type==='checkbox' ? el.checked : el.value;
+    if(el.dataset.num) val=Number(val);
+    setPath(S, el.dataset.bind, val);
+    guardar();
+    render();
+    return;
+  }
+  if(ev.target.id==='inp-importar' && ev.target.files && ev.target.files[0]){
+    importarDatos(ev.target.files[0]);
+  }
+});
+app.addEventListener('input', function(ev){
+  if(ev.target.id==='inp-ropa') V.ropaNueva=ev.target.value;
+  if(ev.target.id==='inp-tarea') V.tareaTexto=ev.target.value;
+});
+app.addEventListener('keydown', function(ev){
+  if(ev.key==='Enter'){
+    if(ev.target.id==='inp-ropa'){ ev.preventDefault(); document.querySelector('[data-action="agregar-ropa"]').click(); }
+    if(ev.target.id==='inp-tarea'){ ev.preventDefault(); document.querySelector('[data-action="dividir-tarea"]').click(); }
+  }
+});
+
+function exportarDatos(){
+  var blob=new Blob([JSON.stringify(S, null, 2)], {type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url; a.download='ancla-datos-'+hoyISO()+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+  mostrarToast('Descargando tu copia…');
+}
+function importarDatos(file){
+  var reader=new FileReader();
+  reader.onload=function(){
+    try{
+      var nuevo=JSON.parse(reader.result);
+      if(nuevo && nuevo.entradas){
+        if(confirm('Esto va a reemplazar los datos actuales de este dispositivo con los del archivo. ¿Seguir?')){
+          S=nuevo; guardar(); render(); mostrarToast('Datos importados.');
+        }
+      } else { mostrarToast('Ese archivo no parece ser de Ancla.'); }
+    }catch(e){ mostrarToast('No se pudo leer el archivo.'); }
+  };
+  reader.readAsText(file);
+}
+
+/* ===================== arranque ===================== */
+registrarApertura();
+revisarRecordatorios();
+setInterval(revisarRecordatorios, 30000);
+render();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
+
+})();
+</script>
+</body>
+</html>
