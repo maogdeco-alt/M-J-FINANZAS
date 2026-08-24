@@ -12,9 +12,40 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.8.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.9.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.8.0" al reportar algo raro.
+> pasó en la v0.9.0" al reportar algo raro.
+
+## Boya, más compacta, viva y con manta propia (v0.9.0)
+
+Esta vuelta fue exclusivamente calidad: la anatomía, el movimiento y la sensación de que
+el cuarto es un lugar habitado, no una foto fija.
+
+- **Se acabó la animación "de péndulo"**: antes el cuerpo entero rotaba desde los pies (se
+  veía como un juguete inclinándose de lado a lado) y el brazo saludaba en bucle infinito,
+  sin que nadie la tocara, al mismo tiempo que la cola se movía en un reloj distinto. Tres
+  movimientos sueltos y descoordinados = la sensación de "raro" que se reportó. Ahora hay
+  **un solo movimiento**: una respiración sutil (sube/baja + un leve estiramiento, sin
+  rotación), y el saludo del brazo **solo pasa cuando la tocas** — como debía ser desde el
+  principio.
+- **Cuerpo recompuesto para verse compacta, no alargada**: el torso pasó de ser una elipse
+  angosta y larga a una más ancha y corta, las piernas y los brazos se acortaron y se
+  recogieron más cerca del cuerpo. La cabeza (grande, como antes) no se tocó — es lo que le
+  da su aire de personaje, no de animal realista. El resultado es una nutria más redonda,
+  más "de escritorio", menos desproporcionada.
+- **Ahora se le ve dormir y comer, en su cuarto**: según la hora del día y lo que ya
+  registraste hoy —
+  - Entre las 11pm y las 6am aparece **dormida**, tapada con su propia manta, ojos
+    cerrados — y respira más lento.
+  - En una ventana de comida (mañana/tarde/noche) si ya marcaste esa comida, aparece
+    **comiendo**, con un platito entre las manos en vez del objeto que sostiene normalmente.
+  - Fuera de esos momentos, sigue de pie como siempre. Nada de esto se guarda aparte: usa
+    los mismos datos que ya registrás.
+- **Decorar el cuarto, de verdad**: se agregó un selector de **pared** directo en el cuarto
+  — un puñado de círculos de color, uno por cada fondo que hayas comprado (más el de
+  siempre por defecto). Tocás uno y el cuarto cambia al instante, sin tener que ir a buscarlo
+  entre la ropa. Es la primera pieza de "decorar algo del cuarto" con control directo, no
+  solo automático.
 
 ## Boya, de cuerpo completo, con su propio cuarto (v0.8.0)
 
