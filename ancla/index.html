@@ -20,6 +20,11 @@
 :root{
   --bg:#ece3d1; --card:#faf7f0; --ink:#161f22; --sub:#5c6a68; --teal:#0b4247; --teal-d:#082e32;
   --coral:#b25e39; --mint:#dbe1cd; --mint-ink:#37402c; --line:#dccfb3; --warn:#9c3a1e;
+  /* Un color por dominio, siempre el mismo. El color aquí no decora:
+     identifica. Por eso son tonos profundos y de saturación pareja —
+     conviven sin pelearse, que es lo que un montón de emoji nunca hace. */
+  --h-ambar:#b8801f; --h-terra:#b0573a; --h-oliva:#5c7a41; --h-azul:#3a6c91;
+  --h-ciruela:#7c4763; --h-indigo:#4a5093; --h-agua:#1c7f86; --h-humo:#6b7a72;
   --radius:14px; --radius-s:9px;
   --font-display:'Fraunces', Georgia, 'Times New Roman', serif;
   --font-body:'Karla', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -29,6 +34,8 @@
   :root{
     --bg:#0a1213; --card:#131e20; --ink:#edf1ea; --sub:#8fa09c; --teal:#2f99a1; --teal-d:#1c6a70;
     --coral:#d9895c; --mint:#232c1d; --mint-ink:#c2d3a9; --line:#263335; --warn:#ff9a6b;
+    --h-ambar:#e0aa4e; --h-terra:#e0866a; --h-oliva:#94b56f; --h-azul:#74a6c9;
+    --h-ciruela:#c084a1; --h-indigo:#8f95d6; --h-agua:#4fc0c6; --h-humo:#9fb0a6;
   }
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
@@ -245,23 +252,108 @@ h1,h2,h3,p{margin:0}
 /* los iconos heredan el color del texto y se alinean con él */
 .ico{display:block; flex:none}
 .cat .emo .ico, .cui-emo .ico, .f-emo .ico, .ahora-emo .ico{margin:0 auto}
-.cat .emo{color:var(--sub); display:flex; align-items:center; justify-content:center; height:26px}
-.cat.on .emo{color:var(--teal-d)}
-@media (prefers-color-scheme:dark){ .cat.on .emo{color:var(--teal)} }
+.cat .emo{display:flex; align-items:center; justify-content:center; height:26px}
 .nav button .ic{display:flex; align-items:center; justify-content:center; height:23px}
-.cui-emo{color:var(--sub); display:flex; align-items:center}
-.cuidado.urg1 .cui-emo{color:var(--coral)}
-.cuidado.urg2 .cui-emo{color:var(--warn)}
-.f-emo{color:var(--sub); display:flex; align-items:center}
-.fila.u1 .f-emo{color:var(--coral)}
-.fila.u2 .f-emo{color:var(--warn)}
-.ahora-emo{color:var(--sub); display:flex; align-items:center; padding-top:2px}
-.ahora.n1 .ahora-emo{color:var(--coral)}
-.ahora.n2 .ahora-emo{color:var(--warn)}
-.ahora.n-1 .ahora-emo{color:var(--mint-ink)}
+.cui-emo{display:flex; align-items:center}
+.f-emo{display:flex; align-items:center}
+.ahora-emo{display:flex; align-items:center; padding-top:2px}
 .calma-picker button{display:inline-flex; align-items:center; gap:7px}
 .fila-mas{width:100%; padding:11px 14px; background:var(--card); font-size:12px; font-weight:700; color:var(--coral); text-align:center}
 .foto-agregar{color:var(--sub); display:flex; align-items:center; justify-content:center}
+
+/* ================= color con oficio =================
+   Cada dominio tiene SU color y no lo cambia nunca: el desayuno siempre
+   ámbar, el sueño siempre índigo, las perras su verde. Así el color dice
+   algo — se reconoce la cosa antes de leer la palabra — en vez de ser
+   adorno. Todos los tonos comparten saturación, por eso conviven sin
+   pelearse, que es justo lo que veinte emoji distintos nunca logran. */
+.cat{position:relative; overflow:hidden}
+.cat .emo{color:var(--t, var(--sub))}
+.cat .et{color:var(--sub)}
+.cat:before{content:''; position:absolute; inset:0; background:var(--t); opacity:.06; pointer-events:none}
+.cat.on{border-color:var(--t)}
+.cat.on:before{opacity:.17}
+.cat.on .et{color:var(--t); font-weight:700}
+.cat.on .badge-n{background:var(--t)}
+.cat .badge-n{background:var(--t)}
+
+.cui-emo{color:var(--t, var(--sub))}
+.cuidado{border-left:3.5px solid var(--t)}
+.cuidado.ok{background:var(--card)}
+
+.f-emo{color:var(--t, var(--sub))}
+.fila{border-left:3.5px solid var(--t)}
+.fila.u1{background:var(--card)}
+.fila.u2{background:var(--card)}
+.fila.u1:after, .fila.u2:after{display:none}
+.fila.u2{box-shadow:inset 0 0 0 99px rgba(156,58,30,.07)}
+.fila.u1 .f-btn{background:var(--t); border-color:var(--t); color:#fff}
+.fila.u2 .f-btn{background:var(--warn); border-color:var(--warn); color:#fff}
+
+.ahora{border-left-width:5px; border-left-color:var(--t); position:relative; overflow:hidden}
+.ahora:before{content:''; position:absolute; inset:0; background:var(--t); opacity:.075; pointer-events:none}
+.ahora.n2:before{opacity:.15}
+.ahora-emo{color:var(--t)}
+.ahora .btn-principal{background:var(--t)}
+.ahora-txt b{position:relative}
+
+.calma-picker button .ico{color:var(--t)}
+.calma-picker button.act{background:var(--t); border-color:var(--t); color:#fff}
+.calma-picker button.act .ico{color:#fff}
+
+.toma.urg1{border-left:3.5px solid var(--h-ciruela)}
+.tm-hora{letter-spacing:.5px}
+
+/* la barra de abajo también se despierta */
+.nav button.act{color:var(--teal-d)}
+.nav button.act .ic{transform:translateY(-1px)}
+@media (prefers-color-scheme:dark){ .nav button.act{color:var(--teal)} }
+
+/* ---- Boya recupera presencia: la había encogido demasiado ---- */
+.boya-tira{padding:14px 15px 14px 14px; gap:15px; background:var(--card);
+  border:1px solid var(--line); box-shadow:0 2px 10px rgba(20,40,42,.07)}
+.bt-retrato{width:96px; height:96px; border-radius:20px;
+  box-shadow:inset 0 -18px 26px rgba(0,0,0,.16), 0 3px 10px rgba(14,124,134,.22)}
+.bt-txt b{font-size:17px}
+.bt-txt i{font-size:12px; -webkit-line-clamp:2}
+.bt-bar{height:6px; margin-top:10px}
+.bt-ir{font-size:22px}
+
+/* ---- la escena de Boya: es el alma de la app, no un ítem de lista ---- */
+.escena{position:relative; height:148px; border-radius:var(--radius); margin-top:14px; overflow:visible;
+  background:linear-gradient(165deg, #14666e 0%, var(--teal) 55%, var(--teal-d) 100%);
+  box-shadow:0 6px 20px rgba(11,66,71,.28)}
+.escena:before{content:''; position:absolute; inset:0; border-radius:var(--radius); overflow:hidden;
+  background:radial-gradient(ellipse at 22% 18%, rgba(255,255,255,.16), transparent 58%)}
+.esc-suelo{position:absolute; left:0; right:0; bottom:0; height:34%; border-radius:0 0 var(--radius) var(--radius);
+  background:linear-gradient(180deg, rgba(0,0,0,.16), rgba(0,0,0,.28))}
+.esc-boya{position:absolute; left:12px; bottom:0; height:96%; width:auto; padding:0; background:none; border:none; cursor:pointer; z-index:2}
+.esc-boya svg{height:100%; width:auto; animation:respirar 4.6s ease-in-out infinite; transform-origin:50% 100%;
+  filter:drop-shadow(0 5px 10px rgba(0,0,0,.3))}
+.esc-boya.tocada svg{animation:saludo .66s cubic-bezier(.34,1.4,.64,1)}
+.esc-panel{position:absolute; right:13px; top:15px; bottom:15px; width:56%; z-index:3; cursor:pointer;
+  display:flex; flex-direction:column; justify-content:center; color:#fff}
+.esc-panel b{display:block; font-family:var(--font-display); font-size:18px; font-weight:600; line-height:1.2;
+  text-shadow:0 1px 6px rgba(0,0,0,.35)}
+.esc-panel i{display:block; font-style:normal; font-size:12px; line-height:1.45; margin-top:5px; color:rgba(255,255,255,.86);
+  overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
+.esc-bar{height:6px; background:rgba(255,255,255,.22); border-radius:5px; overflow:hidden; margin-top:11px}
+.esc-bar span{display:block; height:100%; background:#f0b17e; border-radius:5px; transition:width .35s}
+.esc-panel em{display:block; font-style:normal; font-family:var(--font-mono); font-size:9.5px; letter-spacing:.4px;
+  color:rgba(255,255,255,.72); margin-top:8px}
+.escena .globo-dialogo{bottom:calc(100% + 8px); left:78px}
+@media(max-width:359px){ .esc-panel{width:52%} .esc-panel b{font-size:16px} }
+
+/* fondo con algo de profundidad, no un plano beige */
+body{background:linear-gradient(178deg, #f2ebdc 0%, var(--bg) 34%)}
+@media (prefers-color-scheme:dark){ body{background:linear-gradient(178deg, #0e191b 0%, var(--bg) 34%)} }
+
+/* la barra de abajo toma el color de su propia sección */
+.nav button[data-value="hoy"].act{color:var(--h-agua)}
+.nav button[data-value="cuidados"].act{color:var(--h-ciruela)}
+.nav button[data-value="enfoque"].act{color:var(--h-terra)}
+.nav button[data-value="calma"].act{color:var(--h-azul)}
+.nav button[data-value="mas"].act{color:var(--ink)}
 .huevo-wrap{display:flex; flex-direction:column; align-items:center; padding:26px 0 10px}
 .huevo-svg{width:150px; height:180px; cursor:pointer; filter:drop-shadow(0 10px 18px rgba(0,0,0,.15))}
 .huevo-svg.tambalea{animation:tambaleo .55s ease}
@@ -480,7 +572,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.13.0-beta';
+var VERSION='0.14.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -509,14 +601,14 @@ function saludo(){
 /* ===================== datos ===================== */
 var CLAVE='ancla_datos_v1';
 var CATS=[
-  {id:'desayuno', ico:'taza', emo:'🍳', et:'Desayuno', momento:'manana', foto:true},
-  {id:'ducha', ico:'ducha', emo:'🚿', et:'Aseo', momento:'manana'},
-  {id:'almuerzo', ico:'plato', emo:'🍽️', et:'Almuerzo', momento:'tarde', foto:true},
-  {id:'mover', ico:'pulso', emo:'🏃', et:'Moverme', momento:'tarde', foto:true},
-  {id:'cena', ico:'bol', emo:'🌙', et:'Cena', momento:'noche', foto:true},
-  {id:'dormir', ico:'luna', emo:'😴', et:'Dormí', momento:'noche'},
-  {id:'agua', ico:'gota', emo:'💧', et:'Agua', contable:true, momento:'dia'},
-  {id:'bano', ico:'inodoro', emo:'🚽', et:'Baño', momento:'dia'}
+  {id:'desayuno', tono:'ambar', ico:'taza', emo:'🍳', et:'Desayuno', momento:'manana', foto:true},
+  {id:'ducha', tono:'azul', ico:'ducha', emo:'🚿', et:'Aseo', momento:'manana'},
+  {id:'almuerzo', tono:'terra', ico:'plato', emo:'🍽️', et:'Almuerzo', momento:'tarde', foto:true},
+  {id:'mover', tono:'oliva', ico:'pulso', emo:'🏃', et:'Moverme', momento:'tarde', foto:true},
+  {id:'cena', tono:'ciruela', ico:'bol', emo:'🌙', et:'Cena', momento:'noche', foto:true},
+  {id:'dormir', tono:'indigo', ico:'luna', emo:'😴', et:'Dormí', momento:'noche'},
+  {id:'agua', tono:'agua', ico:'gota', emo:'💧', et:'Agua', contable:true, momento:'dia'},
+  {id:'bano', tono:'humo', ico:'inodoro', emo:'🚽', et:'Baño', momento:'dia'}
 ];
 var MOMENTOS=[
   {id:'manana', et:'Mañana'},
@@ -1081,10 +1173,10 @@ function horaDe(ms){
    cabeza no guarda. Nunca dice "olvidaste"; dice qué toca y cuándo fue
    la última vez. */
 var CUIDADOS=[
-  {id:'comida',  et:'Comida',    ico:'cuenco', emo:'🍖', veces:2, cadaH:9,  verbo:'Ya comieron'},
-  {id:'salida',  et:'Salida',    ico:'pata', emo:'🐾', veces:3, cadaH:5,  verbo:'Ya salieron'},
-  {id:'paseo',   et:'Paseo largo', ico:'correa', emo:'🦮', veces:1, cadaH:22, verbo:'Ya pasearon'},
-  {id:'agua',    et:'Agua fresca', ico:'gota', emo:'💧', veces:1, cadaH:12, verbo:'Ya les cambié'}
+  {id:'comida',  et:'Comida',    tono:'ambar', ico:'cuenco', emo:'🍖', veces:2, cadaH:9,  verbo:'Ya comieron'},
+  {id:'salida',  et:'Salida',    tono:'oliva', ico:'pata', emo:'🐾', veces:3, cadaH:5,  verbo:'Ya salieron'},
+  {id:'paseo',   et:'Paseo largo', tono:'terra', ico:'correa', emo:'🦮', veces:1, cadaH:22, verbo:'Ya pasearon'},
+  {id:'agua',    et:'Agua fresca', tono:'agua', ico:'gota', emo:'💧', veces:1, cadaH:12, verbo:'Ya les cambié'}
 ];
 var EMOJIS_PERRA=['🐕','🐩','🦮','🐕‍🦺','🐶','🐾'];
 function cuidadoDe(id){ return CUIDADOS.filter(function(c){ return c.id===id; })[0]; }
@@ -1266,7 +1358,7 @@ function queSigueAhora(){
   var pm=pendientesMedicamentos();
   if(pm.length){
     var m0=pm[0];
-    return { nivel:m0.urgencia, ico:'pastilla',
+    return { nivel:m0.urgencia, ico:'pastilla', tono:'ciruela',
       t:m0.med.nombre+' · '+m0.hora,
       sub:'Esta toma no está registrada'+(m0.med.dosis?' ('+m0.med.dosis+')':'')+'. La última que anotaste fue '+(ultimaTomaDe(m0.med)?haceTexto(ultimaTomaDe(m0.med)):'—')+'.',
       actos:[{act:'tomar-med', val:m0.med.id+'|'+m0.i, et:'Ya la tomé', cls:'btn-principal'},
@@ -1276,7 +1368,7 @@ function queSigueAhora(){
   var pp=pendientesPerras();
   if(pp.length && pp[0].urgencia===2){
     var u=pp[0];
-    return { nivel:2, ico:u.cuidado.ico,
+    return { nivel:2, ico:u.cuidado.ico, tono:u.cuidado.tono,
       t:u.cuidado.et+' de '+u.perra.nombre,
       sub:(u.ultima===null?'Hoy no hay registro todavía.':'La última vez fue '+haceTexto(u.ultima)+'.')+' Ella no puede recordártelo.',
       actos:[{act:'registrar-cuidado', val:u.perra.id+'|'+u.cuidado.id, et:u.cuidado.verbo, cls:'btn-principal'},
@@ -1284,14 +1376,14 @@ function queSigueAhora(){
   }
 
   if(S.enfoque && S.enfoque.activa){
-    return { nivel:1, ico:'reloj', t:'Tienes un bloque corriendo',
+    return { nivel:1, ico:'reloj', tono:'terra', t:'Tienes un bloque corriendo',
       sub:'Quedan '+mmss(sesionRestanteMs())+'. Vuelve a él, no lo dejes abierto.',
       actos:[{act:'nav', val:'enfoque', et:'Volver al bloque', cls:'btn-principal'}] };
   }
 
   if(pp.length){
     var u1=pp[0];
-    return { nivel:1, ico:u1.cuidado.ico,
+    return { nivel:1, ico:u1.cuidado.ico, tono:u1.cuidado.tono,
       t:u1.cuidado.et+' de '+u1.perra.nombre,
       sub:(u1.ultima===null?'Sin registro hoy.':'Última vez '+haceTexto(u1.ultima)+'.'),
       actos:[{act:'registrar-cuidado', val:u1.perra.id+'|'+u1.cuidado.id, et:u1.cuidado.verbo, cls:'btn-principal'},
@@ -1299,7 +1391,7 @@ function queSigueAhora(){
   }
 
   if(hr>=6 && hr<13 && S.ropa.length && !(S.ropaHoy && S.ropaHoy.fecha===hoyISO())){
-    return { nivel:0, ico:'camiseta', t:'Vestirte',
+    return { nivel:0, ico:'camiseta', tono:'indigo', t:'Vestirte',
       sub:'No lo pienses: deja que Ancla elija de lo que ya guardaste.',
       actos:[{act:'nav', val:'vestirme', et:'Que elija por mí', cls:'btn-principal'}] };
   }
@@ -1307,14 +1399,14 @@ function queSigueAhora(){
   var mom=momentoActual();
   var pendCat=CATS.filter(function(c){ return c.momento===mom && !c.contable && !e[c.id]; })[0];
   if(pendCat){
-    return { nivel:0, ico:pendCat.ico, t:pendCat.et,
+    return { nivel:0, ico:pendCat.ico, tono:pendCat.tono, t:pendCat.et,
       sub:'Es lo que toca en esta franja. Si ya lo hiciste, márcalo y listo.',
       actos:[{act:'toggle-cat', val:pendCat.id, et:'Hecho', cls:'btn-principal'}] };
   }
 
   var faltan=metaEnfoque()-minutosHoy();
   if(faltan>0 && hr>=7 && hr<22){
-    return { nivel:0, ico:'diana', t:'Tu tiempo de trabajo',
+    return { nivel:0, ico:'diana', tono:'terra', t:'Tu tiempo de trabajo',
       sub:minutosHoy()>0 ? 'Llevas '+minutosHoy()+' min. Faltan '+faltan+' y no tienen que ser seguidos.'
                           : 'Empieza con 5 minutos. Solo cinco — después decides.',
       actos:[{act:'iniciar-sesion', val:'5', et:'Arrancar 5 min', cls:'btn-principal'},
@@ -1322,12 +1414,12 @@ function queSigueAhora(){
   }
 
   if(S.pendientes && S.pendientes.length){
-    return { nivel:0, ico:'caja', t:esc(S.pendientes[0].texto),
+    return { nivel:0, ico:'caja', tono:'oliva', t:esc(S.pendientes[0].texto),
       sub:'Lo anotaste tú. Si ya no aplica, bórralo sin culpa.',
       actos:[{act:'nav', val:'rutinas', et:'Ver pendientes', cls:'btn-principal'}] };
   }
 
-  return { nivel:-1, ico:'ola', t:'No hay nada urgente',
+  return { nivel:-1, ico:'ola', tono:'agua', t:'No hay nada urgente',
     sub:'En serio. Lo de hoy está cubierto — '+nb+' también lo nota.',
     actos:[] };
 }
@@ -1970,7 +2062,7 @@ function renderHoy(){
 
   /* ---- 1. lo único fuerte de la pantalla ---- */
   var ah=queSigueAhora();
-  h+='<div class="ahora n'+ah.nivel+'">';
+  h+='<div class="ahora n'+ah.nivel+'" style="--t:var(--h-'+(ah.tono||'terra')+')">';
   h+='<div class="ahora-et">Ahora</div>';
   h+='<div class="ahora-fila"><span class="ahora-emo">'+(ah.ico?ico(ah.ico,28):ah.emo)+'</span>';
   h+='<div class="ahora-txt"><b>'+ah.t+'</b><i>'+ah.sub+'</i></div></div>';
@@ -1985,18 +2077,21 @@ function renderHoy(){
 
   /* ---- 2. Boya, compacta: en Hoy acompaña, no protagoniza ---- */
   var fondoEq = S.equipado.fondo && FONDOS_BOYA[S.equipado.fondo];
-  h+='<div class="boya-tira">';
-  h+='<button class="bt-retrato'+(V.boyaTocada?' tocada':'')+'" data-action="tocar-boya" '+(fondoEq?'style="background:'+fondoEq.grad+'"':'')+'>'+dibujarNutria(bm.id, null, actividadBoya())+'</button>';
-  h+='<div class="bt-txt" data-action="nav" data-value="boya"><b>'+bm.t+'</b><i>'+bm.s+'</i>';
-  h+='<div class="bt-bar"><i style="width:'+pct+'%"></i></div></div>';
-  h+='<button class="bt-ir" data-action="nav" data-value="boya">›</button>';
+  h+='<div class="escena" '+(fondoEq?'style="background:'+fondoEq.grad+'"':'')+'>';
+  h+='<div class="esc-suelo"></div>';
+  h+='<button class="esc-boya'+(V.boyaTocada?' tocada':'')+'" data-action="tocar-boya">'+dibujarNutria(bm.id, null, actividadBoya())+'</button>';
+  h+='<div class="esc-panel" data-action="nav" data-value="boya">';
+  h+='<b>'+bm.t+'</b><i>'+bm.s+'</i>';
+  h+='<div class="esc-bar"><span style="width:'+pct+'%"></span></div>';
+  h+='<em>'+cuenta+' de '+CATS.length+' hoy · su cuarto ›</em>';
+  h+='</div>';
   if(V.dialogoBoya) h+='<div class="globo-dialogo">'+esc(V.dialogoBoya)+'</div>';
   h+='</div>';
 
   /* ---- 3. solo lo que está pendiente AHORA, en renglones ---- */
   var filas=[];
   pendientesMedicamentos().forEach(function(t){
-    filas.push({ico:'pastilla', et:t.med.nombre, meta:t.hora, urg:t.urgencia,
+    filas.push({ico:'pastilla', tono:'ciruela', et:t.med.nombre, meta:t.hora, urg:t.urgencia,
       act:'tomar-med', val:t.med.id+'|'+t.i, btn:'Tomé'});
   });
   /* solo lo más urgente de cada perra: cuatro renglones por perra volvían
@@ -2005,17 +2100,17 @@ function renderHoy(){
   pendientesPerras().forEach(function(u){
     if(yaPerra[u.perra.id]){ restoPerras++; return; }
     yaPerra[u.perra.id]=true;
-    filas.push({ico:u.cuidado.ico, et:u.perra.nombre+' · '+u.cuidado.et.toLowerCase(),
+    filas.push({ico:u.cuidado.ico, tono:u.cuidado.tono, et:u.perra.nombre+' · '+u.cuidado.et.toLowerCase(),
       meta:(u.ultima===null?'sin registro':haceTexto(u.ultima)), urg:u.urgencia,
       act:'registrar-cuidado', val:u.perra.id+'|'+u.cuidado.id, btn:'Hecho'});
   });
   var minH=minutosHoy(), metaH=metaEnfoque();
   if(!S.enfoque.activa && minH<metaH){
-    filas.push({ico:'diana', et:'Trabajo', meta:minH+' de '+metaH+' min', urg:0,
+    filas.push({ico:'diana', tono:'terra', et:'Trabajo', meta:minH+' de '+metaH+' min', urg:0,
       act:'iniciar-sesion', val:'5', btn:'5 min'});
   }
   if(S.enfoque.activa){
-    filas.push({ico:'reloj', et:'Bloque corriendo', meta:mmss(sesionRestanteMs()), urg:1,
+    filas.push({ico:'reloj', tono:'terra', et:'Bloque corriendo', meta:mmss(sesionRestanteMs()), urg:1,
       act:'nav', val:'enfoque', btn:'Volver'});
   }
   if(filas.length){
@@ -2023,7 +2118,7 @@ function renderHoy(){
     h+='<div class="seccion"><span>Pendiente ahora</span></div>';
     h+='<div class="filas">';
     filas.slice(0,4).forEach(function(f){
-      h+='<div class="fila u'+f.urg+'">';
+      h+='<div class="fila u'+f.urg+'" style="--t:var(--h-'+(f.tono||'humo')+')">';
       h+='<span class="f-emo">'+(f.ico?ico(f.ico,20):f.emo)+'</span>';
       h+='<span class="f-txt"><b>'+esc(f.et)+'</b><i>'+esc(f.meta)+'</i></span>';
       h+='<button class="f-btn" data-action="'+f.act+'" data-value="'+esc(f.val)+'">'+f.btn+'</button>';
@@ -2042,12 +2137,12 @@ function renderHoy(){
   function renderCat(c){
     if(c.contable){
       var n=e.agua||0;
-      return '<div class="cat '+(n>0?'on':'')+'"><div class="emo">'+ico(c.ico,26)+'</div><div class="et">'+c.et+'</div>'+
+      return '<div class="cat '+(n>0?'on':'')+'" style="--t:var(--h-'+(c.tono||'humo')+')"><div class="emo">'+ico(c.ico,26)+'</div><div class="et">'+c.et+'</div>'+
         '<div class="agua-row"><button data-action="agua-menos">–</button><span class="badge-n">'+n+'</span><button data-action="agua-mas">+</button></div></div>';
     }
     var hecho=!!e[c.id];
     var hh='<div class="cat-wrap">';
-    hh+='<button class="cat '+(hecho?'on':'')+'" data-action="toggle-cat" data-value="'+c.id+'"><div class="emo">'+ico(c.ico,26)+'</div><div class="et">'+c.et+'</div></button>';
+    hh+='<button class="cat '+(hecho?'on':'')+'" data-action="toggle-cat" data-value="'+c.id+'" style="--t:var(--h-'+(c.tono||'humo')+')"><div class="emo">'+ico(c.ico,26)+'</div><div class="et">'+c.et+'</div></button>';
     if(c.foto){
       if(fotos[c.id]){
         hh+='<button class="foto-mini" data-action="ver-foto" data-value="'+c.id+'"><img src="'+fotos[c.id]+'" alt=""></button>';
@@ -2340,10 +2435,10 @@ function renderBoyaPanel(){
 }
 
 var TECNICAS_CALMA=[
-  {id:'respirar', et:'Respirar', ico:'respirar'},
-  {id:'aterrizar', et:'Aterrizar', ico:'brujula'},
-  {id:'relajar', et:'Relajar', ico:'cuerpo'},
-  {id:'mirar', et:'Mirar', ico:'ola'}
+  {id:'respirar', et:'Respirar', tono:'agua', ico:'respirar'},
+  {id:'aterrizar', et:'Aterrizar', tono:'oliva', ico:'brujula'},
+  {id:'relajar', et:'Relajar', tono:'ciruela', ico:'cuerpo'},
+  {id:'mirar', et:'Mirar', tono:'azul', ico:'ola'}
 ];
 var PASOS_ATERRIZAJE=[
   ['5','cosas que puedes ver a tu alrededor'],
@@ -2460,7 +2555,7 @@ function renderPerras(){
       if(!cuidadoActivo(c)) return;
       var st=estadoCuidado(pe, c);
       var cls = st.urgencia===2 ? 'urg2' : st.urgencia===1 ? 'urg1' : 'ok';
-      h+='<div class="cuidado '+cls+'">';
+      h+='<div class="cuidado '+cls+'" style="--t:var(--h-'+(c.tono||'humo')+')">';
       h+='<div class="cui-emo">'+ico(c.ico,21)+'</div>';
       h+='<div class="cui-txt">';
       h+='<div class="cui-et">'+c.et+' <span class="cui-cont">'+st.hechas+'/'+st.meta+'</span></div>';
@@ -2656,7 +2751,7 @@ function renderCalma(){
   h+='<p class="sub" style="margin-bottom:2px">Sin números, sin racha, sin conchas — acá no hay nada que ganar. Elegí lo que necesites ahora.</p>';
   h+='<div class="calma-picker" style="margin-top:12px">';
   TECNICAS_CALMA.forEach(function(t){
-    h+='<button class="'+(V.calmaVista===t.id?'act':'')+'" data-action="elegir-calma" data-value="'+t.id+'">'+ico(t.ico,17)+t.et+'</button>';
+    h+='<button class="'+(V.calmaVista===t.id?'act':'')+'" data-action="elegir-calma" data-value="'+t.id+'" style="--t:var(--h-'+t.tono+')">'+ico(t.ico,17)+t.et+'</button>';
   });
   h+='</div>';
 

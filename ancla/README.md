@@ -12,9 +12,39 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.13.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.14.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.13.0" al reportar algo raro.
+> pasó en la v0.14.0" al reportar algo raro.
+
+## Color con oficio, y Boya de vuelta al centro (v0.14.0)
+
+Corrección de rumbo. En la v0.13.0 se confundió **"de adulto" con "sin color"**: se
+reemplazaron los emoji por iconos grises y el resultado fue una app beige sobre beige,
+apagada y sin alma. El error de fondo fue creer que la sobriedad se consigue quitando
+color. No: los adultos no rechazan el color, rechazan el color **incoherente**.
+
+El sistema de iconos era la idea correcta. Pintarlos todos de gris fue el error.
+
+### Un color por dominio, siempre el mismo
+Ocho tonos profundos y de saturación pareja — ámbar, terracota, oliva, azul, ciruela,
+índigo, agua y humo. Cada cosa tiene el suyo **y no lo cambia nunca**: el desayuno siempre
+ámbar, el sueño siempre índigo, los medicamentos siempre ciruela, el trabajo siempre
+terracota. Así el color *dice algo* — se reconoce la cosa antes de leer la palabra — en vez
+de ser adorno. Y como todos comparten saturación, conviven sin pelearse, que es exactamente
+lo que veinte emoji de veinte estilos distintos nunca logran.
+
+El tono viaja con la cosa a donde vaya: la casilla, el renglón de "Pendiente ahora", la
+tarjeta *Ahora* y hasta el botón de acción toman el color de lo que está mostrando.
+
+### Boya vuelve a ser el alma
+Se la había reducido a una miniatura de 74px en una fila, y buena parte de lo "sin alma"
+era eso. Ahora tiene **una escena propia**: fondo con profundidad, su suelo, ella de cuerpo
+entero con sombra, y un panel al lado con su estado y el avance del día. Tiene presencia sin
+comerse la pantalla como antes (148px, no 230px), y sigue respondiendo al tacto.
+
+### Y algo de profundidad
+Fondo con un degradado sutil en vez de un plano beige, sombras reales en la escena, y la
+barra de abajo toma el color de la sección en la que estás.
 
 ## Revisión completa antes de Supabase (v0.13.0)
 
