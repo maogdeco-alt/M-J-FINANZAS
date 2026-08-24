@@ -66,18 +66,18 @@ h1,h2,h3,p{margin:0}
 .boya-escenario{position:relative; width:100%; height:230px}
 .boya-escenario-fondo{position:absolute; inset:0; border-radius:var(--radius); overflow:hidden; background:linear-gradient(160deg, var(--teal), var(--teal-d)); box-shadow:0 4px 14px rgba(14,124,134,.3)}
 .boya{position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; border:none; background:none; padding:0 0 6px; cursor:pointer}
-.boya svg{height:97%; width:auto; animation:respirar 4.2s ease-in-out infinite; transform-origin:bottom center; transform-box:fill-box}
-.boya.tocada svg{animation:saludo .6s ease}
-@keyframes respirar{ 0%,100%{transform:translateY(0) scale(1,1)} 50%{transform:translateY(-2.5px) scale(1.012,1.02)} }
-@keyframes saludo{ 0%,100%{transform:rotate(0) scale(1)} 30%{transform:rotate(-3deg) scale(1.04)} 60%{transform:rotate(2deg) scale(1.04)} }
+.boya svg{height:97%; width:auto; animation:respirar 4.6s ease-in-out infinite; transform-origin:50% 100%}
+.boya.tocada svg{animation:saludo .66s cubic-bezier(.34,1.4,.64,1)}
+@keyframes respirar{ 0%,100%{transform:translateY(0) scale(1,1)} 50%{transform:translateY(-1.6px) scale(.995,1.014)} }
+@keyframes saludo{ 0%,100%{transform:translateY(0) scale(1,1)} 26%{transform:translateY(-5px) scale(.96,1.055)} 56%{transform:translateY(0) scale(1.05,.95)} 80%{transform:translateY(-1px) scale(.99,1.014)} }
 .boya-info-top{display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap}
-.ojo-parpadeo{animation:parpadeo 5.5s ease-in-out infinite}
-@keyframes parpadeo{ 0%,92%,100%{transform:scaleY(1)} 95%{transform:scaleY(.1)} }
-.cola-nutria{animation:colazo 4.2s ease-in-out infinite; transform-box:fill-box}
-@keyframes colazo{ 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(-4deg)} }
-.brazo-nutria{transform-box:fill-box}
-.boya.tocada .brazo-nutria{animation:saludoBrazo .65s ease}
-@keyframes saludoBrazo{ 0%,100%{transform:rotate(0deg)} 35%{transform:rotate(-18deg)} 65%{transform:rotate(8deg)} }
+/* transform-box:view-box = el transform-origin se mide en coordenadas del
+   viewBox del dibujo. Sin esto se mide desde la caja de cada pieza y el
+   pivote cae fuera del personaje: la parte sale volando. */
+.ojo-parpadeo{transform-box:view-box; animation:parpadeo 6.4s ease-in-out infinite}
+@keyframes parpadeo{ 0%,93%,100%{transform:scaleY(1)} 95.6%{transform:scaleY(.08)} }
+.cola-nutria{transform-box:view-box; transform-origin:70px 112px; animation:colazo 4.6s ease-in-out infinite}
+@keyframes colazo{ 0%,100%{transform:rotate(2.2deg)} 50%{transform:rotate(-3deg)} }
 .globo-dialogo{position:absolute; left:50%; bottom:calc(100% + 8px); transform:translateX(-50%); background:var(--card); color:var(--ink); padding:10px 14px; border-radius:14px; font-size:13px; font-weight:600; max-width:240px; text-align:center; box-shadow:0 6px 18px rgba(0,0,0,.18); animation:globoPop .25s ease; z-index:5}
 .globo-dialogo:after{content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:7px solid transparent; border-top-color:var(--card)}
 @keyframes globoPop{ 0%{opacity:0; transform:translateX(-50%) translateY(6px) scale(.9)} 100%{opacity:1; transform:translateX(-50%) translateY(0) scale(1)} }
@@ -101,7 +101,7 @@ h1,h2,h3,p{margin:0}
 @media (prefers-color-scheme:dark){ .boya-panel-header button{color:var(--teal)} }
 .boya-retrato-wrap{display:flex; flex-direction:column; align-items:center; padding:8px 0 4px}
 .boya-retrato{position:relative; width:150px; height:150px; border-radius:50%; overflow:hidden; background:linear-gradient(160deg, var(--teal), var(--teal-d)); box-shadow:0 8px 24px rgba(14,124,134,.3)}
-.boya-retrato svg{width:88%; height:88%; position:absolute; left:6%; top:6%; animation:respirar 4.2s ease-in-out infinite; transform-box:fill-box}
+.boya-retrato svg{width:88%; height:88%; position:absolute; left:6%; top:6%; animation:respirar 4.6s ease-in-out infinite; transform-origin:50% 100%}
 .boya-nombre-fila{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:14px}
 .boya-nombre-fila input{font-family:var(--font-display); font-style:italic; font-size:22px; font-weight:600; text-align:center; border:none; background:none; color:var(--ink); width:auto; max-width:200px; border-bottom:1.5px dashed var(--line); padding:2px 4px}
 .vinculo-barra{margin-top:14px; width:100%}
@@ -222,7 +222,7 @@ h1,h2,h3,p{margin:0}
 .cuarto-piso{position:absolute; left:0; right:0; bottom:0; height:34%}
 .cuarto-piso:before{content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.14), transparent 40%)}
 .cuarto-personaje{position:absolute; left:50%; bottom:0; transform:translateX(-50%); height:82%; display:flex; align-items:flex-end}
-.cuarto-personaje svg{height:100%; width:auto; animation:respirar 4.2s ease-in-out infinite; transform-box:fill-box}
+.cuarto-personaje svg{height:100%; width:auto; animation:respirar 4.6s ease-in-out infinite; transform-origin:50% 100%}
 .cuarto-decor{position:absolute; font-size:34px; filter:drop-shadow(0 3px 4px rgba(0,0,0,.25)); transition:filter .4s, opacity .4s}
 .cuarto-decor.sucio{filter:grayscale(.75) brightness(.65); opacity:.75}
 .cuarto-desorden{position:absolute; font-size:22px; opacity:.85; filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))}
@@ -298,7 +298,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.9.0-beta';
+var VERSION='0.10.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -769,103 +769,191 @@ function dibujarHuevo(){
 function dibujarNutria(moodId, etapaParam, actividadParam){
   var etapa = etapaParam || etapaVinculo();
   var actividad = actividadParam || 'de_pie';
-  var escala = etapa==='cria' ? 0.68 : etapa==='joven' ? 0.86 : 1;
+  var escala = etapa==='cria' ? 0.70 : etapa==='joven' ? 0.87 : 1;
   var conDetalle = etapa!=='cria';
+  var durmiendo = actividad==='durmiendo';
   var eq = S.equipado||{};
   _nutriaSeq++;
   var u=_nutriaSeq;
+  var TRAZO='#4a3524';
+
+  var SILUETA='M50,16 C67,16 84,27 84,48 C84,61 79,71 73,77 '+
+              'C83,82 90,93 90,106 C90,122 73,132 50,132 '+
+              'C27,132 10,122 10,106 C10,93 17,82 27,77 '+
+              'C21,71 16,61 16,48 C16,27 33,16 50,16 Z';
+
   var defs='<defs>'+
-    '<radialGradient id="gCab'+u+'" cx="35%" cy="25%" r="85%"><stop offset="0%" stop-color="#8a6142"/><stop offset="100%" stop-color="#5c3f29"/></radialGradient>'+
-    '<radialGradient id="gOre'+u+'" cx="35%" cy="28%" r="80%"><stop offset="0%" stop-color="#6e4c31"/><stop offset="100%" stop-color="#4a3220"/></radialGradient>'+
-    '<linearGradient id="gPan'+u+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f4ead4"/><stop offset="100%" stop-color="#ddccaa"/></linearGradient>'+
+    '<radialGradient id="gPel'+u+'" cx="34%" cy="18%" r="92%">'+
+      '<stop offset="0%" stop-color="#ab7d59"/><stop offset="52%" stop-color="#8b6242"/><stop offset="100%" stop-color="#5e4128"/></radialGradient>'+
+    '<radialGradient id="gOre'+u+'" cx="38%" cy="30%" r="82%">'+
+      '<stop offset="0%" stop-color="#8b6242"/><stop offset="100%" stop-color="#553a24"/></radialGradient>'+
+    '<linearGradient id="gCola'+u+'" x1="0" y1="1" x2="1" y2="0">'+
+      '<stop offset="0%" stop-color="#7e5837"/><stop offset="100%" stop-color="#573b25"/></linearGradient>'+
+    '<radialGradient id="gPecho'+u+'" cx="46%" cy="26%" r="78%">'+
+      '<stop offset="0%" stop-color="#fbf4e5"/><stop offset="62%" stop-color="#f2e5c9" stop-opacity=".97"/>'+
+      '<stop offset="100%" stop-color="#ecdcbb" stop-opacity="0"/></radialGradient>'+
+    '<radialGradient id="gHocico'+u+'" cx="50%" cy="34%" r="76%">'+
+      '<stop offset="0%" stop-color="#fdf7e9"/><stop offset="56%" stop-color="#f6ecd6" stop-opacity=".98"/>'+
+      '<stop offset="100%" stop-color="#efe1c2" stop-opacity="0"/></radialGradient>'+
+    '<radialGradient id="gOjo'+u+'" cx="34%" cy="26%" r="80%">'+
+      '<stop offset="0%" stop-color="#59452f"/><stop offset="100%" stop-color="#241a12"/></radialGradient>'+
+    '<radialGradient id="gLuz'+u+'" cx="50%" cy="50%" r="50%">'+
+      '<stop offset="0%" stop-color="#fff" stop-opacity=".26"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></radialGradient>'+
+    '<radialGradient id="gSom'+u+'" cx="50%" cy="50%" r="50%">'+
+      '<stop offset="0%" stop-color="#3a2716" stop-opacity=".32"/><stop offset="100%" stop-color="#3a2716" stop-opacity="0"/></radialGradient>'+
+    '<clipPath id="cSil'+u+'"><path d="'+SILUETA+'"/></clipPath>'+
   '</defs>';
-  var ojosYboca = {
-    deriva: '<path d="M36,50 q5,-6 10,0" stroke="#2e2016" stroke-width="2.4" fill="none" stroke-linecap="round" class="ojo-parpadeo"/>'+
-            '<path d="M54,50 q5,-6 10,0" stroke="#2e2016" stroke-width="2.4" fill="none" stroke-linecap="round" class="ojo-parpadeo"/>'+
-            '<path d="M45,64 q5,2 10,0" stroke="#2e2016" stroke-width="2.2" fill="none" stroke-linecap="round"/>'+
-            '<text x="70" y="30" font-size="9" fill="#6e4c31">z</text><text x="78" y="20" font-size="7" fill="#6e4c31">z</text>',
-    bajito: '<ellipse cx="41" cy="47" rx="4.2" ry="3.2" fill="#2e2016" class="ojo-parpadeo"/><ellipse cx="59" cy="47" rx="4.2" ry="3.2" fill="#2e2016" class="ojo-parpadeo"/>'+
-            '<circle cx="42.2" cy="45.7" r="1" fill="#fff" opacity=".55"/><circle cx="60.2" cy="45.7" r="1" fill="#fff" opacity=".55"/>'+
-            '<path d="M45,64 q5,2 10,0" stroke="#2e2016" stroke-width="2.2" fill="none" stroke-linecap="round"/>',
-    flote:  '<circle cx="41" cy="47" r="4.6" fill="#2e2016" class="ojo-parpadeo"/><circle cx="59" cy="47" r="4.6" fill="#2e2016" class="ojo-parpadeo"/>'+
-            '<circle cx="42.5" cy="45.5" r="1.3" fill="#fff"/><circle cx="60.5" cy="45.5" r="1.3" fill="#fff"/>'+
-            '<path d="M43,63 q7,6 14,0" stroke="#2e2016" stroke-width="2.4" fill="none" stroke-linecap="round"/>',
-    tranquila: '<circle cx="41" cy="47" r="4.8" fill="#2e2016" class="ojo-parpadeo"/><circle cx="59" cy="47" r="4.8" fill="#2e2016" class="ojo-parpadeo"/>'+
-            '<circle cx="42.5" cy="45.5" r="1.4" fill="#fff"/><circle cx="60.5" cy="45.5" r="1.4" fill="#fff"/>'+
-            '<path d="M42,63 q8,8 16,0" stroke="#2e2016" stroke-width="2.4" fill="none" stroke-linecap="round"/>'+
-            '<ellipse cx="27" cy="58" rx="6" ry="4" fill="#ff8a65" opacity=".35"/><ellipse cx="73" cy="58" rx="6" ry="4" fill="#ff8a65" opacity=".35"/>',
-    brilla: '<path d="M34,46 q7,-8 14,0" stroke="#2e2016" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
-            '<path d="M52,46 q7,-8 14,0" stroke="#2e2016" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
-            '<path d="M40,62 q10,10 20,0" stroke="#2e2016" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
-            '<ellipse cx="26" cy="58" rx="6.5" ry="4.5" fill="#ff8a65" opacity=".45"/><ellipse cx="74" cy="58" rx="6.5" ry="4.5" fill="#ff8a65" opacity=".45"/>'+
-            '<text x="10" y="18" font-size="11">✦</text><text x="82" y="24" font-size="8">✦</text>',
-    dormida: '<path d="M35,47 q6,3 11,0" stroke="#2e2016" stroke-width="2.2" fill="none" stroke-linecap="round"/>'+
-            '<path d="M54,47 q6,3 11,0" stroke="#2e2016" stroke-width="2.2" fill="none" stroke-linecap="round"/>'+
-            '<ellipse cx="50" cy="63" rx="3.4" ry="2.2" fill="#2e2016" opacity=".55"/>'+
-            '<text x="68" y="27" font-size="10" fill="#6e4c31" opacity=".85">z</text><text x="77" y="16" font-size="7.5" fill="#6e4c31" opacity=".7">z</text>'
-  };
-  var faceMoodId = actividad==='durmiendo' ? 'dormida' : moodId;
-  var TRAZO='#3b2416';
-  var base='';
-  base+='<ellipse cx="50" cy="138" rx="29" ry="5" fill="#000" opacity=".12"/>';
-  base+='<g class="cola-nutria" style="transform-origin:70px 102px"><path d="M68,104 Q98,92 93,62 Q88,88 65,97 Z" fill="url(#gCab'+u+')" stroke="'+TRAZO+'" stroke-width="2" stroke-linejoin="round"/></g>';
-  base+='<ellipse cx="38" cy="132" rx="10" ry="8" fill="url(#gCab'+u+')" stroke="'+TRAZO+'" stroke-width="2"/><ellipse cx="62" cy="132" rx="10" ry="8" fill="url(#gCab'+u+')" stroke="'+TRAZO+'" stroke-width="2"/>';
-  base+='<ellipse cx="50" cy="104" rx="37" ry="27" fill="url(#gCab'+u+')" stroke="'+TRAZO+'" stroke-width="2.2"/>';
-  base+='<ellipse cx="50" cy="106" rx="24" ry="20" fill="url(#gPan'+u+')" stroke="'+TRAZO+'" stroke-width="1.6"/>';
-  base+='<ellipse cx="30" cy="26" rx="10" ry="10" fill="url(#gOre'+u+')" stroke="'+TRAZO+'" stroke-width="2"/><ellipse cx="70" cy="26" rx="10" ry="10" fill="url(#gOre'+u+')" stroke="'+TRAZO+'" stroke-width="2"/>';
-  base+='<ellipse cx="30" cy="27" rx="5.2" ry="5.2" fill="#c99a72"/><ellipse cx="70" cy="27" rx="5.2" ry="5.2" fill="#c99a72"/>';
-  base+='<ellipse cx="50" cy="52" rx="36" ry="32" fill="url(#gCab'+u+')" stroke="'+TRAZO+'" stroke-width="2.2"/>';
-  base+='<ellipse cx="50" cy="63" rx="23" ry="18" fill="url(#gPan'+u+')" stroke="'+TRAZO+'" stroke-width="1.6" opacity="1"/>';
-  if(conDetalle){
-    base+='<path d="M22,34 q3,-6 6,-2" stroke="#4a3220" stroke-width="1.1" fill="none" opacity=".3" stroke-linecap="round"/>'+
-          '<path d="M30,23 q3,-5 6,-2" stroke="#4a3220" stroke-width="1.1" fill="none" opacity=".3" stroke-linecap="round"/>'+
-          '<path d="M64,23 q3,-5 6,-2" stroke="#4a3220" stroke-width="1.1" fill="none" opacity=".3" stroke-linecap="round"/>'+
-          '<path d="M72,34 q3,-6 6,-2" stroke="#4a3220" stroke-width="1.1" fill="none" opacity=".3" stroke-linecap="round"/>';
-    base+='<line x1="28" y1="58" x2="11" y2="54" stroke="#4a3220" stroke-width="1.3" stroke-linecap="round"/>'+
-          '<line x1="28" y1="63" x2="10" y2="63" stroke="#4a3220" stroke-width="1.3" stroke-linecap="round"/>'+
-          '<line x1="72" y1="58" x2="89" y2="54" stroke="#4a3220" stroke-width="1.3" stroke-linecap="round"/>'+
-          '<line x1="72" y1="63" x2="90" y2="63" stroke="#4a3220" stroke-width="1.3" stroke-linecap="round"/>';
-  }
-  base+=(ojosYboca[faceMoodId]||ojosYboca.flote);
-  base+='<ellipse cx="50" cy="55" rx="5" ry="4" fill="#2e2016" stroke="'+TRAZO+'" stroke-width="1"/><ellipse cx="48.4" cy="53.6" rx="1.3" ry="1" fill="#fff" opacity=".55"/>';
-  if(actividad==='durmiendo'){
-    base+='<path d="M13,95 Q21,88 29,95 Q37,88 45,95 Q50,90 55,95 Q63,88 71,95 Q79,88 87,95 L87,140 Q50,151 13,140 Z" fill="#a9c9d6" stroke="'+TRAZO+'" stroke-width="1.8" stroke-linejoin="round" opacity=".97"/>'+
-      '<path d="M13,95 Q21,88 29,95 Q37,88 45,95 Q50,90 55,95 Q63,88 71,95 Q79,88 87,95" fill="none" stroke="#8fb4c4" stroke-width="2"/>'+
-      '<circle cx="30" cy="117" r="2" fill="#fff" opacity=".3"/><circle cx="50" cy="126" r="2" fill="#fff" opacity=".3"/><circle cx="70" cy="117" r="2" fill="#fff" opacity=".3"/>';
-  } else {
-    base+='<g class="brazo-nutria" style="transform-origin:20px 83px">'+
-      '<path d="M20,81 Q7,99 23,112" stroke="'+TRAZO+'" stroke-width="18" fill="none" stroke-linecap="round"/>'+
-      '<path d="M20,81 Q7,99 23,112" stroke="url(#gCab'+u+')" stroke-width="14" fill="none" stroke-linecap="round"/>'+
+
+  /* --- piezas de la cara. El pivote del parpadeo va por elemento, en
+     coordenadas del viewBox (ver .ojo-parpadeo en el CSS). --- */
+  function ojo(cx, rx, ry){
+    return '<g class="ojo-parpadeo" style="transform-origin:'+cx+'px 48px">'+
+      '<ellipse cx="'+cx+'" cy="48" rx="'+rx+'" ry="'+ry+'" fill="url(#gOjo'+u+')"/>'+
+      '<circle cx="'+(cx-rx*0.30).toFixed(2)+'" cy="'+(48-ry*0.40).toFixed(2)+'" r="'+(rx*0.35).toFixed(2)+'" fill="#fff" opacity=".95"/>'+
+      '<circle cx="'+(cx+rx*0.36).toFixed(2)+'" cy="'+(48+ry*0.44).toFixed(2)+'" r="'+(rx*0.17).toFixed(2)+'" fill="#fff" opacity=".5"/>'+
       '</g>';
-    base+='<path d="M78,81 Q93,99 77,112" stroke="'+TRAZO+'" stroke-width="18" fill="none" stroke-linecap="round"/>'+
-      '<path d="M78,81 Q93,99 77,112" stroke="url(#gCab'+u+')" stroke-width="14" fill="none" stroke-linecap="round"/>';
-    base+='<ellipse cx="23" cy="112" rx="9.5" ry="7.5" fill="url(#gCab'+u+')" stroke="'+TRAZO+'" stroke-width="2"/><ellipse cx="77" cy="112" rx="9.5" ry="7.5" fill="url(#gCab'+u+')" stroke="'+TRAZO+'" stroke-width="2"/>';
+  }
+  function ojoFeliz(cx){
+    return '<path d="M'+(cx-6.6)+',50.6 q6.6,-8.4 13.2,0" stroke="#2c2016" stroke-width="2.9" fill="none" stroke-linecap="round"/>';
+  }
+  function ojoCerrado(cx){
+    return '<path d="M'+(cx-6.2)+',47.4 q6.2,6.6 12.4,0" stroke="#2c2016" stroke-width="2.7" fill="none" stroke-linecap="round"/>';
+  }
+  function ceja(cx, dy){
+    return '<path d="M'+(cx-6.4)+','+(43.4+dy)+' q6.4,-3.4 12.8,0" stroke="#4a3524" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".45"/>';
+  }
+  function rubor(op){
+    return '<ellipse cx="27" cy="61.5" rx="8.4" ry="5" fill="#d9744e" opacity="'+op+'"/>'+
+           '<ellipse cx="73" cy="61.5" rx="8.4" ry="5" fill="#d9744e" opacity="'+op+'"/>';
+  }
+  function bocaW(dy, curva){
+    return '<path d="M50,'+(67.4+dy)+' q-4.6,'+curva+' -9.2,0.4" stroke="#3a2a1c" stroke-width="2.2" fill="none" stroke-linecap="round"/>'+
+           '<path d="M50,'+(67.4+dy)+' q4.6,'+curva+' 9.2,0.4" stroke="#3a2a1c" stroke-width="2.2" fill="none" stroke-linecap="round"/>';
+  }
+
+  var caras={
+    deriva:    ceja(38.5,1.2)+ceja(61.5,1.2)+ojo(38.5,6.2,3.8)+ojo(61.5,6.2,3.8)+bocaW(1.4,0.6),
+    bajito:    ceja(38.5,.6)+ceja(61.5,.6)+ojo(38.5,5.9,5.2)+ojo(61.5,5.9,5.2)+bocaW(1.8,-1.6),
+    flote:     ojo(38.5,6.7,7.1)+ojo(61.5,6.7,7.1)+bocaW(0,4.2),
+    tranquila: ojo(38.5,6.9,7.3)+ojo(61.5,6.9,7.3)+rubor('.5')+bocaW(0,5.6),
+    brilla:    ojoFeliz(38.5)+ojoFeliz(61.5)+rubor('.62')+bocaW(0,7.4)+
+               '<path d="M14,20 l1.6,4.4 4.4,1.6 -4.4,1.6 -1.6,4.4 -1.6,-4.4 -4.4,-1.6 4.4,-1.6 Z" fill="#f6d16b"/>'+
+               '<path d="M87,27 l1.2,3.3 3.3,1.2 -3.3,1.2 -1.2,3.3 -1.2,-3.3 -3.3,-1.2 3.3,-1.2 Z" fill="#f6d16b" opacity=".85"/>',
+    dormida:   ojoCerrado(38.5)+ojoCerrado(61.5)+
+               '<ellipse cx="50" cy="69.5" rx="3.2" ry="2.1" fill="#3a2a1c" opacity=".5"/>'+
+               '<text x="70" y="26" font-size="10" fill="#6e4c31" opacity=".8">z</text>'+
+               '<text x="79" y="16" font-size="7.5" fill="#6e4c31" opacity=".6">z</text>'
+  };
+
+  /* Silueta continua: cabeza y cuerpo son UN solo contorno, sin costuras
+     ni elipses superpuestas. Todo lo que va detras (cola, orejas, patas)
+     queda tapado por este relleno opaco, asi nada se ve "pegado". */
+
+  var llevaCapa = !durmiendo && eq.cuello==='capa_heroe';
+  var s='';
+  s+='<ellipse cx="50" cy="141" rx="31" ry="4.6" fill="#2a1c10" opacity=".16"/>';
+  if(llevaCapa){
+    s+='<path d="M24,78 Q50,70 76,78 L100,136 Q50,117 0,136 Z" fill="#e14b4b" '+
+       'stroke="'+TRAZO+'" stroke-width="1.7" stroke-linejoin="round"/>';
+    s+='<path d="M24,78 Q50,70 76,78 L86,102 Q50,90 14,102 Z" fill="#c33f3f" opacity=".45"/>';
+  }
+  /* cola: se dibuja DETRAS y con la base bien metida en el cuerpo, para que
+     al moverse no pueda despegarse. El pivote real esta en el CSS. */
+  s+='<g class="cola-nutria"><path d="M54,131 C86,129 106,119 107,94 C107,87 97.4,87 96.8,94 '+
+     'C95.6,110 84,114 50,113 Z" fill="url(#gCola'+u+')" stroke="'+TRAZO+'" stroke-width="2.1" stroke-linejoin="round"/></g>';
+  s+='<ellipse cx="33" cy="132" rx="12" ry="7.4" fill="url(#gOre'+u+')" stroke="'+TRAZO+'" stroke-width="2"/>';
+  s+='<ellipse cx="67" cy="132" rx="12" ry="7.4" fill="url(#gOre'+u+')" stroke="'+TRAZO+'" stroke-width="2"/>';
+  s+='<circle cx="18" cy="35" r="12" fill="url(#gOre'+u+')" stroke="'+TRAZO+'" stroke-width="2"/>';
+  s+='<circle cx="82" cy="35" r="12" fill="url(#gOre'+u+')" stroke="'+TRAZO+'" stroke-width="2"/>';
+  s+='<ellipse cx="13.2" cy="35.5" rx="4.8" ry="5.6" fill="#c08e6b" opacity=".85"/>';
+  s+='<ellipse cx="86.8" cy="35.5" rx="4.8" ry="5.6" fill="#c08e6b" opacity=".85"/>';
+  s+='<path d="'+SILUETA+'" fill="url(#gPel'+u+')" stroke="'+TRAZO+'" stroke-width="2.4" stroke-linejoin="round"/>';
+  /* volumen: luz arriba, sombra abajo y bajo la barbilla */
+  /* Sombra pegada al contorno por dentro: es lo que hace que el cuerpo se
+     lea redondo y no como una figura plana recortada. */
+  s+='<g clip-path="url(#cSil'+u+')">'+
+       '<path d="'+SILUETA+'" fill="none" stroke="#3d2915" stroke-width="15" opacity=".15"/>'+
+       '<path d="'+SILUETA+'" fill="none" stroke="#3d2915" stroke-width="5" opacity=".14"/>'+
+     '</g>';
+  s+='<ellipse cx="39" cy="33" rx="25" ry="18" fill="url(#gLuz'+u+')"/>';
+  s+='<ellipse cx="50" cy="126" rx="33" ry="13" fill="url(#gSom'+u+')"/>';
+  s+='<ellipse cx="50" cy="83" rx="24" ry="8.5" fill="url(#gSom'+u+')"/>';
+  s+='<ellipse cx="50" cy="101" rx="25.5" ry="25" fill="url(#gPecho'+u+')"/>';
+  s+='<ellipse cx="50" cy="62" rx="25" ry="17" fill="url(#gHocico'+u+')"/>';
+  /* dos cachetes suaves: le dan estructura al hocico en vez de una mancha */
+  s+='<ellipse cx="40.5" cy="65.5" rx="9.4" ry="7.2" fill="#fdf8ec" opacity=".55"/>';
+  s+='<ellipse cx="59.5" cy="65.5" rx="9.4" ry="7.2" fill="#fdf8ec" opacity=".55"/>';
+  if(conDetalle){
+    /* mechones de pelo, recortados para que no se salgan del contorno */
+    s+='<g clip-path="url(#cSil'+u+')" opacity=".42">'+
+       '<path d="M19,52 q-5,4 -6.5,9" stroke="#6b4a2e" stroke-width="2" fill="none" stroke-linecap="round"/>'+
+       '<path d="M81,52 q5,4 6.5,9" stroke="#6b4a2e" stroke-width="2" fill="none" stroke-linecap="round"/>'+
+       '<path d="M14,99 q-3,6 -2.4,12" stroke="#6b4a2e" stroke-width="1.9" fill="none" stroke-linecap="round"/>'+
+       '<path d="M86,99 q3,6 2.4,12" stroke="#6b4a2e" stroke-width="1.9" fill="none" stroke-linecap="round"/>'+
+       '<path d="M50,20 q-7,2 -11,6" stroke="#c39468" stroke-width="1.8" fill="none" stroke-linecap="round"/>'+
+       '<path d="M50,20 q7,2 11,6" stroke="#c39468" stroke-width="1.8" fill="none" stroke-linecap="round"/>'+
+       '</g>';
+  }
+  s+=(caras[durmiendo?'dormida':moodId]||caras.flote);
+  s+='<path d="M50,56.4 C54.2,56.4 56.9,58.1 56.9,60.4 C56.9,62.9 53.8,64.9 50,64.9 '+
+     'C46.2,64.9 43.1,62.9 43.1,60.4 C43.1,58.1 45.8,56.4 50,56.4 Z" fill="#33241a"/>';
+  s+='<ellipse cx="47.4" cy="58.4" rx="1.9" ry="1.2" fill="#fff" opacity=".38"/>';
+  s+='<path d="M50,64.9 L50,67.4" stroke="#3a2a1c" stroke-width="1.8" stroke-linecap="round"/>';
+  if(conDetalle){
+    s+='<path d="M34,60.5 L13,57.5" stroke="#4a3524" stroke-width="1.3" stroke-linecap="round" opacity=".55"/>'+
+       '<path d="M34,64.5 L12.5,64.5" stroke="#4a3524" stroke-width="1.3" stroke-linecap="round" opacity=".55"/>'+
+       '<path d="M66,60.5 L87,57.5" stroke="#4a3524" stroke-width="1.3" stroke-linecap="round" opacity=".55"/>'+
+       '<path d="M66,64.5 L87.5,64.5" stroke="#4a3524" stroke-width="1.3" stroke-linecap="round" opacity=".55"/>';
+  }
+
+  if(durmiendo){
+    s+='<path d="M10,100 q5.7,-6 11.4,0 q5.7,-6 11.4,0 q5.7,-6 11.4,0 q5.7,-6 11.4,0 '+
+       'q5.7,-6 11.4,0 q5.7,-6 11.4,0 q5.7,-6 11.4,0 L89,112 C88,123 72,132 50,132 '+
+       'C28,132 12,123 11,112 Z" fill="#aecbd8" stroke="'+TRAZO+'" stroke-width="1.9" stroke-linejoin="round"/>';
+    s+='<path d="M11,112 C24,118 76,118 89,112" fill="none" stroke="#8fb2c2" stroke-width="2.2" opacity=".8"/>';
+    s+='<circle cx="31" cy="122" r="2.1" fill="#fff" opacity=".26"/>'+
+       '<circle cx="50" cy="126" r="2.1" fill="#fff" opacity=".26"/>'+
+       '<circle cx="69" cy="122" r="2.1" fill="#fff" opacity=".26"/>';
+  } else {
+    /* Manitas apoyadas en la panza. Van fijas y sin brazos largos: es la
+       pose real de una nutria de pie y ademas no hay nada que se despegue. */
     if(actividad==='comiendo'){
-      base+='<ellipse cx="50" cy="110" rx="9" ry="5.5" fill="#c9946a" stroke="'+TRAZO+'" stroke-width="1.4"/>'+
-        '<ellipse cx="50" cy="108" rx="7" ry="3.4" fill="#f4ead4" stroke="'+TRAZO+'" stroke-width="1"/>'+
-        '<circle cx="46" cy="107.4" r="1.6" fill="#e8547a"/><circle cx="50" cy="106.4" r="1.6" fill="#6e9c5a"/><circle cx="54" cy="107.4" r="1.6" fill="#e8547a"/>';
+      s+='<path d="M38.4,102.5 L61.6,102.5 C60.6,111.5 56.2,115.4 50,115.4 '+
+         'C43.8,115.4 39.4,111.5 38.4,102.5 Z" fill="#c08a5e" stroke="'+TRAZO+'" stroke-width="1.7" stroke-linejoin="round"/>';
+      s+='<ellipse cx="50" cy="103.4" rx="10.6" ry="3.6" fill="#f6ecd6" stroke="'+TRAZO+'" stroke-width="1.2"/>';
+      s+='<circle cx="45.6" cy="102.6" r="1.8" fill="#d4675f"/><circle cx="50" cy="101.6" r="1.8" fill="#7fa25e"/><circle cx="54.4" cy="102.6" r="1.8" fill="#d4675f"/>';
     } else {
-      base+='<ellipse cx="50" cy="110" rx="8" ry="6" fill="url(#gPan'+u+')" stroke="'+TRAZO+'" stroke-width="1.4"/><path d="M45,110 l2,-4 l3,3 l3,-3 l2,4z" fill="#f0c96a" stroke="'+TRAZO+'" stroke-width="1"/>';
+      s+='<path d="M50,113.8 C41.6,113.2 37.8,107.8 39.2,102 C42.8,99.4 46.8,98.6 50,98.6 '+
+         'C53.2,98.6 57.2,99.4 60.8,102 C62.2,107.8 58.4,113.2 50,113.8 Z" '+
+         'fill="#fbf1dc" stroke="'+TRAZO+'" stroke-width="1.5" stroke-linejoin="round"/>';
+      s+='<path d="M50,113.4 L42.8,102.6 M50,113.4 L46.3,99.6 M50,113.4 L50,98.8 '+
+         'M50,113.4 L53.7,99.6 M50,113.4 L57.2,102.6" stroke="#d8b98a" stroke-width="1.15" opacity=".9"/>';
     }
+    s+='<ellipse cx="32" cy="110" rx="8.8" ry="7.2" fill="url(#gPel'+u+')" stroke="'+TRAZO+'" stroke-width="2"/>';
+    s+='<ellipse cx="68" cy="110" rx="8.8" ry="7.2" fill="url(#gPel'+u+')" stroke="'+TRAZO+'" stroke-width="2"/>';
+    s+='<path d="M28.4,112.6 L28.4,116.4 M32,113.2 L32,117 M35.6,112.6 L35.6,116.4" stroke="'+TRAZO+'" stroke-width="1.3" stroke-linecap="round" opacity=".6"/>';
+    s+='<path d="M64.4,112.6 L64.4,116.4 M68,113.2 L68,117 M71.6,112.6 L71.6,116.4" stroke="'+TRAZO+'" stroke-width="1.3" stroke-linecap="round" opacity=".6"/>';
   }
-  var accesorios='';
-  if(eq.sombrero==='gorro_lana') accesorios+='<path d="M16,26 Q50,-8 84,26 L82,15 Q50,-16 18,15 Z" fill="#5b8fb0" stroke="'+TRAZO+'" stroke-width="1.6" stroke-linejoin="round"/><circle cx="50" cy="-10" r="7" fill="#e7ddcf" stroke="'+TRAZO+'" stroke-width="1.4"/>';
-  else if(eq.sombrero==='sombrero_paja') accesorios+='<ellipse cx="50" cy="16" rx="42" ry="9" fill="#e3bd6a" stroke="'+TRAZO+'" stroke-width="1.6"/><path d="M26,16 Q50,-14 74,16 Z" fill="#f0d089" stroke="'+TRAZO+'" stroke-width="1.6"/><rect x="26" y="13" width="48" height="5" rx="2.5" fill="#c9946a"/>';
-  else if(eq.sombrero==='boina') accesorios+='<ellipse cx="46" cy="14" rx="32" ry="15" fill="#8a3b5a" stroke="'+TRAZO+'" stroke-width="1.6" transform="rotate(-9 46 14)"/><ellipse cx="46" cy="16" rx="26" ry="10" fill="#a04a6c" transform="rotate(-9 46 16)"/><circle cx="62" cy="4" r="3.6" fill="#6e2c46" stroke="'+TRAZO+'" stroke-width="1.2"/>';
-  else if(eq.sombrero==='panuelo_pirata') accesorios+='<path d="M14,28 Q50,-10 86,28 L86,35 Q50,11 14,35 Z" fill="#c94b4b" stroke="'+TRAZO+'" stroke-width="1.6" stroke-linejoin="round"/><circle cx="34" cy="18" r="2.2" fill="#f3e4c8"/><circle cx="50" cy="10" r="2.2" fill="#f3e4c8"/><circle cx="66" cy="18" r="2.2" fill="#f3e4c8"/><path d="M84,26 L94,20 L92,32 Z" fill="#c94b4b" stroke="'+TRAZO+'" stroke-width="1.4" stroke-linejoin="round"/>';
-  else if(eq.sombrero==='corona') accesorios+='<path d="M24,20 L32,2 L44,16 L50,0 L56,16 L68,2 L76,20 Z" fill="#f4c93b" stroke="'+TRAZO+'" stroke-width="1.6" stroke-linejoin="round"/>';
-  if(actividad!=='durmiendo'){
-    if(eq.gafas==='gafas_sol') accesorios+='<rect x="30" y="42" width="17" height="12" rx="5" fill="#2b2b2b" stroke="'+TRAZO+'" stroke-width="1.4"/><rect x="53" y="42" width="17" height="12" rx="5" fill="#2b2b2b" stroke="'+TRAZO+'" stroke-width="1.4"/><line x1="47" y1="47" x2="53" y2="47" stroke="'+TRAZO+'" stroke-width="2"/>';
-    else if(eq.gafas==='gafas_redondas') accesorios+='<circle cx="41" cy="47" r="9" fill="none" stroke="'+TRAZO+'" stroke-width="2.2"/><circle cx="59" cy="47" r="9" fill="none" stroke="'+TRAZO+'" stroke-width="2.2"/><line x1="50" y1="47" x2="50" y2="47" stroke="'+TRAZO+'" stroke-width="2"/>';
-    else if(eq.gafas==='gafas_corazon') accesorios+='<path d="M41,52 C34,46 34,40 39,40 C40.5,40 41,41 41,42 C41,41 41.5,40 43,40 C48,40 48,46 41,52 Z" fill="#e8547a" stroke="'+TRAZO+'" stroke-width="1.2"/><path d="M59,52 C52,46 52,40 57,40 C58.5,40 59,41 59,42 C59,41 59.5,40 61,40 C66,40 66,46 59,52 Z" fill="#e8547a" stroke="'+TRAZO+'" stroke-width="1.2"/><line x1="47" y1="46" x2="53" y2="46" stroke="'+TRAZO+'" stroke-width="2"/>';
-    if(eq.cuello==='bufanda') accesorios+='<path d="M22,76 Q50,92 78,76 L78,84 Q50,100 22,84 Z" fill="#ff8a65" stroke="'+TRAZO+'" stroke-width="1.6" stroke-linejoin="round"/><rect x="60" y="82" width="9" height="20" rx="3" fill="#ff8a65" stroke="'+TRAZO+'" stroke-width="1.4"/>';
-    else if(eq.cuello==='moño') accesorios+='<path d="M50,78 L38,70 L38,86 Z" fill="#ff8a65" stroke="'+TRAZO+'" stroke-width="1.4" stroke-linejoin="round"/><path d="M50,78 L62,70 L62,86 Z" fill="#ff8a65" stroke="'+TRAZO+'" stroke-width="1.4" stroke-linejoin="round"/><circle cx="50" cy="78" r="4.5" fill="#d9634a" stroke="'+TRAZO+'" stroke-width="1.2"/>';
-    else if(eq.cuello==='collar_conchas') accesorios+='<path d="M26,78 Q50,90 74,78" stroke="#f3e4c8" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="50" cy="88" r="4" fill="#fff3e0" stroke="#e3bd6a" stroke-width="1"/>';
-    else if(eq.cuello==='capa_heroe') accesorios+='<path d="M26,80 Q50,74 74,80 L88,133 Q50,115 12,133 Z" fill="#e14b4b" stroke="'+TRAZO+'" stroke-width="1.6" stroke-linejoin="round"/><path d="M26,80 Q50,74 74,80" fill="none" stroke="#b23a3a" stroke-width="3"/><circle cx="50" cy="79" r="4" fill="#f4c93b" stroke="'+TRAZO+'" stroke-width="1.2"/>';
+
+  var acc='';
+  if(eq.sombrero==='gorro_lana') acc+='<path d="M13,33 Q50,-2 87,33 L85,22 Q50,-11 15,22 Z" fill="#5b8fb0" stroke="'+TRAZO+'" stroke-width="1.8" stroke-linejoin="round"/><circle cx="50" cy="5" r="7" fill="#e7ddcf" stroke="'+TRAZO+'" stroke-width="1.5"/>';
+  else if(eq.sombrero==='sombrero_paja') acc+='<ellipse cx="50" cy="23" rx="44" ry="9" fill="#e3bd6a" stroke="'+TRAZO+'" stroke-width="1.8"/><path d="M27,23 Q50,-8 73,23 Z" fill="#f0d089" stroke="'+TRAZO+'" stroke-width="1.8"/><rect x="27" y="19" width="46" height="5" rx="2.5" fill="#c9946a"/>';
+  else if(eq.sombrero==='boina') acc+='<ellipse cx="46" cy="19" rx="33" ry="15" fill="#8a3b5a" stroke="'+TRAZO+'" stroke-width="1.8" transform="rotate(-9 46 19)"/><ellipse cx="46" cy="21" rx="27" ry="10" fill="#a04a6c" transform="rotate(-9 46 21)"/><circle cx="63" cy="8" r="3.8" fill="#6e2c46" stroke="'+TRAZO+'" stroke-width="1.3"/>';
+  else if(eq.sombrero==='panuelo_pirata') acc+='<path d="M11,34 Q50,-6 89,34 L89,41 Q50,17 11,41 Z" fill="#c94b4b" stroke="'+TRAZO+'" stroke-width="1.8" stroke-linejoin="round"/><circle cx="33" cy="23" r="2.3" fill="#f3e4c8"/><circle cx="50" cy="15" r="2.3" fill="#f3e4c8"/><circle cx="67" cy="23" r="2.3" fill="#f3e4c8"/><path d="M87,32 L97,26 L95,38 Z" fill="#c94b4b" stroke="'+TRAZO+'" stroke-width="1.5" stroke-linejoin="round"/>';
+  else if(eq.sombrero==='corona') acc+='<path d="M22,25 L31,5 L43,20 L50,2 L57,20 L69,5 L78,25 Z" fill="#f4c93b" stroke="'+TRAZO+'" stroke-width="1.8" stroke-linejoin="round"/>';
+  if(!durmiendo){
+    if(eq.gafas==='gafas_sol') acc+='<rect x="26" y="41" width="20" height="14" rx="6" fill="#2b2b2b" stroke="'+TRAZO+'" stroke-width="1.5"/><rect x="54" y="41" width="20" height="14" rx="6" fill="#2b2b2b" stroke="'+TRAZO+'" stroke-width="1.5"/><line x1="46" y1="47" x2="54" y2="47" stroke="'+TRAZO+'" stroke-width="2.2"/>';
+    else if(eq.gafas==='gafas_redondas') acc+='<circle cx="38" cy="48" r="10.5" fill="none" stroke="'+TRAZO+'" stroke-width="2.4"/><circle cx="62" cy="48" r="10.5" fill="none" stroke="'+TRAZO+'" stroke-width="2.4"/><line x1="48.5" y1="48" x2="51.5" y2="48" stroke="'+TRAZO+'" stroke-width="2.2"/>';
+    else if(eq.gafas==='gafas_corazon') acc+='<path d="M38,54 C29.5,47 29.5,40 35.5,40 C37.3,40 38,41.2 38,42.4 C38,41.2 38.7,40 40.5,40 C46.5,40 46.5,47 38,54 Z" fill="#e8547a" stroke="'+TRAZO+'" stroke-width="1.3"/><path d="M62,54 C53.5,47 53.5,40 59.5,40 C61.3,40 62,41.2 62,42.4 C62,41.2 62.7,40 64.5,40 C70.5,40 70.5,47 62,54 Z" fill="#e8547a" stroke="'+TRAZO+'" stroke-width="1.3"/><line x1="46.5" y1="45" x2="53.5" y2="45" stroke="'+TRAZO+'" stroke-width="2.2"/>';
+    if(eq.cuello==='bufanda') acc+='<path d="M20,74 Q50,92 80,74 L80,83 Q50,101 20,83 Z" fill="#ff8a65" stroke="'+TRAZO+'" stroke-width="1.7" stroke-linejoin="round"/><rect x="61" y="81" width="9.5" height="21" rx="3" fill="#ff8a65" stroke="'+TRAZO+'" stroke-width="1.5"/>';
+    else if(eq.cuello==='moño') acc+='<path d="M50,77 L37,68 L37,86 Z" fill="#ff8a65" stroke="'+TRAZO+'" stroke-width="1.5" stroke-linejoin="round"/><path d="M50,77 L63,68 L63,86 Z" fill="#ff8a65" stroke="'+TRAZO+'" stroke-width="1.5" stroke-linejoin="round"/><circle cx="50" cy="77" r="4.8" fill="#d9634a" stroke="'+TRAZO+'" stroke-width="1.3"/>';
+    else if(eq.cuello==='collar_conchas') acc+='<path d="M24,76 Q50,91 76,76" stroke="#f3e4c8" stroke-width="3.2" fill="none" stroke-linecap="round"/><circle cx="50" cy="89" r="4.4" fill="#fff3e0" stroke="#e3bd6a" stroke-width="1.2"/>';
+    else if(eq.cuello==='capa_heroe') acc+='<path d="M26,79 Q50,72 74,79" fill="none" stroke="#b23a3a" stroke-width="3.4" stroke-linecap="round"/><circle cx="50" cy="77.5" r="4.6" fill="#f4c93b" stroke="'+TRAZO+'" stroke-width="1.3"/>';
   }
-  var animStyle = actividad==='durmiendo' ? ' style="animation-duration:6.5s"' : '';
-  return '<svg viewBox="0 0 100 148" xmlns="http://www.w3.org/2000/svg"'+animStyle+'>'+defs+
-    '<g transform="translate(50,140) scale('+escala+') translate(-50,-140)">'+base+accesorios+'</g>'+
+
+  var lento = durmiendo ? ' style="animation-duration:7s"' : '';
+  return '<svg viewBox="-9 0 118 148" xmlns="http://www.w3.org/2000/svg"'+lento+'>'+defs+
+    '<g transform="translate(50,140) scale('+escala+') translate(-50,-140)">'+s+acc+'</g>'+
     '</svg>';
 }
 

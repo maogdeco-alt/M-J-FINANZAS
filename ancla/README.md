@@ -12,9 +12,50 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.9.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.10.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.9.0" al reportar algo raro.
+> pasó en la v0.10.0" al reportar algo raro.
+
+## Boya redibujada: se acabó lo que se despegaba (v0.10.0)
+
+Se reportaron dos cosas: que partes del cuerpo se separaban al animarse, y que en general
+se veía artificial y poco tierna. La primera era un bug real, no una impresión.
+
+**El bug de las partes que se despegan.** Las piezas animadas (cola, brazo, ojos) tenían el
+punto de giro mal calculado:
+
+- La cola y el brazo usaban `transform-box:fill-box`, que hace que un `transform-origin` en
+  píxeles se mida **desde la esquina de la caja de esa pieza**, no desde el sistema de
+  coordenadas del dibujo. El pivote de la cola terminaba cayendo *fuera del personaje*, así
+  que al girar hacía palanca desde lejos y se despegaba del cuerpo.
+- Los ojos directamente no tenían `transform-origin`, así que al parpadear se encogían hacia
+  el **centro del cuerpo**: literalmente se deslizaban cara abajo en cada parpadeo.
+
+Corregido con `transform-box:view-box` y pivotes en coordenadas del dibujo, y verificado
+congelando la animación en el fotograma exacto del parpadeo y en el extremo del giro de la
+cola, para comprobar que nada se mueve de su sitio.
+
+**El rediseño.** El cuerpo era un montón de elipses apiladas, y se notaban las costuras
+donde una tapaba a la otra — ese era el aspecto de "recortable" que se veía artificial.
+Ahora:
+
+- **Una sola silueta continua** para cabeza y cuerpo: un único contorno, sin uniones
+  visibles. Lo que va detrás (cola, orejas, patas, capa) queda tapado por el relleno, así
+  que se lee como un cuerpo entero y no como piezas pegadas.
+- **Volumen de verdad**: sombra interior pegada al contorno (recortada con `clipPath`),
+  luz arriba, sombra abajo y bajo la barbilla. Eso es lo que hace que se vea redonda en vez
+  de plana.
+- **Cara más tierna**: ojos más grandes y juntos, con brillos; dos cachetes suaves que le
+  dan estructura al hocico; boca en "w"; rubor visible en los estados buenos; cejas suaves
+  en los estados bajos.
+- **Cola de nutria de verdad**: gruesa en la base y afinándose, en vez del alambre de antes.
+  El viewBox se ensanchó porque el cuerpo ocupaba todo el ancho y no le dejaba sitio.
+- **Concha bien dibujada** entre las manos, con sus estrías, en vez de un asterisco.
+- **Mechones de pelo** en el borde, recortados para que no se salgan del contorno.
+- **La capa ahora cuelga por detrás** (antes se dibujaba delante y tapaba toda la panza como
+  un babero): se ve el broche al cuello y la tela asomando por los lados.
+- **Sin brazos largos**: las manitas van apoyadas en la panza, que es la pose real de una
+  nutria de pie, y además así no queda ninguna pieza suelta que se pueda separar.
 
 ## Boya, más compacta, viva y con manta propia (v0.9.0)
 
