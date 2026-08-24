@@ -142,6 +142,13 @@
   .chip b{color:var(--ink);font-variant-numeric:tabular-nums;}
   .chip.extra{border-style:dashed;}
 
+  /* ---- aviso de ritmo real: cuánto falta en horas, calculado con el ritmo de HOY ---- */
+  .pace-estimate{display:flex;align-items:center;gap:8px;margin-top:8px;padding:7px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);font-size:0.82rem;color:var(--muted);}
+  .pace-estimate strong{color:var(--ink);}
+  .pace-estimate .pace-icon{font-size:1rem;}
+  .pace-estimate.pace-tight{background:var(--stamp-soft);border-color:transparent;color:var(--stamp);}
+  .pace-estimate.pace-tight strong{color:var(--stamp);}
+
   /* ---- resumen del lote: stats + progreso + chips, en un solo bloque compacto ---- */
   .summary-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:11px 16px;margin-bottom:10px;}
   .summary-panel .stats{margin-bottom:7px;}
@@ -569,6 +576,7 @@
     </div>
     <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
     <div class="formato-chips" id="formatoChips"></div>
+    <div class="pace-estimate" id="paceEstimate" style="display:none;"></div>
     <button class="link-btn" id="openInformesLink" type="button">Ver historial e informes completos de tus asignaciones →</button>
   </section>
 
@@ -2458,7 +2466,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       direccion:"", formato:"", tipoComparendo:"", comentario:"", res:"", fechaRes:"",
       comparendoCompleto:"", comparendoRaw:"", cod:"", imposicion:"", notificacion:"", curso:"",
       medio:"", estado:"", f8:"", f9:"", f10:"", tipoId:"", idNum:"", nombreF:"", placa:"",
-      agendado:false };
+      agendado:false, completadoEn:"" };
   }
 
   // ---------- stats ----------
@@ -2498,6 +2506,50 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     });
     chipsEl.innerHTML = html.join("");
     refreshFinalDocCount();
+    renderPaceEstimate(recs);
+  }
+
+  // ---------- aviso de ritmo real: cuánto falta en horas, según el ritmo real de HOY ----------
+  // Idea: que la persona no se confíe con el % de avance -- ese número no dice nada de lo que falta
+  // en TIEMPO. Se calcula con los guardados de hoy (completadoEn, ver readCaptureIntoRecord), nunca
+  // con un promedio genérico inventado. Con menos de 2 radicados terminados hoy no hay con qué medir
+  // un ritmo real, así que el aviso simplemente no aparece (mejor nada que un número inventado).
+  // Cada intervalo entre dos guardados consecutivos de hoy se recorta a un máximo de 20 minutos --
+  // así un almuerzo, una reunión larga o una pausa no inflan el promedio y el estimado sigue siendo
+  // realista (el objetivo explícito de este aviso), no optimista ni pesimista por un hueco puntual.
+  var PACE_CAP_MS = 20 * 60 * 1000;
+  function estimateTiempoRestante(){
+    var hoy = new Date(); hoy.setHours(0,0,0,0);
+    var completadosHoy = state.records.filter(function(r){
+      return r.completadoEn && new Date(r.completadoEn) >= hoy;
+    }).sort(function(a,b){ return new Date(a.completadoEn) - new Date(b.completadoEn); });
+    if(completadosHoy.length < 2) return null;
+    var deltas = [];
+    for(var i=1;i<completadosHoy.length;i++){
+      var delta = new Date(completadosHoy[i].completadoEn) - new Date(completadosHoy[i-1].completadoEn);
+      deltas.push(Math.min(delta, PACE_CAP_MS));
+    }
+    var avgMs = deltas.reduce(function(a,b){ return a+b; }, 0) / deltas.length;
+    var pendientes = state.records.filter(function(r){ return !isDone(r); }).length;
+    return {
+      avgMinutos: avgMs / 60000,
+      pendientes: pendientes,
+      horasRestantes: (avgMs * pendientes) / 3600000,
+      completadosHoy: completadosHoy.length
+    };
+  }
+  function renderPaceEstimate(recs){
+    var el = document.getElementById("paceEstimate");
+    var est = estimateTiempoRestante();
+    if(!est || est.pendientes === 0){ el.style.display = "none"; el.innerHTML=""; return; }
+    var horasTxt = est.horasRestantes < 1
+      ? Math.max(1, Math.round(est.horasRestantes*60)) + " min"
+      : (Math.round(est.horasRestantes*10)/10) + " h";
+    var minTxt = (Math.round(est.avgMinutos*10)/10);
+    el.style.display = "flex";
+    el.classList.toggle("pace-tight", est.horasRestantes >= 4);
+    el.innerHTML = '<span class="pace-icon">⏱</span><span>A tu ritmo real de hoy (~'+minTxt+' min por radicado, '+est.completadosHoy+' completados hoy) '+
+      'te faltan <strong>≈ '+horasTxt+'</strong> para los <strong>'+est.pendientes+'</strong> pendientes.</span>';
   }
 
   // ---------- prioridad por vencimiento: días hábiles transcurridos desde la Fecha de ASIGNACIÓN ----------
@@ -3321,6 +3373,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function readCaptureIntoRecord(){
     var rec = state.records.find(function(r){ return r.id===state.activeId; });
     if(!rec) return null;
+    var estabaHechoAntes = isDone(rec);
     rec.radicado = cleanSpaces(document.getElementById("cc_radicado").value);
     rec.nombre = cleanSpaces(document.getElementById("cc_nombre").value);
     rec.fechaRadicacion = cleanSpaces(document.getElementById("cc_fechaRadicacion").value);
@@ -3335,6 +3388,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var parsed = parseComparendoLine(raw);
     Object.keys(parsed).forEach(function(k){ rec[k] = parsed[k]; });
     rec.tipoComparendo = deriveTipoComparendo(rec.medio); // siempre derivado de MEDIO, nunca elegido a mano
+    // Se guarda la marca de tiempo la primera vez que el radicado queda hecho (Formato diligenciado),
+    // para poder calcular más adelante el ritmo real de hoy ("¿cuánto me falta en horas?"). Si ya
+    // estaba hecho antes de este guardado, no se vuelve a tocar -- es la fecha del PRIMER guardado
+    // completo, no la del último.
+    if(!estabaHechoAntes && isDone(rec) && !rec.completadoEn){
+      rec.completadoEn = new Date().toISOString();
+    }
     return rec;
   }
 
