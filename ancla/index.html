@@ -35,25 +35,33 @@ body{
   min-height:100vh;
 }
 button{font-family:inherit; -webkit-appearance:none; appearance:none; border:none; background:none; color:inherit; cursor:pointer}
+button:active{transform:scale(.96)}
 input, select, textarea{font-family:inherit; color:inherit}
 h1,h2,h3,p{margin:0}
 .envolt{max-width:540px; margin:0 auto; padding:18px 16px 6px}
-.topbar{display:flex; align-items:baseline; justify-content:space-between; padding:4px 2px 14px}
+.topbar{display:flex; align-items:center; justify-content:space-between; padding:4px 2px 4px}
+.marca-row{display:flex; align-items:center; gap:8px}
 .marca{font-weight:800; font-size:22px; letter-spacing:.2px; color:var(--teal-d)}
-.fecha{font-size:13px; color:var(--sub); text-transform:capitalize}
+@media (prefers-color-scheme:dark){ .marca{color:var(--teal)} }
+.beta-tag{font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; background:var(--coral); color:#fff; padding:2px 7px; border-radius:20px}
+.topbar-der{display:flex; align-items:center; gap:10px}
+.fecha{font-size:12.5px; color:var(--sub); text-transform:capitalize}
+.saludo-nombre{font-size:14px; color:var(--sub); font-weight:600; margin:2px 2px 10px}
 
 .card{background:var(--card); border-radius:var(--radius); padding:18px; margin-bottom:14px; box-shadow:0 1px 2px rgba(0,0,0,.04); border:1px solid var(--line)}
 .card h3{font-size:15px; margin-bottom:4px}
 .sub{color:var(--sub); font-size:13px; line-height:1.5}
 
 .banner{background:var(--mint); color:var(--mint-ink); border-radius:var(--radius-s); padding:13px 14px; margin-bottom:14px; font-size:13.5px; line-height:1.5; display:flex; gap:10px; align-items:flex-start}
-.banner button.x{margin-left:auto; font-size:16px; color:var(--mint-ink); opacity:.6; flex:none; padding:0 2px}
 .banner .acciones{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
 .banner .acciones button{background:var(--mint-ink); color:var(--mint); padding:7px 12px; border-radius:20px; font-size:12.5px; font-weight:600}
 
 .boya-wrap{display:flex; align-items:center; gap:16px}
-.boya{width:74px; height:74px; flex:none; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:34px; background:linear-gradient(160deg, var(--teal), var(--teal-d)); box-shadow:0 4px 14px rgba(14,124,134,.35); transition:transform .15s}
-.boya:active{transform:scale(.92)}
+.boya-ring-wrap{position:relative; width:84px; height:84px; flex:none}
+.boya-ring{position:absolute; inset:0; transform:rotate(-90deg)}
+.ring-bg{fill:none; stroke:var(--line); stroke-width:6}
+.ring-fg{fill:none; stroke:var(--coral); stroke-width:6; stroke-linecap:round; transition:stroke-dashoffset .5s ease}
+.boya{position:absolute; inset:5px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:30px; background:linear-gradient(160deg, var(--teal), var(--teal-d)); box-shadow:0 4px 14px rgba(14,124,134,.35); transition:transform .15s}
 .boya-txt{flex:1}
 .boya-txt .titulo{font-weight:700; font-size:15.5px; margin-bottom:2px}
 .boya-txt .sub{font-size:13px}
@@ -63,9 +71,8 @@ h1,h2,h3,p{margin:0}
 .cat{background:var(--bg); border:1.5px solid var(--line); border-radius:var(--radius-s); padding:14px 8px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:6px; transition:all .12s}
 .cat .emo{font-size:26px; line-height:1}
 .cat .et{font-size:11.5px; font-weight:600; color:var(--sub)}
-.cat.on{background:var(--mint); border-color:var(--teal); }
+.cat.on{background:var(--mint); border-color:var(--teal)}
 .cat.on .et{color:var(--mint-ink)}
-.cat:active{transform:scale(.95)}
 .cat .badge-n{font-size:10.5px; font-weight:700; background:var(--teal); color:#fff; border-radius:20px; padding:1px 7px; margin-top:-2px}
 .cat.on .badge-n{background:var(--teal-d)}
 .agua-row{display:flex; align-items:center; justify-content:center; gap:4px; margin-top:2px}
@@ -78,12 +85,11 @@ h1,h2,h3,p{margin:0}
 .nivel-top .r{font-size:14px; font-weight:700; text-align:right; white-space:nowrap}
 .nivel-top .r span{display:block; font-weight:400; font-size:11px; opacity:.85}
 .bar{background:rgba(255,255,255,.18); height:8px; border-radius:20px; margin-top:14px; overflow:hidden}
-.bar i{display:block; height:100%; background:#fff; border-radius:20px}
-.nivel-card .faltan{font-size:11.5px; opacity:.85; margin-top:6px}
+.bar i{display:block; height:100%; background:#fff; border-radius:20px; transition:width .5s ease}
 .medallas-mini{display:flex; gap:8px; margin-top:14px; align-items:center}
 .medallas-mini span{font-size:19px; opacity:.5}
 .medallas-mini span.on{opacity:1}
-.medallas-mini b{margin-left:auto; font-size:12px; font-weight:600; background:rgba(255,255,255,.16); padding:5px 10px; border-radius:20px}
+.medallas-mini button{margin-left:auto; font-size:12px; font-weight:600; background:rgba(255,255,255,.16); padding:5px 10px; border-radius:20px}
 
 .medallas-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:12px}
 @media(max-width:380px){.medallas-grid{grid-template-columns:repeat(4,1fr)}}
@@ -93,7 +99,6 @@ h1,h2,h3,p{margin:0}
 
 .btn{display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:13px 18px; border-radius:30px; font-weight:700; font-size:14.5px}
 .btn-principal{background:var(--coral); color:#fff; width:100%}
-.btn-principal:active{opacity:.85}
 .btn-fantasma{background:var(--bg); border:1.5px solid var(--line); color:var(--ink)}
 .btn-chico{padding:8px 14px; font-size:12.5px; border-radius:20px}
 
@@ -114,12 +119,9 @@ h1,h2,h3,p{margin:0}
 .paso.hecho .c{background:var(--teal); border-color:var(--teal); color:#fff}
 .paso.hecho .t{text-decoration:line-through}
 
-.campo{margin-bottom:14px}
-.campo:last-child{margin-bottom:0}
 .campo-fila{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px}
 .campo-fila:last-child{margin-bottom:0}
 .campo-fila .l{font-size:14px; font-weight:600}
-.campo-fila .d{font-size:12px; color:var(--sub); margin-top:2px}
 .campo-fila input[type=time]{border:1.5px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:7px 9px; font-size:13.5px}
 .campo-fila select{border:1.5px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:7px 9px; font-size:13.5px}
 
@@ -131,12 +133,11 @@ h1,h2,h3,p{margin:0}
 
 .pendientes{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
 .pendientes button{background:var(--bg); border:1.5px solid var(--line); border-radius:20px; padding:8px 13px; font-size:12.5px; display:flex; align-items:center; gap:6px}
-.pendientes button.armado{opacity:.55}
 
 .aviso-permiso{background:#fff3ea; color:#7a4a1e; border-radius:var(--radius-s); padding:12px 14px; font-size:12.5px; margin-bottom:14px; line-height:1.5}
 @media (prefers-color-scheme:dark){ .aviso-permiso{background:#2c2115; color:#f0c896} }
 
-.nav{position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--line); display:flex; padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
+.nav{position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--line); display:flex; padding:8px 6px calc(8px + env(safe-area-inset-bottom)); z-index:10}
 .nav button{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 2px; border-radius:12px; color:var(--sub); font-size:10.5px; font-weight:600}
 .nav button .ic{font-size:20px}
 .nav button.act{color:var(--teal-d)}
@@ -149,6 +150,32 @@ h1,h2,h3,p{margin:0}
 .danger-btn{color:var(--warn); font-size:13px; font-weight:600}
 hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 .file-fake{display:inline-block}
+
+.avatar-picker{width:84px; height:84px; border-radius:50%; background:var(--bg); border:2px dashed var(--line); display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer; font-size:26px; flex:none}
+.avatar-picker img{width:100%; height:100%; object-fit:cover}
+.avatar-chip{width:34px; height:34px; border-radius:50%; overflow:hidden; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; flex:none}
+.avatar-chip img{width:100%; height:100%; object-fit:cover}
+.input-nombre{width:100%; padding:13px 16px; border-radius:30px; border:1.5px solid var(--line); background:var(--bg); color:var(--ink); font-size:15px; text-align:center}
+.onboarding{padding-top:26px; padding-bottom:26px}
+
+.emoji-pick{display:flex; flex-wrap:wrap; gap:6px}
+.emoji-op{width:38px; height:38px; border-radius:50%; background:var(--bg); border:1.5px solid var(--line); font-size:18px; display:flex; align-items:center; justify-content:center}
+.emoji-op.sel{border-color:var(--teal); background:var(--mint)}
+
+.puntos-flot{position:fixed; transform:translate(-50%,0); font-weight:800; font-size:16px; color:var(--coral); pointer-events:none; z-index:50; animation:flotar .9s ease forwards}
+@keyframes flotar{ 0%{opacity:0; transform:translate(-50%,0) scale(.7)} 15%{opacity:1; transform:translate(-50%,-8px) scale(1.15)} 100%{opacity:0; transform:translate(-50%,-48px) scale(1)} }
+
+.confeti-cont{position:fixed; inset:0; pointer-events:none; z-index:60; overflow:hidden}
+.confeti-pieza{position:absolute; top:-10px; width:8px; height:14px; border-radius:2px; animation-name:caer; animation-timing-function:ease-in; animation-fill-mode:forwards}
+@keyframes caer{ 0%{transform:translateY(0) rotate(0deg); opacity:1} 100%{transform:translateY(112vh) rotate(420deg); opacity:0} }
+
+.overlay-celebracion{position:fixed; inset:0; background:rgba(15,23,25,.55); display:flex; align-items:center; justify-content:center; z-index:55; padding:24px; animation:aparecer .2s ease}
+@keyframes aparecer{ from{opacity:0} to{opacity:1} }
+.tarjeta-celebracion{background:var(--card); border-radius:24px; padding:34px 26px; text-align:center; max-width:320px; box-shadow:0 12px 40px rgba(0,0,0,.3); animation:pop .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{ 0%{transform:scale(.7); opacity:0} 100%{transform:scale(1); opacity:1} }
+.cel-emo{font-size:52px; margin-bottom:10px}
+.cel-titulo{font-weight:800; font-size:19px; margin-bottom:6px}
+.cel-sub{color:var(--sub); font-size:13.5px; line-height:1.5}
 </style>
 </head>
 <body>
@@ -156,22 +183,24 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
+var VERSION='0.2.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
 function toISO(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
 function hoyISO(){ return toISO(new Date()); }
 function horaMin(d){ return pad(d.getHours())+':'+pad(d.getMinutes()); }
-function normalizar(s){
-  return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-}
-function getPath(obj, path){
-  return path.split('.').reduce(function(o,k){ return (o===undefined||o===null) ? o : o[k]; }, obj);
-}
+function normalizar(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function getPath(obj, path){ return path.split('.').reduce(function(o,k){ return (o===undefined||o===null) ? o : o[k]; }, obj); }
 function setPath(obj, path, val){
   var partes=path.split('.'), o=obj;
   for(var i=0;i<partes.length-1;i++){ o=o[partes[i]]; }
   o[partes[partes.length-1]]=val;
+}
+function esc(s){
+  return (s||'').replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
 }
 function saludo(){
   var h=new Date().getHours();
@@ -193,6 +222,7 @@ var CATS=[
   {id:'dormir', emo:'😴', et:'Dormí'}
 ];
 var NIVELES=['Semilla','Brote','Raíz firme','Tallo alto','Copa abierta','Bosque entero'];
+var EMOJIS_MINI=['💊','🌱','📞','🧴','🧘','📚','🧺','🔋','❤️','🐾','🎯','🧠'];
 
 var MENSAJES_BOYA=[
   'No tiene que ser perfecto. Ya cuenta.',
@@ -211,17 +241,21 @@ var MENSAJES_BOYA=[
 
 function estadoInicial(){
   return {
-    version:1,
+    version:2,
     creado:hoyISO(),
-    bienvenidaVista:false,
+    onboardingVisto:false,
+    usuario:{ nombre:'', foto:null },
     modoSuave:false,
+    efectos:true,
     nudgeVisto:null,
     aperturas:[],
     entradas:{},
-    contadores:{ ropaUsos:0, tareasUsos:0 },
+    contadores:{ ropaUsos:0, tareasUsos:0, miniToques:0 },
+    medallasGanadas:[],
     ropa:[],
     ropaHoy:null,
     tareaActual:null,
+    miniRecordatorios:[],
     recordatorios:{
       activos:false,
       desayuno:{on:true, hora:'08:00'},
@@ -241,11 +275,17 @@ function cargar(){
     if(!crudo) return estadoInicial();
     var d=JSON.parse(crudo);
     var base=estadoInicial();
-    // fusión superficial para tolerar versiones futuras sin romper datos viejos
     for(var k in base){ if(d[k]===undefined) d[k]=base[k]; }
     if(!d.recordatorios) d.recordatorios=base.recordatorios;
-    for(var rk in base.recordatorios){ if(d.recordatorios[rk]===undefined) d.recordatorios[rk]=base.recordatorios[rk]; }
+    else { for(var rk in base.recordatorios){ if(d.recordatorios[rk]===undefined) d.recordatorios[rk]=base.recordatorios[rk]; } }
     if(!d.contadores) d.contadores=base.contadores;
+    else { ['ropaUsos','tareasUsos','miniToques'].forEach(function(ck){ if(d.contadores[ck]===undefined) d.contadores[ck]=0; }); }
+    if(!d.usuario) d.usuario=base.usuario;
+    else { if(d.usuario.nombre===undefined) d.usuario.nombre=''; if(d.usuario.foto===undefined) d.usuario.foto=null; }
+    if(!d.miniRecordatorios) d.miniRecordatorios=[];
+    if(!d.medallasGanadas) d.medallasGanadas=[];
+    if(d.efectos===undefined) d.efectos=true;
+    if(d.onboardingVisto===undefined) d.onboardingVisto=false;
     return d;
   }catch(e){ return estadoInicial(); }
 }
@@ -254,12 +294,14 @@ function guardar(){
 }
 function entradaHoy(){
   var iso=hoyISO();
-  if(!S.entradas[iso]) S.entradas[iso]={ desayuno:false, almuerzo:false, cena:false, agua:0, ducha:false, bano:false, mover:false, dormir:false };
+  if(!S.entradas[iso]) S.entradas[iso]={ desayuno:false, almuerzo:false, cena:false, agua:0, ducha:false, bano:false, mover:false, dormir:false, extra:{} };
   return S.entradas[iso];
 }
-
-/* vista efímera, no se guarda */
-var V = { tab:'hoy', mostrarMedallas:false, ropaNueva:'', tareaTexto:'', toast:null, editarRecordatorios:false };
+function extraDeHoy(){
+  var e=entradaHoy();
+  if(!e.extra) e.extra={};
+  return e.extra;
+}
 
 /* ===================== cálculos del juego ===================== */
 function contarCategorias(e){
@@ -280,7 +322,7 @@ function calcularRacha(){
     var cuenta=contarCategorias(S.entradas[iso]);
     var esHoy=(cursor.getTime()===hoy.getTime());
     if(cuenta>=UMBRAL_DIA){ streak++; }
-    else if(esHoy){ /* el día de hoy no cuenta en contra, todavía no termina */ }
+    else if(esHoy){ /* hoy no cuenta en contra, todavía no termina */ }
     else if(saltos>0){ saltos--; }
     else{ break; }
     cursor.setDate(cursor.getDate()-1);
@@ -312,46 +354,62 @@ function detectarRegreso(){
   }
   return false;
 }
-function calcularMedallas(stats){
-  return [
-    ['🌅','Primer desayuno','Registraste tu primer desayuno', stats.desayunos>=1],
-    ['💧','Bien hidratada','Un día tomaste agua 5 veces o más', stats.aguaMaxDia>=5],
-    ['🔥','Semana a flote','7 días seguidos cuidándote (con margen)', stats.racha>=7],
-    ['🌊','Un mes a flote','30 días seguidos cuidándote', stats.racha>=30],
-    ['🚿','Me cuidé','Aseo 3 días seguidos', stats.duchaSeguidos>=3],
-    ['🏃','Me moví','Te moviste 5 veces en total', stats.moverTotal>=5],
-    ['😴','Buenas noches','Registraste que dormiste 5 veces', stats.dormirTotal>=5],
-    ['👗','Elegí sin pelear','Dejaste que Ancla eligiera tu ropa 5 veces', stats.ropaUsos>=5],
-    ['🧩','Lo dividí','Partiste una tarea grande en pasitos, 3 veces', stats.tareasUsos>=3],
-    ['🕊️','Volviste','Volviste a abrir Ancla después de unos días sin entrar — eso también cuenta', stats.volviste]
-  ];
-}
-function calcularProgreso(){
-  var totalToques=0, desayunos=0, moverTotal=0, dormirTotal=0, aguaMaxDia=0;
+
+function calcularEstadisticas(){
+  var totalBool=0, totalAgua=0, desayunos=0, moverTotal=0, dormirTotal=0, aguaMaxDia=0;
   Object.keys(S.entradas).forEach(function(k){
     var e=S.entradas[k];
+    ['desayuno','almuerzo','cena','ducha','bano','mover','dormir'].forEach(function(c){ if(e[c]) totalBool++; });
+    totalAgua += (e.agua||0);
     if(e.desayuno) desayunos++;
     if(e.mover) moverTotal++;
     if(e.dormir) dormirTotal++;
     if(e.agua>aguaMaxDia) aguaMaxDia=e.agua;
-    totalToques+=contarCategorias(e);
   });
-  var racha=calcularRacha();
-  var duchaSeguidos=calcularConsecutivos('ducha');
-  var ropaUsos=S.contadores.ropaUsos||0;
-  var tareasUsos=S.contadores.tareasUsos||0;
-  var volviste=detectarRegreso();
-  var pts=totalToques*3 + racha*5 + ropaUsos*2 + tareasUsos*4;
+  return {
+    totalBool:totalBool, totalAgua:totalAgua, desayunos:desayunos, moverTotal:moverTotal, dormirTotal:dormirTotal,
+    aguaMaxDia:aguaMaxDia, racha:calcularRacha(), duchaSeguidos:calcularConsecutivos('ducha'),
+    ropaUsos:S.contadores.ropaUsos||0, tareasUsos:S.contadores.tareasUsos||0, miniToques:S.contadores.miniToques||0,
+    volviste:detectarRegreso()
+  };
+}
+function medallasCrudas(stats){
+  return [
+    {id:'desayuno1', emo:'🌅', titulo:'Primer desayuno', desc:'Registraste tu primer desayuno', cumple:stats.desayunos>=1},
+    {id:'agua5', emo:'💧', titulo:'Bien hidratada', desc:'Un día tomaste agua 5 veces o más', cumple:stats.aguaMaxDia>=5},
+    {id:'racha7', emo:'🔥', titulo:'Semana a flote', desc:'7 días seguidos cuidándote (con margen)', cumple:stats.racha>=7},
+    {id:'racha30', emo:'🌊', titulo:'Un mes a flote', desc:'30 días seguidos cuidándote', cumple:stats.racha>=30},
+    {id:'ducha3', emo:'🚿', titulo:'Me cuidé', desc:'Aseo 3 días seguidos', cumple:stats.duchaSeguidos>=3},
+    {id:'mover5', emo:'🏃', titulo:'Me moví', desc:'Te moviste 5 veces en total', cumple:stats.moverTotal>=5},
+    {id:'dormir5', emo:'😴', titulo:'Buenas noches', desc:'Registraste que dormiste 5 veces', cumple:stats.dormirTotal>=5},
+    {id:'ropa5', emo:'👗', titulo:'Elegí sin pelear', desc:'Dejaste que Ancla eligiera tu ropa 5 veces', cumple:stats.ropaUsos>=5},
+    {id:'tarea3', emo:'🧩', titulo:'Lo dividí', desc:'Partiste una tarea grande en pasitos, 3 veces', cumple:stats.tareasUsos>=3},
+    {id:'mini5', emo:'📌', titulo:'Cosas chiquitas', desc:'Usaste un mini recordatorio 5 veces', cumple:stats.miniToques>=5},
+    {id:'regreso', emo:'🕊️', titulo:'Volviste', desc:'Volviste a abrir Ancla después de unos días sin entrar — eso también cuenta', cumple:stats.volviste}
+  ];
+}
+function sincronizarMedallasGanadas(stats){
+  if(!S.medallasGanadas) S.medallasGanadas=[];
+  medallasCrudas(stats).forEach(function(m){
+    if(m.cumple && S.medallasGanadas.indexOf(m.id)===-1) S.medallasGanadas.push(m.id);
+  });
+}
+function calcularProgreso(){
+  var stats=calcularEstadisticas();
+  var crudas=medallasCrudas(stats);
+  var yaGanadas=S.medallasGanadas||[];
+  var medallas=crudas.map(function(m){
+    return {id:m.id, emo:m.emo, titulo:m.titulo, desc:m.desc, on:(m.cumple || yaGanadas.indexOf(m.id)>=0)};
+  });
+  var pts = stats.totalBool*3 + stats.totalAgua*1 + stats.racha*5 + stats.ropaUsos*2 + stats.tareasUsos*4 + stats.miniToques*2;
   var nivel=Math.min(NIVELES.length, Math.floor(Math.sqrt(pts/40))+1);
   var sigue=Math.pow(nivel,2)*40, previo=Math.pow(nivel-1,2)*40;
-  var stats={desayunos:desayunos, moverTotal:moverTotal, dormirTotal:dormirTotal, aguaMaxDia:aguaMaxDia, racha:racha, duchaSeguidos:duchaSeguidos, ropaUsos:ropaUsos, tareasUsos:tareasUsos, volviste:volviste};
-  var medallas=calcularMedallas(stats);
-  var esMax = nivel>=NIVELES.length;
+  var esMax=nivel>=NIVELES.length;
   return {
     pts:pts, nivel:nivel, nombre:NIVELES[nivel-1], esMax:esMax,
     prog: esMax ? 100 : Math.max(0, Math.min(100, Math.round((pts-previo)/(sigue-previo)*100))),
     faltan: esMax ? 0 : Math.max(0, sigue-pts),
-    racha:racha, medallas:medallas, ganadas:medallas.filter(function(m){ return m[3]; }).length
+    racha:stats.racha, medallas:medallas, ganadas:medallas.filter(function(m){ return m.on; }).length
   };
 }
 function mensajeBoya(cuenta){
@@ -361,6 +419,104 @@ function mensajeBoya(cuenta){
   if(cuenta<=6) return {e:'😌', t:'Boya nada tranquila', s:'Hoy te estás cuidando de verdad.'};
   return {e:'✨', t:'Boya está que brilla', s:'Día completo. Orgullo, no perfección.'};
 }
+
+/* ===================== sonido, vibración, confeti, puntos flotantes ===================== */
+var audioCtx=null;
+function obtenerAudioCtx(){
+  if(!audioCtx){
+    try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ audioCtx=null; }
+  }
+  return audioCtx;
+}
+function tono(freq, inicio, dur){
+  if(S.efectos===false) return;
+  var ctx=obtenerAudioCtx(); if(!ctx) return;
+  try{
+    var t0=ctx.currentTime+inicio;
+    var o=ctx.createOscillator(), g=ctx.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.22, t0+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t0); o.stop(t0+dur+0.02);
+  }catch(e){}
+}
+function sonidoPop(freq){ tono(freq||660, 0, 0.16); }
+function sonidoArpegio(){ tono(523,0,0.14); tono(659,0.09,0.14); tono(784,0.18,0.22); }
+function vibrar(patron){
+  if(S.efectos===false) return;
+  if(navigator.vibrate){ try{ navigator.vibrate(patron); }catch(e){} }
+}
+function flotarPuntos(origenEl, texto){
+  if(!origenEl || !texto) return;
+  var r=origenEl.getBoundingClientRect();
+  var el=document.createElement('div');
+  el.className='puntos-flot';
+  el.textContent=texto;
+  el.style.left=(r.left+r.width/2)+'px';
+  el.style.top=(r.top)+'px';
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 950);
+}
+function lanzarConfeti(n){
+  var cont=document.createElement('div');
+  cont.className='confeti-cont';
+  var colores=['#0e7c86','#ff8a65','#ffd166','#06d6a0','#ef476f'];
+  for(var i=0;i<n;i++){
+    var s=document.createElement('span');
+    s.className='confeti-pieza';
+    s.style.left=(Math.random()*100)+'%';
+    s.style.background=colores[i%colores.length];
+    s.style.animationDelay=(Math.random()*0.25)+'s';
+    s.style.animationDuration=(1.1+Math.random()*0.9)+'s';
+    s.style.transform='rotate('+(Math.random()*360)+'deg)';
+    cont.appendChild(s);
+  }
+  document.body.appendChild(cont);
+  setTimeout(function(){ cont.remove(); }, 2300);
+}
+var celebracionTimer=null;
+function celebrar(tipo, datos){
+  clearTimeout(celebracionTimer);
+  var obj={tipo:tipo};
+  for(var k in datos){ obj[k]=datos[k]; }
+  V.celebracion=obj;
+  vibrar(tipo==='nivel'?[20,40,20,40,20,40,20]: tipo==='medalla'?[25,50,25,50,25]: [30,60,30]);
+  sonidoArpegio();
+  if(!S.modoSuave){ lanzarConfeti(tipo==='nivel'?42:tipo==='dia'?50:tipo==='bienvenida'?36:28); }
+  celebracionTimer=setTimeout(function(){ V.celebracion=null; render(); }, 3200);
+}
+
+/* ===================== foto de perfil ===================== */
+function manejarFoto(file){
+  if(!file || file.type.indexOf('image/')!==0) return;
+  var reader=new FileReader();
+  reader.onload=function(){
+    var img=new Image();
+    img.onload=function(){
+      var tam=160;
+      var canvas=document.createElement('canvas');
+      canvas.width=tam; canvas.height=tam;
+      var ctx=canvas.getContext('2d');
+      var lado=Math.min(img.width, img.height);
+      var sx=(img.width-lado)/2, sy=(img.height-lado)/2;
+      ctx.drawImage(img, sx, sy, lado, lado, 0, 0, tam, tam);
+      try{ S.usuario.foto=canvas.toDataURL('image/jpeg', 0.82); }catch(e){}
+      guardar(); render();
+    };
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+function avatarHTML(){
+  if(S.usuario.foto) return '<img src="'+S.usuario.foto+'" alt="">';
+  var inicial=(S.usuario.nombre||'').trim().charAt(0).toUpperCase();
+  return inicial || '🙂';
+}
+
+/* vista efímera, no se guarda */
+var V = { tab:'hoy', mostrarMedallas:false, ropaNueva:'', tareaTexto:'', onboardingNombre:'', miniTexto:'', miniEmo:'📌', toast:null, celebracion:null };
 
 /* ===================== notificaciones y recordatorios ===================== */
 function notiSoportada(){ return ('Notification' in window); }
@@ -424,7 +580,6 @@ function debeMostrarNudge(){
 
 /* ===================== ropa ===================== */
 function elegirRopa(){
-  var hoy=hoyISO();
   var candidatos=S.ropa.slice();
   if(candidatos.length===0) return null;
   candidatos.sort(function(a,b){
@@ -433,8 +588,7 @@ function elegirRopa(){
   });
   var mitad=Math.max(1, Math.ceil(candidatos.length/2));
   var top=candidatos.slice(0, mitad);
-  var elegido=top[Math.floor(Math.random()*top.length)];
-  return elegido;
+  return top[Math.floor(Math.random()*top.length)];
 }
 
 /* ===================== divide tarea ===================== */
@@ -471,25 +625,51 @@ function render(){
   h+='<div class="envolt">';
   h+=renderTopbar();
   if(V.toast) h+='<div class="toast">'+esc(V.toast)+'</div>';
-  if(V.tab==='hoy') h+=renderHoy();
-  else if(V.tab==='herramientas') h+=renderHerramientas();
-  else if(V.tab==='recordatorios') h+=renderRecordatorios();
-  else if(V.tab==='ajustes') h+=renderAjustes();
+  if(!S.onboardingVisto){
+    h+=renderOnboarding();
+  } else {
+    if(V.tab==='hoy') h+=renderHoy();
+    else if(V.tab==='herramientas') h+=renderHerramientas();
+    else if(V.tab==='recordatorios') h+=renderRecordatorios();
+    else if(V.tab==='ajustes') h+=renderAjustes();
+  }
   h+='</div>';
-  h+=renderNav();
+  if(S.onboardingVisto) h+=renderNav();
+  if(V.celebracion) h+=renderCelebracion();
   app.innerHTML=h;
   document.title='Ancla';
 }
 
-function esc(s){
-  return (s||'').replace(/[&<>"']/g, function(c){
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-  });
-}
-
 function renderTopbar(){
   var f=new Date().toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long'});
-  return '<div class="topbar"><div class="marca">⚓ Ancla</div><div class="fecha">'+esc(f)+'</div></div>';
+  var h='<div class="topbar"><div class="marca-row"><div class="marca">⚓ Ancla</div><span class="beta-tag">beta</span></div>';
+  h+='<div class="topbar-der"><span class="fecha">'+esc(f)+'</span>';
+  if(S.onboardingVisto) h+='<button class="avatar-chip" data-action="nav" data-value="ajustes">'+avatarHTML()+'</button>';
+  h+='</div></div>';
+  return h;
+}
+
+function renderOnboarding(){
+  var h='<div class="card onboarding">';
+  h+='<div style="text-align:center; margin-bottom:4px; font-size:34px">⚓</div>';
+  h+='<h3 style="text-align:center; font-size:18px; margin-bottom:6px">Antes de empezar</h3>';
+  h+='<p class="sub" style="text-align:center; margin-bottom:20px">¿Cómo te llamas? Es solo para saludarte — podés cambiarlo o dejarlo en blanco.</p>';
+  h+='<div style="display:flex; justify-content:center; margin-bottom:18px">';
+  h+='<label class="avatar-picker">'+(S.usuario.foto?'<img src="'+S.usuario.foto+'" alt="">':'<span>📷</span>')+'<input type="file" accept="image/*" id="inp-foto-onboarding" style="display:none"></label>';
+  h+='</div>';
+  h+='<input type="text" id="inp-nombre-onboarding" class="input-nombre" placeholder="Tu nombre" value="'+esc(V.onboardingNombre)+'">';
+  h+='<button class="btn btn-principal" style="margin-top:18px; width:100%" data-action="terminar-onboarding">Empezar</button>';
+  h+='<button class="btn btn-fantasma btn-chico" style="margin-top:10px; width:100%" data-action="saltar-onboarding">Ahora no, entrar directo</button>';
+  h+='</div>';
+  return h;
+}
+
+function renderCelebracion(){
+  var c=V.celebracion; if(!c) return '';
+  var emo = c.tipo==='medalla' ? c.emo : c.tipo==='nivel' ? '⬆️' : c.tipo==='bienvenida' ? '⚓' : '🎉';
+  return '<div class="overlay-celebracion" data-action="cerrar-celebracion"><div class="tarjeta-celebracion">'+
+    '<div class="cel-emo">'+emo+'</div><div class="cel-titulo">'+esc(c.titulo||'')+'</div>'+
+    (c.sub?'<div class="cel-sub">'+esc(c.sub)+'</div>':'')+'</div></div>';
 }
 
 function renderNav(){
@@ -512,10 +692,12 @@ function renderHoy(){
   var cuenta=contarCategorias(e);
   var bm=mensajeBoya(cuenta);
   var jg=calcularProgreso();
+  var pct=Math.round(cuenta/CATS.length*100);
+  var circ=276.46, offset=circ*(1-pct/100);
   var h='';
 
-  if(!S.bienvenidaVista){
-    h+='<div class="banner">🌊 <div>Bienvenida a Ancla. Toca lo que ya hiciste hoy — no hay que llenarlo todo, ni en orden.<div class="acciones"><button data-action="cerrar-bienvenida">Entendido</button></div></div></div>';
+  if(S.usuario.nombre){
+    h+='<div class="saludo-nombre">'+esc(saludo())+', '+esc(S.usuario.nombre)+' 👋</div>';
   }
 
   if(debeMostrarNudge()){
@@ -524,7 +706,10 @@ function renderHoy(){
 
   h+='<div class="card">';
   h+='<div class="boya-wrap">';
+  h+='<div class="boya-ring-wrap">';
+  h+='<svg viewBox="0 0 100 100" class="boya-ring"><circle cx="50" cy="50" r="44" class="ring-bg"/><circle cx="50" cy="50" r="44" class="ring-fg" style="stroke-dasharray:'+circ+'; stroke-dashoffset:'+offset+'"/></svg>';
   h+='<button class="boya" data-action="tocar-boya">'+bm.e+'</button>';
+  h+='</div>';
   h+='<div class="boya-txt"><div class="titulo">'+bm.t+'</div><div class="sub">'+bm.s+'</div></div>';
   h+='</div>';
 
@@ -541,6 +726,18 @@ function renderHoy(){
   h+='</div>';
   h+='</div>';
 
+  if(S.miniRecordatorios.length){
+    var extra=extraDeHoy();
+    h+='<div class="card">';
+    h+='<h3>📌 Tus recordatorios</h3>';
+    h+='<div class="grid-cats" style="margin-top:12px">';
+    S.miniRecordatorios.forEach(function(m){
+      var hecho=!!extra[m.id];
+      h+='<button class="cat '+(hecho?'on':'')+'" data-action="toggle-mini" data-value="'+m.id+'"><div class="emo">'+m.emo+'</div><div class="et">'+esc(m.texto)+'</div></button>';
+    });
+    h+='</div></div>';
+  }
+
   h+='<div class="nivel-card">';
   h+='<div class="nivel-top">';
   if(S.modoSuave){
@@ -553,8 +750,8 @@ function renderHoy(){
   h+='</div>';
   h+='<div class="bar"><i style="width:'+jg.prog+'%"></i></div>';
   h+='<div class="medallas-mini">';
-  jg.medallas.slice(0,7).forEach(function(m){ h+='<span class="'+(m[3]?'on':'')+'">'+(m[3]?m[0]:'🔒')+'</span>'; });
-  h+='<button data-action="ver-medallas"><b>'+(S.modoSuave?'medallas ›':jg.ganadas+'/'+jg.medallas.length+' medallas ›')+'</b></button>';
+  jg.medallas.slice(0,7).forEach(function(m){ h+='<span class="'+(m.on?'on':'')+'">'+(m.on?m.emo:'🔒')+'</span>'; });
+  h+='<button data-action="ver-medallas">'+(S.modoSuave?'medallas ›':jg.ganadas+'/'+jg.medallas.length+' medallas ›')+'</button>';
   h+='</div>';
   h+='</div>';
 
@@ -563,9 +760,9 @@ function renderHoy(){
     h+='<h3>🏅 Tus medallas</h3>';
     h+='<p class="sub">Estas no se pierden nunca, una vez las ganas son tuyas.</p>';
     h+='<div class="medallas-grid">';
-    jg.medallas.forEach(function(m){ h+='<div class="medalla '+(m[3]?'on':'')+'" title="'+esc(m[1])+'">'+(m[3]?m[0]:'🔒')+'</div>'; });
+    jg.medallas.forEach(function(m){ h+='<div class="medalla '+(m.on?'on':'')+'" title="'+esc(m.titulo)+'">'+(m.on?m.emo:'🔒')+'</div>'; });
     h+='</div>';
-    h+='<div class="medalla-desc">'+jg.medallas.map(function(m){ return (m[3]?m[0]:'🔒')+' <b>'+esc(m[1])+'</b> — '+esc(m[2]); }).join('<br>')+'</div>';
+    h+='<div class="medalla-desc">'+jg.medallas.map(function(m){ return (m.on?m.emo:'🔒')+' <b>'+esc(m.titulo)+'</b> — '+esc(m.desc); }).join('<br>')+'</div>';
     h+='</div>';
   }
 
@@ -601,6 +798,25 @@ function renderHerramientas(){
   h+='</div>';
 
   h+='<div class="card">';
+  h+='<h3>📌 Mini recordatorios</h3>';
+  h+='<p class="sub">Cosas puntuales tuyas que no están en la lista de siempre — medicina, regar una planta, llamar a alguien. Aparecen en Hoy para marcarlas con un toque.</p>';
+  h+='<div class="emoji-pick" style="margin-top:12px">';
+  EMOJIS_MINI.forEach(function(em){ h+='<button class="emoji-op '+(V.miniEmo===em?'sel':'')+'" data-action="elegir-mini-emo" data-value="'+em+'">'+em+'</button>'; });
+  h+='</div>';
+  h+='<div class="fila-input" style="margin-top:10px">';
+  h+='<input type="text" id="inp-mini-texto" placeholder="Ej: tomar la pastilla" value="'+esc(V.miniTexto)+'">';
+  h+='<button class="btn btn-fantasma btn-chico" data-action="agregar-mini">Agregar</button>';
+  h+='</div>';
+  if(S.miniRecordatorios.length){
+    h+='<div class="ropa-lista">';
+    S.miniRecordatorios.forEach(function(m){
+      h+='<div class="ropa-item"><span class="t">'+m.emo+' '+esc(m.texto)+'</span><button data-action="quitar-mini" data-value="'+m.id+'">✕</button></div>';
+    });
+    h+='</div>';
+  }
+  h+='</div>';
+
+  h+='<div class="card">';
   h+='<h3>🧩 Divide esta tarea</h3>';
   h+='<p class="sub">Escribe la tarea que te está abrumando. Ancla te la parte en pasos chiquitos.</p>';
   if(!S.tareaActual || S.tareaActual.fecha!==hoyISO()){
@@ -616,7 +832,7 @@ function renderHerramientas(){
       h+='<div class="paso '+(p.hecho?'hecho':'')+'" data-action="toggle-paso" data-value="'+i+'"><div class="c">'+(p.hecho?'✓':'')+'</div><div class="t">'+esc(p.t)+'</div></div>';
     });
     h+='</div>';
-    var todos=ta.pasos.every(function(p){return p.hecho});
+    var todos=ta.pasos.every(function(p){return p.hecho;});
     if(todos){
       h+='<div class="banner" style="margin-top:14px">🎉 <div>Lo lograste. Eso ya es un montón.<div class="acciones"><button data-action="cerrar-tarea">Listo, cerrar</button></div></div></div>';
     } else {
@@ -642,7 +858,7 @@ function renderRecordatorios(){
   h+='<div class="card">';
   h+='<h3>⏰ Recordatorios</h3>';
   h+='<p class="sub">Funcionan mientras Ancla esté abierta (o instalada en tu pantalla de inicio). No son notificaciones enviadas desde un servidor todavía — eso es un paso a futuro.</p>';
-  h+='<div class="campo-fila" style="margin-top:14px"><div><div class="l">Activar recordatorios</div><div class="d">Pide permiso de notificación la primera vez</div></div>';
+  h+='<div class="campo-fila" style="margin-top:14px"><div><div class="l">Activar recordatorios</div><div class="sub">Pide permiso de notificación la primera vez</div></div>';
   h+='<button class="switch '+(r.activos?'on':'')+'" data-action="toggle-activos"><i></i></button></div>';
   h+='</div>';
 
@@ -685,9 +901,26 @@ function renderRecordatorios(){
 
 function renderAjustes(){
   var h='';
+
+  h+='<div class="card">';
+  h+='<h3>👤 Tu perfil</h3>';
+  h+='<div style="display:flex; align-items:center; gap:14px; margin-top:12px">';
+  h+='<label class="avatar-picker" style="width:64px; height:64px; font-size:22px">'+(S.usuario.foto?'<img src="'+S.usuario.foto+'" alt="">':'<span>📷</span>')+'<input type="file" accept="image/*" id="inp-foto-perfil" style="display:none"></label>';
+  h+='<div style="flex:1"><input type="text" data-bind="usuario.nombre" value="'+esc(S.usuario.nombre)+'" placeholder="Tu nombre" class="input-nombre" style="text-align:left; border-radius:12px"></div>';
+  h+='</div>';
+  if(S.usuario.foto){ h+='<button class="btn btn-fantasma btn-chico" style="margin-top:12px" data-action="quitar-foto">Quitar foto</button>'; }
+  h+='</div>';
+
+  h+='<div class="card">';
+  h+='<h3>🔊 Sonido y vibración</h3>';
+  h+='<p class="sub">Un pop suave y una vibración cortita cuando marcas algo o desbloqueas algo. Se puede apagar.</p>';
+  h+='<div class="campo-fila" style="margin-top:14px"><div class="l">Activar</div>';
+  h+='<button class="switch '+(S.efectos!==false?'on':'')+'" data-action="toggle-efectos"><i></i></button></div>';
+  h+='</div>';
+
   h+='<div class="card">';
   h+='<h3>🫧 Modo suave</h3>';
-  h+='<p class="sub">Oculta números, rachas exactas y conteos de medallas — deja solo palabras. Pensado para cuando contar/chequear se vuelve más ansiedad que ayuda.</p>';
+  h+='<p class="sub">Oculta números, rachas exactas y conteos de medallas — deja solo palabras, y baja la intensidad del confeti. Pensado para cuando contar/chequear se vuelve más ansiedad que ayuda.</p>';
   h+='<div class="campo-fila" style="margin-top:14px"><div class="l">Activar modo suave</div>';
   h+='<button class="switch '+(S.modoSuave?'on':'')+'" data-action="toggle-modo-suave"><i></i></button></div>';
   h+='</div>';
@@ -707,6 +940,7 @@ function renderAjustes(){
   h+='<h3>Acerca de Ancla</h3>';
   h+='<p>Hecha para días donde cosas simples —comer, bañarse, elegir ropa— cuestan de verdad. No mide si lo hiciste "bien", solo te ayuda a que no se te olvide y te da algo con qué celebrar cuando pasa.</p>';
   h+='<p>No reemplaza acompañamiento médico o psicológico. Si notar patrones como los de hoy (olvidar comer, señales de hambre/sed apagadas) se repite mucho, vale la pena comentarlo con quien te trate.</p>';
+  h+='<p style="font-size:11px; opacity:.6">Ancla v'+VERSION+'</p>';
   h+='</div>';
 
   return h;
@@ -724,21 +958,44 @@ function cambiarAgua(delta){
   guardar();
 }
 
+var ACCIONES_JUEGO=['toggle-cat','agua-mas','agua-menos','toggle-mini','elegir-ropa','dividir-tarea'];
+
 app.addEventListener('click', function(ev){
   var b=ev.target.closest('[data-action]');
   if(!b) return;
   var act=b.dataset.action, val=b.dataset.value;
 
+  var esJuego = ACCIONES_JUEGO.indexOf(act)>=0;
+  var prevCuenta = esJuego ? contarCategorias(entradaHoy()) : 0;
+  var prevJg = esJuego ? calcularProgreso() : null;
+
   if(act==='nav'){ V.tab=val; V.mostrarMedallas=false; }
-  else if(act==='cerrar-bienvenida'){ S.bienvenidaVista=true; guardar(); }
-  else if(act==='toggle-cat'){ toggleCategoria(val); }
-  else if(act==='agua-mas'){ cambiarAgua(1); }
+  else if(act==='toggle-cat'){
+    toggleCategoria(val);
+    if(entradaHoy()[val]){ flotarPuntos(b, S.modoSuave?'✨':'+3'); sonidoPop(660); vibrar(12); }
+  }
+  else if(act==='agua-mas'){
+    cambiarAgua(1);
+    flotarPuntos(b, S.modoSuave?'✨':'+1'); sonidoPop(720); vibrar(10);
+  }
   else if(act==='agua-menos'){ cambiarAgua(-1); }
   else if(act==='tocar-boya'){ mostrarToast(MENSAJES_BOYA[Math.floor(Math.random()*MENSAJES_BOYA.length)]); return; }
   else if(act==='ver-medallas'){ V.mostrarMedallas=!V.mostrarMedallas; }
   else if(act==='activar-suave'){ S.modoSuave=true; S.nudgeVisto=hoyISO(); guardar(); }
   else if(act==='descartar-nudge'){ S.nudgeVisto=hoyISO(); guardar(); }
   else if(act==='toggle-modo-suave'){ S.modoSuave=!S.modoSuave; guardar(); }
+  else if(act==='toggle-efectos'){ S.efectos=(S.efectos===false); guardar(); }
+  else if(act==='terminar-onboarding'){
+    var inpN=document.getElementById('inp-nombre-onboarding');
+    S.usuario.nombre=(inpN?inpN.value:'').trim();
+    S.onboardingVisto=true; guardar();
+    celebrar('bienvenida', {titulo:'Listo'+(S.usuario.nombre?', '+S.usuario.nombre:'')+' 🎉', sub:'Cuando quieras, tocá lo que ya hiciste hoy.'});
+  }
+  else if(act==='saltar-onboarding'){
+    S.onboardingVisto=true; guardar();
+    celebrar('bienvenida', {titulo:'Listo 🎉', sub:'Cuando quieras, tocá lo que ya hiciste hoy.'});
+  }
+  else if(act==='quitar-foto'){ S.usuario.foto=null; guardar(); }
   else if(act==='agregar-ropa'){
     var inp=document.getElementById('inp-ropa');
     var texto=(inp?inp.value:'').trim();
@@ -755,8 +1012,31 @@ app.addEventListener('click', function(ev){
       elegido.ultimoUso=hoyISO();
       S.contadores.ropaUsos=(S.contadores.ropaUsos||0)+1;
       S.ropaHoy={id:elegido.id, fecha:hoyISO()};
+      sonidoPop(600); vibrar(10);
       guardar();
     }
+  }
+  else if(act==='elegir-mini-emo'){ V.miniEmo=val; }
+  else if(act==='agregar-mini'){
+    var inpM=document.getElementById('inp-mini-texto');
+    var texto=(inpM?inpM.value:'').trim();
+    if(texto){
+      S.miniRecordatorios.push({id:'m'+Date.now(), emo:V.miniEmo||'📌', texto:texto});
+      V.miniTexto=''; V.miniEmo='📌'; guardar();
+    }
+  }
+  else if(act==='quitar-mini'){
+    S.miniRecordatorios=S.miniRecordatorios.filter(function(m){ return m.id!==val; });
+    guardar();
+  }
+  else if(act==='toggle-mini'){
+    var extra=extraDeHoy();
+    extra[val]=!extra[val];
+    if(extra[val]){
+      S.contadores.miniToques=(S.contadores.miniToques||0)+1;
+      flotarPuntos(b, S.modoSuave?'✨':'+2'); sonidoPop(760); vibrar(12);
+    }
+    guardar();
   }
   else if(act==='dividir-tarea'){
     var inpT=document.getElementById('inp-tarea');
@@ -764,7 +1044,7 @@ app.addEventListener('click', function(ev){
     if(texto){
       S.tareaActual=dividirTarea(texto);
       S.contadores.tareasUsos=(S.contadores.tareasUsos||0)+1;
-      V.tareaTexto=''; guardar();
+      V.tareaTexto=''; sonidoPop(600); vibrar(10); guardar();
     }
   }
   else if(act==='toggle-paso'){
@@ -788,12 +1068,32 @@ app.addEventListener('click', function(ev){
   }
   else if(act==='snooze'){ recordar30(val); return; }
   else if(act==='exportar'){ exportarDatos(); return; }
+  else if(act==='cerrar-celebracion'){ clearTimeout(celebracionTimer); V.celebracion=null; }
   else if(act==='borrar-todo'){
     if(confirm('¿Borrar todos tus datos de Ancla? No se puede deshacer.')){
       S=estadoInicial(); guardar();
     } else { return; }
   }
 
+  if(esJuego){
+    var stats=calcularEstadisticas();
+    sincronizarMedallasGanadas(stats);
+    var nuevoJg=calcularProgreso();
+    var subioNivel = nuevoJg.nivel>prevJg.nivel;
+    var medallaNueva=null;
+    nuevoJg.medallas.forEach(function(m){
+      var antes=prevJg.medallas.filter(function(x){ return x.id===m.id; })[0];
+      if(!medallaNueva && m.on && antes && !antes.on) medallaNueva=m;
+    });
+    var nuevoCuenta=contarCategorias(entradaHoy());
+    var completoAhora = nuevoCuenta>=CATS.length && prevCuenta<CATS.length;
+
+    if(subioNivel){ celebrar('nivel', {titulo:S.modoSuave?'Subiste de nivel':'Nivel '+nuevoJg.nivel, sub:nuevoJg.nombre}); }
+    else if(medallaNueva){ celebrar('medalla', {emo:medallaNueva.emo, titulo:'Nueva medalla', sub:medallaNueva.titulo}); }
+    else if(completoAhora){ celebrar('dia', {titulo:'Día completo', sub:'Orgullo, no perfección.'}); }
+  }
+
+  guardar();
   render();
 });
 
@@ -807,6 +1107,10 @@ app.addEventListener('change', function(ev){
     render();
     return;
   }
+  if((ev.target.id==='inp-foto-onboarding' || ev.target.id==='inp-foto-perfil') && ev.target.files && ev.target.files[0]){
+    manejarFoto(ev.target.files[0]);
+    return;
+  }
   if(ev.target.id==='inp-importar' && ev.target.files && ev.target.files[0]){
     importarDatos(ev.target.files[0]);
   }
@@ -814,11 +1118,15 @@ app.addEventListener('change', function(ev){
 app.addEventListener('input', function(ev){
   if(ev.target.id==='inp-ropa') V.ropaNueva=ev.target.value;
   if(ev.target.id==='inp-tarea') V.tareaTexto=ev.target.value;
+  if(ev.target.id==='inp-nombre-onboarding') V.onboardingNombre=ev.target.value;
+  if(ev.target.id==='inp-mini-texto') V.miniTexto=ev.target.value;
 });
 app.addEventListener('keydown', function(ev){
   if(ev.key==='Enter'){
     if(ev.target.id==='inp-ropa'){ ev.preventDefault(); document.querySelector('[data-action="agregar-ropa"]').click(); }
     if(ev.target.id==='inp-tarea'){ ev.preventDefault(); document.querySelector('[data-action="dividir-tarea"]').click(); }
+    if(ev.target.id==='inp-nombre-onboarding'){ ev.preventDefault(); document.querySelector('[data-action="terminar-onboarding"]').click(); }
+    if(ev.target.id==='inp-mini-texto'){ ev.preventDefault(); document.querySelector('[data-action="agregar-mini"]').click(); }
   }
 });
 
