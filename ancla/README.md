@@ -12,9 +12,65 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.10.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.11.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.10.0" al reportar algo raro.
+> pasó en la v0.11.0" al reportar algo raro.
+
+## De registrar el pasado a conducir el presente (v0.11.0)
+
+El diagnóstico: hasta acá Ancla **anotaba lo que ya había pasado** (marcar que comí,
+que me duché). Eso deja fuera lo más difícil, que es *hacer* la cosa. Y dejaba fuera algo
+que pesa más que cualquier hábito propio: **las perras dependen de ella y no pueden
+recordarle nada.**
+
+### El registro ahora tiene hora
+Todo el estado anterior era "hoy sí / hoy no". Con TDAH el problema casi nunca es saber
+**si** algo pasó — es no tener ni idea de **cuándo**. Se agregó un registro de eventos con
+marca de tiempo, del que sale el dato que la cabeza no guarda: *hace cuánto*. Es la base
+de todo lo demás.
+
+### Las perras
+Módulo propio, porque no es autocuidado: es cuidado de alguien que depende de ti.
+
+- Se agregan por nombre. Cada una tiene comida, salida, paseo largo y agua fresca, con las
+  veces al día configurables (o apagadas si no aplican).
+- Cada línea muestra **hace cuánto fue la última vez y a qué hora exacta** — siempre a la
+  vista, para que no haya que acordarse: basta con mirar. Eso responde solo la pregunta de
+  "¿ya comieron o me lo estoy imaginando?".
+- Cuando pasa el intervalo esperado, la línea se marca; si pasa mucho más, se marca fuerte.
+  **La urgencia está en el color, nunca en las palabras**: no dice "olvidaste", dice qué
+  toca y cuándo fue la última vez.
+- En Hoy aparecen siempre, agrupadas por perra, y se registran de un toque sin entrar.
+
+### Enfoque: las dos horas, en pedazos
+"Dos horas al día" es imposible de empezar porque el cerebro ve las dos horas enteras.
+
+- **Nunca se empieza una sesión larga.** El botón principal es *"Arrancar 5 minutos"*.
+  Cuando suena, decides si sigues — nunca al revés.
+- Temporizador grande y a la vista, porque el tiempo no se siente. La sesión vive en los
+  datos guardados, así que **si cierras la app sigue corriendo** y al volver está ahí.
+- Los minutos se acumulan hacia la meta del día, que es configurable: *si nunca llegas, no
+  es que falles, es que la meta está mal puesta.*
+- **Captura de distracciones**: durante la sesión hay una caja de "se me ocurrió algo".
+  Lo escribes, se guarda en tus pendientes y sigues. No hay que perseguir el pensamiento
+  ni perderlo.
+- Boya se queda trabajando a tu lado en su escritorio mientras dura el bloque.
+
+### Vestirme
+"Decide tú" pasó a ser una pantalla propia y se le quitó la decisión de encima: dices si
+hace frío, normal o calor, y Ancla saca **una** de las combinaciones que ya guardaste, en
+grande. Aceptas o pides otra. Nada más.
+
+### "Ahora": una sola cosa
+Arriba de Hoy hay una tarjeta que responde **qué toca en este momento**, con el botón para
+hacerlo ahí mismo. Una lista obliga a elegir, y elegir es justo lo que se traba. El orden
+de prioridad es explícito: primero lo que afecta a alguien que depende de ti, después la
+sesión de trabajo que dejaste abierta, después tú, después el trabajo pendiente.
+
+### Navegación
+La barra pasó a **Hoy · Perras · Enfoque · Calma · Más**, ordenada por lo que se usa varias
+veces al día. Rutinas, Vestirme, el cuarto de Boya, Herramientas, Avisos y Ajustes viven
+ahora dentro de *Más*.
 
 ## Boya redibujada: se acabó lo que se despegaba (v0.10.0)
 
