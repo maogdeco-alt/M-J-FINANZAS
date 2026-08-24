@@ -12,9 +12,29 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.15.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.16.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.15.0" al reportar algo raro.
+> pasó en la v0.16.0" al reportar algo raro.
+
+## Menos botones, más lista (v0.16.0)
+
+La pantalla de Hoy tenía **más de veinte cosas tocables** y cansaba. El problema no era solo
+la cantidad: era que **cada renglón llevaba un botón macizo**, y una fila de botones pesa
+mucho más a la vista que una lista de chequeo, aunque tengan exactamente las mismas
+acciones. Se cambió el mecanismo, no solo se escondieron cosas.
+
+- **Los renglones dejaron de ser botones.** Ahora el renglón entero se toca, y a la derecha
+  hay una **casilla** (si es algo que se marca) o una **flecha** (si lleva a otra pantalla).
+  Se lee como una lista de chequeo tranquila en vez de una hilera de botones compitiendo.
+- **La tarjeta grande tiene una sola acción.** La secundaria pasó de bloque sólido a enlace
+  discreto del color del tema.
+- **El resto del día en un solo renglón.** Antes había cuatro franjas siempre visibles
+  (Mañana, Tarde, Noche, Todo el día). Ahora queda abierta la de *ahora* y todo lo demás se
+  junta en un renglón único —*Resto del día · 3 de 6*— con los iconos de lo que contiene,
+  encendidos si ya está hecho. Un toque lo despliega si hace falta.
+- **La tarjeta de nivel se toca entera**, sin botón propio adentro.
+
+De ~21 elementos tocables a **14**, sin quitar ni una sola función.
 
 ## Temas de color, y una pantalla que se entiende (v0.15.0)
 

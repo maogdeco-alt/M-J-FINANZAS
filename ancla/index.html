@@ -395,6 +395,25 @@ body{background:linear-gradient(178deg, var(--bg2, #f2ebdc) 0%, var(--bg) 34%)}
 .escena{margin-top:20px}
 .franjas{margin-top:2px}
 .nivel-card{margin-top:22px}
+
+/* ---- menos botones, más lista: el ritmo transmite orden ---- */
+.fila{width:100%; text-align:left; background:var(--card); cursor:pointer}
+.f-marca{flex:none; width:25px; height:25px; border-radius:50%; border:1.8px solid var(--t);
+  opacity:.4; display:flex; align-items:center; justify-content:center; transition:opacity .15s}
+.f-marca.flecha{border:none; opacity:.55; font-size:19px; color:var(--sub); width:auto}
+.fila:active .f-marca{opacity:1; background:var(--t)}
+.fila:active{background:var(--bg)}
+
+/* la acción secundaria de la tarjeta deja de ser un bloque */
+.ahora-btns{gap:14px; align-items:center}
+.ahora-btns .btn-principal{flex:0 1 auto; min-width:158px; width:auto}
+.ahora-link{background:none; padding:6px 2px; font-size:12.5px; font-weight:700; color:var(--t); opacity:.85}
+
+/* el pie de nivel se toca entero, sin botón propio */
+.nivel-card{cursor:pointer}
+.medallas-mini .med-link{margin-left:auto; font-family:var(--font-mono); font-size:10.5px; opacity:.75; color:rgba(255,255,255,.75); white-space:nowrap; flex:none}
+.fr-cab.plegar{color:var(--sub)}
+.fr-cab.plegar .fr-et{font-size:12.5px; color:var(--sub); font-weight:600}
 .huevo-wrap{display:flex; flex-direction:column; align-items:center; padding:26px 0 10px}
 .huevo-svg{width:150px; height:180px; cursor:pointer; filter:drop-shadow(0 10px 18px rgba(0,0,0,.15))}
 .huevo-svg.tambalea{animation:tambaleo .55s ease}
@@ -613,7 +632,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.15.0-beta';
+var VERSION='0.16.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -1445,14 +1464,14 @@ function listaPendientes(){
     out.push({ urg:t.urgencia===2?2:1, ico:'pastilla', tono:'ciruela',
       t:t.med.nombre, meta:t.hora,
       sub:'Esta toma no está registrada'+(t.med.dosis?' ('+t.med.dosis+')':'')+'. La última que anotaste fue '+(ultimaTomaDe(t.med)?haceTexto(ultimaTomaDe(t.med)):'—')+'.',
-      btn:'Tomé', actos:[{act:'tomar-med', val:t.med.id+'|'+t.i, et:'Ya la tomé', cls:'btn-principal'},
+      tipo:'marcar', actos:[{act:'tomar-med', val:t.med.id+'|'+t.i, et:'Ya la tomé', cls:'btn-principal'},
                          {act:'nav', val:'cuidados', et:'Ver todo', cls:'btn-fantasma'}] });
   });
 
   if(S.enfoque && S.enfoque.activa){
     out.push({ urg:1, ico:'reloj', tono:'terra', t:'Bloque corriendo', meta:mmss(sesionRestanteMs()),
       sub:'Quedan '+mmss(sesionRestanteMs())+'. Vuelve a él, no lo dejes abierto.',
-      btn:'Volver', actos:[{act:'nav', val:'enfoque', et:'Volver al bloque', cls:'btn-principal'}] });
+      tipo:'ir', actos:[{act:'nav', val:'enfoque', et:'Volver al bloque', cls:'btn-principal'}] });
   }
 
   /* solo lo más urgente de cada perra: cuatro renglones por perra hacían
@@ -1465,14 +1484,14 @@ function listaPendientes(){
       t:u.perra.nombre+' · '+u.cuidado.et.toLowerCase(),
       meta:(u.ultima===null?'sin registro':haceTexto(u.ultima)),
       sub:(u.ultima===null?'Hoy no hay registro todavía.':'La última vez fue '+haceTexto(u.ultima)+'.')+' Ella no puede recordártelo.',
-      btn:'Hecho', actos:[{act:'registrar-cuidado', val:u.perra.id+'|'+u.cuidado.id, et:u.cuidado.verbo, cls:'btn-principal'},
+      tipo:'marcar', actos:[{act:'registrar-cuidado', val:u.perra.id+'|'+u.cuidado.id, et:u.cuidado.verbo, cls:'btn-principal'},
                           {act:'nav', val:'cuidados', et:'Ver todo', cls:'btn-fantasma'}] });
   });
 
   if(hr>=6 && hr<13 && S.ropa.length && !(S.ropaHoy && S.ropaHoy.fecha===hoyISO())){
     out.push({ urg:0, ico:'camiseta', tono:'indigo', t:'Vestirte', meta:'sin elegir',
       sub:'No lo pienses: deja que Ancla elija de lo que ya guardaste.',
-      btn:'Elegir', actos:[{act:'nav', val:'vestirme', et:'Que elija por mí', cls:'btn-principal'}] });
+      tipo:'ir', actos:[{act:'nav', val:'vestirme', et:'Que elija por mí', cls:'btn-principal'}] });
   }
 
   var mom=momentoActual();
@@ -1480,7 +1499,7 @@ function listaPendientes(){
   if(pendCat){
     out.push({ urg:0, ico:pendCat.ico, tono:pendCat.tono, t:pendCat.et, meta:'de esta franja',
       sub:'Es lo que toca en esta franja. Si ya lo hiciste, márcalo y listo.',
-      btn:'Hecho', actos:[{act:'toggle-cat', val:pendCat.id, et:'Hecho', cls:'btn-principal'}] });
+      tipo:'marcar', actos:[{act:'toggle-cat', val:pendCat.id, et:'Hecho', cls:'btn-principal'}] });
   }
 
   var faltan=metaEnfoque()-minutosHoy();
@@ -1488,14 +1507,14 @@ function listaPendientes(){
     out.push({ urg:0, ico:'diana', tono:'terra', t:'Trabajo', meta:minutosHoy()+' de '+metaEnfoque()+' min',
       sub:minutosHoy()>0 ? 'Llevas '+minutosHoy()+' min. Faltan '+faltan+' y no tienen que ser seguidos.'
                           : 'Empieza con 5 minutos. Solo cinco — después decides.',
-      btn:'5 min', actos:[{act:'iniciar-sesion', val:'5', et:'Arrancar 5 min', cls:'btn-principal'},
+      tipo:'ir', actos:[{act:'iniciar-sesion', val:'5', et:'Arrancar 5 min', cls:'btn-principal'},
                           {act:'nav', val:'enfoque', et:'Otro tramo', cls:'btn-fantasma'}] });
   }
 
   if(S.pendientes && S.pendientes.length){
     out.push({ urg:0, ico:'caja', tono:'oliva', t:S.pendientes[0].texto, meta:'lo anotaste tú',
       sub:'Lo anotaste tú. Si ya no aplica, bórralo sin culpa.',
-      btn:'Ver', actos:[{act:'nav', val:'rutinas', et:'Ver pendientes', cls:'btn-principal'}] });
+      tipo:'ir', actos:[{act:'nav', val:'rutinas', et:'Ver pendientes', cls:'btn-principal'}] });
   }
 
   out.sort(function(a,b){ return b.urg-a.urg; });
@@ -1858,7 +1877,7 @@ var V = {
   pendienteTexto:'', rutinaNombre:'', rutinaPasoTexto:'', rutinaPasos:[],
   calmaVista:'respirar', relajacionPaso:0, dialogoBoya:null, boyaTocada:false,
   perraNombre:'', perraEmo:'🐕', distraccion:'', climaHoy:null, ropaClima:null,
-  medNombre:'', medDosis:'', medVeces:1, momentoAbierto:null
+  medNombre:'', medDosis:'', medVeces:1, momentoAbierto:null, verResto:false
 };
 var dialogoTimer=null;
 
@@ -2154,20 +2173,21 @@ function renderHoy(){
     h+='<div class="ahora-fila"><span class="ahora-emo">'+ico(jefe.ico,28)+'</span>';
     h+='<div class="ahora-txt"><b>'+esc(jefe.t)+(jefe.meta&&jefe.meta.indexOf(':')>0?' · '+jefe.meta:'')+'</b><i>'+esc(jefe.sub)+'</i></div></div>';
     h+='<div class="ahora-btns">';
-    jefe.actos.forEach(function(a){
-      h+='<button class="btn '+a.cls+' btn-chico" data-action="'+a.act+'" data-value="'+esc(a.val)+'">'+esc(a.et)+'</button>';
-    });
+    h+='<button class="btn btn-principal btn-chico" data-action="'+jefe.actos[0].act+'" data-value="'+esc(jefe.actos[0].val)+'">'+esc(jefe.actos[0].et)+'</button>';
+    if(jefe.actos[1]) h+='<button class="ahora-link" data-action="'+jefe.actos[1].act+'" data-value="'+esc(jefe.actos[1].val)+'">'+esc(jefe.actos[1].et)+' ›</button>';
     h+='</div></div>';
 
     var resto=pend.slice(1);
     if(resto.length){
       h+='<div class="filas">';
+      /* Renglón entero tocable, con una casilla en vez de un botón macizo:
+         una lista de chequeo se lee tranquila, una fila de botones cansa. */
       resto.slice(0,3).forEach(function(f){
-        h+='<div class="fila u'+f.urg+'" style="--t:var(--h-'+f.tono+')">';
+        h+='<button class="fila u'+f.urg+'" style="--t:var(--h-'+f.tono+')" data-action="'+f.actos[0].act+'" data-value="'+esc(f.actos[0].val)+'">';
         h+='<span class="f-emo">'+ico(f.ico,20)+'</span>';
         h+='<span class="f-txt"><b>'+esc(f.t)+'</b><i>'+esc(f.meta)+'</i></span>';
-        h+='<button class="f-btn" data-action="'+f.actos[0].act+'" data-value="'+esc(f.actos[0].val)+'">'+esc(f.btn)+'</button>';
-        h+='</div>';
+        h+='<span class="f-marca '+(f.tipo==='ir'?'flecha':'')+'">'+(f.tipo==='ir'?'›':'')+'</span>';
+        h+='</button>';
       });
       if(resto.length>3) h+='<button class="fila-mas" data-action="nav" data-value="cuidados">y '+(resto.length-3)+' más ›</button>';
       h+='</div>';
@@ -2212,50 +2232,82 @@ function renderHoy(){
   }
 
   h+='<div class="seccion"><span>El día</span><em>'+cuenta+' de '+CATS.length+'</em></div>';
-  h+='<div class="franjas">';
   var grupos=MOMENTOS.concat([{id:'dia', et:'Todo el día'}]);
-  grupos.forEach(function(mom){
-    var cats=CATS.filter(function(c){ return c.momento===mom.id; });
-    if(!cats.length) return;
-    var hechas=cats.filter(function(c){ return c.contable ? (e.agua||0)>0 : !!e[c.id]; }).length;
+  function catsDe(id){ return CATS.filter(function(c){ return c.momento===id; }); }
+  function hechasDe(cats){ return cats.filter(function(c){ return c.contable ? (e.agua||0)>0 : !!e[c.id]; }).length; }
+  function pintaFranja(mom, forzarAbierta){
+    var cats=catsDe(mom.id);
+    if(!cats.length) return '';
+    var hechas=hechasDe(cats);
     var esAhora=(mom.id===momActual);
-    var open=(mom.id===abierto);
-    h+='<div class="franja'+(open?' abierta':'')+(esAhora?' esahora':'')+'">';
-    h+='<button class="fr-cab" data-action="abrir-franja" data-value="'+mom.id+'">';
-    h+='<span class="fr-et">'+mom.et+'</span>';
-    if(esAhora) h+='<span class="fr-chip">ahora</span>';
+    var open = forzarAbierta ? (V.momentoAbierto!==mom.id) : (V.momentoAbierto===mom.id);
+    var x='<div class="franja'+(open?' abierta':'')+(esAhora?' esahora':'')+'">';
+    x+='<button class="fr-cab" data-action="abrir-franja" data-value="'+mom.id+'">';
+    x+='<span class="fr-et">'+mom.et+'</span>';
+    if(esAhora) x+='<span class="fr-chip">ahora</span>';
     if(!open){
-      h+='<span class="fr-mini">';
+      x+='<span class="fr-mini">';
       cats.forEach(function(c){
+        var ok = c.contable ? (e.agua||0)>0 : !!e[c.id];
+        x+='<span class="'+(ok?'ok':'')+'" style="--t:var(--h-'+(c.tono||'humo')+')">'+ico(c.ico,15)+'</span>';
+      });
+      x+='</span>';
+    }
+    x+='<span class="fr-cont">'+hechas+' de '+cats.length+'</span>';
+    x+='<span class="fr-fl">'+(open?'▾':'▸')+'</span>';
+    x+='</button>';
+    if(open){
+      x+='<div class="grid-cats">';
+      cats.forEach(function(c){ x+=renderCat(c); });
+      x+='</div>';
+    }
+    return x+'</div>';
+  }
+
+  h+='<div class="franjas">';
+  var actual=grupos.filter(function(m){ return m.id===momActual; })[0];
+  if(actual) h+=pintaFranja(actual, true);
+  var resto=grupos.filter(function(m){ return m.id!==momActual && catsDe(m.id).length; });
+  var catsResto=[], hechasResto=0;
+  resto.forEach(function(m){ var cs=catsDe(m.id); catsResto=catsResto.concat(cs); hechasResto+=hechasDe(cs); });
+  if(resto.length){
+    if(V.verResto){
+      resto.forEach(function(m){ h+=pintaFranja(m, false); });
+      h+='<button class="fr-cab plegar" data-action="ver-resto"><span class="fr-et">Ocultar el resto</span><span class="fr-fl">▴</span></button>';
+    } else {
+      /* mañana + noche + todo el día en UN renglón, no tres */
+      h+='<button class="fr-cab" data-action="ver-resto">';
+      h+='<span class="fr-et">Resto del día</span>';
+      h+='<span class="fr-mini">';
+      catsResto.forEach(function(c){
         var ok = c.contable ? (e.agua||0)>0 : !!e[c.id];
         h+='<span class="'+(ok?'ok':'')+'" style="--t:var(--h-'+(c.tono||'humo')+')">'+ico(c.ico,15)+'</span>';
       });
       h+='</span>';
+      h+='<span class="fr-cont">'+hechasResto+' de '+catsResto.length+'</span>';
+      h+='<span class="fr-fl">▸</span>';
+      h+='</button>';
     }
-    h+='<span class="fr-cont">'+hechas+' de '+cats.length+'</span>';
-    h+='<span class="fr-fl">'+(open?'▾':'▸')+'</span>';
-    h+='</button>';
-    if(open){
-      h+='<div class="grid-cats">';
-      cats.forEach(function(c){ h+=renderCat(c); });
-      h+='</div>';
-    }
-    h+='</div>';
-  });
+  }
   if(S.miniRecordatorios.length){
     var extra=extraDeHoy();
     var hechasM=S.miniRecordatorios.filter(function(m){ return !!extra[m.id]; }).length;
-    var openM=(abierto==='mios');
+    var openM=(V.momentoAbierto==='mios');
     h+='<div class="franja'+(openM?' abierta':'')+'">';
     h+='<button class="fr-cab" data-action="abrir-franja" data-value="mios">';
     h+='<span class="fr-et">Tus recordatorios</span>';
+    if(!openM){
+      h+='<span class="fr-mini">';
+      S.miniRecordatorios.forEach(function(m){ h+='<span class="'+(extra[m.id]?'ok':'')+'" style="--t:var(--h-humo)">'+m.emo+'</span>'; });
+      h+='</span>';
+    }
     h+='<span class="fr-cont">'+hechasM+' de '+S.miniRecordatorios.length+'</span>';
     h+='<span class="fr-fl">'+(openM?'▾':'▸')+'</span>';
     h+='</button>';
     if(openM){
       h+='<div class="grid-cats">';
       S.miniRecordatorios.forEach(function(m){
-        h+='<button class="cat '+(extra[m.id]?'on':'')+'" data-action="toggle-mini" data-value="'+m.id+'"><div class="emo">'+m.emo+'</div><div class="et">'+esc(m.texto)+'</div></button>';
+        h+='<button class="cat '+(extra[m.id]?'on':'')+'" data-action="toggle-mini" data-value="'+m.id+'" style="--t:var(--h-humo)"><div class="emo">'+m.emo+'</div><div class="et">'+esc(m.texto)+'</div></button>';
       });
       h+='</div>';
     }
@@ -2264,7 +2316,7 @@ function renderHoy(){
   h+='</div>';
 
   /* ---- 5. el progreso, deliberadamente callado al final ---- */
-  h+='<div class="nivel-card">';
+  h+='<div class="nivel-card" data-action="ver-medallas">';
   h+='<div class="nivel-top">';
   if(S.modoSuave){
     h+='<div class="l">'+jg.nombre+'<span>vas construyendo tu ritmo</span></div>';
@@ -2277,7 +2329,7 @@ function renderHoy(){
   h+='<div class="bar"><i style="width:'+jg.prog+'%"></i></div>';
   h+='<div class="medallas-mini">';
   jg.medallas.slice(0,7).forEach(function(m){ h+='<span class="'+(m.on?'on':'')+'">'+(m.on?m.emo:'🔒')+'</span>'; });
-  h+='<button data-action="ver-medallas">'+(S.modoSuave?'medallas ›':jg.ganadas+'/'+jg.medallas.length+' medallas ›')+'</button>';
+  h+='<span class="med-link">'+(S.modoSuave?'medallas ›':jg.ganadas+' de '+jg.medallas.length+' ›')+'</span>';
   h+='</div>';
   h+='</div>';
 
@@ -3229,6 +3281,7 @@ app.addEventListener('click', function(ev){
       mostrarToast('Guardado en pendientes. Sigue en lo tuyo.');
     }
   }
+  else if(act==='ver-resto'){ V.verResto=!V.verResto; }
   else if(act==='abrir-franja'){ V.momentoAbierto = (V.momentoAbierto===val) ? '__ninguna__' : val; }
   else if(act==='med-veces'){ V.medVeces=Number(val); }
   else if(act==='agregar-med'){
