@@ -61,10 +61,51 @@ h1,h2,h3,p{margin:0}
 .boya-ring{position:absolute; inset:0; transform:rotate(-90deg)}
 .ring-bg{fill:none; stroke:var(--line); stroke-width:6}
 .ring-fg{fill:none; stroke:var(--coral); stroke-width:6; stroke-linecap:round; transition:stroke-dashoffset .5s ease}
-.boya{position:absolute; inset:5px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:30px; background:linear-gradient(160deg, var(--teal), var(--teal-d)); box-shadow:0 4px 14px rgba(14,124,134,.35); transition:transform .15s}
-.boya-txt{flex:1}
+.boya{position:absolute; inset:5px; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; background:linear-gradient(160deg, var(--teal), var(--teal-d)); box-shadow:0 4px 14px rgba(14,124,134,.35); transition:transform .15s}
+.boya svg{width:88%; height:88%; animation:bamboleo 3.4s ease-in-out infinite}
+@keyframes bamboleo{ 0%,100%{transform:translateY(0) rotate(-1.5deg)} 50%{transform:translateY(-3px) rotate(1.5deg)} }
+.ojo-parpadeo{animation:parpadeo 5.5s ease-in-out infinite}
+@keyframes parpadeo{ 0%,92%,100%{transform:scaleY(1)} 95%{transform:scaleY(.1)} }
+.boya-txt{flex:1; min-width:0}
 .boya-txt .titulo{font-weight:700; font-size:15.5px; margin-bottom:2px}
 .boya-txt .sub{font-size:13px}
+.ver-boya-link{font-size:12px; font-weight:700; color:var(--teal-d); margin-top:4px; display:inline-block}
+@media (prefers-color-scheme:dark){ .ver-boya-link{color:var(--teal)} }
+
+.conchitas-chip{display:flex; align-items:center; gap:4px; background:var(--mint); color:var(--mint-ink); font-weight:700; font-size:12.5px; padding:5px 10px; border-radius:20px; transition:transform .15s}
+.conchitas-chip.pulso{animation:pulso-conchita .4s ease}
+@keyframes pulso-conchita{ 0%{transform:scale(1)} 40%{transform:scale(1.22)} 100%{transform:scale(1)} }
+
+.boya-panel-header{display:flex; align-items:center; gap:10px; margin-bottom:16px}
+.boya-panel-header button{font-size:14px; font-weight:700; color:var(--teal-d); display:flex; align-items:center; gap:4px}
+@media (prefers-color-scheme:dark){ .boya-panel-header button{color:var(--teal)} }
+.boya-retrato-wrap{display:flex; flex-direction:column; align-items:center; padding:8px 0 4px}
+.boya-retrato{position:relative; width:150px; height:150px; border-radius:50%; overflow:hidden; background:linear-gradient(160deg, var(--teal), var(--teal-d)); box-shadow:0 8px 24px rgba(14,124,134,.3)}
+.boya-retrato svg{width:88%; height:88%; position:absolute; left:6%; top:6%; animation:bamboleo 3.4s ease-in-out infinite}
+.boya-nombre-fila{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:14px}
+.boya-nombre-fila input{font-size:19px; font-weight:800; text-align:center; border:none; background:none; color:var(--ink); width:auto; max-width:200px; border-bottom:1.5px dashed var(--line); padding:2px 4px}
+.vinculo-barra{margin-top:14px; width:100%}
+.subtabs{display:flex; gap:8px; margin:16px 0 14px; background:var(--bg); padding:4px; border-radius:20px}
+.subtabs button{flex:1; padding:9px; border-radius:16px; font-size:13px; font-weight:700; color:var(--sub)}
+.subtabs button.act{background:var(--card); color:var(--teal-d); box-shadow:0 1px 3px rgba(0,0,0,.08)}
+@media (prefers-color-scheme:dark){ .subtabs button.act{color:var(--teal)} }
+.tienda-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+.tienda-item{background:var(--bg); border:1.5px solid var(--line); border-radius:var(--radius-s); padding:14px 10px; text-align:center}
+.tienda-item .emo{font-size:28px}
+.tienda-item .nom{font-size:12.5px; font-weight:700; margin-top:6px}
+.tienda-item .precio{font-size:12px; color:var(--sub); margin-top:2px}
+.tienda-item button{margin-top:10px; width:100%; padding:8px; border-radius:14px; font-size:12px; font-weight:700; background:var(--coral); color:#fff}
+.tienda-item button:disabled{background:var(--line); color:var(--sub)}
+.tienda-item.puesto{border-color:var(--teal); background:var(--mint)}
+.tienda-item .candado{font-size:10.5px; color:var(--sub); margin-top:8px}
+
+.respirar-circulo-wrap{display:flex; flex-direction:column; align-items:center; padding:30px 10px 10px}
+.respirar-circulo{width:190px; height:190px; border-radius:50%; background:radial-gradient(circle at 35% 30%, var(--teal), var(--teal-d)); display:flex; align-items:center; justify-content:center; color:#fff; font-size:17px; font-weight:700; transition:transform 4s ease-in-out; box-shadow:0 10px 34px rgba(14,124,134,.35)}
+.respirar-circulo.chico{transform:scale(.72)}
+.respirar-circulo.grande{transform:scale(1)}
+.aterrizaje-paso{background:var(--card); border:1px solid var(--line); border-radius:var(--radius-s); padding:20px; text-align:center; margin-top:16px}
+.aterrizaje-paso .num{font-size:12px; color:var(--sub); font-weight:700; margin-bottom:8px}
+.aterrizaje-paso .txt{font-size:16px; font-weight:600; line-height:1.5}
 
 .grid-cats{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:16px}
 @media(min-width:420px){.grid-cats{grid-template-columns:repeat(4,1fr)}}
@@ -183,7 +224,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.2.0-beta';
+var VERSION='0.3.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -223,6 +264,33 @@ var CATS=[
 ];
 var NIVELES=['Semilla','Brote','Raíz firme','Tallo alto','Copa abierta','Bosque entero'];
 var EMOJIS_MINI=['💊','🌱','📞','🧴','🧘','📚','🧺','🔋','❤️','🐾','🎯','🧠'];
+var NIVELES_VINCULO=['Recién se conocen','Se van conociendo','Cómplices','Un equipo','Inseparables'];
+var DESC_VINCULO=[
+  'Boya todavía te está conociendo. Cada toque suma.',
+  'Ya empieza a reconocer tu ritmo — los días buenos y los difíciles.',
+  'Boya te acompaña sin juzgar ni un día malo. Confía en ti.',
+  'Ya son un equipo — ella nota hasta cuando vuelves después de un tiempo.',
+  'Inseparables. Pase lo que pase, Boya sigue aquí, a tu ritmo.'
+];
+
+var ITEMS_BOYA=[
+  {id:'gorro_lana', tipo:'sombrero', nombre:'Gorro de lana', emo:'🧶', precio:15, vinculoMin:0},
+  {id:'sombrero_paja', tipo:'sombrero', nombre:'Sombrero de paja', emo:'👒', precio:20, vinculoMin:0},
+  {id:'corona', tipo:'sombrero', nombre:'Corona chiquita', emo:'👑', precio:60, vinculoMin:3},
+  {id:'gafas_sol', tipo:'gafas', nombre:'Gafas de sol', emo:'🕶️', precio:18, vinculoMin:0},
+  {id:'gafas_redondas', tipo:'gafas', nombre:'Gafas redondas', emo:'👓', precio:22, vinculoMin:1},
+  {id:'bufanda', tipo:'cuello', nombre:'Bufanda', emo:'🧣', precio:16, vinculoMin:0},
+  {id:'moño', tipo:'cuello', nombre:'Moño', emo:'🎀', precio:14, vinculoMin:0},
+  {id:'collar_conchas', tipo:'cuello', nombre:'Collar de conchitas', emo:'📿', precio:35, vinculoMin:2},
+  {id:'fondo_atardecer', tipo:'fondo', nombre:'Atardecer', emo:'🌇', precio:25, vinculoMin:1},
+  {id:'fondo_noche', tipo:'fondo', nombre:'Noche estrellada', emo:'🌌', precio:30, vinculoMin:2},
+  {id:'fondo_arrecife', tipo:'fondo', nombre:'Arrecife', emo:'🪸', precio:25, vinculoMin:1}
+];
+var FONDOS_BOYA={
+  fondo_atardecer:'linear-gradient(160deg, #ff9d6c, #d9634a)',
+  fondo_noche:'linear-gradient(160deg, #2b3a67, #0f1a3d)',
+  fondo_arrecife:'linear-gradient(160deg, #3fb8a3, #1a7f78)'
+};
 
 var MENSAJES_BOYA=[
   'No tiene que ser perfecto. Ya cuenta.',
@@ -245,17 +313,21 @@ function estadoInicial(){
     creado:hoyISO(),
     onboardingVisto:false,
     usuario:{ nombre:'', foto:null },
+    boya:{ nombre:'Boya' },
     modoSuave:false,
     efectos:true,
     nudgeVisto:null,
     aperturas:[],
     entradas:{},
-    contadores:{ ropaUsos:0, tareasUsos:0, miniToques:0 },
+    contadores:{ ropaUsos:0, tareasUsos:0, miniToques:0, tocarBoyaTotal:0, comprasTotal:0, conchitasGanadasTotal:0 },
     medallasGanadas:[],
     ropa:[],
     ropaHoy:null,
     tareaActual:null,
     miniRecordatorios:[],
+    conchitas:0,
+    comprados:[],
+    equipado:{ sombrero:null, gafas:null, cuello:null, fondo:null },
     recordatorios:{
       activos:false,
       desayuno:{on:true, hora:'08:00'},
@@ -279,11 +351,17 @@ function cargar(){
     if(!d.recordatorios) d.recordatorios=base.recordatorios;
     else { for(var rk in base.recordatorios){ if(d.recordatorios[rk]===undefined) d.recordatorios[rk]=base.recordatorios[rk]; } }
     if(!d.contadores) d.contadores=base.contadores;
-    else { ['ropaUsos','tareasUsos','miniToques'].forEach(function(ck){ if(d.contadores[ck]===undefined) d.contadores[ck]=0; }); }
+    else { ['ropaUsos','tareasUsos','miniToques','tocarBoyaTotal','comprasTotal','conchitasGanadasTotal'].forEach(function(ck){ if(d.contadores[ck]===undefined) d.contadores[ck]=0; }); }
     if(!d.usuario) d.usuario=base.usuario;
     else { if(d.usuario.nombre===undefined) d.usuario.nombre=''; if(d.usuario.foto===undefined) d.usuario.foto=null; }
+    if(!d.boya) d.boya=base.boya;
+    else if(d.boya.nombre===undefined) d.boya.nombre='Boya';
     if(!d.miniRecordatorios) d.miniRecordatorios=[];
     if(!d.medallasGanadas) d.medallasGanadas=[];
+    if(d.conchitas===undefined) d.conchitas=0;
+    if(!d.comprados) d.comprados=[];
+    if(!d.equipado) d.equipado=base.equipado;
+    else { ['sombrero','gafas','cuello','fondo'].forEach(function(sk){ if(d.equipado[sk]===undefined) d.equipado[sk]=null; }); }
     if(d.efectos===undefined) d.efectos=true;
     if(d.onboardingVisto===undefined) d.onboardingVisto=false;
     return d;
@@ -413,11 +491,78 @@ function calcularProgreso(){
   };
 }
 function mensajeBoya(cuenta){
-  if(cuenta<=0) return {e:'😶‍🌫️', t:'Boya está a la deriva', s:'Tócala aunque sea solo para saludar. Eso ya suma.'};
-  if(cuenta<=2) return {e:'🙂', t:'Boya flota bajito', s:'Cualquier cosita más ayuda, sin apuro.'};
-  if(cuenta<=4) return {e:'😊', t:'Boya se mantiene a flote', s:'Vas bien, a tu ritmo.'};
-  if(cuenta<=6) return {e:'😌', t:'Boya nada tranquila', s:'Hoy te estás cuidando de verdad.'};
-  return {e:'✨', t:'Boya está que brilla', s:'Día completo. Orgullo, no perfección.'};
+  var n=(S.boya&&S.boya.nombre)||'Boya';
+  if(cuenta<=0) return {id:'deriva', t:n+' está dormidita', s:'Tócala aunque sea solo para saludar. Eso ya suma.'};
+  if(cuenta<=2) return {id:'bajito', t:n+' flota bajito', s:'Cualquier cosita más ayuda, sin apuro.'};
+  if(cuenta<=4) return {id:'flote', t:n+' se mantiene a flote', s:'Vas bien, a tu ritmo.'};
+  if(cuenta<=6) return {id:'tranquila', t:n+' nada tranquila', s:'Hoy te estás cuidando de verdad.'};
+  return {id:'brilla', t:n+' está que brilla', s:'Día completo. Orgullo, no perfección.'};
+}
+
+/* ===================== vínculo con Boya ===================== */
+function calcularVinculo(){
+  var c=S.contadores||{};
+  var pts=(c.conchitasGanadasTotal||0) + (c.tocarBoyaTotal||0) + (c.comprasTotal||0)*4;
+  var nivel=Math.min(NIVELES_VINCULO.length, Math.floor(Math.sqrt(pts/20))+1);
+  var sigue=Math.pow(nivel,2)*20, previo=Math.pow(nivel-1,2)*20;
+  var esMax=nivel>=NIVELES_VINCULO.length;
+  return {
+    pts:pts, nivel:nivel, nombre:NIVELES_VINCULO[nivel-1], esMax:esMax,
+    prog: esMax?100:Math.max(0,Math.min(100,Math.round((pts-previo)/(sigue-previo)*100)))
+  };
+}
+function ganarConchitas(n){
+  S.conchitas=(S.conchitas||0)+n;
+  S.contadores.conchitasGanadasTotal=(S.contadores.conchitasGanadasTotal||0)+n;
+  V.pulsoConchitas=true;
+}
+
+/* ===================== dibujar a la nutria ===================== */
+function dibujarNutria(moodId, tam){
+  var eq = S.equipado||{};
+  var ojosYboca = {
+    deriva: '<path d="M36,50 q5,-6 10,0" stroke="#3b2a1e" stroke-width="2.4" fill="none" stroke-linecap="round" class="ojo-parpadeo"/>'+
+            '<path d="M54,50 q5,-6 10,0" stroke="#3b2a1e" stroke-width="2.4" fill="none" stroke-linecap="round" class="ojo-parpadeo"/>'+
+            '<path d="M45,64 q5,2 10,0" stroke="#3b2a1e" stroke-width="2.2" fill="none" stroke-linecap="round"/>'+
+            '<text x="70" y="30" font-size="9" fill="#7a5233">z</text><text x="78" y="20" font-size="7" fill="#7a5233">z</text>',
+    bajito: '<ellipse cx="41" cy="47" rx="4.2" ry="3.2" fill="#3b2a1e" class="ojo-parpadeo"/><ellipse cx="59" cy="47" rx="4.2" ry="3.2" fill="#3b2a1e" class="ojo-parpadeo"/>'+
+            '<path d="M45,64 q5,2 10,0" stroke="#3b2a1e" stroke-width="2.2" fill="none" stroke-linecap="round"/>',
+    flote:  '<circle cx="41" cy="47" r="4.6" fill="#3b2a1e" class="ojo-parpadeo"/><circle cx="59" cy="47" r="4.6" fill="#3b2a1e" class="ojo-parpadeo"/>'+
+            '<circle cx="42.5" cy="45.5" r="1.3" fill="#fff"/><circle cx="60.5" cy="45.5" r="1.3" fill="#fff"/>'+
+            '<path d="M43,63 q7,6 14,0" stroke="#3b2a1e" stroke-width="2.4" fill="none" stroke-linecap="round"/>',
+    tranquila: '<circle cx="41" cy="47" r="4.8" fill="#3b2a1e" class="ojo-parpadeo"/><circle cx="59" cy="47" r="4.8" fill="#3b2a1e" class="ojo-parpadeo"/>'+
+            '<circle cx="42.5" cy="45.5" r="1.4" fill="#fff"/><circle cx="60.5" cy="45.5" r="1.4" fill="#fff"/>'+
+            '<path d="M42,63 q8,8 16,0" stroke="#3b2a1e" stroke-width="2.4" fill="none" stroke-linecap="round"/>'+
+            '<ellipse cx="27" cy="58" rx="6" ry="4" fill="#ff8a65" opacity=".35"/><ellipse cx="73" cy="58" rx="6" ry="4" fill="#ff8a65" opacity=".35"/>',
+    brilla: '<path d="M34,46 q7,-8 14,0" stroke="#3b2a1e" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
+            '<path d="M52,46 q7,-8 14,0" stroke="#3b2a1e" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
+            '<path d="M40,62 q10,10 20,0" stroke="#3b2a1e" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
+            '<ellipse cx="26" cy="58" rx="6.5" ry="4.5" fill="#ff8a65" opacity=".45"/><ellipse cx="74" cy="58" rx="6.5" ry="4.5" fill="#ff8a65" opacity=".45"/>'+
+            '<text x="10" y="18" font-size="11">✦</text><text x="82" y="24" font-size="8">✦</text>'
+  };
+  var base=''+
+    '<ellipse cx="30" cy="26" rx="10" ry="10" fill="#7a5233"/><ellipse cx="70" cy="26" rx="10" ry="10" fill="#7a5233"/>'+
+    '<ellipse cx="30" cy="27" rx="5.2" ry="5.2" fill="#dba876"/><ellipse cx="70" cy="27" rx="5.2" ry="5.2" fill="#dba876"/>'+
+    '<ellipse cx="50" cy="52" rx="36" ry="32" fill="#a9713f"/>'+
+    '<ellipse cx="50" cy="63" rx="23" ry="18" fill="#f3e4c8"/>'+
+    '<line x1="28" y1="58" x2="12" y2="54" stroke="#7a5233" stroke-width="1.4" stroke-linecap="round"/>'+
+    '<line x1="28" y1="63" x2="11" y2="63" stroke="#7a5233" stroke-width="1.4" stroke-linecap="round"/>'+
+    '<line x1="72" y1="58" x2="88" y2="54" stroke="#7a5233" stroke-width="1.4" stroke-linecap="round"/>'+
+    '<line x1="72" y1="63" x2="89" y2="63" stroke="#7a5233" stroke-width="1.4" stroke-linecap="round"/>'+
+    (ojosYboca[moodId]||ojosYboca.flote)+
+    '<ellipse cx="50" cy="55" rx="5" ry="4" fill="#5c3d28"/>'+
+    '<ellipse cx="34" cy="90" rx="11" ry="9" fill="#a9713f"/><ellipse cx="66" cy="90" rx="11" ry="9" fill="#a9713f"/>'+
+    '<ellipse cx="50" cy="88" rx="7" ry="5" fill="#f7dfa8"/><path d="M45,88 l2,-4 l3,3 l3,-3 l2,4z" fill="#f0c96a"/>';
+  var accesorios='';
+  if(eq.sombrero==='gorro_lana') accesorios+='<path d="M16,26 Q50,-8 84,26 L82,15 Q50,-16 18,15 Z" fill="#5b8fb0"/><circle cx="50" cy="-10" r="7" fill="#e7ddcf"/>';
+  else if(eq.sombrero==='sombrero_paja') accesorios+='<ellipse cx="50" cy="16" rx="42" ry="9" fill="#e3bd6a"/><path d="M26,16 Q50,-14 74,16 Z" fill="#f0d089"/><rect x="26" y="13" width="48" height="5" rx="2.5" fill="#c9946a"/>';
+  else if(eq.sombrero==='corona') accesorios+='<path d="M24,20 L32,2 L44,16 L50,0 L56,16 L68,2 L76,20 Z" fill="#f4c93b" stroke="#c99a1e" stroke-width="1.5"/>';
+  if(eq.gafas==='gafas_sol') accesorios+='<rect x="30" y="42" width="17" height="12" rx="5" fill="#2b2b2b"/><rect x="53" y="42" width="17" height="12" rx="5" fill="#2b2b2b"/><line x1="47" y1="47" x2="53" y2="47" stroke="#2b2b2b" stroke-width="2"/>';
+  else if(eq.gafas==='gafas_redondas') accesorios+='<circle cx="41" cy="47" r="9" fill="none" stroke="#3b2a1e" stroke-width="2"/><circle cx="59" cy="47" r="9" fill="none" stroke="#3b2a1e" stroke-width="2"/><line x1="50" y1="47" x2="50" y2="47" stroke="#3b2a1e" stroke-width="2"/>';
+  if(eq.cuello==='bufanda') accesorios+='<path d="M22,76 Q50,92 78,76 L78,84 Q50,100 22,84 Z" fill="#ff8a65"/><rect x="60" y="82" width="9" height="20" rx="3" fill="#ff8a65"/>';
+  else if(eq.cuello==='moño') accesorios+='<path d="M50,78 L38,70 L38,86 Z" fill="#ff8a65"/><path d="M50,78 L62,70 L62,86 Z" fill="#ff8a65"/><circle cx="50" cy="78" r="4.5" fill="#d9634a"/>';
+  else if(eq.cuello==='collar_conchas') accesorios+='<path d="M26,78 Q50,90 74,78" stroke="#f3e4c8" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="50" cy="88" r="4" fill="#fff3e0" stroke="#e3bd6a" stroke-width="1"/>';
+  return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'+base+accesorios+'</svg>';
 }
 
 /* ===================== sonido, vibración, confeti, puntos flotantes ===================== */
@@ -477,10 +622,12 @@ function lanzarConfeti(n){
   setTimeout(function(){ cont.remove(); }, 2300);
 }
 var celebracionTimer=null;
+var BONO_CONCHITAS={ nivel:10, medalla:8, dia:5 };
 function celebrar(tipo, datos){
   clearTimeout(celebracionTimer);
   var obj={tipo:tipo};
   for(var k in datos){ obj[k]=datos[k]; }
+  if(BONO_CONCHITAS[tipo]){ ganarConchitas(BONO_CONCHITAS[tipo]); obj.sub=(obj.sub?obj.sub+' · ':'')+'🐚 +'+BONO_CONCHITAS[tipo]; }
   V.celebracion=obj;
   vibrar(tipo==='nivel'?[20,40,20,40,20,40,20]: tipo==='medalla'?[25,50,25,50,25]: [30,60,30]);
   sonidoArpegio();
@@ -516,7 +663,31 @@ function avatarHTML(){
 }
 
 /* vista efímera, no se guarda */
-var V = { tab:'hoy', mostrarMedallas:false, ropaNueva:'', tareaTexto:'', onboardingNombre:'', miniTexto:'', miniEmo:'📌', toast:null, celebracion:null };
+var V = {
+  tab:'hoy', mostrarMedallas:false, ropaNueva:'', tareaTexto:'', onboardingNombre:'', miniTexto:'', miniEmo:'📌',
+  toast:null, celebracion:null, pulsoConchitas:false, subtabBoya:'vestuario', respirando:null, aterrizajePaso:0
+};
+
+/* ===================== respiración guiada ===================== */
+var FASES_RESPIRACION={ inhala:'Inhala…', sosten1:'Sostén…', exhala:'Exhala…', sosten2:'Sostén…' };
+var CICLO_RESPIRACION=[['inhala',4000],['sosten1',4000],['exhala',4000],['sosten2',4000]];
+var respirarTimer=null, respirarIdx=0;
+function iniciarRespiracion(){
+  respirarIdx=0;
+  correrFaseRespiracion();
+}
+function correrFaseRespiracion(){
+  var fase=CICLO_RESPIRACION[respirarIdx % CICLO_RESPIRACION.length];
+  V.respirando=fase[0];
+  if(S.efectos!==false) vibrar(8);
+  render();
+  clearTimeout(respirarTimer);
+  respirarTimer=setTimeout(function(){ respirarIdx++; correrFaseRespiracion(); }, fase[1]);
+}
+function detenerRespiracion(){
+  clearTimeout(respirarTimer);
+  V.respirando=null;
+}
 
 /* ===================== notificaciones y recordatorios ===================== */
 function notiSoportada(){ return ('Notification' in window); }
@@ -629,9 +800,11 @@ function render(){
     h+=renderOnboarding();
   } else {
     if(V.tab==='hoy') h+=renderHoy();
+    else if(V.tab==='calma') h+=renderCalma();
     else if(V.tab==='herramientas') h+=renderHerramientas();
     else if(V.tab==='recordatorios') h+=renderRecordatorios();
     else if(V.tab==='ajustes') h+=renderAjustes();
+    else if(V.tab==='boya') h+=renderBoyaPanel();
   }
   h+='</div>';
   if(S.onboardingVisto) h+=renderNav();
@@ -643,9 +816,16 @@ function render(){
 function renderTopbar(){
   var f=new Date().toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long'});
   var h='<div class="topbar"><div class="marca-row"><div class="marca">⚓ Ancla</div><span class="beta-tag">beta</span></div>';
-  h+='<div class="topbar-der"><span class="fecha">'+esc(f)+'</span>';
-  if(S.onboardingVisto) h+='<button class="avatar-chip" data-action="nav" data-value="ajustes">'+avatarHTML()+'</button>';
+  h+='<div class="topbar-der">';
+  if(S.onboardingVisto){
+    h+='<button class="conchitas-chip '+(V.pulsoConchitas?'pulso':'')+'" data-action="nav" data-value="boya">🐚 '+(S.conchitas||0)+'</button>';
+    h+='<button class="avatar-chip" data-action="nav" data-value="ajustes">'+avatarHTML()+'</button>';
+  } else {
+    h+='<span class="fecha">'+esc(f)+'</span>';
+  }
   h+='</div></div>';
+  if(S.onboardingVisto) h+='<div class="fecha" style="padding:0 2px 4px">'+esc(f)+'</div>';
+  V.pulsoConchitas=false;
   return h;
 }
 
@@ -675,6 +855,7 @@ function renderCelebracion(){
 function renderNav(){
   var tabs=[
     ['hoy','🏠','Hoy'],
+    ['calma','🌊','Calma'],
     ['herramientas','🧰','Herramientas'],
     ['recordatorios','⏰','Recordatorios'],
     ['ajustes','⚙️','Ajustes']
@@ -704,13 +885,14 @@ function renderHoy(){
     h+='<div class="banner">🫧 <div>¿Sientes que estás revisando esto muchas veces seguidas? Puedes activar el <b>modo suave</b>, que oculta números y rachas.<div class="acciones"><button data-action="activar-suave">Activar modo suave</button><button data-action="descartar-nudge">Ahora no</button></div></div></div>';
   }
 
+  var fondoEq = S.equipado.fondo && FONDOS_BOYA[S.equipado.fondo];
   h+='<div class="card">';
   h+='<div class="boya-wrap">';
   h+='<div class="boya-ring-wrap">';
   h+='<svg viewBox="0 0 100 100" class="boya-ring"><circle cx="50" cy="50" r="44" class="ring-bg"/><circle cx="50" cy="50" r="44" class="ring-fg" style="stroke-dasharray:'+circ+'; stroke-dashoffset:'+offset+'"/></svg>';
-  h+='<button class="boya" data-action="tocar-boya">'+bm.e+'</button>';
+  h+='<button class="boya" data-action="tocar-boya" '+(fondoEq?'style="background:'+fondoEq+'"':'')+'>'+dibujarNutria(bm.id)+'</button>';
   h+='</div>';
-  h+='<div class="boya-txt"><div class="titulo">'+bm.t+'</div><div class="sub">'+bm.s+'</div></div>';
+  h+='<div class="boya-txt"><div class="titulo">'+bm.t+'</div><div class="sub">'+bm.s+'</div><button class="ver-boya-link" data-action="nav" data-value="boya">Ver a '+esc((S.boya&&S.boya.nombre)||'Boya')+' ›</button></div>';
   h+='</div>';
 
   h+='<div class="grid-cats">';
@@ -765,6 +947,118 @@ function renderHoy(){
     h+='<div class="medalla-desc">'+jg.medallas.map(function(m){ return (m.on?m.emo:'🔒')+' <b>'+esc(m.titulo)+'</b> — '+esc(m.desc); }).join('<br>')+'</div>';
     h+='</div>';
   }
+
+  return h;
+}
+
+function renderBoyaPanel(){
+  var vinc=calcularVinculo();
+  var nombreBoya=(S.boya&&S.boya.nombre)||'Boya';
+  var e=entradaHoy();
+  var bm=mensajeBoya(contarCategorias(e));
+  var fondoEq = S.equipado.fondo && FONDOS_BOYA[S.equipado.fondo];
+  var h='';
+  h+='<div class="boya-panel-header"><button data-action="nav" data-value="hoy">← Volver</button></div>';
+
+  h+='<div class="card">';
+  h+='<div class="boya-retrato-wrap">';
+  h+='<div class="boya-retrato" '+(fondoEq?'style="background:'+fondoEq+'"':'')+'>'+dibujarNutria(bm.id)+'</div>';
+  h+='<div class="boya-nombre-fila">';
+  h+='<input type="text" data-bind="boya.nombre" value="'+esc(nombreBoya)+'" maxlength="16">';
+  h+='</div>';
+  h+='<p class="sub" style="text-align:center; margin-top:4px">'+esc(bm.s)+'</p>';
+  h+='<div class="vinculo-barra">';
+  h+='<div class="campo-fila" style="margin-bottom:6px"><span class="l" style="font-size:13px">Vínculo · '+esc(vinc.nombre)+'</span><span class="sub">'+(vinc.esMax?'al máximo':vinc.nivel+'/'+NIVELES_VINCULO.length)+'</span></div>';
+  h+='<div class="bar" style="background:var(--line)"><i style="width:'+vinc.prog+'%; background:var(--coral)"></i></div>';
+  h+='<p class="sub" style="margin-top:10px; text-align:center">'+esc(DESC_VINCULO[vinc.nivel-1])+'</p>';
+  h+='</div>';
+  h+='</div>';
+  h+='</div>';
+
+  h+='<div class="subtabs">';
+  h+='<button class="'+(V.subtabBoya!=='tienda'?'act':'')+'" data-action="subtab-boya" data-value="vestuario">Vestuario</button>';
+  h+='<button class="'+(V.subtabBoya==='tienda'?'act':'')+'" data-action="subtab-boya" data-value="tienda">Tienda</button>';
+  h+='</div>';
+
+  if(V.subtabBoya==='tienda'){
+    var disponibles=ITEMS_BOYA.filter(function(it){ return S.comprados.indexOf(it.id)===-1; });
+    h+='<div class="card">';
+    if(!disponibles.length){
+      h+='<p class="sub" style="text-align:center">Ya tienes todo lo que hay por ahora. Vuelve pronto por más.</p>';
+    } else {
+      h+='<div class="tienda-grid">';
+      disponibles.forEach(function(it){
+        var alcanzaVinculo = vinc.nivel>=it.vinculoMin;
+        var alcanzaPlata = (S.conchitas||0)>=it.precio;
+        h+='<div class="tienda-item">';
+        h+='<div class="emo">'+it.emo+'</div><div class="nom">'+esc(it.nombre)+'</div><div class="precio">🐚 '+it.precio+'</div>';
+        if(!alcanzaVinculo){
+          h+='<div class="candado">🔒 vínculo nivel '+it.vinculoMin+'</div>';
+        } else {
+          h+='<button data-action="comprar-item" data-value="'+it.id+'" '+(alcanzaPlata?'':'disabled')+'>Comprar</button>';
+        }
+        h+='</div>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
+  } else {
+    h+='<div class="card">';
+    if(!S.comprados.length){
+      h+='<p class="sub" style="text-align:center">Todavía no le has comprado nada. Cada check-in te da conchitas — en la Tienda puedes gastarlas.</p>';
+    } else {
+      h+='<div class="tienda-grid">';
+      S.comprados.forEach(function(id){
+        var it=ITEMS_BOYA.filter(function(x){return x.id===id;})[0];
+        if(!it) return;
+        var puesto = S.equipado[it.tipo]===it.id;
+        h+='<div class="tienda-item '+(puesto?'puesto':'')+'">';
+        h+='<div class="emo">'+it.emo+'</div><div class="nom">'+esc(it.nombre)+'</div>';
+        h+='<button data-action="equipar-item" data-value="'+it.id+'">'+(puesto?'Quitar':'Ponerle')+'</button>';
+        h+='</div>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+
+  return h;
+}
+
+function renderCalma(){
+  var h='';
+  h+='<div class="card">';
+  h+='<h3>🫁 Respiración guiada</h3>';
+  h+='<p class="sub">Cuando los estímulos son muchos. Sin números, sin racha — solo un ratito para bajar el ritmo.</p>';
+  h+='<div class="respirar-circulo-wrap">';
+  h+='<div class="respirar-circulo '+((V.respirando==='inhala'||V.respirando==='sosten1')?'grande':'chico')+'" id="circulo-respirar">'+(V.respirando?FASES_RESPIRACION[V.respirando]:'Lista cuando quieras')+'</div>';
+  if(V.respirando){
+    h+='<button class="btn btn-fantasma btn-chico" style="margin-top:22px" data-action="detener-respiracion">Detener</button>';
+  } else {
+    h+='<button class="btn btn-principal" style="margin-top:22px; max-width:200px" data-action="iniciar-respiracion">Empezar a respirar</button>';
+  }
+  h+='</div>';
+  h+='</div>';
+
+  h+='<div class="card">';
+  h+='<h3>🧭 Aterrizaje (5-4-3-2-1)</h3>';
+  h+='<p class="sub">Una técnica para volver al cuerpo cuando todo se siente demasiado — nombra, sin apuro.</p>';
+  var pasos=[
+    ['5','cosas que puedes ver a tu alrededor'],
+    ['4','cosas que puedes tocar cerca de ti'],
+    ['3','cosas que puedes oír ahora mismo'],
+    ['2','cosas que puedes oler'],
+    ['1','cosa que sientes en tu cuerpo, respirando']
+  ];
+  var i=V.aterrizajePaso||0;
+  if(i>=pasos.length){
+    h+='<div class="aterrizaje-paso"><div class="txt">Ya recorriste tus sentidos. 🌊</div><p class="sub" style="margin-top:8px">Cuando quieras, volvés a Hoy.</p></div>';
+    h+='<button class="btn btn-fantasma btn-chico" style="margin-top:14px; width:100%" data-action="reiniciar-aterrizaje">Volver a empezar</button>';
+  } else {
+    h+='<div class="aterrizaje-paso"><div class="num">Paso '+(i+1)+' de '+pasos.length+'</div><div class="txt">Nombra '+pasos[i][0]+' '+pasos[i][1]+'</div></div>';
+    h+='<button class="btn btn-principal" style="margin-top:14px" data-action="siguiente-aterrizaje">Listo, siguiente</button>';
+  }
+  h+='</div>';
 
   return h;
 }
@@ -972,14 +1266,20 @@ app.addEventListener('click', function(ev){
   if(act==='nav'){ V.tab=val; V.mostrarMedallas=false; }
   else if(act==='toggle-cat'){
     toggleCategoria(val);
-    if(entradaHoy()[val]){ flotarPuntos(b, S.modoSuave?'✨':'+3'); sonidoPop(660); vibrar(12); }
+    if(entradaHoy()[val]){ flotarPuntos(b, S.modoSuave?'✨':'+3'); sonidoPop(660); vibrar(12); ganarConchitas(1); }
   }
   else if(act==='agua-mas'){
     cambiarAgua(1);
-    flotarPuntos(b, S.modoSuave?'✨':'+1'); sonidoPop(720); vibrar(10);
+    flotarPuntos(b, S.modoSuave?'✨':'+1'); sonidoPop(720); vibrar(10); ganarConchitas(1);
   }
   else if(act==='agua-menos'){ cambiarAgua(-1); }
-  else if(act==='tocar-boya'){ mostrarToast(MENSAJES_BOYA[Math.floor(Math.random()*MENSAJES_BOYA.length)]); return; }
+  else if(act==='tocar-boya'){
+    S.contadores.tocarBoyaTotal=(S.contadores.tocarBoyaTotal||0)+1;
+    sonidoPop(540); vibrar(8);
+    mostrarToast(MENSAJES_BOYA[Math.floor(Math.random()*MENSAJES_BOYA.length)]);
+    guardar();
+    return;
+  }
   else if(act==='ver-medallas'){ V.mostrarMedallas=!V.mostrarMedallas; }
   else if(act==='activar-suave'){ S.modoSuave=true; S.nudgeVisto=hoyISO(); guardar(); }
   else if(act==='descartar-nudge'){ S.nudgeVisto=hoyISO(); guardar(); }
@@ -1012,7 +1312,7 @@ app.addEventListener('click', function(ev){
       elegido.ultimoUso=hoyISO();
       S.contadores.ropaUsos=(S.contadores.ropaUsos||0)+1;
       S.ropaHoy={id:elegido.id, fecha:hoyISO()};
-      sonidoPop(600); vibrar(10);
+      sonidoPop(600); vibrar(10); ganarConchitas(1);
       guardar();
     }
   }
@@ -1034,7 +1334,7 @@ app.addEventListener('click', function(ev){
     extra[val]=!extra[val];
     if(extra[val]){
       S.contadores.miniToques=(S.contadores.miniToques||0)+1;
-      flotarPuntos(b, S.modoSuave?'✨':'+2'); sonidoPop(760); vibrar(12);
+      flotarPuntos(b, S.modoSuave?'✨':'+2'); sonidoPop(760); vibrar(12); ganarConchitas(1);
     }
     guardar();
   }
@@ -1044,9 +1344,33 @@ app.addEventListener('click', function(ev){
     if(texto){
       S.tareaActual=dividirTarea(texto);
       S.contadores.tareasUsos=(S.contadores.tareasUsos||0)+1;
-      V.tareaTexto=''; sonidoPop(600); vibrar(10); guardar();
+      V.tareaTexto=''; sonidoPop(600); vibrar(10); ganarConchitas(1); guardar();
     }
   }
+  else if(act==='subtab-boya'){ V.subtabBoya=val; }
+  else if(act==='comprar-item'){
+    var art=ITEMS_BOYA.filter(function(x){return x.id===val;})[0];
+    var vinc=calcularVinculo();
+    if(art && S.comprados.indexOf(art.id)===-1 && (S.conchitas||0)>=art.precio && vinc.nivel>=art.vinculoMin){
+      S.conchitas-=art.precio;
+      S.comprados.push(art.id);
+      S.equipado[art.tipo]=art.id;
+      S.contadores.comprasTotal=(S.contadores.comprasTotal||0)+1;
+      sonidoArpegio(); vibrar([20,30,20]);
+      mostrarToast((S.boya.nombre||'Boya')+' ya tiene '+art.nombre.toLowerCase()+' 🎉');
+    }
+  }
+  else if(act==='equipar-item'){
+    var art2=ITEMS_BOYA.filter(function(x){return x.id===val;})[0];
+    if(art2){
+      S.equipado[art2.tipo] = (S.equipado[art2.tipo]===art2.id) ? null : art2.id;
+      sonidoPop(600); vibrar(10);
+    }
+  }
+  else if(act==='iniciar-respiracion'){ iniciarRespiracion(); return; }
+  else if(act==='detener-respiracion'){ detenerRespiracion(); }
+  else if(act==='siguiente-aterrizaje'){ V.aterrizajePaso=(V.aterrizajePaso||0)+1; vibrar(8); }
+  else if(act==='reiniciar-aterrizaje'){ V.aterrizajePaso=0; }
   else if(act==='toggle-paso'){
     if(S.tareaActual){
       var p=S.tareaActual.pasos[Number(val)];

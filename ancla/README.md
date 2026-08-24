@@ -12,7 +12,7 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.2.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.3.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
 > pasó en la v0.2.0" al reportar algo raro.
 
@@ -24,9 +24,20 @@ pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el pr
 - **Hoy**: 8 botones de un solo toque (desayuno, almuerzo, cena, agua, aseo, baño,
   moverme, dormí), con **Boya dentro de un anillo de progreso** que se llena en vivo según
   cuánto llevas del día. Sin formularios, sin campos obligatorios, sin orden que respetar.
-- **Boya**, la compañera visual: no es una mascota que "se muere" si no la cuidas (ese
-  patrón genera culpa, no ayuda). Es un flotador — se hunde un poco, nunca del todo, y
-  siempre puede volver a flotar. Tocarla da un mensaje corto y amable al azar.
+- **Boya**, la compañera: una nutria marina dibujada (no un emoji), con cara propia,
+  parpadeo y un ligero bamboleo — cinco estados de ánimo según cuánto llevas del día, cada
+  uno con ojos y boca distintos. No es una mascota que "se muere" si no la cuidas (ese
+  patrón genera culpa, no ayuda) — en el peor de los casos está dormidita, nunca en
+  peligro, y siempre puede volver a flotar. Tocarla da un mensaje corto y amable al azar.
+- **Vínculo con Boya**: aparte del progreso de autocuidado de hoy, hay una relación de
+  fondo que solo crece — con cada check-in, cada vez que la tocas, cada compra. Tiene sus
+  propios niveles ("Recién se conocen" → "Inseparables"), con una frase que describe cómo
+  va esa relación, cada vez más cercana. Se abre tocando "Ver a Boya" desde Hoy.
+- **Tienda de conchitas 🐚**: moneda aparte de los puntos que suben de nivel — se gana con
+  cada check-in del día a día y se gasta vistiendo a Boya: gorros, gafas, bufandas, moños,
+  collar, corona, y fondos alternativos para su círculo (atardecer, noche estrellada,
+  arrecife). Algunos accesorios piden cierto nivel de vínculo para desbloquearse. Todo lo
+  comprado es tuyo para siempre — se puede poner y quitar sin volver a pagarlo.
 - **Gancho instantáneo en cada toque**: al marcar algo salta un "+puntos" flotando, un pop
   de sonido, una vibración cortita (celular) y, en hitos (medalla nueva, subir de nivel,
   día completo), una tarjeta de celebración a pantalla completa con confeti. Todo se puede
@@ -56,6 +67,15 @@ pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el pr
   tachando.
 - **Recordatorios**: horarios configurables para comidas/dormir + aviso de agua cada N
   horas, con botones sueltos de "recuérdamelo en 30 min" sin tener que configurar nada.
+- **Calma**, pestaña propia en la barra de abajo (no escondida, para cuando los estímulos
+  son muchos y buscar algo cuesta): respiración guiada tipo "caja" (inhala 4s, sostén 4s,
+  exhala 4s, sostén 4s, con un círculo que se expande y se contrae) y un ejercicio de
+  aterrizaje 5-4-3-2-1 (nombrar cosas que ves, tocas, oyes, hueles, sientes). A propósito
+  **sin números, sin racha, sin conchitas** — es la única sección de la app donde no hay
+  nada que ganar, solo bajar el ritmo. El lenguaje evita el "todo está bien" (puede sonar
+  invalidante en medio de una crisis real) y usa en cambio algo tipo "vamos a respirar
+  juntas". No incluye línea de crisis ni contactos de emergencia en esta vuelta — quedó
+  fuera a propósito, se puede sumar después si se decide que sí.
 
 ## Cómo usarla
 
