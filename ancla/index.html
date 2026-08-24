@@ -13,44 +13,50 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.svg">
 <link rel="icon" href="./icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Karla:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f7f2ea; --card:#ffffff; --ink:#1f2a2e; --sub:#5b6b70; --teal:#0e7c86; --teal-d:#0b616a;
-  --coral:#ff8a65; --mint:#d7f0e6; --mint-ink:#0b4a3e; --line:#e7ddcf; --warn:#b3441e;
-  --radius:20px; --radius-s:13px;
+  --bg:#ece3d1; --card:#faf7f0; --ink:#161f22; --sub:#5c6a68; --teal:#0b4247; --teal-d:#082e32;
+  --coral:#b25e39; --mint:#dbe1cd; --mint-ink:#37402c; --line:#dccfb3; --warn:#9c3a1e;
+  --radius:14px; --radius-s:9px;
+  --font-display:'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body:'Karla', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 }
 @media (prefers-color-scheme:dark){
   :root{
-    --bg:#0f1719; --card:#182426; --ink:#eef4f3; --sub:#a3b5b9; --teal:#2bbcc9; --teal-d:#1f8f9a;
-    --coral:#ff9d7a; --mint:#123f34; --mint-ink:#a9e8d6; --line:#25373b; --warn:#ffb199;
+    --bg:#0a1213; --card:#131e20; --ink:#edf1ea; --sub:#8fa09c; --teal:#2f99a1; --teal-d:#1c6a70;
+    --coral:#d9895c; --mint:#232c1d; --mint-ink:#c2d3a9; --line:#263335; --warn:#ff9a6b;
   }
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{margin:0; padding:0}
 body{
   background:var(--bg); color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  font-family:var(--font-body);
   -webkit-font-smoothing:antialiased;
   padding-bottom:calc(80px + env(safe-area-inset-bottom));
   min-height:100vh;
 }
 button{font-family:inherit; -webkit-appearance:none; appearance:none; border:none; background:none; color:inherit; cursor:pointer}
-button:active{transform:scale(.96)}
+button:active{transform:scale(.97)}
 input, select, textarea{font-family:inherit; color:inherit}
 h1,h2,h3,p{margin:0}
+.num{font-family:var(--font-mono); font-variant-numeric:tabular-nums}
 .envolt{max-width:540px; margin:0 auto; padding:18px 16px 6px}
 .topbar{display:flex; align-items:center; justify-content:space-between; padding:4px 2px 4px}
 .marca-row{display:flex; align-items:center; gap:8px}
-.marca{font-weight:800; font-size:22px; letter-spacing:.2px; color:var(--teal-d)}
-@media (prefers-color-scheme:dark){ .marca{color:var(--teal)} }
-.beta-tag{font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; background:var(--coral); color:#fff; padding:2px 7px; border-radius:20px}
+.marca{font-family:var(--font-display); font-style:italic; font-weight:600; font-size:23px; letter-spacing:.1px; color:var(--ink)}
+.beta-tag{font-family:var(--font-mono); font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:.6px; background:none; color:var(--coral); padding:2px 0 2px 8px; border-left:1.5px solid var(--line)}
 .topbar-der{display:flex; align-items:center; gap:10px}
-.fecha{font-size:12.5px; color:var(--sub); text-transform:capitalize}
-.saludo-nombre{font-size:14px; color:var(--sub); font-weight:600; margin:2px 2px 10px}
+.fecha{font-size:12px; color:var(--sub); text-transform:capitalize; letter-spacing:.1px}
+.saludo-nombre{font-family:var(--font-display); font-style:italic; font-size:16px; color:var(--ink); font-weight:500; margin:2px 2px 12px}
 
 .card{background:var(--card); border-radius:var(--radius); padding:18px; margin-bottom:14px; box-shadow:0 1px 2px rgba(0,0,0,.04); border:1px solid var(--line)}
-.card h3{font-size:15px; margin-bottom:4px}
-.sub{color:var(--sub); font-size:13px; line-height:1.5}
+.card h3{font-family:var(--font-display); font-weight:600; font-size:17px; margin-bottom:4px; letter-spacing:.1px}
+.sub{color:var(--sub); font-size:13px; line-height:1.55}
 
 .banner{background:var(--mint); color:var(--mint-ink); border-radius:var(--radius-s); padding:13px 14px; margin-bottom:14px; font-size:13.5px; line-height:1.5; display:flex; gap:10px; align-items:flex-start}
 .banner .acciones{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
@@ -79,7 +85,7 @@ h1,h2,h3,p{margin:0}
 .boya-txt .sub{font-size:13px}
 .ver-boya-link{font-size:12px; font-weight:700; color:var(--mint-ink); margin-top:8px; display:inline-flex; align-items:center; gap:5px; background:var(--mint); padding:6px 12px; border-radius:20px}
 
-.conchitas-chip{display:flex; align-items:center; gap:4px; background:var(--mint); color:var(--mint-ink); font-weight:700; font-size:12.5px; padding:5px 10px; border-radius:20px; transition:transform .15s}
+.conchitas-chip{font-family:var(--font-mono); display:flex; align-items:center; gap:4px; background:var(--mint); color:var(--mint-ink); font-weight:600; font-size:12.5px; padding:5px 10px; border-radius:20px; transition:transform .15s}
 .conchitas-chip.pulso{animation:pulso-conchita .4s ease}
 @keyframes pulso-conchita{ 0%{transform:scale(1)} 40%{transform:scale(1.22)} 100%{transform:scale(1)} }
 
@@ -90,7 +96,7 @@ h1,h2,h3,p{margin:0}
 .boya-retrato{position:relative; width:150px; height:150px; border-radius:50%; overflow:hidden; background:linear-gradient(160deg, var(--teal), var(--teal-d)); box-shadow:0 8px 24px rgba(14,124,134,.3)}
 .boya-retrato svg{width:88%; height:88%; position:absolute; left:6%; top:6%; animation:bamboleo 3.4s ease-in-out infinite}
 .boya-nombre-fila{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:14px}
-.boya-nombre-fila input{font-size:19px; font-weight:800; text-align:center; border:none; background:none; color:var(--ink); width:auto; max-width:200px; border-bottom:1.5px dashed var(--line); padding:2px 4px}
+.boya-nombre-fila input{font-family:var(--font-display); font-style:italic; font-size:22px; font-weight:600; text-align:center; border:none; background:none; color:var(--ink); width:auto; max-width:200px; border-bottom:1.5px dashed var(--line); padding:2px 4px}
 .vinculo-barra{margin-top:14px; width:100%}
 .subtabs{display:flex; gap:8px; margin:16px 0 14px; background:var(--bg); padding:4px; border-radius:20px}
 .subtabs button{flex:1; padding:9px; border-radius:16px; font-size:13px; font-weight:700; color:var(--sub)}
@@ -133,14 +139,14 @@ h1,h2,h3,p{margin:0}
 .nivel-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
 .nivel-top .l{font-weight:700; font-size:15px}
 .nivel-top .l span{display:block; font-weight:400; font-size:12.5px; opacity:.85; margin-top:2px}
-.nivel-top .r{font-size:14px; font-weight:700; text-align:right; white-space:nowrap}
+.nivel-top .r{font-family:var(--font-mono); font-size:14px; font-weight:600; text-align:right; white-space:nowrap}
 .nivel-top .r span{display:block; font-weight:400; font-size:11px; opacity:.85}
 .bar{background:rgba(255,255,255,.18); height:8px; border-radius:20px; margin-top:14px; overflow:hidden}
 .bar i{display:block; height:100%; background:#fff; border-radius:20px; transition:width .5s ease}
 .medallas-mini{display:flex; gap:8px; margin-top:14px; align-items:center}
 .medallas-mini span{font-size:19px; opacity:.5}
 .medallas-mini span.on{opacity:1}
-.medallas-mini button{margin-left:auto; font-size:12px; font-weight:600; background:rgba(255,255,255,.16); padding:5px 10px; border-radius:20px}
+.medallas-mini button{font-family:var(--font-mono); margin-left:auto; font-size:12px; font-weight:500; background:rgba(255,255,255,.16); padding:5px 10px; border-radius:20px}
 
 .medallas-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:12px}
 @media(max-width:380px){.medallas-grid{grid-template-columns:repeat(4,1fr)}}
@@ -148,10 +154,10 @@ h1,h2,h3,p{margin:0}
 .medalla.on{opacity:1; background:var(--mint)}
 .medalla-desc{font-size:10.5px; color:var(--sub); margin-top:12px; line-height:1.5}
 
-.btn{display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:13px 18px; border-radius:30px; font-weight:700; font-size:14.5px}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:13px 18px; border-radius:10px; font-weight:600; font-size:14.5px; letter-spacing:.1px}
 .btn-principal{background:var(--coral); color:#fff; width:100%}
 .btn-fantasma{background:var(--bg); border:1.5px solid var(--line); color:var(--ink)}
-.btn-chico{padding:8px 14px; font-size:12.5px; border-radius:20px}
+.btn-chico{padding:8px 14px; font-size:12.5px; border-radius:8px}
 
 .fila-input{display:flex; gap:8px}
 .fila-input input[type=text]{flex:1; padding:12px 14px; border-radius:var(--radius-s); border:1.5px solid var(--line); background:var(--bg); color:var(--ink); font-size:14px}
@@ -161,7 +167,7 @@ h1,h2,h3,p{margin:0}
 .ropa-item .t{flex:1}
 .ropa-item button{color:var(--warn); font-size:16px; padding:2px 4px}
 .elegida{background:var(--mint); color:var(--mint-ink); border-radius:var(--radius-s); padding:20px; text-align:center; margin-top:14px}
-.elegida .grande{font-size:19px; font-weight:800; margin:6px 0 14px}
+.elegida .grande{font-family:var(--font-display); font-style:italic; font-size:21px; font-weight:600; margin:6px 0 14px}
 
 .pasos{display:flex; flex-direction:column; gap:8px; margin-top:14px}
 .paso{display:flex; align-items:center; gap:10px; background:var(--bg); border-radius:12px; padding:12px 13px; font-size:13.5px}
@@ -222,11 +228,11 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 
 .overlay-celebracion{position:fixed; inset:0; background:rgba(15,23,25,.55); display:flex; align-items:center; justify-content:center; z-index:55; padding:24px; animation:aparecer .2s ease}
 @keyframes aparecer{ from{opacity:0} to{opacity:1} }
-.tarjeta-celebracion{background:var(--card); border-radius:24px; padding:34px 26px; text-align:center; max-width:320px; box-shadow:0 12px 40px rgba(0,0,0,.3); animation:pop .35s cubic-bezier(.34,1.56,.64,1)}
+.tarjeta-celebracion{background:var(--card); border-radius:16px; padding:34px 26px; text-align:center; max-width:320px; box-shadow:0 12px 40px rgba(0,0,0,.3); animation:pop .35s cubic-bezier(.34,1.56,.64,1)}
 @keyframes pop{ 0%{transform:scale(.7); opacity:0} 100%{transform:scale(1); opacity:1} }
-.cel-emo{font-size:52px; margin-bottom:10px}
-.cel-titulo{font-weight:800; font-size:19px; margin-bottom:6px}
-.cel-sub{color:var(--sub); font-size:13.5px; line-height:1.5}
+.cel-emo{font-size:44px; margin-bottom:10px}
+.cel-titulo{font-family:var(--font-display); font-style:italic; font-weight:600; font-size:23px; margin-bottom:6px}
+.cel-sub{font-family:var(--font-mono); color:var(--sub); font-size:12.5px; line-height:1.5}
 </style>
 </head>
 <body>
@@ -234,7 +240,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.5.0-beta';
+var VERSION='0.6.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -276,11 +282,11 @@ var NIVELES=['Semilla','Brote','Raíz firme','Tallo alto','Copa abierta','Bosque
 var EMOJIS_MINI=['💊','🌱','📞','🧴','🧘','📚','🧺','🔋','❤️','🐾','🎯','🧠'];
 var NIVELES_VINCULO=['Recién se conocen','Se van conociendo','Cómplices','Un equipo','Inseparables'];
 var DESC_VINCULO=[
-  'Boya todavía te está conociendo. Cada toque suma.',
-  'Ya empieza a reconocer tu ritmo — los días buenos y los difíciles.',
-  'Boya te acompaña sin juzgar ni un día malo. Confía en ti.',
-  'Ya son un equipo — ella nota hasta cuando vuelves después de un tiempo.',
-  'Inseparables. Pase lo que pase, Boya sigue aquí, a tu ritmo.'
+  'Todavía se están conociendo. Ninguna relación real empieza sabiéndolo todo.',
+  'Ya reconoce tu ritmo — los días fáciles y los que no lo son tanto.',
+  'No juzga los días malos. Los registra y sigue de largo, sin drama.',
+  'Ya son equipo. Nota hasta cuándo te fuiste y cuándo volviste.',
+  'Inseparables — no por costumbre. Por elección, cada vez.'
 ];
 
 var ITEMS_BOYA=[
@@ -288,13 +294,13 @@ var ITEMS_BOYA=[
   {id:'sombrero_paja', tipo:'sombrero', nombre:'Sombrero de paja', emo:'👒', precio:20, vinculoMin:0},
   {id:'boina', tipo:'sombrero', nombre:'Boina', emo:'🎨', precio:22, vinculoMin:1},
   {id:'panuelo_pirata', tipo:'sombrero', nombre:'Pañuelo pirata', emo:'🏴‍☠️', precio:24, vinculoMin:1},
-  {id:'corona', tipo:'sombrero', nombre:'Corona chiquita', emo:'👑', precio:60, vinculoMin:3},
+  {id:'corona', tipo:'sombrero', nombre:'Corona pequeña', emo:'👑', precio:60, vinculoMin:3},
   {id:'gafas_sol', tipo:'gafas', nombre:'Gafas de sol', emo:'🕶️', precio:18, vinculoMin:0},
   {id:'gafas_redondas', tipo:'gafas', nombre:'Gafas redondas', emo:'👓', precio:22, vinculoMin:1},
   {id:'gafas_corazon', tipo:'gafas', nombre:'Gafas de corazón', emo:'💗', precio:28, vinculoMin:2},
   {id:'bufanda', tipo:'cuello', nombre:'Bufanda', emo:'🧣', precio:16, vinculoMin:0},
   {id:'moño', tipo:'cuello', nombre:'Moño', emo:'🎀', precio:14, vinculoMin:0},
-  {id:'collar_conchas', tipo:'cuello', nombre:'Collar de conchitas', emo:'📿', precio:35, vinculoMin:2},
+  {id:'collar_conchas', tipo:'cuello', nombre:'Collar de conchas', emo:'📿', precio:35, vinculoMin:2},
   {id:'capa_heroe', tipo:'cuello', nombre:'Capa de heroína', emo:'🦸', precio:45, vinculoMin:2},
   {id:'fondo_atardecer', tipo:'fondo', nombre:'Atardecer', emo:'🌇', precio:25, vinculoMin:1},
   {id:'fondo_noche', tipo:'fondo', nombre:'Noche estrellada', emo:'🌌', precio:30, vinculoMin:2},
@@ -307,22 +313,22 @@ var FONDOS_BOYA={
 };
 
 var MENSAJES_BOYA=[
-  'No tiene que ser perfecto. Ya cuenta.',
-  'Un paso es un paso.',
-  'Cuando puedas, no cuando debas.',
-  'Estás aquí. Eso ya es algo.',
-  'No hay puntos por sufrir de más.',
-  'Lo pequeño también cuenta como cuidado.',
-  'Hoy no compite con ayer.',
-  'Respira. Vamos de a uno.',
-  'No estás sola en esto.',
-  'Volver también cuenta como avanzar.',
-  'Esto no es examen. Es solo hoy.',
-  'Lo que alcances a hacer, alcanza.',
+  'No tiene que ser perfecto. Tiene que ser hoy.',
+  'Un dato, no una sentencia: hiciste algo. Eso es todo lo que esto mide.',
+  'Cuando puedas, no cuando "deberías" — esa palabra no vive aquí.',
+  'Tu cerebro está cableado distinto. Estar aquí ya es una decisión, no un accidente.',
+  'No reparto puntos por sufrir de más. Ese negocio no es mío.',
+  'Lo pequeño también es cuidado — solo que nadie te lo dijo con la seriedad que merece.',
+  'Hoy no compite con ayer. Yo no llevo esa cuenta.',
+  'Respira. Lo demás puede esperar cuatro segundos.',
+  'La culpa nunca te hizo bañarte ni una sola vez. Probemos otra cosa.',
+  'Volver cuenta. De hecho, cuenta más de lo que crees.',
+  'Esto no es examen. No hay nota, ni curva, ni nadie decepcionado.',
+  'No necesitas merecerlo. Necesitas hacerlo. Son cosas distintas.',
   '¿Sabías que las nutrias de mar duermen tomadas de la mano para no irse a la deriva? Yo hago algo parecido contigo, a mi manera.',
   'Si esto fuera examen, ya habrías reprobado por pensar que es examen.',
   'No tengo reloj, pero sé que este momento cuenta.',
-  'Contarte estas cosas me hace sentir útil. Gracias por tocarme.'
+  'Contarte estas cosas me hace sentir útil. Gracias por venir a buscarme.'
 ];
 function mensajeAlTocar(){
   var stats=calcularEstadisticas();
@@ -511,8 +517,8 @@ function medallasCrudas(stats){
     {id:'mover5', emo:'🏃', titulo:'Me moví', desc:'Te moviste 5 veces en total', cumple:stats.moverTotal>=5},
     {id:'dormir5', emo:'😴', titulo:'Buenas noches', desc:'Registraste que dormiste 5 veces', cumple:stats.dormirTotal>=5},
     {id:'ropa5', emo:'👗', titulo:'Elegí sin pelear', desc:'Dejaste que Ancla eligiera tu ropa 5 veces', cumple:stats.ropaUsos>=5},
-    {id:'tarea3', emo:'🧩', titulo:'Lo dividí', desc:'Partiste una tarea grande en pasitos, 3 veces', cumple:stats.tareasUsos>=3},
-    {id:'mini5', emo:'📌', titulo:'Cosas chiquitas', desc:'Usaste un mini recordatorio 5 veces', cumple:stats.miniToques>=5},
+    {id:'tarea3', emo:'🧩', titulo:'Lo dividí', desc:'Partiste una tarea grande en pasos, 3 veces', cumple:stats.tareasUsos>=3},
+    {id:'mini5', emo:'📌', titulo:'Detalles que suman', desc:'Usaste un mini recordatorio 5 veces', cumple:stats.miniToques>=5},
     {id:'regreso', emo:'🕊️', titulo:'Volviste', desc:'Volviste a abrir Ancla después de unos días sin entrar — eso también cuenta', cumple:stats.volviste},
     {id:'primer_regalo', emo:'🎁', titulo:'Su primer regalo', desc:'Le compraste algo a Boya por primera vez', cumple:stats.comprasTotal>=1},
     {id:'vinculo_max', emo:'💞', titulo:'Inseparables', desc:'Llegaste al vínculo más alto con Boya', cumple:stats.vinculoNivel>=NIVELES_VINCULO.length}
@@ -544,10 +550,10 @@ function calcularProgreso(){
 }
 function mensajeBoya(cuenta){
   var n=(S.boya&&S.boya.nombre)||'Boya';
-  if(cuenta<=0) return {id:'deriva', t:n+' está dormidita', s:'Tócala aunque sea solo para saludar. Eso ya suma.'};
-  if(cuenta<=2) return {id:'bajito', t:n+' flota bajito', s:'Cualquier cosita más ayuda, sin apuro.'};
-  if(cuenta<=4) return {id:'flote', t:n+' se mantiene a flote', s:'Vas bien, a tu ritmo.'};
-  if(cuenta<=6) return {id:'tranquila', t:n+' nada tranquila', s:'Hoy te estás cuidando de verdad.'};
+  if(cuenta<=0) return {id:'deriva', t:n+' está dormida', s:'Tócala, aunque sea solo para saludar. Eso también cuenta.'};
+  if(cuenta<=2) return {id:'bajito', t:n+' flota bajo', s:'Lo que sea que hagas ahora suma, sin apuro.'};
+  if(cuenta<=4) return {id:'flote', t:n+' se mantiene a flote', s:'Vas bien, a tu ritmo — no al de nadie más.'};
+  if(cuenta<=6) return {id:'tranquila', t:n+' nada tranquila', s:'Hoy te estás cuidando de verdad. Se nota.'};
   return {id:'brilla', t:n+' está que brilla', s:'Día completo. Orgullo, no perfección.'};
 }
 
@@ -802,7 +808,7 @@ function notificar(titulo, cuerpo){
   }
 }
 var TEXTOS_REC={
-  desayuno:['🍳 Desayuno','¿Ya comiste algo? Aunque sea chiquito.'],
+  desayuno:['🍳 Desayuno','¿Ya comiste algo? Aunque sea poco.'],
   almuerzo:['🍽️ Almuerzo','Es hora de parar un momento a comer.'],
   cena:['🌙 Cena','No se te olvide cenar hoy.'],
   dormir:['😴 Hora de ir bajando el ritmo','Empieza a cerrar el día cuando puedas.']
@@ -821,7 +827,7 @@ function revisarRecordatorios(){
   if(ag && ag.on){
     var h=ahora.getHours();
     if(h>=7 && h<=22 && (Date.now()-(ag.ultimoMs||0))>=ag.horas*3600000){
-      notificar('💧 Agua','¿Tomaste agua hace rato? Un vasito ahora.');
+      notificar('💧 Agua','¿Tomaste agua hace rato? Un vaso ahora.');
       ag.ultimoMs=Date.now(); guardar();
     }
   }
@@ -863,7 +869,7 @@ function elegirRopa(){
 /* ===================== divide tarea ===================== */
 var PLANTILLAS=[
   {claves:['ban','duch'], pasos:['Ve al baño, no pienses en nada más','Abre el agua','Métete, aunque sea 2 minutos','Lávate como puedas','Sal y sécate']},
-  {claves:['plato','trast','loza','cocin'], pasos:['Junta los platos en un solo lugar','Abre el agua','Lava solo 3 platos','Mira cuántos faltan','Lava unos poquitos más, o para aquí']},
+  {claves:['plato','trast','loza','cocin'], pasos:['Junta los platos en un solo lugar','Abre el agua','Lava solo 3 platos','Mira cuántos faltan','Lava unos cuantos más, o para aquí']},
   {claves:['lavar ropa','lavar la ropa','ropa sucia','lavadora','tender','canasto'], pasos:['Junta la ropa sucia en un solo lugar','Ponla en la lavadora (o sepárala si es a mano)','Dale al botón — no hace falta hacer nada más por un rato','Cuando termine, tiéndela o pásala a la secadora','Doblar puede esperar a otro momento, ya lo difícil pasó']},
   {claves:['cuarto','ordenar','organizar','limpiar'], pasos:['Escoge SOLO una superficie (la cama o el piso)','Pon un timer de 10 minutos','Mueve lo que hay ahí a su lugar','Cuando suene el timer, para, así no hayas terminado']},
   {claves:['basura','caneca'], pasos:['Junta las bolsas de la casa','Sácalas hasta la puerta','Bótalas donde va la basura','Listo, ya volviste']},
@@ -1032,7 +1038,7 @@ function renderHoy(){
   if(S.miniRecordatorios.length){
     var extra=extraDeHoy();
     h+='<div class="card">';
-    h+='<h3>📌 Tus recordatorios</h3>';
+    h+='<h3>Tus recordatorios</h3>';
     h+='<div class="grid-cats" style="margin-top:12px">';
     S.miniRecordatorios.forEach(function(m){
       var hecho=!!extra[m.id];
@@ -1060,7 +1066,7 @@ function renderHoy(){
 
   if(V.mostrarMedallas){
     h+='<div class="card">';
-    h+='<h3>🏅 Tus medallas</h3>';
+    h+='<h3>Medallas</h3>';
     h+='<p class="sub">Estas no se pierden nunca, una vez las ganas son tuyas.</p>';
     h+='<div class="medallas-grid">';
     jg.medallas.forEach(function(m){ h+='<div class="medalla '+(m.on?'on':'')+'" title="'+esc(m.titulo)+'">'+(m.on?m.emo:'🔒')+'</div>'; });
@@ -1126,7 +1132,7 @@ function renderBoyaPanel(){
   } else {
     h+='<div class="card">';
     if(!S.comprados.length){
-      h+='<p class="sub" style="text-align:center">Todavía no le has comprado nada. Cada check-in te da conchitas — en la Tienda puedes gastarlas.</p>';
+      h+='<p class="sub" style="text-align:center">Todavía no le has comprado nada. Cada check-in te da conchas — en la Tienda puedes gastarlas.</p>';
     } else {
       h+='<div class="tienda-grid">';
       S.comprados.forEach(function(id){
@@ -1149,8 +1155,8 @@ function renderBoyaPanel(){
 function renderCalma(){
   var h='';
   h+='<div class="card">';
-  h+='<h3>🫁 Respiración guiada</h3>';
-  h+='<p class="sub">Cuando los estímulos son muchos. Sin números, sin racha — solo un ratito para bajar el ritmo.</p>';
+  h+='<h3>Respiración guiada</h3>';
+  h+='<p class="sub">Cuando los estímulos son muchos. Sin números, sin racha — solo un momento para bajar el ritmo.</p>';
   h+='<div class="respirar-circulo-wrap">';
   h+='<div class="respirar-circulo '+((V.respirando==='inhala'||V.respirando==='sosten1')?'grande':'chico')+'" id="circulo-respirar">';
   h+='<div class="respirar-nutria">'+dibujarNutria('tranquila')+'</div>';
@@ -1165,7 +1171,7 @@ function renderCalma(){
   h+='</div>';
 
   h+='<div class="card">';
-  h+='<h3>🧭 Aterrizaje (5-4-3-2-1)</h3>';
+  h+='<h3>Aterrizaje · 5-4-3-2-1</h3>';
   h+='<p class="sub">Una técnica para volver al cuerpo cuando todo se siente demasiado — nombra, sin apuro.</p>';
   var pasos=[
     ['5','cosas que puedes ver a tu alrededor'],
@@ -1190,7 +1196,7 @@ function renderCalma(){
 function renderHerramientas(){
   var h='';
   h+='<div class="card">';
-  h+='<h3>👗 Decide tú</h3>';
+  h+='<h3>Decide tú</h3>';
   h+='<p class="sub">Guarda combinaciones de ropa que ya sabes que te sirven. Cuando no se te ocurra qué ponerte, deja que Ancla elija por ti.</p>';
 
   h+='<div class="fila-input" style="margin-top:12px">';
@@ -1216,7 +1222,7 @@ function renderHerramientas(){
   h+='</div>';
 
   h+='<div class="card">';
-  h+='<h3>📌 Mini recordatorios</h3>';
+  h+='<h3>Recordatorios propios</h3>';
   h+='<p class="sub">Cosas puntuales tuyas que no están en la lista de siempre — medicina, regar una planta, llamar a alguien. Aparecen en Hoy para marcarlas con un toque.</p>';
   h+='<div class="emoji-pick" style="margin-top:12px">';
   EMOJIS_MINI.forEach(function(em){ h+='<button class="emoji-op '+(V.miniEmo===em?'sel':'')+'" data-action="elegir-mini-emo" data-value="'+em+'">'+em+'</button>'; });
@@ -1235,8 +1241,8 @@ function renderHerramientas(){
   h+='</div>';
 
   h+='<div class="card">';
-  h+='<h3>🧩 Divide esta tarea</h3>';
-  h+='<p class="sub">Toca una de estas, o escribe la tuya. Ancla la parte en pasos chiquitos.</p>';
+  h+='<h3>Divide esta tarea</h3>';
+  h+='<p class="sub">Toca una de estas, o escribe la tuya. Ancla la parte en pasos pequeños.</p>';
   if(!S.tareaActual || S.tareaActual.fecha!==hoyISO()){
     h+='<div class="pendientes" style="margin-top:12px">';
     TAREAS_RAPIDAS.forEach(function(t){ h+='<button data-action="tarea-rapida" data-value="'+esc(t.texto)+'">'+t.emo+' '+esc(t.texto)+'</button>'; });
@@ -1277,7 +1283,7 @@ function renderRecordatorios(){
   }
 
   h+='<div class="card">';
-  h+='<h3>⏰ Recordatorios</h3>';
+  h+='<h3>Recordatorios</h3>';
   h+='<p class="sub">Funcionan mientras Ancla esté abierta (o instalada en tu pantalla de inicio). No son notificaciones enviadas desde un servidor todavía — eso es un paso a futuro.</p>';
   h+='<div class="campo-fila" style="margin-top:14px"><div><div class="l">Activar recordatorios</div><div class="sub">Pide permiso de notificación la primera vez</div></div>';
   h+='<button class="switch '+(r.activos?'on':'')+'" data-action="toggle-activos"><i></i></button></div>';
@@ -1324,7 +1330,7 @@ function renderAjustes(){
   var h='';
 
   h+='<div class="card">';
-  h+='<h3>👤 Tu perfil</h3>';
+  h+='<h3>Tu perfil</h3>';
   h+='<div style="display:flex; align-items:center; gap:14px; margin-top:12px">';
   h+='<label class="avatar-picker" style="width:64px; height:64px; font-size:22px">'+(S.usuario.foto?'<img src="'+S.usuario.foto+'" alt="">':'<span>📷</span>')+'<input type="file" accept="image/*" id="inp-foto-perfil" style="display:none"></label>';
   h+='<div style="flex:1"><input type="text" data-bind="usuario.nombre" value="'+esc(S.usuario.nombre)+'" placeholder="Tu nombre" class="input-nombre" style="text-align:left; border-radius:12px"></div>';
@@ -1333,21 +1339,21 @@ function renderAjustes(){
   h+='</div>';
 
   h+='<div class="card">';
-  h+='<h3>🔊 Sonido y vibración</h3>';
-  h+='<p class="sub">Un pop suave y una vibración cortita cuando marcas algo o desbloqueas algo. Se puede apagar.</p>';
+  h+='<h3>Sonido y vibración</h3>';
+  h+='<p class="sub">Un pop suave y una vibración corta cuando marcas algo o desbloqueas algo. Se puede apagar.</p>';
   h+='<div class="campo-fila" style="margin-top:14px"><div class="l">Activar</div>';
   h+='<button class="switch '+(S.efectos!==false?'on':'')+'" data-action="toggle-efectos"><i></i></button></div>';
   h+='</div>';
 
   h+='<div class="card">';
-  h+='<h3>🫧 Modo suave</h3>';
+  h+='<h3>Modo suave</h3>';
   h+='<p class="sub">Oculta números, rachas exactas y conteos de medallas — deja solo palabras, y baja la intensidad del confeti. Pensado para cuando contar/chequear se vuelve más ansiedad que ayuda.</p>';
   h+='<div class="campo-fila" style="margin-top:14px"><div class="l">Activar modo suave</div>';
   h+='<button class="switch '+(S.modoSuave?'on':'')+'" data-action="toggle-modo-suave"><i></i></button></div>';
   h+='</div>';
 
   h+='<div class="card">';
-  h+='<h3>💾 Tus datos</h3>';
+  h+='<h3>Tus datos</h3>';
   h+='<p class="sub">Todo vive solo en este navegador/celular — no se sube a ningún servidor. Eso también significa que si cambias de celular o borras el navegador, se pierde, salvo que hagas una copia.</p>';
   h+='<div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap">';
   h+='<button class="btn btn-fantasma btn-chico" data-action="exportar">Descargar copia</button>';

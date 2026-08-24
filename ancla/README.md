@@ -12,9 +12,25 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.5.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.6.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.5.0" al reportar algo raro.
+> pasó en la v0.6.0" al reportar algo raro.
+
+## Identidad visual (v0.6.0)
+
+Ancla es para adultas neurodivergentes, no para niños — el diseño lo dice explícito:
+
+- **Tipografía**: Fraunces (serifa con carácter, itálica en el nombre y en momentos con
+  voz propia) para jerarquía editorial, Karla para el cuerpo, IBM Plex Mono para cifras
+  (racha, nivel, conchas) — que las cifras se vean "medidas", no decorativas.
+- **Paleta**: océano de noche, no pastel de guardería — petróleo profundo, terracota
+  quemada, musgo apagado en vez de menta chicle y coral de fruta.
+- **Forma**: bordes menos redondeados, sombras discretas — menos "todo es una burbuja
+  flotando".
+- **Voz**: se quitaron los diminutivos ("dormidita", "vasito", "cosita", "conchitas") y
+  se afiló el banco de frases de Boya — menos dulzura genérica, más ingenio seco y
+  observación específica. Los encabezados de sección perdieron el emoji decorativo
+  (queda donde es icono funcional real, como las categorías del día).
 
 ## Qué hace
 
@@ -41,10 +57,10 @@ pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el pr
   fondo que solo crece — con cada check-in, cada vez que la tocas, cada compra. Tiene sus
   propios niveles ("Recién se conocen" → "Inseparables"), con una frase que describe cómo
   va esa relación, cada vez más cercana. Se abre tocando "Ver a Boya" desde Hoy.
-- **Tienda de conchitas 🐚**: moneda aparte de los puntos que suben de nivel — se gana con
+- **Tienda de conchas 🐚**: moneda aparte de los puntos que suben de nivel — se gana con
   cada check-in del día a día y se gasta vistiendo a Boya: gorros (lana, paja, boina,
   pañuelo pirata, corona), gafas (sol, redondas, de corazón), cuello (bufanda, moño,
-  collar de conchitas, capa de heroína), y fondos alternativos para su círculo (atardecer,
+  collar de conchas, capa de heroína), y fondos alternativos para su círculo (atardecer,
   noche estrellada, arrecife). Algunos accesorios piden cierto nivel de vínculo para
   desbloquearse. Todo lo comprado es tuyo para siempre — se puede poner y quitar sin volver
   a pagarlo. Hay dos medallas ligadas directamente a esto: el primer regalo que le haces, y
@@ -87,7 +103,7 @@ pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el pr
   son muchos y buscar algo cuesta): respiración guiada tipo "caja" (inhala 4s, sostén 4s,
   exhala 4s, sostén 4s, con un círculo que se expande y se contrae) y un ejercicio de
   aterrizaje 5-4-3-2-1 (nombrar cosas que ves, tocas, oyes, hueles, sientes). A propósito
-  **sin números, sin racha, sin conchitas** — es la única sección de la app donde no hay
+  **sin números, sin racha, sin conchas** — es la única sección de la app donde no hay
   nada que ganar, solo bajar el ritmo. El lenguaje evita el "todo está bien" (puede sonar
   invalidante en medio de una crisis real) y usa en cambio algo tipo "vamos a respirar
   juntas". No incluye línea de crisis ni contactos de emergencia en esta vuelta — quedó
