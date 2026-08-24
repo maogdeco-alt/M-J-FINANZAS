@@ -12,9 +12,51 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.11.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.12.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.11.0" al reportar algo raro.
+> pasó en la v0.12.0" al reportar algo raro.
+
+## Medicamentos, y una interfaz que se puede leer (v0.12.0)
+
+### Medicamentos
+Van por **hora fija**, no por intervalo como las perras — y la pregunta que hay que
+responder no es "¿ya toca?" sino **"¿ya me la tomé o me lo estoy imaginando?"**.
+
+- Cada toma del día es **una casilla con su hora**. De un vistazo se ve cuál está tomada
+  (y a qué hora exacta se tomó), cuál está sin registro y cuál es más tarde. No hay que
+  recordar: se ve.
+- Las horas se editan tocándolas.
+- **Red de seguridad contra doble dosis**: si marcas una toma y ya registraste otra hace
+  menos de 45 minutos, la app pregunta antes de anotarla. Y si marcaste una por error,
+  tocarla otra vez ofrece borrar el registro.
+- **Límite deliberado**: Ancla registra y recuerda. *Qué hacer con una dosis saltada lo
+  decide ella con su médico, no la app* — no sugiere tomar, saltar ni doblar nada.
+- Una toma vencida es lo primero en "Ahora", por encima de todo lo demás.
+
+### El rediseño
+El problema no era el contenido, era que **todo pesaba igual**: diez tarjetas idénticas,
+mismo fondo, mismo borde, mismo tamaño, compitiendo entre sí. Cuando todo grita, no se oye
+nada. Las reglas nuevas:
+
+1. **Una sola cosa fuerte por pantalla.** La tarjeta *Ahora* es la única con tratamiento
+   marcado. Todo lo demás se calla.
+2. **Lo secundario va en renglones, no en cajas.** "Pendiente ahora" es una lista de
+   renglones sobre el fondo, sin tarjeta propia por ítem.
+3. **Un solo acento.** El coral se reserva para *la* acción; lo vencido usa el rojo
+   profundo. El resto es tinta y gris — sin color decorativo.
+4. **Lo que ya está hecho no ocupa espacio.** El día se pliega: solo la franja de *ahora*
+   viene abierta, las demás quedan en un renglón con su contador y se abren con un toque.
+5. **Boya acompaña, no protagoniza.** En Hoy pasa a un retrato compacto con el estado y el
+   avance del día; sigue respondiendo al tacto. A tamaño completo vive en su cuarto, que es
+   donde tiene sentido que sea la estrella.
+
+Resultado: Hoy pasó de ~10 bloques del mismo peso a 4 niveles claros — Ahora, Boya,
+Pendiente ahora, El día — y el progreso quedó de último, a propósito.
+
+### Navegación
+Medicamentos y perras son el mismo tipo de problema (cosas con hora que se olvidan), así
+que comparten pestaña: **Cuidados**. La barra queda
+**Hoy · Cuidados · Enfoque · Calma · Más**.
 
 ## De registrar el pasado a conducir el presente (v0.11.0)
 

@@ -101,25 +101,6 @@ h1,h2,h3,p{margin:0}
 .tira-cab{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
 .tira-cab h3{margin:0}
 .tira-link{font-size:12.5px; font-weight:700; color:var(--coral); background:none; padding:0}
-.tira-perra-nom{font-size:13px; font-weight:700; color:var(--ink); margin:14px 0 8px}
-.tira-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px}
-.tira-item{background:var(--bg); border:1.5px solid var(--line); border-radius:var(--radius-s); padding:10px 11px; display:flex; align-items:center; gap:8px; text-align:left}
-.tira-item.urg1{border-color:var(--coral)}
-.tira-item.urg2{border-color:var(--warn); background:rgba(156,58,30,.09)}
-.ti-emo{font-size:18px; flex:none}
-.ti-nom{font-size:12px; font-weight:700; color:var(--ink); display:block}
-.ti-ult{font-family:var(--font-mono); font-size:9.5px; color:var(--sub); display:block; margin-top:1px}
-.tira-item .ti-nom, .tira-item .ti-ult{grid-column:2}
-.tira-item{display:grid; grid-template-columns:auto 1fr; align-items:center; column-gap:8px}
-.tira-item .ti-emo{grid-row:1 / span 2}
-.tira-item.urg2 .ti-ult{color:var(--warn); font-weight:600}
-.enfoque-mini{display:flex; align-items:center; gap:12px; margin-top:12px}
-.em-cifra{flex:none; display:flex; align-items:baseline; gap:4px}
-.em-cifra b{font-family:var(--font-mono); font-size:21px; color:var(--ink)}
-.em-cifra span{font-size:11.5px; color:var(--sub)}
-.em-bar{flex:1; height:8px; background:var(--line); border-radius:6px; overflow:hidden}
-.em-bar i{display:block; height:100%; background:var(--coral); border-radius:6px; transition:width .35s}
-
 /* ---- perras ---- */
 .perras-cabecera{display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap}
 .perra-titulo{display:flex; align-items:center; gap:9px; margin-bottom:6px}
@@ -188,6 +169,78 @@ h1,h2,h3,p{margin:0}
 .mi-txt b{display:block; font-size:14px; font-weight:700; color:var(--ink)}
 .mi-txt i{display:block; font-style:normal; font-size:11.5px; color:var(--sub); margin-top:2px}
 .mi-fl{color:var(--sub); font-size:18px; flex:none}
+
+/* ================= sistema visual =================
+   El problema no era el contenido, era que TODO pesaba igual: diez
+   tarjetas idénticas compitiendo. Reglas de acá en adelante:
+   1. Una sola cosa fuerte por pantalla (.ahora). El resto se calla.
+   2. Lo secundario va en renglones sobre el fondo, sin caja.
+   3. El coral se reserva para LA acción; el resto es tinta y gris.
+   4. Nada que ya esté hecho ocupa espacio: se pliega a un contador. */
+
+.seccion{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:22px 2px 10px}
+.seccion span{font-family:var(--font-mono); font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:1.3px; color:var(--sub)}
+.seccion em{font-family:var(--font-mono); font-style:normal; font-size:10.5px; color:var(--sub); opacity:.8}
+
+/* renglones: lo pendiente, sin caja propia */
+.filas{display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--radius-s); overflow:hidden}
+.fila{display:flex; align-items:center; gap:11px; padding:13px 14px; background:var(--card)}
+.fila.u1{background:linear-gradient(90deg, rgba(178,94,57,.09), var(--card) 55%)}
+.fila.u2{background:linear-gradient(90deg, rgba(156,58,30,.16), var(--card) 65%)}
+.f-emo{font-size:17px; flex:none; opacity:.9}
+.f-txt{flex:1; min-width:0}
+.f-txt b{display:block; font-size:14px; font-weight:600; color:var(--ink); line-height:1.3}
+.f-txt i{display:block; font-style:normal; font-family:var(--font-mono); font-size:10.5px; color:var(--sub); margin-top:2px}
+.fila.u2 .f-txt i{color:var(--warn); font-weight:600}
+.f-btn{flex:none; background:var(--bg); border:1.5px solid var(--line); color:var(--ink); font-size:12px; font-weight:700; padding:8px 13px; border-radius:14px}
+.fila.u1 .f-btn, .fila.u2 .f-btn{background:var(--coral); border-color:var(--coral); color:#fff}
+
+/* franjas del día: solo la de ahora abierta */
+.franjas{display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--radius-s); overflow:hidden}
+.franja{background:var(--card)}
+.fr-cab{display:flex; align-items:center; gap:9px; width:100%; padding:13px 14px; background:none; text-align:left}
+.fr-et{flex:1; font-size:14px; font-weight:600; color:var(--ink)}
+.franja.esahora .fr-et{color:var(--ink)}
+.franja.abierta .fr-et{font-family:var(--font-display); font-size:16px}
+.fr-chip{font-family:var(--font-mono); font-size:8.5px; font-weight:600; text-transform:uppercase; letter-spacing:.7px; color:var(--coral); border:1px solid var(--coral); border-radius:10px; padding:2px 6px}
+.fr-cont{font-family:var(--font-mono); font-size:11px; color:var(--sub)}
+.fr-fl{font-size:11px; color:var(--sub); width:12px; text-align:right}
+.franja .grid-cats{padding:2px 14px 15px}
+
+/* Boya en Hoy: acompaña, no ocupa media pantalla */
+.boya-tira{position:relative; display:flex; align-items:center; gap:13px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:11px 13px 11px 11px; margin-top:14px}
+.bt-retrato{flex:none; width:74px; height:74px; border-radius:18px; overflow:hidden; background:linear-gradient(160deg, var(--teal), var(--teal-d)); display:flex; align-items:flex-end; justify-content:center; padding:0; border:none; cursor:pointer}
+.bt-retrato svg{height:104%; width:auto; animation:respirar 4.6s ease-in-out infinite; transform-origin:50% 100%}
+.bt-retrato.tocada svg{animation:saludo .66s cubic-bezier(.34,1.4,.64,1)}
+.bt-txt{flex:1; min-width:0; cursor:pointer}
+.bt-txt b{display:block; font-family:var(--font-display); font-size:15.5px; font-weight:600; color:var(--ink); line-height:1.25}
+.bt-txt i{display:block; font-style:normal; font-size:11.5px; color:var(--sub); line-height:1.45; margin-top:2px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
+.bt-bar{height:5px; background:var(--line); border-radius:4px; overflow:hidden; margin-top:8px}
+.bt-bar i{display:block; height:100%; background:var(--coral); border-radius:4px; transition:width .35s}
+.bt-ir{flex:none; background:none; color:var(--sub); font-size:20px; padding:6px 2px}
+.boya-tira .globo-dialogo{bottom:calc(100% + 6px); left:46px}
+
+/* medicamentos */
+.med-card{padding:15px 16px}
+.med-cab{display:flex; align-items:flex-start; gap:10px}
+.med-nom{flex:1; font-family:var(--font-display); font-size:18px; font-weight:600; color:var(--ink); line-height:1.25}
+.med-nom i{display:block; font-style:normal; font-family:var(--font-body); font-size:12px; font-weight:400; color:var(--sub); margin-top:2px}
+.tomas{display:flex; flex-direction:column; gap:7px; margin-top:12px}
+.toma{display:flex; align-items:center; gap:11px; padding:11px 13px; border-radius:var(--radius-s); border:1.5px solid var(--line); background:var(--bg); text-align:left}
+.toma.urg1{border-color:var(--coral); background:rgba(178,94,57,.08)}
+.toma.urg2{border-color:var(--warn); background:rgba(156,58,30,.11)}
+.toma.tomada{border-color:var(--mint); background:var(--mint)}
+.tm-hora{font-family:var(--font-mono); font-size:15px; font-weight:600; color:var(--ink); flex:none; min-width:46px}
+.toma.tomada .tm-hora{color:var(--mint-ink)}
+.tm-est{flex:1; font-size:11.5px; color:var(--sub)}
+.toma.tomada .tm-est{color:var(--mint-ink)}
+.toma.urg2 .tm-est{color:var(--warn); font-weight:600}
+.tm-check{flex:none; font-size:14px; color:var(--mint-ink); font-weight:700}
+.med-pie{font-family:var(--font-mono); font-size:10px; color:var(--sub); margin-top:11px; padding-top:10px; border-top:1px solid var(--line)}
+.horas-med{display:flex; align-items:center; gap:10px; margin-top:11px; flex-wrap:wrap}
+.hm-nom{flex:1; min-width:110px; font-size:13px; font-weight:600; color:var(--ink)}
+.hm-inputs{display:flex; gap:6px; flex-wrap:wrap}
+.inp-hora{font-family:var(--font-mono); font-size:13px; background:var(--bg); border:1.5px solid var(--line); border-radius:11px; padding:7px 9px; color:var(--ink); width:auto}
 .huevo-wrap{display:flex; flex-direction:column; align-items:center; padding:26px 0 10px}
 .huevo-svg{width:150px; height:180px; cursor:pointer; filter:drop-shadow(0 10px 18px rgba(0,0,0,.15))}
 .huevo-svg.tambalea{animation:tambaleo .55s ease}
@@ -239,7 +292,7 @@ h1,h2,h3,p{margin:0}
 .grid-cats{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:16px}
 @media(min-width:420px){.grid-cats{grid-template-columns:repeat(4,1fr)}}
 .cat{background:var(--bg); border:1.5px solid var(--line); border-radius:var(--radius-s); padding:14px 8px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:6px; transition:all .12s}
-.cat .emo{font-size:26px; line-height:1}
+.cat .emo{opacity:.88; font-size:26px; line-height:1}
 .cat .et{font-size:11.5px; font-weight:600; color:var(--sub)}
 .cat.on{background:var(--mint); border-color:var(--teal)}
 .cat.on .et{color:var(--mint-ink)}
@@ -404,7 +457,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.11.0-beta';
+var VERSION='0.12.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -569,6 +622,7 @@ function estadoInicial(){
     medallasGanadas:[],
     eventos:[],
     perras:[],
+    medicamentos:[],
     cuidadosCfg:{},
     enfoque:{ metaMin:120, min:{}, activa:null, rachaDias:0 },
     ropa:[],
@@ -616,6 +670,7 @@ function cargar(){
     if(!d.medallasGanadas) d.medallasGanadas=[];
     if(!d.eventos) d.eventos=[];
     if(!d.perras) d.perras=[];
+    if(!d.medicamentos) d.medicamentos=[];
     if(!d.cuidadosCfg) d.cuidadosCfg={};
     if(!d.enfoque) d.enfoque=base.enfoque;
     else { if(d.enfoque.metaMin===undefined) d.enfoque.metaMin=120;
@@ -1045,6 +1100,52 @@ function arrancarRelojEnfoque(){
 }
 function detenerRelojEnfoque(){ if(relojEnfoque){ clearInterval(relojEnfoque); relojEnfoque=null; } }
 
+/* ===================== medicamentos =====================
+   A diferencia de las perras (que van por intervalo), los medicamentos van
+   por HORA fija, y la pregunta que hay que responder no es "¿ya toca?" sino
+   "¿ya me la tomé o me lo estoy imaginando?". Por eso cada toma del día es
+   una casilla propia con su hora: se ve de un vistazo cuál está tomada, a
+   qué hora exacta se tomó, y cuál falta — sin tener que recordar nada.
+   Ancla registra y recuerda; qué hacer con una dosis saltada lo decide ella
+   con su médico, no la app. */
+var HORAS_SUGERIDAS={1:['08:00'], 2:['08:00','20:00'], 3:['08:00','14:00','20:00'], 4:['08:00','13:00','18:00','22:00']};
+function minutosDeHora(hhmm){
+  var pr=(hhmm||'08:00').split(':');
+  return Number(pr[0])*60+Number(pr[1]);
+}
+function eventosHoyDe(k){
+  if(!S.eventos) return [];
+  var d=new Date(); d.setHours(0,0,0,0); var ini=d.getTime(), out=[];
+  for(var i=S.eventos.length-1;i>=0;i--){
+    if(S.eventos[i].t<ini) break;
+    if(S.eventos[i].k===k) out.push(S.eventos[i]);
+  }
+  return out;
+}
+/* urgencia por casilla: 0 al día · 1 ya pasó la hora · 2 lleva más de 2 h */
+function tomasDeHoy(m){
+  var evs=eventosHoyDe('med:'+m.id);
+  var ahora=new Date().getHours()*60+new Date().getMinutes();
+  return (m.horas||[]).map(function(hh, i){
+    var ev=evs.filter(function(e){ return e.slot===i; })[0];
+    var atraso = ahora - minutosDeHora(hh);
+    var urg = ev ? 0 : atraso>=120 ? 2 : atraso>=15 ? 1 : 0;
+    return {i:i, hora:hh, tomada:!!ev, cuando:ev?ev.t:null, urgencia:urg, pendiente:!ev};
+  });
+}
+function pendientesMedicamentos(){
+  var out=[];
+  (S.medicamentos||[]).forEach(function(m){
+    if(m.activo===false) return;
+    tomasDeHoy(m).forEach(function(t){
+      if(t.urgencia>0){ t.med=m; out.push(t); }
+    });
+  });
+  out.sort(function(a,b){ return (b.urgencia-a.urgencia) || (minutosDeHora(a.hora)-minutosDeHora(b.hora)); });
+  return out;
+}
+function ultimaTomaDe(m){ return ultimaVez('med:'+m.id); }
+
 /* ===================== qué toca ahora =====================
    El resto de la app es una lista: la lista obliga a elegir, y elegir es
    justo lo que se traba. Esto devuelve UNA sola cosa, la que más pesa en
@@ -1055,6 +1156,16 @@ function queSigueAhora(){
   var e=entradaHoy();
   var nb=(S.boya&&S.boya.nombre)||'Boya';
 
+  var pm=pendientesMedicamentos();
+  if(pm.length){
+    var m0=pm[0];
+    return { nivel:m0.urgencia, emo:'💊',
+      t:m0.med.nombre+' · '+m0.hora,
+      sub:'Esta toma no está registrada'+(m0.med.dosis?' ('+m0.med.dosis+')':'')+'. La última que anotaste fue '+(ultimaTomaDe(m0.med)?haceTexto(ultimaTomaDe(m0.med)):'—')+'.',
+      actos:[{act:'tomar-med', val:m0.med.id+'|'+m0.i, et:'Ya la tomé', cls:'btn-principal'},
+             {act:'nav', val:'cuidados', et:'Ver todo', cls:'btn-fantasma'}] };
+  }
+
   var pp=pendientesPerras();
   if(pp.length && pp[0].urgencia===2){
     var u=pp[0];
@@ -1062,7 +1173,7 @@ function queSigueAhora(){
       t:u.cuidado.et+' de '+u.perra.nombre,
       sub:(u.ultima===null?'Hoy no hay registro todavía.':'La última vez fue '+haceTexto(u.ultima)+'.')+' Ella no puede recordártelo.',
       actos:[{act:'registrar-cuidado', val:u.perra.id+'|'+u.cuidado.id, et:u.cuidado.verbo, cls:'btn-principal'},
-             {act:'nav', val:'perras', et:'Ver todo', cls:'btn-fantasma'}] };
+             {act:'nav', val:'cuidados', et:'Ver todo', cls:'btn-fantasma'}] };
   }
 
   if(S.enfoque && S.enfoque.activa){
@@ -1077,7 +1188,7 @@ function queSigueAhora(){
       t:u1.cuidado.et+' de '+u1.perra.nombre,
       sub:(u1.ultima===null?'Sin registro hoy.':'Última vez '+haceTexto(u1.ultima)+'.'),
       actos:[{act:'registrar-cuidado', val:u1.perra.id+'|'+u1.cuidado.id, et:u1.cuidado.verbo, cls:'btn-principal'},
-             {act:'nav', val:'perras', et:'Ver todo', cls:'btn-fantasma'}] };
+             {act:'nav', val:'cuidados', et:'Ver todo', cls:'btn-fantasma'}] };
   }
 
   if(hr>=6 && hr<13 && S.ropa.length && !(S.ropaHoy && S.ropaHoy.fecha===hoyISO())){
@@ -1469,7 +1580,8 @@ var V = {
   onboardingPaso:'huevo', huevoTambaleando:false, verFoto:null,
   pendienteTexto:'', rutinaNombre:'', rutinaPasoTexto:'', rutinaPasos:[],
   calmaVista:'respirar', relajacionPaso:0, dialogoBoya:null, boyaTocada:false,
-  perraNombre:'', perraEmo:'🐕', distraccion:'', climaHoy:null, ropaClima:null
+  perraNombre:'', perraEmo:'🐕', distraccion:'', climaHoy:null, ropaClima:null,
+  medNombre:'', medDosis:'', medVeces:1, momentoAbierto:null
 };
 var dialogoTimer=null;
 
@@ -1621,7 +1733,7 @@ function render(){
     else if(V.tab==='recordatorios') h+=renderRecordatorios();
     else if(V.tab==='ajustes') h+=renderAjustes();
     else if(V.tab==='boya') h+=renderBoyaPanel();
-    else if(V.tab==='perras') h+=renderPerras();
+    else if(V.tab==='cuidados') h+=renderCuidados();
     else if(V.tab==='enfoque') h+=renderEnfoque();
     else if(V.tab==='vestirme') h+=renderVestirme();
     else if(V.tab==='mas') h+=renderMas();
@@ -1698,7 +1810,7 @@ function renderVisorFoto(){
 function renderNav(){
   var tabs=[
     ['hoy','🏠','Hoy'],
-    ['perras','🐾','Perras'],
+    ['cuidados','💊','Cuidados'],
     ['enfoque','🎯','Enfoque'],
     ['calma','🌊','Calma'],
     ['mas','⋯','Más']
@@ -1717,17 +1829,16 @@ function renderHoy(){
   var bm=mensajeBoya(cuenta);
   var jg=calcularProgreso();
   var pct=Math.round(cuenta/CATS.length*100);
-  var circ=276.46, offset=circ*(1-pct/100);
   var h='';
 
   if(S.usuario.nombre){
-    h+='<div class="saludo-nombre">'+esc(saludo())+', '+esc(S.usuario.nombre)+' 👋</div>';
+    h+='<div class="saludo-nombre">'+esc(saludo())+', '+esc(S.usuario.nombre)+'</div>';
   }
-
   if(debeMostrarNudge()){
     h+='<div class="banner">🫧 <div>¿Sientes que estás revisando esto muchas veces seguidas? Puedes activar el <b>modo suave</b>, que oculta números y rachas.<div class="acciones"><button data-action="activar-suave">Activar modo suave</button><button data-action="descartar-nudge">Ahora no</button></div></div></div>';
   }
 
+  /* ---- 1. lo único fuerte de la pantalla ---- */
   var ah=queSigueAhora();
   h+='<div class="ahora n'+ah.nivel+'">';
   h+='<div class="ahora-et">Ahora</div>';
@@ -1742,59 +1853,53 @@ function renderHoy(){
   }
   h+='</div>';
 
+  /* ---- 2. Boya, compacta: en Hoy acompaña, no protagoniza ---- */
   var fondoEq = S.equipado.fondo && FONDOS_BOYA[S.equipado.fondo];
-  h+='<div class="card">';
-  h+='<div class="boya-wrap">';
-  h+='<div class="boya-escenario">';
-  h+='<div class="boya-escenario-fondo" '+(fondoEq?'style="background:'+fondoEq.grad+'"':'')+'></div>';
-  h+='<button class="boya'+(V.boyaTocada?' tocada':'')+'" data-action="tocar-boya">'+dibujarNutria(bm.id)+'</button>';
+  h+='<div class="boya-tira">';
+  h+='<button class="bt-retrato'+(V.boyaTocada?' tocada':'')+'" data-action="tocar-boya" '+(fondoEq?'style="background:'+fondoEq.grad+'"':'')+'>'+dibujarNutria(bm.id, null, actividadBoya())+'</button>';
+  h+='<div class="bt-txt" data-action="nav" data-value="boya"><b>'+bm.t+'</b><i>'+bm.s+'</i>';
+  h+='<div class="bt-bar"><i style="width:'+pct+'%"></i></div></div>';
+  h+='<button class="bt-ir" data-action="nav" data-value="boya">›</button>';
   if(V.dialogoBoya) h+='<div class="globo-dialogo">'+esc(V.dialogoBoya)+'</div>';
   h+='</div>';
-  var nEquipado=Object.keys(S.equipado).filter(function(k){ return !!S.equipado[k]; }).length;
-  var textoVerBoya = nEquipado>0 ? nEquipado+' puesto'+(nEquipado===1?'':'s')+' · Entrar a su cuarto' : 'Entrar al cuarto de '+esc((S.boya&&S.boya.nombre)||'Boya');
-  h+='<div class="boya-info-top"><div class="titulo">'+bm.t+'</div></div>';
-  h+='<div class="sub">'+bm.s+'</div>';
-  h+='<div class="bar" style="background:var(--line); margin-top:2px"><i style="width:'+pct+'%; background:var(--coral)"></i></div>';
-  h+='<button class="ver-boya-link" data-action="nav" data-value="boya">🚪 '+textoVerBoya+' ›</button>';
-  h+='</div>';
 
-  if(S.perras && S.perras.length){
-    h+='<div class="card"><div class="tira-cab"><h3>Las perras</h3>'+
-       '<button class="tira-link" data-action="nav" data-value="perras">Ver todo ›</button></div>';
-    S.perras.forEach(function(pe){
-      h+='<div class="tira-perra-nom">'+pe.emo+' '+esc(pe.nombre)+'</div>';
-      h+='<div class="tira-grid">';
-      CUIDADOS.forEach(function(c){
-        if(!cuidadoActivo(c)) return;
-        var st=estadoCuidado(pe, c);
-        var cls = st.urgencia===2 ? 'urg2' : st.urgencia===1 ? 'urg1' : 'ok';
-        h+='<button class="tira-item '+cls+'" data-action="registrar-cuidado" data-value="'+pe.id+'|'+c.id+'">'+
-           '<span class="ti-emo">'+c.emo+'</span>'+
-           '<span class="ti-nom">'+c.et+'</span>'+
-           '<span class="ti-ult">'+(st.ultima===null?'sin registro':haceTexto(st.ultima))+'</span>'+
-           '</button>';
-      });
+  /* ---- 3. solo lo que está pendiente AHORA, en renglones ---- */
+  var filas=[];
+  pendientesMedicamentos().forEach(function(t){
+    filas.push({emo:'💊', et:t.med.nombre, meta:t.hora, urg:t.urgencia,
+      act:'tomar-med', val:t.med.id+'|'+t.i, btn:'Tomé'});
+  });
+  pendientesPerras().forEach(function(u){
+    filas.push({emo:u.cuidado.emo, et:u.perra.nombre+' · '+u.cuidado.et.toLowerCase(),
+      meta:(u.ultima===null?'sin registro':haceTexto(u.ultima)), urg:u.urgencia,
+      act:'registrar-cuidado', val:u.perra.id+'|'+u.cuidado.id, btn:'Hecho'});
+  });
+  var minH=minutosHoy(), metaH=metaEnfoque();
+  if(!S.enfoque.activa && minH<metaH){
+    filas.push({emo:'🎯', et:'Trabajo', meta:minH+' de '+metaH+' min', urg:0,
+      act:'iniciar-sesion', val:'5', btn:'5 min'});
+  }
+  if(S.enfoque.activa){
+    filas.push({emo:'⏳', et:'Bloque corriendo', meta:mmss(sesionRestanteMs()), urg:1,
+      act:'nav', val:'enfoque', btn:'Volver'});
+  }
+  if(filas.length){
+    h+='<div class="seccion"><span>Pendiente ahora</span></div>';
+    h+='<div class="filas">';
+    filas.forEach(function(f){
+      h+='<div class="fila u'+f.urg+'">';
+      h+='<span class="f-emo">'+f.emo+'</span>';
+      h+='<span class="f-txt"><b>'+esc(f.et)+'</b><i>'+esc(f.meta)+'</i></span>';
+      h+='<button class="f-btn" data-action="'+f.act+'" data-value="'+esc(f.val)+'">'+f.btn+'</button>';
       h+='</div>';
     });
     h+='</div>';
   }
 
-  var minH=minutosHoy(), metaH=metaEnfoque();
-  h+='<div class="card"><div class="tira-cab"><h3>Trabajo</h3>'+
-     '<button class="tira-link" data-action="nav" data-value="enfoque">Ver ›</button></div>';
-  h+='<div class="enfoque-mini">';
-  h+='<div class="em-cifra"><b>'+minH+'</b><span>/ '+metaH+' min</span></div>';
-  h+='<div class="em-bar"><i style="width:'+Math.min(100,Math.round(minH/metaH*100))+'%"></i></div>';
-  h+='</div>';
-  if(S.enfoque.activa){
-    h+='<button class="btn btn-principal" style="margin-top:12px" data-action="nav" data-value="enfoque">Volver al bloque · '+mmss(sesionRestanteMs())+'</button>';
-  } else {
-    h+='<button class="btn btn-principal" style="margin-top:12px" data-action="iniciar-sesion" data-value="5">Arrancar 5 minutos</button>';
-  }
-  h+='</div>';
-
+  /* ---- 4. el día: solo la franja de ahora abierta, el resto plegado ---- */
   var fotos=fotosDeHoy();
   var momActual=momentoActual();
+  var abierto = V.momentoAbierto || momActual;
   function renderCat(c){
     if(c.contable){
       var n=e.agua||0;
@@ -1815,36 +1920,51 @@ function renderHoy(){
     return hh;
   }
 
-  MOMENTOS.forEach(function(mom){
+  h+='<div class="seccion"><span>El día</span><em>'+cuenta+' de '+CATS.length+'</em></div>';
+  h+='<div class="franjas">';
+  var grupos=MOMENTOS.concat([{id:'dia', et:'Todo el día'}]);
+  grupos.forEach(function(mom){
     var cats=CATS.filter(function(c){ return c.momento===mom.id; });
     if(!cats.length) return;
+    var hechas=cats.filter(function(c){ return c.contable ? (e.agua||0)>0 : !!e[c.id]; }).length;
     var esAhora=(mom.id===momActual);
-    h+='<div class="card '+(esAhora?'momento-actual':'')+'">';
-    h+='<div class="momento-titulo"><h3>'+mom.et+'</h3>'+(esAhora?'<span class="momento-chip">ahora</span>':'')+'</div>';
-    h+='<div class="grid-cats">';
-    cats.forEach(function(c){ h+=renderCat(c); });
-    h+='</div></div>';
+    var open=(mom.id===abierto);
+    h+='<div class="franja'+(open?' abierta':'')+(esAhora?' esahora':'')+'">';
+    h+='<button class="fr-cab" data-action="abrir-franja" data-value="'+mom.id+'">';
+    h+='<span class="fr-et">'+mom.et+'</span>';
+    if(esAhora) h+='<span class="fr-chip">ahora</span>';
+    h+='<span class="fr-cont">'+hechas+'/'+cats.length+'</span>';
+    h+='<span class="fr-fl">'+(open?'▾':'▸')+'</span>';
+    h+='</button>';
+    if(open){
+      h+='<div class="grid-cats">';
+      cats.forEach(function(c){ h+=renderCat(c); });
+      h+='</div>';
+    }
+    h+='</div>';
   });
-
-  var diaCats=CATS.filter(function(c){ return c.momento==='dia'; });
-  if(diaCats.length){
-    h+='<div class="card"><h3>Todo el día</h3><div class="grid-cats" style="margin-top:12px">';
-    diaCats.forEach(function(c){ h+=renderCat(c); });
-    h+='</div></div>';
-  }
-
   if(S.miniRecordatorios.length){
     var extra=extraDeHoy();
-    h+='<div class="card">';
-    h+='<h3>Tus recordatorios</h3>';
-    h+='<div class="grid-cats" style="margin-top:12px">';
-    S.miniRecordatorios.forEach(function(m){
-      var hecho=!!extra[m.id];
-      h+='<button class="cat '+(hecho?'on':'')+'" data-action="toggle-mini" data-value="'+m.id+'"><div class="emo">'+m.emo+'</div><div class="et">'+esc(m.texto)+'</div></button>';
-    });
-    h+='</div></div>';
+    var hechasM=S.miniRecordatorios.filter(function(m){ return !!extra[m.id]; }).length;
+    var openM=(abierto==='mios');
+    h+='<div class="franja'+(openM?' abierta':'')+'">';
+    h+='<button class="fr-cab" data-action="abrir-franja" data-value="mios">';
+    h+='<span class="fr-et">Tus recordatorios</span>';
+    h+='<span class="fr-cont">'+hechasM+'/'+S.miniRecordatorios.length+'</span>';
+    h+='<span class="fr-fl">'+(openM?'▾':'▸')+'</span>';
+    h+='</button>';
+    if(openM){
+      h+='<div class="grid-cats">';
+      S.miniRecordatorios.forEach(function(m){
+        h+='<button class="cat '+(extra[m.id]?'on':'')+'" data-action="toggle-mini" data-value="'+m.id+'"><div class="emo">'+m.emo+'</div><div class="et">'+esc(m.texto)+'</div></button>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
   }
+  h+='</div>';
 
+  /* ---- 5. el progreso, deliberadamente callado al final ---- */
   h+='<div class="nivel-card">';
   h+='<div class="nivel-top">';
   if(S.modoSuave){
@@ -1872,7 +1992,6 @@ function renderHoy(){
     h+='<div class="medalla-desc">'+jg.medallas.map(function(m){ return (m.on?m.emo:'🔒')+' <b>'+esc(m.titulo)+'</b> — '+esc(m.desc); }).join('<br>')+'</div>';
     h+='</div>';
   }
-
   return h;
 }
 
@@ -2103,13 +2222,77 @@ var PASOS_RELAJACION=[
   ['Todo el cuerpo','Una respiración larga, y sacude lo que quede.']
 ];
 
+function renderMedicamentos(){
+  var h='';
+  h+='<div class="seccion"><span>Medicamentos</span></div>';
+  if(!S.medicamentos || !S.medicamentos.length){
+    h+='<div class="card">';
+    h+='<p class="sub">Cada toma del día queda como una casilla con su hora. Así no hace falta acordarse de si ya la tomaste: se ve.</p>';
+    h+='</div>';
+  }
+  (S.medicamentos||[]).forEach(function(m){
+    var tomas=tomasDeHoy(m);
+    h+='<div class="card med-card">';
+    h+='<div class="med-cab"><div class="med-nom">'+esc(m.nombre)+(m.dosis?'<i>'+esc(m.dosis)+'</i>':'')+'</div>';
+    h+='<button class="quitar-perra" data-action="quitar-med" data-value="'+m.id+'">✕</button></div>';
+    h+='<div class="tomas">';
+    tomas.forEach(function(t){
+      var cls = t.tomada ? 'tomada' : t.urgencia===2 ? 'urg2' : t.urgencia===1 ? 'urg1' : 'espera';
+      h+='<button class="toma '+cls+'" data-action="tomar-med" data-value="'+m.id+'|'+t.i+'">';
+      h+='<span class="tm-hora">'+t.hora+'</span>';
+      h+='<span class="tm-est">'+(t.tomada ? 'tomada '+horaDe(t.cuando) : t.urgencia ? 'sin registro' : 'más tarde')+'</span>';
+      h+='<span class="tm-check">'+(t.tomada?'✓':'')+'</span>';
+      h+='</button>';
+    });
+    h+='</div>';
+    h+='<div class="med-pie">Última registrada: '+(ultimaTomaDe(m)?haceTexto(ultimaTomaDe(m))+' · '+horaDe(ultimaTomaDe(m)):'todavía ninguna')+'</div>';
+    h+='</div>';
+  });
+
+  h+='<div class="card">';
+  h+='<h3>Agregar un medicamento</h3>';
+  h+='<div class="fila-input" style="margin-top:12px">';
+  h+='<input type="text" id="inp-med" placeholder="Nombre" value="'+esc(V.medNombre||'')+'">';
+  h+='</div>';
+  h+='<div class="fila-input" style="margin-top:8px">';
+  h+='<input type="text" id="inp-med-dosis" placeholder="Dosis (opcional) — ej: 1 tableta" value="'+esc(V.medDosis||'')+'">';
+  h+='</div>';
+  h+='<div class="clima-row" style="margin-top:10px">';
+  [1,2,3,4].forEach(function(n){
+    h+='<button class="clima-op chico '+((V.medVeces||1)===n?'sel':'')+'" data-action="med-veces" data-value="'+n+'">'+n+'× al día</button>';
+  });
+  h+='</div>';
+  h+='<button class="btn btn-principal" style="margin-top:12px" data-action="agregar-med">Agregar</button>';
+  h+='<p class="sub" style="margin-top:12px">Después puedes cambiar las horas tocándolas. Ancla solo lleva el registro: <b>qué hacer con una dosis saltada lo decides tú con tu médico</b>, no la app.</p>';
+  h+='</div>';
+
+  if(S.medicamentos && S.medicamentos.length){
+    h+='<div class="card"><h3>Horas</h3>';
+    S.medicamentos.forEach(function(m){
+      h+='<div class="horas-med"><span class="hm-nom">'+esc(m.nombre)+'</span><span class="hm-inputs">';
+      (m.horas||[]).forEach(function(hh, i){
+        h+='<input type="time" class="inp-hora" id="med-hora-'+m.id+'-'+i+'" value="'+hh+'">';
+      });
+      h+='</span></div>';
+    });
+    h+='</div>';
+  }
+  return h;
+}
+
+function renderCuidados(){
+  var h='';
+  h+=renderMedicamentos();
+  h+='<div class="seccion"><span>Las perras</span></div>';
+  h+=renderPerras();
+  return h;
+}
+
 function renderPerras(){
   var h='';
-  h+='<div class="boya-panel-header"><button data-action="nav" data-value="hoy">← Volver</button></div>';
 
   if(!S.perras || !S.perras.length){
     h+='<div class="card">';
-    h+='<h3>Tus perras</h3>';
     h+='<p class="sub">Ellas dependen de ti y no pueden recordarte nada. Ancla te muestra siempre <b>hace cuánto</b> fue cada cosa, para que no tengas que acordarte — solo mirar.</p>';
     h+='<div class="emoji-pick" style="margin-top:14px">';
     EMOJIS_PERRA.forEach(function(em){ h+='<button class="emoji-op '+(V.perraEmo===em?'sel':'')+'" data-action="elegir-perra-emo" data-value="'+em+'">'+em+'</button>'; });
@@ -2735,6 +2918,47 @@ app.addEventListener('click', function(ev){
       mostrarToast('Guardado en pendientes. Sigue en lo tuyo.');
     }
   }
+  else if(act==='abrir-franja'){ V.momentoAbierto = (V.momentoAbierto===val) ? '__ninguna__' : val; }
+  else if(act==='med-veces'){ V.medVeces=Number(val); }
+  else if(act==='agregar-med'){
+    var inpMd=document.getElementById('inp-med');
+    var inpDs=document.getElementById('inp-med-dosis');
+    var nomMd=(inpMd?inpMd.value:'').trim();
+    if(nomMd){
+      var vc=V.medVeces||1;
+      S.medicamentos.push({ id:'m'+Date.now(), nombre:nomMd.slice(0,32),
+        dosis:(inpDs?inpDs.value:'').trim().slice(0,32), horas:(HORAS_SUGERIDAS[vc]||['08:00']).slice(), activo:true });
+      V.medNombre=''; V.medDosis=''; sonidoPop(620); vibrar(12);
+      mostrarToast(nomMd+' agregado. Revisa las horas abajo.');
+    }
+  }
+  else if(act==='quitar-med'){ S.medicamentos=S.medicamentos.filter(function(x){ return x.id!==val; }); }
+  else if(act==='tomar-med'){
+    var mp=val.split('|'), mm=(S.medicamentos||[]).filter(function(x){ return x.id===mp[0]; })[0], slot=Number(mp[1]);
+    if(mm){
+      var yaEv=eventosHoyDe('med:'+mm.id).filter(function(e){ return e.slot===slot; })[0];
+      if(yaEv){
+        if(confirm('Esta toma ya está registrada a las '+horaDe(yaEv.t)+'. ¿Quieres borrar el registro? (solo si te equivocaste al marcarla)')){
+          S.eventos=S.eventos.filter(function(e){ return e!==yaEv; });
+          mostrarToast('Registro borrado.');
+        }
+      } else {
+        /* red de seguridad: nunca dejar que un toque distraído parezca una dosis nueva */
+        var ult=ultimaTomaDe(mm);
+        var seguir=true;
+        if(ult && (Date.now()-ult) < 45*60000){
+          seguir=confirm('Ya registraste una toma de '+mm.nombre+' hace '+haceTexto(ult).replace('hace ','')+'. ¿Seguro que tomaste otra dosis?');
+        }
+        if(seguir){
+          registrarEvento('med:'+mm.id, {slot:slot});
+          S.contadores.medTomas=(S.contadores.medTomas||0)+1;
+          sonidoPop(720); vibrar([12,25,12]); ganarConchitas(2);
+          flotarPuntos(b, S.modoSuave?'✨':'+2');
+          mostrarToast(mm.nombre+' · anotado a las '+horaDe(Date.now()));
+        }
+      }
+    }
+  }
   else if(act==='elegir-clima'){ V.climaHoy=val; }
   else if(act==='elegir-clima-nueva'){ V.ropaClima=val||null; }
   else if(act==='elegir-perra-emo'){ V.perraEmo=val; }
@@ -2915,6 +3139,13 @@ app.addEventListener('change', function(ev){
     manejarFotoCategoria(ev.target.id.slice('inp-foto-cat-'.length), ev.target.files[0]);
     return;
   }
+  if(ev.target.id && ev.target.id.indexOf('med-hora-')===0){
+    var pz=ev.target.id.slice('med-hora-'.length), corte=pz.lastIndexOf('-');
+    var mId=pz.slice(0,corte), idx=Number(pz.slice(corte+1));
+    var mEd=(S.medicamentos||[]).filter(function(x){ return x.id===mId; })[0];
+    if(mEd && ev.target.value){ mEd.horas[idx]=ev.target.value; guardar(); render(); }
+    return;
+  }
   if(ev.target.id==='inp-importar' && ev.target.files && ev.target.files[0]){
     importarDatos(ev.target.files[0]);
   }
@@ -2922,6 +3153,8 @@ app.addEventListener('change', function(ev){
 app.addEventListener('input', function(ev){
   if(ev.target.id==='inp-ropa') V.ropaNueva=ev.target.value;
   if(ev.target.id==='inp-perra') V.perraNombre=ev.target.value;
+  if(ev.target.id==='inp-med') V.medNombre=ev.target.value;
+  if(ev.target.id==='inp-med-dosis') V.medDosis=ev.target.value;
   if(ev.target.id==='inp-distraccion') V.distraccion=ev.target.value;
   if(ev.target.id==='inp-tarea') V.tareaTexto=ev.target.value;
   if(ev.target.id==='inp-nombre-onboarding') V.onboardingNombre=ev.target.value;
