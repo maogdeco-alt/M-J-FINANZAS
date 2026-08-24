@@ -12,9 +12,32 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.7.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.8.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.7.0" al reportar algo raro.
+> pasó en la v0.8.0" al reportar algo raro.
+
+## Boya, de cuerpo completo, con su propio cuarto (v0.8.0)
+
+Boya pasa a ser el centro real de la app, con nombre definitivo — su nombre es **Boya**.
+
+- **Cuerpo completo**: cabeza, torso, brazos, patas — ya no es solo una cara. Por eso la
+  ropa por fin se ve puesta de verdad: la capa drapea sobre un torso real, el collar cae
+  sobre un pecho real, en vez de flotar sobre nada.
+- **Mucho más grande y presente en "Hoy"**: pasó de un círculo de 84px a un escenario
+  propio a todo el ancho de la pantalla, con ella de pie de cuerpo entero.
+- **Diálogo real**: al tocarla, ya no aparece como aviso genérico — sale de su boca en un
+  globo de diálogo, con animación de saludo (el brazo se mueve).
+- **El cuarto de Boya**, la pieza más importante de esta vuelta: su panel dedicado ahora
+  es un cuarto de verdad —pared, piso, ella parada ahí— que **refleja el cuidado real de
+  los últimos 3 días**, no algo decorativo nada más:
+  - Poco cuidado reciente → el cuarto se ve desordenado (cosas tiradas por el piso, luz
+    apagada) y lo que ya está decorado se ve deslucido.
+  - Cuidado sostenido → el cuarto se ve impecable, brillante, con destellos.
+  - La idea es exactamente la que se pidió: si el cuarto de Boya se ve desordenado, es una
+    señal de que hace falta volver a ordenarlo — sin culpa, solo información visual.
+  - **Tienda de decoración nueva**: planta, lámpara, alfombra, cuadro, estante, ventana —
+    se compran con conchitas como todo lo demás y quedan puestas en el cuarto para
+    siempre, sin necesidad de "equipar" nada.
 
 ## Organización real (v0.7.0)
 
