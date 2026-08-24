@@ -230,6 +230,7 @@
   .pill.set{background:var(--accent-soft);color:var(--accent);border-color:transparent;}
   .pill.pend{background:var(--warn-soft);color:var(--warn);border-color:transparent;}
   .pill.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent;}
+  .pill.danger{background:var(--stamp-soft);color:var(--stamp);border-color:transparent;}
 
   footer.note{margin-top:28px;color:var(--muted);font-size:0.88rem;line-height:1.65;}
   footer.note b{color:var(--ink);}
@@ -239,6 +240,11 @@
   /* Los avisos de reglas de negocio (no bloquean, pero conviene corregirlos) usan este color, más
      llamativo, y se quedan más tiempo en pantalla que una confirmación normal de "guardado". */
   .toast.warn{background:var(--stamp);color:#fff;}
+  /* Toast con botón de acción (p. ej. "Deshacer") -- a diferencia de un toast normal, este SÍ debe
+     recibir clics, por eso habilita pointer-events solo en este caso. */
+  .toast.actionable{pointer-events:auto;}
+  .toast-action-btn{margin-left:10px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:inherit;font:inherit;font-weight:700;font-size:0.9rem;padding:4px 12px;border-radius:6px;cursor:pointer;}
+  .toast-action-btn:hover{background:rgba(255,255,255,.3);}
   @media (prefers-reduced-motion: reduce){.toast{transition:none;}}
 
   /* max-height + overflow en TODOS los diálogos: en el celular, cuando el teclado virtual abre y
@@ -1078,6 +1084,19 @@
   <div class="form-actions">
     <button class="btn ghost" id="confirmCancel" type="button">Cancelar</button>
     <button class="btn danger" id="confirmOk" type="button">Sí, borrar todo</button>
+  </div>
+</dialog>
+
+<!-- Dialog: borrar UN radicado -- reemplaza el confirm() nativo del navegador (mismo riesgo real que
+     el de nombreMismatchDialog: puede quedar bloqueado en silencio para siempre). Además, borrar
+     igual queda con "Deshacer" unos segundos (ver toastAction), porque la información no se debe
+     perder ni siquiera por un clic accidental en el botón equivocado. -->
+<dialog id="deleteConfirmDialog" class="small" aria-labelledby="deleteConfirmTitle">
+  <div class="panel-head"><h2 id="deleteConfirmTitle">Borrar radicado</h2></div>
+  <div class="panel-body"><p>¿Borrar el radicado <b id="deleteConfirmRadicado">—</b>? Vas a tener unos segundos para deshacerlo justo después, por si acaso.</p></div>
+  <div class="form-actions">
+    <button class="btn ghost" id="deleteConfirmCancel" type="button">Cancelar</button>
+    <button class="btn danger" id="deleteConfirmOk" type="button">Sí, borrar</button>
   </div>
 </dialog>
 
@@ -2338,12 +2357,29 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function toast(msg, type){
     var el = document.getElementById("toast");
     el.textContent = msg;
+    el.classList.remove("actionable");
     el.classList.toggle("warn", type === "warn");
     el.classList.add("show");
     clearTimeout(toastTimer);
     // Los avisos de reglas de negocio (type "warn") se quedan más tiempo en pantalla que una
     // confirmación normal de guardado -- son más importantes de leer y de corregir después.
     toastTimer = setTimeout(function(){ el.classList.remove("show"); }, type === "warn" ? 6000 : 2600);
+  }
+  // Toast con un botón de acción adentro (p. ej. "Deshacer" después de borrar) -- a diferencia de
+  // toast(), SÍ recibe clics (ver .toast.actionable) y se queda más tiempo, porque es una segunda
+  // oportunidad real de corregir algo, no solo un aviso de lectura.
+  function toastAction(msg, actionLabel, actionFn, duration){
+    var el = document.getElementById("toast");
+    el.innerHTML = escapeHtml(msg) + ' <button type="button" class="toast-action-btn" id="toastActionBtn">' + escapeHtml(actionLabel) + '</button>';
+    el.classList.remove("warn");
+    el.classList.add("show", "actionable");
+    clearTimeout(toastTimer);
+    document.getElementById("toastActionBtn").onclick = function(){
+      el.classList.remove("show", "actionable");
+      clearTimeout(toastTimer);
+      actionFn();
+    };
+    toastTimer = setTimeout(function(){ el.classList.remove("show", "actionable"); }, duration || 8000);
   }
   // Letrero para las reglas imperativas: ya nunca bloquean el guardado (ver cc_save/cc_saveNext/
   // cc_next/cc_prev), pero deben avisarse fuerte -- letrero más grande y más largo que un toast
@@ -2549,8 +2585,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return '<div class="agenda-item'+(info.vencido && !r.agendado ? " vencido" : "")+'" data-id="'+r.id+'">'+
         '<div class="ai-top"><div><div class="ai-radicado">'+escapeHtml(r.radicado)+'</div>'+
         '<div class="ai-name">'+escapeHtml(r.nombreF || r.nombre || "(sin nombre)")+'</div></div>'+
-        (r.agendado ? '<span class="pill" style="background:var(--ok-soft,#e6f4ec);color:var(--ok);">Ya agendado</span>'
-          : (info.vencido ? '<span class="pill" style="background:var(--stamp-soft);color:var(--stamp);">FUERA DE TÉRMINO</span>' : ''))+
+        (r.agendado ? '<span class="pill ok">Ya agendado</span>'
+          : (info.vencido ? '<span class="pill danger">FUERA DE TÉRMINO</span>' : ''))+
         '</div>'+
         '<div class="ai-meta">'+
         '<span>Comparendo <b>'+escapeHtml(corto||"—")+'</b></span>'+
@@ -2933,6 +2969,22 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }
 
     var chips = [];
+    var formatoNorm = normalizeFormatoInput(formato).toUpperCase();
+
+    // Avisos que antes solo salían DESPUÉS de guardar (checkImperativeRules) -- se repiten aquí, en
+    // vivo, apenas se pega la línea o se escribe el Formato, para enterarse al momento y no gastar
+    // un guardado completo solo para descubrirlo. Siguen sin bloquear nada, es el mismo espíritu.
+    var codVal = (parsed.cod||"").trim().toUpperCase();
+    if((codVal === "F" || codVal === "D12") && formatoNorm !== "DEVUELTO"){
+      chips.push({cls:"alert", text:"⚠ Código " + codVal + " -- debería ser DEVUELTO"});
+    }
+    var estadoVal = (parsed.estado||"").trim().toUpperCase();
+    if(estadoVal && estadoVal !== "VIGENTE" && formatoNorm !== "DEVUELTO"){
+      chips.push({cls:"alert", text:"⚠ Estado " + parsed.estado.trim() + " (no VIGENTE) -- debería ser DEVUELTO"});
+    }
+    if(formatoNorm === "AGENDAMIENTO" && !(parsed.placa||"").trim()){
+      chips.push({cls:"alert", text:"⚠ Falta la Placa -- pega la línea hasta la Placa para AGENDAMIENTO"});
+    }
 
     // Término en días hábiles: Notificación (del comparendo pegado) → Fecha de radicación (dato base),
     // igual que la calculadora de G1:I3 de tu Excel pero calculado automáticamente por caso.
@@ -3309,15 +3361,44 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     cb(false);
   });
 
+  // Diálogo propio para borrar UN radicado -- NO usa confirm() del navegador (mismo riesgo real que
+  // el de nombreMismatchDialog: puede quedarse bloqueado en silencio para siempre después de varios
+  // usos, y "borrar" es justo la acción donde eso sería más grave). Además, después de borrar queda
+  // "Deshacer" unos segundos, por si el clic fue un error.
+  var deleteConfirmDialog = document.getElementById("deleteConfirmDialog");
+  var pendingDeleteId = null;
   document.getElementById("cc_delete").addEventListener("click", function(){
     var rec = state.records.find(function(r){ return r.id===state.activeId; });
-    if(rec && confirm("¿Borrar el radicado " + rec.radicado + "?")){
-      state.records = state.records.filter(function(r){ return r.id!==state.activeId; });
-      state.activeId = null;
-      explicitRemovalPending = true; // borrado deliberado por la persona -- el freno de la nube no debe bloquear esto
+    if(!rec) return;
+    pendingDeleteId = rec.id;
+    document.getElementById("deleteConfirmRadicado").textContent = rec.radicado;
+    deleteConfirmDialog.showModal();
+  });
+  document.getElementById("deleteConfirmCancel").addEventListener("click", function(){
+    pendingDeleteId = null;
+    deleteConfirmDialog.close();
+  });
+  document.getElementById("deleteConfirmOk").addEventListener("click", function(){
+    deleteConfirmDialog.close();
+    if(!pendingDeleteId) return;
+    var idx = state.records.findIndex(function(r){ return r.id===pendingDeleteId; });
+    if(idx === -1){ pendingDeleteId = null; return; }
+    var rec = state.records[idx];
+    state.records = state.records.filter(function(r){ return r.id!==pendingDeleteId; });
+    state.activeId = null;
+    explicitRemovalPending = true; // borrado deliberado por la persona -- el freno de la nube no debe bloquear esto
+    save(); renderAll();
+    var restoreAt = idx;
+    var deletedId = pendingDeleteId;
+    pendingDeleteId = null;
+    toastAction("Radicado " + rec.radicado + " borrado", "Deshacer", function(){
+      if(state.records.some(function(r){ return r.id===deletedId; })) return; // ya se restauró, o se volvió a crear con el mismo id (raro)
+      state.records.splice(Math.min(restoreAt, state.records.length), 0, rec);
+      state.records.forEach(function(r,i){ r.order = i; });
       save(); renderAll();
-      toast("Radicado borrado");
-    }
+      selectRecord(rec.id);
+      toast("Radicado " + rec.radicado + " restaurado");
+    });
   });
   document.getElementById("cc_copyRow").addEventListener("click", function(){
     var rec = readCaptureIntoRecord();
