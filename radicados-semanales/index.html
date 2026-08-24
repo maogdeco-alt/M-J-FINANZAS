@@ -110,10 +110,10 @@
   header.top .titles h1{font-size:1.7rem;color:var(--ink);}
   .badge-week{font-size:0.85rem;color:var(--accent);background:var(--accent-soft);border:1px solid var(--border);border-radius:999px;padding:6px 14px;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600;}
 
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:12px;}
-  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;box-shadow:var(--shadow);}
-  .stat-card .num{font-size:1.8rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;}
-  .stat-card .label{color:var(--muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:.05em;margin-top:7px;}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:8px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;box-shadow:var(--shadow);}
+  .stat-card .num{font-size:1.4rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;}
+  .stat-card .label{color:var(--muted);font-size:0.68rem;text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
   .stat-card.pend .num{color:var(--warn);}
   .stat-card.ok .num{color:var(--ok);}
   .stat-card.warn2 .num{color:var(--stamp);}
@@ -124,7 +124,7 @@
   .history-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;}
   .history-table tbody tr:last-child td{border-bottom:none;}
 
-  .progress-track{height:8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;margin-bottom:8px;}
+  .progress-track{height:6px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;margin-bottom:6px;}
   .progress-fill{height:100%;background:var(--ok);border-radius:999px;transition:width .25s ease;}
   @media (prefers-reduced-motion: reduce){.progress-fill{transition:none;}}
   .progress-note{color:var(--muted);font-size:0.78rem;margin:0 0 20px;}
@@ -135,8 +135,8 @@
   .chip.extra{border-style:dashed;}
 
   /* ---- resumen del lote: stats + progreso + chips, en un solo bloque compacto ---- */
-  .summary-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:14px;}
-  .summary-panel .stats{margin-bottom:10px;}
+  .summary-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:11px 16px;margin-bottom:10px;}
+  .summary-panel .stats{margin-bottom:7px;}
 
   /* ---- calculadora de términos: contenido del diálogo dedicado (botón llamativo en el header) ---- */
   .term-calc-body{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;}
@@ -148,10 +148,20 @@
   .subhead{font-size:1rem;font-weight:700;letter-spacing:-0.01em;margin:0 0 8px;}
   .hr{height:1px;background:var(--border);margin:20px 0;}
 
-  section.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:22px;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;}
   .panel-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
   .panel-head h2{font-size:1.2rem;}
   .panel-head .step{font-size:0.76rem;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;font-weight:700;display:block;margin-bottom:3px;}
+
+  /* Paso 1 plegable: se usa una vez por lote, no debe competir por pantalla con el Paso 2 mientras
+     trabajas. Mismo look que un panel-head normal, pero es un <summary> nativo (clic para abrir). */
+  .accordion-panel > summary.accordion-summary{list-style:none;cursor:pointer;padding:16px 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;user-select:none;}
+  .accordion-panel > summary.accordion-summary::-webkit-details-marker{display:none;}
+  .accordion-panel[open] > summary.accordion-summary{border-bottom:1px solid var(--border);}
+  .accordion-summary:hover{background:var(--surface-2);}
+  .accordion-caret{color:var(--muted);font-size:0.85rem;transition:transform .15s ease;flex:none;}
+  .accordion-panel[open] .accordion-caret{transform:rotate(180deg);}
   .panel-body{padding:20px;}
   .panel-desc{color:var(--muted);font-size:0.94rem;margin:0 0 14px;max-width:74ch;}
 
@@ -307,6 +317,10 @@
   .simit-btn.is-disabled{background:var(--surface-2);color:var(--muted);cursor:not-allowed;opacity:0.7;pointer-events:none;}
   .simit-btn.is-disabled:hover{background:var(--surface-2);color:var(--muted);}
 
+  .breakdown-details{margin-top:4px;}
+  .breakdown-details > summary{list-style:none;cursor:pointer;color:var(--accent);font-size:0.78rem;font-weight:700;user-select:none;}
+  .breakdown-details > summary::-webkit-details-marker{display:none;}
+  .breakdown-details[open] > summary{margin-bottom:2px;}
   .breakdown{display:grid;grid-template-columns:repeat(auto-fill,minmax(102px,1fr));gap:5px;margin-top:6px;}
   .breakdown .bd-item{background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:4px 7px;}
   .breakdown .bd-item .k{font-size:0.66rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
@@ -544,12 +558,19 @@
   </section>
 
   <!-- PASO 1: importar -->
-  <section class="panel">
-    <div class="panel-head">
+  <!-- Paso 1 se pliega solo (details/summary nativo, sin JS): se usa una vez por lote de radicados,
+       no todo el día como el Paso 2 -- mantenerlo siempre abierto era el mayor "ladrón" de pantalla
+       antes de llegar al trabajo real. Se abre solo si aún no has importado nada (ver initCollapsibles). -->
+  <details class="panel accordion-panel" id="paso1Accordion">
+    <summary class="accordion-summary">
       <div><span class="step">Paso 1</span><h2>Importar los radicados de la semana</h2></div>
-      <button class="btn ghost small" id="addOneBtn" type="button">+ Agregar uno manualmente</button>
-    </div>
+      <span class="accordion-caret" aria-hidden="true">▾</span>
+    </summary>
     <div class="panel-body">
+      <div class="panel-head" style="padding:0 0 12px;border:none;">
+        <span></span>
+        <button class="btn ghost small" id="addOneBtn" type="button">+ Agregar uno manualmente</button>
+      </div>
       <p class="panel-desc">Pega aquí el bloque con los datos fijos que te asignan: <b>RADICADO, FECHA DE RADICACION, FECHA_ASIGNACION, NOMBRE</b> (una fila por radicado, tal como los copias de tu fuente). La app arma la cola de pendientes; tú completas el resto en el Paso 2.</p>
       <div class="import-grid">
         <div>
@@ -565,7 +586,7 @@
         </div>
       </div>
     </div>
-  </section>
+  </details>
 
   <!-- PASO 2: completar, diseñado para ir rápido -->
   <section class="panel">
@@ -636,7 +657,14 @@
                 <label for="cc_comparendo">Pegar línea completa del comparendo<span class="required-mark" id="req_comparendo" hidden>*</span></label>
                 <textarea id="cc_comparendo" rows="2" placeholder="Pega aquí toda la línea copiada (comparendo, cod, imposición, notificación, curso, medio, estado...)"></textarea>
                 <div class="field-hint" title="Se separa sola en: No. Comparendo, Código infracción, Fecha de imposición, Fecha notificación, Tiene curso, Medio de imposición, Estado comparendo, Motivo de cierre, Número de proceso GC, Estado proceso GC, Tipo de documento, No. Documento infractor, Nombre infractor y Placa.">Se separa sola en sus campos (pasa el cursor para ver cuáles). Para <b>masiva</b>: hasta el Nombre infractor. Para <b>AGENDAMIENTO</b>: hasta la <b>Placa</b> (obligatoria ahí).</div>
-                <div class="breakdown" id="cc_breakdown"></div>
+                <!-- Plegado por defecto: es solo para confirmar visualmente que se separó bien -- no
+                     hace falta tenerlo siempre abierto, y era uno de los bloques que más espacio le
+                     quitaba al Paso 2. Los avisos importantes (duplicados, nombre distinto, término)
+                     siguen SIEMPRE visibles en #ccInsights, fuera de este plegable. -->
+                <details class="breakdown-details">
+                  <summary>Ver los campos separados ▾</summary>
+                  <div class="breakdown" id="cc_breakdown"></div>
+                </details>
                 <div class="insights" id="ccInsights"></div>
               </div>
 
@@ -2533,8 +2561,16 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }
   });
 
+  // El Paso 1 se abre solo la PRIMERA vez que se pinta la pantalla, y solo si todavía no hay ningún
+  // radicado importado -- después de eso, se respeta lo que la propia persona decida (abrirlo o
+  // cerrarlo a mano), sin que renderAll() se lo cambie cada vez que algo se guarda.
+  var paso1AutoOpenDone = false;
   function renderAll(){
     renderStats(); renderQueue(); renderHistory(); renderAgendamientos();
+    if(!paso1AutoOpenDone){
+      paso1AutoOpenDone = true;
+      document.getElementById("paso1Accordion").open = state.records.length === 0;
+    }
     document.getElementById("weekBadge").textContent = isoWeekLabel(new Date());
     // keep the capture card in sync if the active record fell out of view (deleted, or filtered out)
     if(state.activeId && !state.records.some(function(r){ return r.id===state.activeId; })){
