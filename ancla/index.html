@@ -66,6 +66,14 @@ h1,h2,h3,p{margin:0}
 @keyframes bamboleo{ 0%,100%{transform:translateY(0) rotate(-1.5deg)} 50%{transform:translateY(-3px) rotate(1.5deg)} }
 .ojo-parpadeo{animation:parpadeo 5.5s ease-in-out infinite}
 @keyframes parpadeo{ 0%,92%,100%{transform:scaleY(1)} 95%{transform:scaleY(.1)} }
+.cola-nutria{animation:colazo 2.8s ease-in-out infinite; transform-box:fill-box}
+@keyframes colazo{ 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(-7deg)} }
+
+.huevo-wrap{display:flex; flex-direction:column; align-items:center; padding:26px 0 10px}
+.huevo-svg{width:150px; height:180px; cursor:pointer; filter:drop-shadow(0 10px 18px rgba(0,0,0,.15))}
+.huevo-svg.tambalea{animation:tambaleo .55s ease}
+@keyframes tambaleo{ 0%,100%{transform:rotate(0)} 20%{transform:rotate(-8deg)} 40%{transform:rotate(7deg)} 60%{transform:rotate(-5deg)} 80%{transform:rotate(4deg)} }
+.nace-retrato{width:130px; height:130px; margin:0 auto}
 .boya-txt{flex:1; min-width:0}
 .boya-txt .titulo{font-weight:700; font-size:15.5px; margin-bottom:2px}
 .boya-txt .sub{font-size:13px}
@@ -226,7 +234,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.4.0-beta';
+var VERSION='0.5.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -562,55 +570,96 @@ function ganarConchitas(n){
 }
 
 /* ===================== dibujar a la nutria ===================== */
-function dibujarNutria(moodId, tam){
+var _nutriaSeq=0;
+function etapaVinculo(){
+  var n=calcularVinculo().nivel;
+  if(n<=1) return 'cria';
+  if(n<=3) return 'joven';
+  return 'adulta';
+}
+function dibujarHuevo(){
+  return '<svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">'+
+    '<defs><radialGradient id="gHuevo" cx="32%" cy="22%" r="85%">'+
+      '<stop offset="0%" stop-color="#fdf6e3"/><stop offset="100%" stop-color="#e3d09c"/>'+
+    '</radialGradient></defs>'+
+    '<ellipse cx="50" cy="64" rx="36" ry="48" fill="url(#gHuevo)" stroke="#c9a35c" stroke-width="2"/>'+
+    '<circle cx="34" cy="42" r="2.4" fill="#c9a35c" opacity=".45"/><circle cx="63" cy="55" r="2" fill="#c9a35c" opacity=".4"/>'+
+    '<circle cx="40" cy="80" r="2.2" fill="#c9a35c" opacity=".4"/><circle cx="60" cy="92" r="1.8" fill="#c9a35c" opacity=".35"/>'+
+    '<circle cx="58" cy="30" r="1.6" fill="#c9a35c" opacity=".35"/>'+
+    '<path d="M30,48 L42,56 L36,64 L52,74 L46,84 L62,94" fill="none" stroke="#a9713f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>'+
+  '</svg>';
+}
+function dibujarNutria(moodId, etapaParam){
+  var etapa = etapaParam || etapaVinculo();
+  var escala = etapa==='cria' ? 0.68 : etapa==='joven' ? 0.86 : 1;
+  var conDetalle = etapa!=='cria';
   var eq = S.equipado||{};
+  _nutriaSeq++;
+  var u=_nutriaSeq;
+  var defs='<defs>'+
+    '<radialGradient id="gCab'+u+'" cx="35%" cy="25%" r="85%"><stop offset="0%" stop-color="#8a6142"/><stop offset="100%" stop-color="#5c3f29"/></radialGradient>'+
+    '<radialGradient id="gOre'+u+'" cx="35%" cy="28%" r="80%"><stop offset="0%" stop-color="#6e4c31"/><stop offset="100%" stop-color="#4a3220"/></radialGradient>'+
+    '<linearGradient id="gPan'+u+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f4ead4"/><stop offset="100%" stop-color="#ddccaa"/></linearGradient>'+
+  '</defs>';
   var ojosYboca = {
-    deriva: '<path d="M36,50 q5,-6 10,0" stroke="#3b2a1e" stroke-width="2.4" fill="none" stroke-linecap="round" class="ojo-parpadeo"/>'+
-            '<path d="M54,50 q5,-6 10,0" stroke="#3b2a1e" stroke-width="2.4" fill="none" stroke-linecap="round" class="ojo-parpadeo"/>'+
-            '<path d="M45,64 q5,2 10,0" stroke="#3b2a1e" stroke-width="2.2" fill="none" stroke-linecap="round"/>'+
-            '<text x="70" y="30" font-size="9" fill="#7a5233">z</text><text x="78" y="20" font-size="7" fill="#7a5233">z</text>',
-    bajito: '<ellipse cx="41" cy="47" rx="4.2" ry="3.2" fill="#3b2a1e" class="ojo-parpadeo"/><ellipse cx="59" cy="47" rx="4.2" ry="3.2" fill="#3b2a1e" class="ojo-parpadeo"/>'+
-            '<path d="M45,64 q5,2 10,0" stroke="#3b2a1e" stroke-width="2.2" fill="none" stroke-linecap="round"/>',
-    flote:  '<circle cx="41" cy="47" r="4.6" fill="#3b2a1e" class="ojo-parpadeo"/><circle cx="59" cy="47" r="4.6" fill="#3b2a1e" class="ojo-parpadeo"/>'+
+    deriva: '<path d="M36,50 q5,-6 10,0" stroke="#2e2016" stroke-width="2.4" fill="none" stroke-linecap="round" class="ojo-parpadeo"/>'+
+            '<path d="M54,50 q5,-6 10,0" stroke="#2e2016" stroke-width="2.4" fill="none" stroke-linecap="round" class="ojo-parpadeo"/>'+
+            '<path d="M45,64 q5,2 10,0" stroke="#2e2016" stroke-width="2.2" fill="none" stroke-linecap="round"/>'+
+            '<text x="70" y="30" font-size="9" fill="#6e4c31">z</text><text x="78" y="20" font-size="7" fill="#6e4c31">z</text>',
+    bajito: '<ellipse cx="41" cy="47" rx="4.2" ry="3.2" fill="#2e2016" class="ojo-parpadeo"/><ellipse cx="59" cy="47" rx="4.2" ry="3.2" fill="#2e2016" class="ojo-parpadeo"/>'+
+            '<circle cx="42.2" cy="45.7" r="1" fill="#fff" opacity=".55"/><circle cx="60.2" cy="45.7" r="1" fill="#fff" opacity=".55"/>'+
+            '<path d="M45,64 q5,2 10,0" stroke="#2e2016" stroke-width="2.2" fill="none" stroke-linecap="round"/>',
+    flote:  '<circle cx="41" cy="47" r="4.6" fill="#2e2016" class="ojo-parpadeo"/><circle cx="59" cy="47" r="4.6" fill="#2e2016" class="ojo-parpadeo"/>'+
             '<circle cx="42.5" cy="45.5" r="1.3" fill="#fff"/><circle cx="60.5" cy="45.5" r="1.3" fill="#fff"/>'+
-            '<path d="M43,63 q7,6 14,0" stroke="#3b2a1e" stroke-width="2.4" fill="none" stroke-linecap="round"/>',
-    tranquila: '<circle cx="41" cy="47" r="4.8" fill="#3b2a1e" class="ojo-parpadeo"/><circle cx="59" cy="47" r="4.8" fill="#3b2a1e" class="ojo-parpadeo"/>'+
+            '<path d="M43,63 q7,6 14,0" stroke="#2e2016" stroke-width="2.4" fill="none" stroke-linecap="round"/>',
+    tranquila: '<circle cx="41" cy="47" r="4.8" fill="#2e2016" class="ojo-parpadeo"/><circle cx="59" cy="47" r="4.8" fill="#2e2016" class="ojo-parpadeo"/>'+
             '<circle cx="42.5" cy="45.5" r="1.4" fill="#fff"/><circle cx="60.5" cy="45.5" r="1.4" fill="#fff"/>'+
-            '<path d="M42,63 q8,8 16,0" stroke="#3b2a1e" stroke-width="2.4" fill="none" stroke-linecap="round"/>'+
+            '<path d="M42,63 q8,8 16,0" stroke="#2e2016" stroke-width="2.4" fill="none" stroke-linecap="round"/>'+
             '<ellipse cx="27" cy="58" rx="6" ry="4" fill="#ff8a65" opacity=".35"/><ellipse cx="73" cy="58" rx="6" ry="4" fill="#ff8a65" opacity=".35"/>',
-    brilla: '<path d="M34,46 q7,-8 14,0" stroke="#3b2a1e" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
-            '<path d="M52,46 q7,-8 14,0" stroke="#3b2a1e" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
-            '<path d="M40,62 q10,10 20,0" stroke="#3b2a1e" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
+    brilla: '<path d="M34,46 q7,-8 14,0" stroke="#2e2016" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
+            '<path d="M52,46 q7,-8 14,0" stroke="#2e2016" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
+            '<path d="M40,62 q10,10 20,0" stroke="#2e2016" stroke-width="2.6" fill="none" stroke-linecap="round"/>'+
             '<ellipse cx="26" cy="58" rx="6.5" ry="4.5" fill="#ff8a65" opacity=".45"/><ellipse cx="74" cy="58" rx="6.5" ry="4.5" fill="#ff8a65" opacity=".45"/>'+
             '<text x="10" y="18" font-size="11">✦</text><text x="82" y="24" font-size="8">✦</text>'
   };
-  var base=''+
-    '<ellipse cx="30" cy="26" rx="10" ry="10" fill="#7a5233"/><ellipse cx="70" cy="26" rx="10" ry="10" fill="#7a5233"/>'+
-    '<ellipse cx="30" cy="27" rx="5.2" ry="5.2" fill="#dba876"/><ellipse cx="70" cy="27" rx="5.2" ry="5.2" fill="#dba876"/>'+
-    '<ellipse cx="50" cy="52" rx="36" ry="32" fill="#a9713f"/>'+
-    '<ellipse cx="50" cy="63" rx="23" ry="18" fill="#f3e4c8"/>'+
-    '<line x1="28" y1="58" x2="12" y2="54" stroke="#7a5233" stroke-width="1.4" stroke-linecap="round"/>'+
-    '<line x1="28" y1="63" x2="11" y2="63" stroke="#7a5233" stroke-width="1.4" stroke-linecap="round"/>'+
-    '<line x1="72" y1="58" x2="88" y2="54" stroke="#7a5233" stroke-width="1.4" stroke-linecap="round"/>'+
-    '<line x1="72" y1="63" x2="89" y2="63" stroke="#7a5233" stroke-width="1.4" stroke-linecap="round"/>'+
-    (ojosYboca[moodId]||ojosYboca.flote)+
-    '<ellipse cx="50" cy="55" rx="5" ry="4" fill="#5c3d28"/>'+
-    '<ellipse cx="34" cy="90" rx="11" ry="9" fill="#a9713f"/><ellipse cx="66" cy="90" rx="11" ry="9" fill="#a9713f"/>'+
-    '<ellipse cx="50" cy="88" rx="7" ry="5" fill="#f7dfa8"/><path d="M45,88 l2,-4 l3,3 l3,-3 l2,4z" fill="#f0c96a"/>';
+  var TRAZO='#3b2416';
+  var base='';
+  base+='<ellipse cx="50" cy="97" rx="28" ry="5" fill="#000" opacity=".1"/>';
+  base+='<g class="cola-nutria" style="transform-origin:68px 70px"><path d="M66,74 Q93,65 90,42 Q87,64 63,69 Z" fill="url(#gCab'+u+')" stroke="'+TRAZO+'" stroke-width="2" stroke-linejoin="round"/></g>';
+  base+='<ellipse cx="30" cy="26" rx="10" ry="10" fill="url(#gOre'+u+')" stroke="'+TRAZO+'" stroke-width="2"/><ellipse cx="70" cy="26" rx="10" ry="10" fill="url(#gOre'+u+')" stroke="'+TRAZO+'" stroke-width="2"/>';
+  base+='<ellipse cx="30" cy="27" rx="5.2" ry="5.2" fill="#c99a72"/><ellipse cx="70" cy="27" rx="5.2" ry="5.2" fill="#c99a72"/>';
+  base+='<ellipse cx="50" cy="52" rx="36" ry="32" fill="url(#gCab'+u+')" stroke="'+TRAZO+'" stroke-width="2.2"/>';
+  base+='<ellipse cx="50" cy="63" rx="23" ry="18" fill="url(#gPan'+u+')" stroke="'+TRAZO+'" stroke-width="1.6" opacity="1"/>';
+  if(conDetalle){
+    base+='<path d="M22,34 q3,-6 6,-2" stroke="#4a3220" stroke-width="1.1" fill="none" opacity=".3" stroke-linecap="round"/>'+
+          '<path d="M30,23 q3,-5 6,-2" stroke="#4a3220" stroke-width="1.1" fill="none" opacity=".3" stroke-linecap="round"/>'+
+          '<path d="M64,23 q3,-5 6,-2" stroke="#4a3220" stroke-width="1.1" fill="none" opacity=".3" stroke-linecap="round"/>'+
+          '<path d="M72,34 q3,-6 6,-2" stroke="#4a3220" stroke-width="1.1" fill="none" opacity=".3" stroke-linecap="round"/>';
+    base+='<line x1="28" y1="58" x2="11" y2="54" stroke="#4a3220" stroke-width="1.3" stroke-linecap="round"/>'+
+          '<line x1="28" y1="63" x2="10" y2="63" stroke="#4a3220" stroke-width="1.3" stroke-linecap="round"/>'+
+          '<line x1="72" y1="58" x2="89" y2="54" stroke="#4a3220" stroke-width="1.3" stroke-linecap="round"/>'+
+          '<line x1="72" y1="63" x2="90" y2="63" stroke="#4a3220" stroke-width="1.3" stroke-linecap="round"/>';
+  }
+  base+=(ojosYboca[moodId]||ojosYboca.flote);
+  base+='<ellipse cx="50" cy="55" rx="5" ry="4" fill="#2e2016" stroke="'+TRAZO+'" stroke-width="1"/><ellipse cx="48.4" cy="53.6" rx="1.3" ry="1" fill="#fff" opacity=".55"/>';
+  base+='<ellipse cx="34" cy="90" rx="11" ry="9" fill="url(#gCab'+u+')" stroke="'+TRAZO+'" stroke-width="2"/><ellipse cx="66" cy="90" rx="11" ry="9" fill="url(#gCab'+u+')" stroke="'+TRAZO+'" stroke-width="2"/>';
+  base+='<ellipse cx="50" cy="88" rx="7" ry="5" fill="url(#gPan'+u+')" stroke="'+TRAZO+'" stroke-width="1.4"/><path d="M45,88 l2,-4 l3,3 l3,-3 l2,4z" fill="#f0c96a" stroke="'+TRAZO+'" stroke-width="1"/>';
   var accesorios='';
-  if(eq.sombrero==='gorro_lana') accesorios+='<path d="M16,26 Q50,-8 84,26 L82,15 Q50,-16 18,15 Z" fill="#5b8fb0"/><circle cx="50" cy="-10" r="7" fill="#e7ddcf"/>';
-  else if(eq.sombrero==='sombrero_paja') accesorios+='<ellipse cx="50" cy="16" rx="42" ry="9" fill="#e3bd6a"/><path d="M26,16 Q50,-14 74,16 Z" fill="#f0d089"/><rect x="26" y="13" width="48" height="5" rx="2.5" fill="#c9946a"/>';
-  else if(eq.sombrero==='boina') accesorios+='<ellipse cx="46" cy="14" rx="32" ry="15" fill="#8a3b5a" transform="rotate(-9 46 14)"/><ellipse cx="46" cy="16" rx="26" ry="10" fill="#a04a6c" transform="rotate(-9 46 16)"/><circle cx="62" cy="4" r="3.6" fill="#6e2c46"/>';
-  else if(eq.sombrero==='panuelo_pirata') accesorios+='<path d="M14,28 Q50,-10 86,28 L86,35 Q50,11 14,35 Z" fill="#c94b4b"/><circle cx="34" cy="18" r="2.2" fill="#f3e4c8"/><circle cx="50" cy="10" r="2.2" fill="#f3e4c8"/><circle cx="66" cy="18" r="2.2" fill="#f3e4c8"/><path d="M84,26 L94,20 L92,32 Z" fill="#c94b4b"/>';
-  else if(eq.sombrero==='corona') accesorios+='<path d="M24,20 L32,2 L44,16 L50,0 L56,16 L68,2 L76,20 Z" fill="#f4c93b" stroke="#c99a1e" stroke-width="1.5"/>';
-  if(eq.gafas==='gafas_sol') accesorios+='<rect x="30" y="42" width="17" height="12" rx="5" fill="#2b2b2b"/><rect x="53" y="42" width="17" height="12" rx="5" fill="#2b2b2b"/><line x1="47" y1="47" x2="53" y2="47" stroke="#2b2b2b" stroke-width="2"/>';
-  else if(eq.gafas==='gafas_redondas') accesorios+='<circle cx="41" cy="47" r="9" fill="none" stroke="#3b2a1e" stroke-width="2"/><circle cx="59" cy="47" r="9" fill="none" stroke="#3b2a1e" stroke-width="2"/><line x1="50" y1="47" x2="50" y2="47" stroke="#3b2a1e" stroke-width="2"/>';
-  else if(eq.gafas==='gafas_corazon') accesorios+='<path d="M41,52 C34,46 34,40 39,40 C40.5,40 41,41 41,42 C41,41 41.5,40 43,40 C48,40 48,46 41,52 Z" fill="#e8547a"/><path d="M59,52 C52,46 52,40 57,40 C58.5,40 59,41 59,42 C59,41 59.5,40 61,40 C66,40 66,46 59,52 Z" fill="#e8547a"/><line x1="47" y1="46" x2="53" y2="46" stroke="#e8547a" stroke-width="2"/>';
-  if(eq.cuello==='bufanda') accesorios+='<path d="M22,76 Q50,92 78,76 L78,84 Q50,100 22,84 Z" fill="#ff8a65"/><rect x="60" y="82" width="9" height="20" rx="3" fill="#ff8a65"/>';
-  else if(eq.cuello==='moño') accesorios+='<path d="M50,78 L38,70 L38,86 Z" fill="#ff8a65"/><path d="M50,78 L62,70 L62,86 Z" fill="#ff8a65"/><circle cx="50" cy="78" r="4.5" fill="#d9634a"/>';
+  if(eq.sombrero==='gorro_lana') accesorios+='<path d="M16,26 Q50,-8 84,26 L82,15 Q50,-16 18,15 Z" fill="#5b8fb0" stroke="'+TRAZO+'" stroke-width="1.6" stroke-linejoin="round"/><circle cx="50" cy="-10" r="7" fill="#e7ddcf" stroke="'+TRAZO+'" stroke-width="1.4"/>';
+  else if(eq.sombrero==='sombrero_paja') accesorios+='<ellipse cx="50" cy="16" rx="42" ry="9" fill="#e3bd6a" stroke="'+TRAZO+'" stroke-width="1.6"/><path d="M26,16 Q50,-14 74,16 Z" fill="#f0d089" stroke="'+TRAZO+'" stroke-width="1.6"/><rect x="26" y="13" width="48" height="5" rx="2.5" fill="#c9946a"/>';
+  else if(eq.sombrero==='boina') accesorios+='<ellipse cx="46" cy="14" rx="32" ry="15" fill="#8a3b5a" stroke="'+TRAZO+'" stroke-width="1.6" transform="rotate(-9 46 14)"/><ellipse cx="46" cy="16" rx="26" ry="10" fill="#a04a6c" transform="rotate(-9 46 16)"/><circle cx="62" cy="4" r="3.6" fill="#6e2c46" stroke="'+TRAZO+'" stroke-width="1.2"/>';
+  else if(eq.sombrero==='panuelo_pirata') accesorios+='<path d="M14,28 Q50,-10 86,28 L86,35 Q50,11 14,35 Z" fill="#c94b4b" stroke="'+TRAZO+'" stroke-width="1.6" stroke-linejoin="round"/><circle cx="34" cy="18" r="2.2" fill="#f3e4c8"/><circle cx="50" cy="10" r="2.2" fill="#f3e4c8"/><circle cx="66" cy="18" r="2.2" fill="#f3e4c8"/><path d="M84,26 L94,20 L92,32 Z" fill="#c94b4b" stroke="'+TRAZO+'" stroke-width="1.4" stroke-linejoin="round"/>';
+  else if(eq.sombrero==='corona') accesorios+='<path d="M24,20 L32,2 L44,16 L50,0 L56,16 L68,2 L76,20 Z" fill="#f4c93b" stroke="'+TRAZO+'" stroke-width="1.6" stroke-linejoin="round"/>';
+  if(eq.gafas==='gafas_sol') accesorios+='<rect x="30" y="42" width="17" height="12" rx="5" fill="#2b2b2b" stroke="'+TRAZO+'" stroke-width="1.4"/><rect x="53" y="42" width="17" height="12" rx="5" fill="#2b2b2b" stroke="'+TRAZO+'" stroke-width="1.4"/><line x1="47" y1="47" x2="53" y2="47" stroke="'+TRAZO+'" stroke-width="2"/>';
+  else if(eq.gafas==='gafas_redondas') accesorios+='<circle cx="41" cy="47" r="9" fill="none" stroke="'+TRAZO+'" stroke-width="2.2"/><circle cx="59" cy="47" r="9" fill="none" stroke="'+TRAZO+'" stroke-width="2.2"/><line x1="50" y1="47" x2="50" y2="47" stroke="'+TRAZO+'" stroke-width="2"/>';
+  else if(eq.gafas==='gafas_corazon') accesorios+='<path d="M41,52 C34,46 34,40 39,40 C40.5,40 41,41 41,42 C41,41 41.5,40 43,40 C48,40 48,46 41,52 Z" fill="#e8547a" stroke="'+TRAZO+'" stroke-width="1.2"/><path d="M59,52 C52,46 52,40 57,40 C58.5,40 59,41 59,42 C59,41 59.5,40 61,40 C66,40 66,46 59,52 Z" fill="#e8547a" stroke="'+TRAZO+'" stroke-width="1.2"/><line x1="47" y1="46" x2="53" y2="46" stroke="'+TRAZO+'" stroke-width="2"/>';
+  if(eq.cuello==='bufanda') accesorios+='<path d="M22,76 Q50,92 78,76 L78,84 Q50,100 22,84 Z" fill="#ff8a65" stroke="'+TRAZO+'" stroke-width="1.6" stroke-linejoin="round"/><rect x="60" y="82" width="9" height="20" rx="3" fill="#ff8a65" stroke="'+TRAZO+'" stroke-width="1.4"/>';
+  else if(eq.cuello==='moño') accesorios+='<path d="M50,78 L38,70 L38,86 Z" fill="#ff8a65" stroke="'+TRAZO+'" stroke-width="1.4" stroke-linejoin="round"/><path d="M50,78 L62,70 L62,86 Z" fill="#ff8a65" stroke="'+TRAZO+'" stroke-width="1.4" stroke-linejoin="round"/><circle cx="50" cy="78" r="4.5" fill="#d9634a" stroke="'+TRAZO+'" stroke-width="1.2"/>';
   else if(eq.cuello==='collar_conchas') accesorios+='<path d="M26,78 Q50,90 74,78" stroke="#f3e4c8" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="50" cy="88" r="4" fill="#fff3e0" stroke="#e3bd6a" stroke-width="1"/>';
-  else if(eq.cuello==='capa_heroe') accesorios+='<path d="M28,78 Q50,73 72,78 L84,100 Q50,90 16,100 Z" fill="#e14b4b"/><path d="M28,78 Q50,73 72,78" fill="none" stroke="#b23a3a" stroke-width="3"/><circle cx="50" cy="78" r="4" fill="#f4c93b"/>';
-  return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'+base+accesorios+'</svg>';
+  else if(eq.cuello==='capa_heroe') accesorios+='<path d="M28,78 Q50,73 72,78 L84,100 Q50,90 16,100 Z" fill="#e14b4b" stroke="'+TRAZO+'" stroke-width="1.6" stroke-linejoin="round"/><path d="M28,78 Q50,73 72,78" fill="none" stroke="#b23a3a" stroke-width="3"/><circle cx="50" cy="78" r="4" fill="#f4c93b" stroke="'+TRAZO+'" stroke-width="1.2"/>';
+  return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'+defs+
+    '<g transform="translate(50,55) scale('+escala+') translate(-50,-55)">'+base+accesorios+'</g>'+
+    '</svg>';
 }
 
 /* ===================== sonido, vibración, confeti, puntos flotantes ===================== */
@@ -713,7 +762,8 @@ function avatarHTML(){
 /* vista efímera, no se guarda */
 var V = {
   tab:'hoy', mostrarMedallas:false, ropaNueva:'', tareaTexto:'', onboardingNombre:'', miniTexto:'', miniEmo:'📌',
-  toast:null, celebracion:null, pulsoConchitas:false, subtabBoya:'vestuario', respirando:null, aterrizajePaso:0
+  toast:null, celebracion:null, pulsoConchitas:false, subtabBoya:'vestuario', respirando:null, aterrizajePaso:0,
+  onboardingPaso:'huevo', huevoTambaleando:false
 };
 
 /* ===================== respiración guiada ===================== */
@@ -887,16 +937,28 @@ function renderTopbar(){
 }
 
 function renderOnboarding(){
+  if(V.onboardingPaso==='huevo'){
+    var h='<div class="card onboarding" style="text-align:center">';
+    h+='<h3 style="font-size:18px; margin-bottom:6px">Algo se está moviendo…</h3>';
+    h+='<p class="sub">Toca el huevo.</p>';
+    h+='<div class="huevo-wrap"><div class="huevo-svg '+(V.huevoTambaleando?'tambalea':'')+'" data-action="romper-huevo">'+dibujarHuevo()+'</div></div>';
+    h+='<button class="btn btn-fantasma btn-chico" data-action="saltar-onboarding">Ahora no, entrar directo</button>';
+    h+='</div>';
+    return h;
+  }
   var h='<div class="card onboarding">';
-  h+='<div style="text-align:center; margin-bottom:4px; font-size:34px">⚓</div>';
-  h+='<h3 style="text-align:center; font-size:18px; margin-bottom:6px">Antes de empezar</h3>';
-  h+='<p class="sub" style="text-align:center; margin-bottom:20px">¿Cómo te llamas? Es solo para saludarte — podés cambiarlo o dejarlo en blanco.</p>';
-  h+='<div style="display:flex; justify-content:center; margin-bottom:18px">';
+  h+='<div style="text-align:center">';
+  h+='<div class="boya-retrato nace-retrato">'+dibujarNutria('flote','cria')+'</div>';
+  h+='<h3 style="font-size:18px; margin:14px 0 4px">¡Nació! 🎉</h3>';
+  h+='<p class="sub" style="margin-bottom:16px">Todavía no tiene nombre.</p>';
+  h+='</div>';
+  h+='<input type="text" id="inp-nombre-boya-onboarding" class="input-nombre" placeholder="Ponle un nombre a tu nutria" style="margin-bottom:14px">';
+  h+='<p class="sub" style="text-align:center; margin-bottom:12px">¿Y tú cómo te llamas?</p>';
+  h+='<div style="display:flex; justify-content:center; margin-bottom:16px">';
   h+='<label class="avatar-picker">'+(S.usuario.foto?'<img src="'+S.usuario.foto+'" alt="">':'<span>📷</span>')+'<input type="file" accept="image/*" id="inp-foto-onboarding" style="display:none"></label>';
   h+='</div>';
   h+='<input type="text" id="inp-nombre-onboarding" class="input-nombre" placeholder="Tu nombre" value="'+esc(V.onboardingNombre)+'">';
   h+='<button class="btn btn-principal" style="margin-top:18px; width:100%" data-action="terminar-onboarding">Empezar</button>';
-  h+='<button class="btn btn-fantasma btn-chico" style="margin-top:10px; width:100%" data-action="saltar-onboarding">Ahora no, entrar directo</button>';
   h+='</div>';
   return h;
 }
@@ -1350,9 +1412,25 @@ app.addEventListener('click', function(ev){
   else if(act==='descartar-nudge'){ S.nudgeVisto=hoyISO(); guardar(); }
   else if(act==='toggle-modo-suave'){ S.modoSuave=!S.modoSuave; guardar(); }
   else if(act==='toggle-efectos'){ S.efectos=(S.efectos===false); guardar(); }
+  else if(act==='romper-huevo'){
+    if(V.huevoTambaleando) return;
+    sonidoArpegio(); vibrar([15,30,15,30,60]);
+    V.huevoTambaleando=true;
+    render();
+    setTimeout(function(){
+      V.onboardingPaso='nace';
+      V.huevoTambaleando=false;
+      lanzarConfeti(40);
+      render();
+    }, 650);
+    return;
+  }
   else if(act==='terminar-onboarding'){
     var inpN=document.getElementById('inp-nombre-onboarding');
+    var inpB=document.getElementById('inp-nombre-boya-onboarding');
     S.usuario.nombre=(inpN?inpN.value:'').trim();
+    var nombreBoya=(inpB?inpB.value:'').trim();
+    if(nombreBoya) S.boya.nombre=nombreBoya;
     S.onboardingVisto=true; guardar();
     celebrar('bienvenida', {titulo:'Listo'+(S.usuario.nombre?', '+S.usuario.nombre:'')+' 🎉', sub:'Cuando quieras, tocá lo que ya hiciste hoy.'});
   }

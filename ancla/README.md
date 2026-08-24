@@ -12,9 +12,9 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.4.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.5.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.2.0" al reportar algo raro.
+> pasó en la v0.5.0" al reportar algo raro.
 
 ## Qué hace
 
@@ -24,11 +24,19 @@ pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el pr
 - **Hoy**: 8 botones de un solo toque (desayuno, almuerzo, cena, agua, aseo, baño,
   moverme, dormí), con **Boya dentro de un anillo de progreso** que se llena en vivo según
   cuánto llevas del día. Sin formularios, sin campos obligatorios, sin orden que respetar.
-- **Boya**, la compañera: una nutria marina dibujada (no un emoji), con cara propia,
-  parpadeo y un ligero bamboleo — cinco estados de ánimo según cuánto llevas del día, cada
-  uno con ojos y boca distintos. No es una mascota que "se muere" si no la cuidas (ese
-  patrón genera culpa, no ayuda) — en el peor de los casos está dormidita, nunca en
-  peligro, y siempre puede volver a flotar. Tocarla da un mensaje corto y amable al azar.
+- **Boya**, la compañera: una nutria marina dibujada a mano en SVG (con degradados de
+  verdad, contorno como personaje de dibujo animado —no ícono plano—, cola que se mueve,
+  textura de pelaje, ojos con brillo), no un emoji. Cinco estados de ánimo según cuánto
+  llevas del día, cada uno con ojos y boca distintos, y parpadeo + bamboleo constante para
+  que se sienta viva. No es una mascota que "se muere" si no la cuidas (ese patrón genera
+  culpa, no ayuda) — en el peor de los casos está dormidita, nunca en peligro. Tocarla da
+  un mensaje corto y amable.
+- **Nace de un huevo**: la primera vez que se abre Ancla, antes de pedir ningún dato,
+  aparece un huevo — al tocarlo se tambalea y se rompe (con confeti) y ahí nace tu nutria,
+  recién entonces se le pone nombre a ella y a ti. Después crece de verdad: **cría** (recién
+  nacida, sin bigotes, más chiquita) → **joven** → **adulta** con todo el detalle — el
+  crecimiento sigue el nivel de vínculo, no el calendario, así que avanza con el uso real,
+  no con el tiempo que pasa sola en el celular.
 - **Vínculo con Boya**: aparte del progreso de autocuidado de hoy, hay una relación de
   fondo que solo crece — con cada check-in, cada vez que la tocas, cada compra. Tiene sus
   propios niveles ("Recién se conocen" → "Inseparables"), con una frase que describe cómo
