@@ -69,8 +69,7 @@ h1,h2,h3,p{margin:0}
 .boya-txt{flex:1; min-width:0}
 .boya-txt .titulo{font-weight:700; font-size:15.5px; margin-bottom:2px}
 .boya-txt .sub{font-size:13px}
-.ver-boya-link{font-size:12px; font-weight:700; color:var(--teal-d); margin-top:4px; display:inline-block}
-@media (prefers-color-scheme:dark){ .ver-boya-link{color:var(--teal)} }
+.ver-boya-link{font-size:12px; font-weight:700; color:var(--mint-ink); margin-top:8px; display:inline-flex; align-items:center; gap:5px; background:var(--mint); padding:6px 12px; border-radius:20px}
 
 .conchitas-chip{display:flex; align-items:center; gap:4px; background:var(--mint); color:var(--mint-ink); font-weight:700; font-size:12.5px; padding:5px 10px; border-radius:20px; transition:transform .15s}
 .conchitas-chip.pulso{animation:pulso-conchita .4s ease}
@@ -100,7 +99,10 @@ h1,h2,h3,p{margin:0}
 .tienda-item .candado{font-size:10.5px; color:var(--sub); margin-top:8px}
 
 .respirar-circulo-wrap{display:flex; flex-direction:column; align-items:center; padding:30px 10px 10px}
-.respirar-circulo{width:190px; height:190px; border-radius:50%; background:radial-gradient(circle at 35% 30%, var(--teal), var(--teal-d)); display:flex; align-items:center; justify-content:center; color:#fff; font-size:17px; font-weight:700; transition:transform 4s ease-in-out; box-shadow:0 10px 34px rgba(14,124,134,.35)}
+.respirar-circulo{width:190px; height:190px; border-radius:50%; background:radial-gradient(circle at 35% 30%, var(--teal), var(--teal-d)); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:#fff; font-size:16px; font-weight:700; transition:transform 4s ease-in-out; box-shadow:0 10px 34px rgba(14,124,134,.35)}
+.respirar-nutria{width:78px; height:78px}
+.respirar-nutria svg{width:100%; height:100%}
+.respirar-texto{text-align:center; padding:0 10px}
 .respirar-circulo.chico{transform:scale(.72)}
 .respirar-circulo.grande{transform:scale(1)}
 .aterrizaje-paso{background:var(--card); border:1px solid var(--line); border-radius:var(--radius-s); padding:20px; text-align:center; margin-top:16px}
@@ -224,7 +226,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.3.0-beta';
+var VERSION='0.4.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -276,12 +278,16 @@ var DESC_VINCULO=[
 var ITEMS_BOYA=[
   {id:'gorro_lana', tipo:'sombrero', nombre:'Gorro de lana', emo:'🧶', precio:15, vinculoMin:0},
   {id:'sombrero_paja', tipo:'sombrero', nombre:'Sombrero de paja', emo:'👒', precio:20, vinculoMin:0},
+  {id:'boina', tipo:'sombrero', nombre:'Boina', emo:'🎨', precio:22, vinculoMin:1},
+  {id:'panuelo_pirata', tipo:'sombrero', nombre:'Pañuelo pirata', emo:'🏴‍☠️', precio:24, vinculoMin:1},
   {id:'corona', tipo:'sombrero', nombre:'Corona chiquita', emo:'👑', precio:60, vinculoMin:3},
   {id:'gafas_sol', tipo:'gafas', nombre:'Gafas de sol', emo:'🕶️', precio:18, vinculoMin:0},
   {id:'gafas_redondas', tipo:'gafas', nombre:'Gafas redondas', emo:'👓', precio:22, vinculoMin:1},
+  {id:'gafas_corazon', tipo:'gafas', nombre:'Gafas de corazón', emo:'💗', precio:28, vinculoMin:2},
   {id:'bufanda', tipo:'cuello', nombre:'Bufanda', emo:'🧣', precio:16, vinculoMin:0},
   {id:'moño', tipo:'cuello', nombre:'Moño', emo:'🎀', precio:14, vinculoMin:0},
   {id:'collar_conchas', tipo:'cuello', nombre:'Collar de conchitas', emo:'📿', precio:35, vinculoMin:2},
+  {id:'capa_heroe', tipo:'cuello', nombre:'Capa de heroína', emo:'🦸', precio:45, vinculoMin:2},
   {id:'fondo_atardecer', tipo:'fondo', nombre:'Atardecer', emo:'🌇', precio:25, vinculoMin:1},
   {id:'fondo_noche', tipo:'fondo', nombre:'Noche estrellada', emo:'🌌', precio:30, vinculoMin:2},
   {id:'fondo_arrecife', tipo:'fondo', nombre:'Arrecife', emo:'🪸', precio:25, vinculoMin:1}
@@ -304,8 +310,43 @@ var MENSAJES_BOYA=[
   'No estás sola en esto.',
   'Volver también cuenta como avanzar.',
   'Esto no es examen. Es solo hoy.',
-  'Lo que alcances a hacer, alcanza.'
+  'Lo que alcances a hacer, alcanza.',
+  '¿Sabías que las nutrias de mar duermen tomadas de la mano para no irse a la deriva? Yo hago algo parecido contigo, a mi manera.',
+  'Si esto fuera examen, ya habrías reprobado por pensar que es examen.',
+  'No tengo reloj, pero sé que este momento cuenta.',
+  'Contarte estas cosas me hace sentir útil. Gracias por tocarme.'
 ];
+function mensajeAlTocar(){
+  var stats=calcularEstadisticas();
+  var cuenta=contarCategorias(entradaHoy());
+  var h=new Date().getHours();
+  var pool=MENSAJES_BOYA.slice();
+  if(stats.racha>=30){
+    pool=pool.concat([stats.racha+' días seguidos. A estas alturas esto ya es parte de quién eres.']);
+  } else if(stats.racha>=7){
+    pool=pool.concat([
+      'Llevas '+stats.racha+' días seguidos. Eso no es casualidad.',
+      stats.racha+' días. Te estás demostrando algo, aunque no lo digas en voz alta.'
+    ]);
+  }
+  if(h<6 || h>=23){
+    pool=pool.concat([
+      '¿Despierta a esta hora? Yo también floto de noche a veces. No te voy a decir que deberías dormir.',
+      'La madrugada pesa distinto. Aquí estoy, aunque no tenga mucho más que ofrecerte que compañía.'
+    ]);
+  } else if(cuenta===0 && h>=19){
+    pool=pool.concat([
+      'Hoy fue de esos días. Mañana es otra vez desde cero, sin arrastrar nada.',
+      'No pasó mucho hoy y está bien. Ya estás aquí, conmigo.'
+    ]);
+  } else if(cuenta===0 && h<12){
+    pool=pool.concat(['Recién empieza el día. Sin apuro, sin lista que cumplir todavía.']);
+  }
+  if(S.creado===hoyISO() && Object.keys(S.entradas).length<=1){
+    pool=pool.concat(['Recién nos conocemos. Qué bueno que estás aquí.']);
+  }
+  return pool[Math.floor(Math.random()*pool.length)];
+}
 
 function estadoInicial(){
   return {
@@ -448,6 +489,7 @@ function calcularEstadisticas(){
     totalBool:totalBool, totalAgua:totalAgua, desayunos:desayunos, moverTotal:moverTotal, dormirTotal:dormirTotal,
     aguaMaxDia:aguaMaxDia, racha:calcularRacha(), duchaSeguidos:calcularConsecutivos('ducha'),
     ropaUsos:S.contadores.ropaUsos||0, tareasUsos:S.contadores.tareasUsos||0, miniToques:S.contadores.miniToques||0,
+    comprasTotal:S.contadores.comprasTotal||0, vinculoNivel:calcularVinculo().nivel,
     volviste:detectarRegreso()
   };
 }
@@ -463,7 +505,9 @@ function medallasCrudas(stats){
     {id:'ropa5', emo:'👗', titulo:'Elegí sin pelear', desc:'Dejaste que Ancla eligiera tu ropa 5 veces', cumple:stats.ropaUsos>=5},
     {id:'tarea3', emo:'🧩', titulo:'Lo dividí', desc:'Partiste una tarea grande en pasitos, 3 veces', cumple:stats.tareasUsos>=3},
     {id:'mini5', emo:'📌', titulo:'Cosas chiquitas', desc:'Usaste un mini recordatorio 5 veces', cumple:stats.miniToques>=5},
-    {id:'regreso', emo:'🕊️', titulo:'Volviste', desc:'Volviste a abrir Ancla después de unos días sin entrar — eso también cuenta', cumple:stats.volviste}
+    {id:'regreso', emo:'🕊️', titulo:'Volviste', desc:'Volviste a abrir Ancla después de unos días sin entrar — eso también cuenta', cumple:stats.volviste},
+    {id:'primer_regalo', emo:'🎁', titulo:'Su primer regalo', desc:'Le compraste algo a Boya por primera vez', cumple:stats.comprasTotal>=1},
+    {id:'vinculo_max', emo:'💞', titulo:'Inseparables', desc:'Llegaste al vínculo más alto con Boya', cumple:stats.vinculoNivel>=NIVELES_VINCULO.length}
   ];
 }
 function sincronizarMedallasGanadas(stats){
@@ -556,12 +600,16 @@ function dibujarNutria(moodId, tam){
   var accesorios='';
   if(eq.sombrero==='gorro_lana') accesorios+='<path d="M16,26 Q50,-8 84,26 L82,15 Q50,-16 18,15 Z" fill="#5b8fb0"/><circle cx="50" cy="-10" r="7" fill="#e7ddcf"/>';
   else if(eq.sombrero==='sombrero_paja') accesorios+='<ellipse cx="50" cy="16" rx="42" ry="9" fill="#e3bd6a"/><path d="M26,16 Q50,-14 74,16 Z" fill="#f0d089"/><rect x="26" y="13" width="48" height="5" rx="2.5" fill="#c9946a"/>';
+  else if(eq.sombrero==='boina') accesorios+='<ellipse cx="46" cy="14" rx="32" ry="15" fill="#8a3b5a" transform="rotate(-9 46 14)"/><ellipse cx="46" cy="16" rx="26" ry="10" fill="#a04a6c" transform="rotate(-9 46 16)"/><circle cx="62" cy="4" r="3.6" fill="#6e2c46"/>';
+  else if(eq.sombrero==='panuelo_pirata') accesorios+='<path d="M14,28 Q50,-10 86,28 L86,35 Q50,11 14,35 Z" fill="#c94b4b"/><circle cx="34" cy="18" r="2.2" fill="#f3e4c8"/><circle cx="50" cy="10" r="2.2" fill="#f3e4c8"/><circle cx="66" cy="18" r="2.2" fill="#f3e4c8"/><path d="M84,26 L94,20 L92,32 Z" fill="#c94b4b"/>';
   else if(eq.sombrero==='corona') accesorios+='<path d="M24,20 L32,2 L44,16 L50,0 L56,16 L68,2 L76,20 Z" fill="#f4c93b" stroke="#c99a1e" stroke-width="1.5"/>';
   if(eq.gafas==='gafas_sol') accesorios+='<rect x="30" y="42" width="17" height="12" rx="5" fill="#2b2b2b"/><rect x="53" y="42" width="17" height="12" rx="5" fill="#2b2b2b"/><line x1="47" y1="47" x2="53" y2="47" stroke="#2b2b2b" stroke-width="2"/>';
   else if(eq.gafas==='gafas_redondas') accesorios+='<circle cx="41" cy="47" r="9" fill="none" stroke="#3b2a1e" stroke-width="2"/><circle cx="59" cy="47" r="9" fill="none" stroke="#3b2a1e" stroke-width="2"/><line x1="50" y1="47" x2="50" y2="47" stroke="#3b2a1e" stroke-width="2"/>';
+  else if(eq.gafas==='gafas_corazon') accesorios+='<path d="M41,52 C34,46 34,40 39,40 C40.5,40 41,41 41,42 C41,41 41.5,40 43,40 C48,40 48,46 41,52 Z" fill="#e8547a"/><path d="M59,52 C52,46 52,40 57,40 C58.5,40 59,41 59,42 C59,41 59.5,40 61,40 C66,40 66,46 59,52 Z" fill="#e8547a"/><line x1="47" y1="46" x2="53" y2="46" stroke="#e8547a" stroke-width="2"/>';
   if(eq.cuello==='bufanda') accesorios+='<path d="M22,76 Q50,92 78,76 L78,84 Q50,100 22,84 Z" fill="#ff8a65"/><rect x="60" y="82" width="9" height="20" rx="3" fill="#ff8a65"/>';
   else if(eq.cuello==='moño') accesorios+='<path d="M50,78 L38,70 L38,86 Z" fill="#ff8a65"/><path d="M50,78 L62,70 L62,86 Z" fill="#ff8a65"/><circle cx="50" cy="78" r="4.5" fill="#d9634a"/>';
   else if(eq.cuello==='collar_conchas') accesorios+='<path d="M26,78 Q50,90 74,78" stroke="#f3e4c8" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="50" cy="88" r="4" fill="#fff3e0" stroke="#e3bd6a" stroke-width="1"/>';
+  else if(eq.cuello==='capa_heroe') accesorios+='<path d="M28,78 Q50,73 72,78 L84,100 Q50,90 16,100 Z" fill="#e14b4b"/><path d="M28,78 Q50,73 72,78" fill="none" stroke="#b23a3a" stroke-width="3"/><circle cx="50" cy="78" r="4" fill="#f4c93b"/>';
   return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'+base+accesorios+'</svg>';
 }
 
@@ -765,14 +813,23 @@ function elegirRopa(){
 /* ===================== divide tarea ===================== */
 var PLANTILLAS=[
   {claves:['ban','duch'], pasos:['Ve al baño, no pienses en nada más','Abre el agua','Métete, aunque sea 2 minutos','Lávate como puedas','Sal y sécate']},
-  {claves:['plato','trast','cocin'], pasos:['Junta los platos en un solo lugar','Abre el agua','Lava solo 3 platos','Mira cuántos faltan','Lava unos poquitos más, o para aquí']},
+  {claves:['plato','trast','loza','cocin'], pasos:['Junta los platos en un solo lugar','Abre el agua','Lava solo 3 platos','Mira cuántos faltan','Lava unos poquitos más, o para aquí']},
+  {claves:['lavar ropa','lavar la ropa','ropa sucia','lavadora','tender','canasto'], pasos:['Junta la ropa sucia en un solo lugar','Ponla en la lavadora (o sepárala si es a mano)','Dale al botón — no hace falta hacer nada más por un rato','Cuando termine, tiéndela o pásala a la secadora','Doblar puede esperar a otro momento, ya lo difícil pasó']},
   {claves:['cuarto','ordenar','organizar','limpiar'], pasos:['Escoge SOLO una superficie (la cama o el piso)','Pon un timer de 10 minutos','Mueve lo que hay ahí a su lugar','Cuando suene el timer, para, así no hayas terminado']},
+  {claves:['basura','caneca'], pasos:['Junta las bolsas de la casa','Sácalas hasta la puerta','Bótalas donde va la basura','Listo, ya volviste']},
   {claves:['correo','email','mensaje','whatsapp'], pasos:['Abre solo la bandeja, no respondas nada aún','Marca los 3 más urgentes','Responde el más corto primero','Responde uno más si puedes','Deja el resto para otro rato, ya avanzaste']},
   {claves:['ejercicio','mover','caminar','gym'], pasos:['Ponte ropa cómoda','Sal por la puerta o pon un video','Muévete 5 minutos','Si quieres seguir, sigue; si no, ya cuenta']},
-  {claves:['estudi','trabaj','tarea','proyecto','informe'], pasos:['Abre solo lo que necesitas para EMPEZAR','Pon un timer de 10 minutos','Trabaja hasta que suene','Para y decide si sigues o descansas']},
-  {claves:['ropa','vestir','armario'], pasos:['Abre el armario sin buscar "lo perfecto"','Saca lo primero cómodo que veas','Pontelo','Listo, ya elegiste']}
+  {claves:['estudi','trabaj','tarea','proyecto','informe'], pasos:['Abre solo lo que necesitas para EMPEZAR','Pon un timer de 10 minutos','Trabaja hasta que suene','Para y decide si sigues o descansas']}
 ];
 var GENERICA=['Ponte de pie','Ve hacia allá','Toca o agarra UNA sola cosa','Hazlo solo 2 minutos','Para y decide si sigues'];
+var TAREAS_RAPIDAS=[
+  {emo:'🧺', texto:'Lavar la ropa'},
+  {emo:'🍽️', texto:'Lavar los platos'},
+  {emo:'🛏️', texto:'Ordenar el cuarto'},
+  {emo:'🗑️', texto:'Sacar la basura'},
+  {emo:'💬', texto:'Responder mensajes'},
+  {emo:'💻', texto:'Trabajo o tarea pendiente'}
+];
 function dividirTarea(texto){
   var norm=normalizar(texto);
   var plantilla=PLANTILLAS.filter(function(p){ return p.claves.some(function(c){ return norm.indexOf(c)>=0; }); })[0];
@@ -818,7 +875,7 @@ function renderTopbar(){
   var h='<div class="topbar"><div class="marca-row"><div class="marca">⚓ Ancla</div><span class="beta-tag">beta</span></div>';
   h+='<div class="topbar-der">';
   if(S.onboardingVisto){
-    h+='<button class="conchitas-chip '+(V.pulsoConchitas?'pulso':'')+'" data-action="nav" data-value="boya">🐚 '+(S.conchitas||0)+'</button>';
+    h+='<button class="conchitas-chip '+(V.pulsoConchitas?'pulso':'')+'" data-action="nav" data-value="boya">🐚'+(S.modoSuave?'':' '+(S.conchitas||0))+'</button>';
     h+='<button class="avatar-chip" data-action="nav" data-value="ajustes">'+avatarHTML()+'</button>';
   } else {
     h+='<span class="fecha">'+esc(f)+'</span>';
@@ -892,7 +949,9 @@ function renderHoy(){
   h+='<svg viewBox="0 0 100 100" class="boya-ring"><circle cx="50" cy="50" r="44" class="ring-bg"/><circle cx="50" cy="50" r="44" class="ring-fg" style="stroke-dasharray:'+circ+'; stroke-dashoffset:'+offset+'"/></svg>';
   h+='<button class="boya" data-action="tocar-boya" '+(fondoEq?'style="background:'+fondoEq+'"':'')+'>'+dibujarNutria(bm.id)+'</button>';
   h+='</div>';
-  h+='<div class="boya-txt"><div class="titulo">'+bm.t+'</div><div class="sub">'+bm.s+'</div><button class="ver-boya-link" data-action="nav" data-value="boya">Ver a '+esc((S.boya&&S.boya.nombre)||'Boya')+' ›</button></div>';
+  var nEquipado=Object.keys(S.equipado).filter(function(k){ return !!S.equipado[k]; }).length;
+  var textoVerBoya = nEquipado>0 ? nEquipado+' puesto'+(nEquipado===1?'':'s')+' · Ver a '+esc((S.boya&&S.boya.nombre)||'Boya') : 'Vestir a '+esc((S.boya&&S.boya.nombre)||'Boya');
+  h+='<div class="boya-txt"><div class="titulo">'+bm.t+'</div><div class="sub">'+bm.s+'</div><button class="ver-boya-link" data-action="nav" data-value="boya">🎀 '+textoVerBoya+' ›</button></div>';
   h+='</div>';
 
   h+='<div class="grid-cats">';
@@ -968,7 +1027,7 @@ function renderBoyaPanel(){
   h+='</div>';
   h+='<p class="sub" style="text-align:center; margin-top:4px">'+esc(bm.s)+'</p>';
   h+='<div class="vinculo-barra">';
-  h+='<div class="campo-fila" style="margin-bottom:6px"><span class="l" style="font-size:13px">Vínculo · '+esc(vinc.nombre)+'</span><span class="sub">'+(vinc.esMax?'al máximo':vinc.nivel+'/'+NIVELES_VINCULO.length)+'</span></div>';
+  h+='<div class="campo-fila" style="margin-bottom:6px"><span class="l" style="font-size:13px">Vínculo · '+esc(vinc.nombre)+'</span><span class="sub">'+(S.modoSuave?'':(vinc.esMax?'al máximo':vinc.nivel+'/'+NIVELES_VINCULO.length))+'</span></div>';
   h+='<div class="bar" style="background:var(--line)"><i style="width:'+vinc.prog+'%; background:var(--coral)"></i></div>';
   h+='<p class="sub" style="margin-top:10px; text-align:center">'+esc(DESC_VINCULO[vinc.nivel-1])+'</p>';
   h+='</div>';
@@ -1031,7 +1090,10 @@ function renderCalma(){
   h+='<h3>🫁 Respiración guiada</h3>';
   h+='<p class="sub">Cuando los estímulos son muchos. Sin números, sin racha — solo un ratito para bajar el ritmo.</p>';
   h+='<div class="respirar-circulo-wrap">';
-  h+='<div class="respirar-circulo '+((V.respirando==='inhala'||V.respirando==='sosten1')?'grande':'chico')+'" id="circulo-respirar">'+(V.respirando?FASES_RESPIRACION[V.respirando]:'Lista cuando quieras')+'</div>';
+  h+='<div class="respirar-circulo '+((V.respirando==='inhala'||V.respirando==='sosten1')?'grande':'chico')+'" id="circulo-respirar">';
+  h+='<div class="respirar-nutria">'+dibujarNutria('tranquila')+'</div>';
+  h+='<div class="respirar-texto">'+(V.respirando?FASES_RESPIRACION[V.respirando]:'Respiro con vos')+'</div>';
+  h+='</div>';
   if(V.respirando){
     h+='<button class="btn btn-fantasma btn-chico" style="margin-top:22px" data-action="detener-respiracion">Detener</button>';
   } else {
@@ -1112,10 +1174,13 @@ function renderHerramientas(){
 
   h+='<div class="card">';
   h+='<h3>🧩 Divide esta tarea</h3>';
-  h+='<p class="sub">Escribe la tarea que te está abrumando. Ancla te la parte en pasos chiquitos.</p>';
+  h+='<p class="sub">Toca una de estas, o escribe la tuya. Ancla la parte en pasos chiquitos.</p>';
   if(!S.tareaActual || S.tareaActual.fecha!==hoyISO()){
-    h+='<div class="fila-input" style="margin-top:12px">';
-    h+='<input type="text" id="inp-tarea" placeholder="Ej: lavar la ropa" value="'+esc(V.tareaTexto)+'">';
+    h+='<div class="pendientes" style="margin-top:12px">';
+    TAREAS_RAPIDAS.forEach(function(t){ h+='<button data-action="tarea-rapida" data-value="'+esc(t.texto)+'">'+t.emo+' '+esc(t.texto)+'</button>'; });
+    h+='</div>';
+    h+='<div class="fila-input" style="margin-top:10px">';
+    h+='<input type="text" id="inp-tarea" placeholder="O escribe la tuya…" value="'+esc(V.tareaTexto)+'">';
     h+='<button class="btn btn-fantasma btn-chico" data-action="dividir-tarea">Divídemela</button>';
     h+='</div>';
   } else {
@@ -1252,7 +1317,7 @@ function cambiarAgua(delta){
   guardar();
 }
 
-var ACCIONES_JUEGO=['toggle-cat','agua-mas','agua-menos','toggle-mini','elegir-ropa','dividir-tarea'];
+var ACCIONES_JUEGO=['toggle-cat','agua-mas','agua-menos','toggle-mini','elegir-ropa','dividir-tarea','tarea-rapida'];
 
 app.addEventListener('click', function(ev){
   var b=ev.target.closest('[data-action]');
@@ -1276,7 +1341,7 @@ app.addEventListener('click', function(ev){
   else if(act==='tocar-boya'){
     S.contadores.tocarBoyaTotal=(S.contadores.tocarBoyaTotal||0)+1;
     sonidoPop(540); vibrar(8);
-    mostrarToast(MENSAJES_BOYA[Math.floor(Math.random()*MENSAJES_BOYA.length)]);
+    mostrarToast(mensajeAlTocar());
     guardar();
     return;
   }
@@ -1338,9 +1403,8 @@ app.addEventListener('click', function(ev){
     }
     guardar();
   }
-  else if(act==='dividir-tarea'){
-    var inpT=document.getElementById('inp-tarea');
-    var texto=(inpT?inpT.value:'').trim();
+  else if(act==='dividir-tarea' || act==='tarea-rapida'){
+    var texto = act==='tarea-rapida' ? val : (function(){ var inpT=document.getElementById('inp-tarea'); return (inpT?inpT.value:'').trim(); })();
     if(texto){
       S.tareaActual=dividirTarea(texto);
       S.contadores.tareasUsos=(S.contadores.tareasUsos||0)+1;

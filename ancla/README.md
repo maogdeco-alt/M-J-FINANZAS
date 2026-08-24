@@ -12,7 +12,7 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.3.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.4.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
 > pasó en la v0.2.0" al reportar algo raro.
 
@@ -34,10 +34,17 @@ pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el pr
   propios niveles ("Recién se conocen" → "Inseparables"), con una frase que describe cómo
   va esa relación, cada vez más cercana. Se abre tocando "Ver a Boya" desde Hoy.
 - **Tienda de conchitas 🐚**: moneda aparte de los puntos que suben de nivel — se gana con
-  cada check-in del día a día y se gasta vistiendo a Boya: gorros, gafas, bufandas, moños,
-  collar, corona, y fondos alternativos para su círculo (atardecer, noche estrellada,
-  arrecife). Algunos accesorios piden cierto nivel de vínculo para desbloquearse. Todo lo
-  comprado es tuyo para siempre — se puede poner y quitar sin volver a pagarlo.
+  cada check-in del día a día y se gasta vistiendo a Boya: gorros (lana, paja, boina,
+  pañuelo pirata, corona), gafas (sol, redondas, de corazón), cuello (bufanda, moño,
+  collar de conchitas, capa de heroína), y fondos alternativos para su círculo (atardecer,
+  noche estrellada, arrecife). Algunos accesorios piden cierto nivel de vínculo para
+  desbloquearse. Todo lo comprado es tuyo para siempre — se puede poner y quitar sin volver
+  a pagarlo. Hay dos medallas ligadas directamente a esto: el primer regalo que le haces, y
+  llegar al vínculo máximo con ella.
+- **Boya "inteligente"**: al tocarla no repite frases al azar sin más — nota si llevas una
+  racha larga (y te lo dice con el número exacto), si es de madrugada, si el día se fue en
+  blanco, o si es la primera vez que se conocen, y ajusta lo que dice. También aparece
+  dentro del círculo de respiración en Calma, "respirando" contigo.
 - **Gancho instantáneo en cada toque**: al marcar algo salta un "+puntos" flotando, un pop
   de sonido, una vibración cortita (celular) y, en hitos (medalla nueva, subir de nivel,
   día completo), una tarjeta de celebración a pantalla completa con confeti. Todo se puede
@@ -62,9 +69,10 @@ pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el pr
 - **Mini recordatorios**: además de los 8 de siempre, puedes agregar los tuyos —
   medicina, regar una planta, llamar a alguien— con un emoji corto y un texto. Aparecen
   como botones de un toque en Hoy, igual de simples que el resto.
-- **Divide esta tarea**: escribes lo que te abruma ("lavar los platos", "ordenar el
-  cuarto"...) y la app la parte en 4-5 pasos chiquitos y concretos, con casillas para ir
-  tachando.
+- **Divide esta tarea**: seis chips de un toque para lo más común (lavar ropa, lavar
+  platos, ordenar el cuarto, sacar la basura, responder mensajes, trabajo/tarea) — o
+  escribes la tuya si es otra cosa. La app la parte en 4-5 pasos chiquitos y concretos,
+  con casillas para ir tachando.
 - **Recordatorios**: horarios configurables para comidas/dormir + aviso de agua cada N
   horas, con botones sueltos de "recuérdamelo en 30 min" sin tener que configurar nada.
 - **Calma**, pestaña propia en la barra de abajo (no escondida, para cuando los estímulos
