@@ -12,9 +12,41 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.6.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.7.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.6.0" al reportar algo raro.
+> pasó en la v0.7.0" al reportar algo raro.
+
+## Organización real (v0.7.0)
+
+La prioridad de esta vuelta: que la app sea útil de verdad, no solo entretenida.
+
+- **"Hoy" organizado por momentos del día** (Mañana / Tarde / Noche + "Todo el día" para
+  agua y baño) en vez de una parrilla plana — el momento actual se marca, pero absolutamente
+  todo sigue tocable siempre, así sea tarde. Estructura real, sin agregar un solo toque
+  extra a la app.
+- **Pestaña "Rutinas"** — el sistema de organización de verdad, con tres piezas:
+  - **Pendientes de hoy**: lista suelta para anotar y tachar, para lo que no es parte de
+    ninguna rutina.
+  - **Rutinas** con pasos propios (3 plantillas sugeridas — Mañana, Antes de salir, Noche —
+    o crear una desde cero), cada una con su propia racha de días seguidos completándola
+    (con el mismo margen de un día suelto que ya tiene la racha general).
+  - Reemplazó a "Recordatorios" en la barra de abajo — Recordatorios se movió a Ajustes,
+    sigue ahí completo, con un botón desde donde siempre estuvo.
+- **Foto de respaldo opcional** en desayuno, almuerzo, cena y moverse — un ícono de cámara
+  aparece después de marcar la categoría (nunca antes: primero se registra, la foto es
+  evidencia extra, no una condición). Da +3 conchas la primera vez por categoría al día.
+  A propósito **nunca obligatoria** — pedirla siempre rompería la app justo en un día malo,
+  que es cuando más hace falta que siga funcionando.
+- **Calma con menú de técnicas**, no una sola: Respirar (la que ya había), Aterrizar
+  (5-4-3-2-1), y dos nuevas — **Relajación muscular progresiva** (tensar y soltar grupos
+  de músculos, paso a paso) y **Solo mirar** (una escena de agua animada, sin nada que hacer
+  ni lograr). Elegís la que necesites, ninguna en fila obligada.
+
+**Límite honesto de las fotos**: viven comprimidas en `localStorage`, igual que el resto de
+los datos — sin backend todavía, no se pueden guardar para siempre sin arriesgar quedarse
+sin espacio. Por eso las fotos de más de 14 días se borran solas (los datos de esos días
+quedan intactos, solo la imagen se va). Esto se resuelve de raíz conectando Supabase
+(Storage tiene el espacio y la persistencia que `localStorage` no puede dar) — ver más abajo.
 
 ## Identidad visual (v0.6.0)
 
@@ -151,20 +183,35 @@ Como todo vive en el dispositivo, en Ajustes hay **"Descargar copia"** (exporta 
 `.json`) e **"Importar copia"** — vale la pena descargar una copia de vez en cuando,
 sobre todo antes de cambiar de celular o borrar el navegador.
 
-## Preparado para Supabase (todavía no conectado)
+## Preparado para Supabase (todavía no conectado) — próximo paso real
 
 Esta beta sigue siendo 100% local a propósito, pero el modelo de datos ya está pensado
 para no tener que rehacerse cuando se conecte Supabase:
 
 - `usuario:{nombre, foto}` mapea directo a una futura fila en `profiles` — el único
   cambio real sería subir la foto a Supabase Storage en vez de guardarla como imagen
-  incrustada, y guardar la URL en vez del archivo.
-- `entradas`, `ropa`, `miniRecordatorios`, `contadores` y `medallasGanadas` ya son
-  estructuras independientes por tipo (no un blob mezclado), listas para volverse tablas
-  con `usuario_id`.
+  incrustada, y guardar la URL en vez del archivo. Lo mismo para `entradas[fecha].fotos`
+  (comidas/ejercicio) — hoy son imágenes comprimidas dentro del JSON local con poda a los
+  14 días; en Supabase Storage no habría que borrar nada nunca.
+- `entradas`, `ropa`, `miniRecordatorios`, `rutinas`, `pendientes`, `contadores` y
+  `medallasGanadas` ya son estructuras independientes por tipo (no un blob mezclado),
+  listas para volverse tablas con `usuario_id`.
 - Cuando se conecte, la idea es que siga funcionando offline-first: seguir escribiendo en
   `localStorage` al toque y sincronizar en segundo plano, nunca bloquear un toque
   esperando red — eso rompería la fricción cero que es la prioridad de esta app.
+
+**Lo que hace falta de tu parte para dar este paso** (no lo puedo crear yo por vos):
+
+1. Entra a [supabase.com](https://supabase.com) y crea un proyecto nuevo, gratis — igual
+   que ya hiciste para la app de finanzas (mismo proveedor, pero **un proyecto aparte**,
+   no el mismo: Ancla no debe compartir base de datos con tus finanzas).
+2. Cuando el proyecto esté listo, entra a **Project Settings → API** y copia dos cosas:
+   el **Project URL** y la **llave anon/public**.
+3. Me las pasás (o las pegás vos misma en una pantalla de "Conectar" dentro de Ancla,
+   como ya funciona en `app/hogar.html`) y desde ahí armo el esquema (tablas, políticas
+   de seguridad por usuario) y la sincronización real.
+
+Avisame cuando tengas el proyecto creado y seguimos con eso.
 
 ## Fase 2 (ideas, no compromisos)
 

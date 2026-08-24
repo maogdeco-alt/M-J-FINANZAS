@@ -176,6 +176,40 @@ h1,h2,h3,p{margin:0}
 .paso.hecho .c{background:var(--teal); border-color:var(--teal); color:#fff}
 .paso.hecho .t{text-decoration:line-through}
 
+.pendiente-card{background:var(--bg); border:1px solid var(--line); border-radius:var(--radius-s); padding:14px; margin-top:10px}
+.pendiente-top{display:flex; align-items:flex-start; gap:10px}
+.pendiente-top .t{flex:1; font-weight:600; font-size:14px; line-height:1.4}
+.pendiente-top button{color:var(--warn); font-size:16px; padding:2px 4px}
+
+.rutina-card.completa{border-color:var(--teal)}
+.rutina-top{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.rutina-top button{font-size:12px; font-weight:600; color:var(--sub)}
+.rutina-borrar{margin-top:14px; display:flex; gap:8px; flex-wrap:wrap}
+.paso-editable{display:flex; align-items:center; gap:8px; background:var(--bg); border-radius:10px; padding:8px 10px; font-size:13px}
+.paso-editable .t{flex:1}
+.paso-editable button{color:var(--warn); font-size:14px}
+
+.momento-titulo{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:2px}
+.momento-chip{font-family:var(--font-mono); font-size:9.5px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--coral); background:var(--mint); padding:3px 8px; border-radius:20px}
+.card.momento-actual{border-color:var(--coral)}
+.cat-wrap{position:relative}
+.foto-agregar, .foto-mini{position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:50%; background:var(--card); border:1.5px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.15); cursor:pointer}
+.foto-mini img{width:100%; height:100%; object-fit:cover}
+.visor-foto img{width:100%; border-radius:10px; display:block}
+
+.calma-picker{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap}
+.calma-picker button{background:var(--card); border:1.5px solid var(--line); padding:9px 14px; border-radius:20px; font-size:13px; font-weight:600; color:var(--sub)}
+.calma-picker button.act{background:var(--teal); border-color:var(--teal); color:#fff}
+.escena-calma{position:relative; height:220px; border-radius:var(--radius); overflow:hidden; background:linear-gradient(180deg, #cfe3e6 0%, #8fb8c2 38%, var(--teal) 60%, var(--teal-d) 100%)}
+@media (prefers-color-scheme:dark){ .escena-calma{background:linear-gradient(180deg, #1a2a30 0%, #123238 38%, var(--teal-d) 60%, #061518 100%)} }
+.escena-ola{position:absolute; left:-10%; width:120%; height:70px; border-radius:45%; opacity:.5}
+.escena-ola.o1{bottom:-20px; background:var(--teal-d); animation:olear 9s ease-in-out infinite}
+.escena-ola.o2{bottom:-35px; background:var(--teal); opacity:.35; animation:olear 7s ease-in-out infinite reverse}
+@keyframes olear{ 0%,100%{transform:translateX(-3%) scaleY(1)} 50%{transform:translateX(3%) scaleY(1.3)} }
+.escena-nutria{position:absolute; left:50%; bottom:34px; width:70px; height:70px; transform:translateX(-50%); animation:flotarEscena 4s ease-in-out infinite}
+@keyframes flotarEscena{ 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-9px)} }
+.escena-texto{position:absolute; left:0; right:0; top:16px; text-align:center; color:#fff; font-size:12.5px; font-weight:600; text-shadow:0 1px 4px rgba(0,0,0,.25)}
+
 .campo-fila{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px}
 .campo-fila:last-child{margin-bottom:0}
 .campo-fila .l{font-size:14px; font-weight:600}
@@ -240,7 +274,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.6.0-beta';
+var VERSION='0.7.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -269,15 +303,26 @@ function saludo(){
 /* ===================== datos ===================== */
 var CLAVE='ancla_datos_v1';
 var CATS=[
-  {id:'desayuno', emo:'🍳', et:'Desayuno'},
-  {id:'almuerzo', emo:'🍽️', et:'Almuerzo'},
-  {id:'cena', emo:'🌙', et:'Cena'},
-  {id:'agua', emo:'💧', et:'Agua', contable:true},
-  {id:'ducha', emo:'🚿', et:'Aseo'},
-  {id:'bano', emo:'🚽', et:'Baño'},
-  {id:'mover', emo:'🏃', et:'Moverme'},
-  {id:'dormir', emo:'😴', et:'Dormí'}
+  {id:'desayuno', emo:'🍳', et:'Desayuno', momento:'manana', foto:true},
+  {id:'ducha', emo:'🚿', et:'Aseo', momento:'manana'},
+  {id:'almuerzo', emo:'🍽️', et:'Almuerzo', momento:'tarde', foto:true},
+  {id:'mover', emo:'🏃', et:'Moverme', momento:'tarde', foto:true},
+  {id:'cena', emo:'🌙', et:'Cena', momento:'noche', foto:true},
+  {id:'dormir', emo:'😴', et:'Dormí', momento:'noche'},
+  {id:'agua', emo:'💧', et:'Agua', contable:true, momento:'dia'},
+  {id:'bano', emo:'🚽', et:'Baño', momento:'dia'}
 ];
+var MOMENTOS=[
+  {id:'manana', et:'Mañana'},
+  {id:'tarde', et:'Tarde'},
+  {id:'noche', et:'Noche'}
+];
+function momentoActual(){
+  var h=new Date().getHours();
+  if(h>=5 && h<12) return 'manana';
+  if(h>=12 && h<18) return 'tarde';
+  return 'noche';
+}
 var NIVELES=['Semilla','Brote','Raíz firme','Tallo alto','Copa abierta','Bosque entero'];
 var EMOJIS_MINI=['💊','🌱','📞','🧴','🧘','📚','🧺','🔋','❤️','🐾','🎯','🧠'];
 var NIVELES_VINCULO=['Recién se conocen','Se van conociendo','Cómplices','Un equipo','Inseparables'];
@@ -374,12 +419,15 @@ function estadoInicial(){
     nudgeVisto:null,
     aperturas:[],
     entradas:{},
-    contadores:{ ropaUsos:0, tareasUsos:0, miniToques:0, tocarBoyaTotal:0, comprasTotal:0, conchitasGanadasTotal:0 },
+    contadores:{ ropaUsos:0, tareasUsos:0, miniToques:0, tocarBoyaTotal:0, comprasTotal:0, conchitasGanadasTotal:0, pendientesResueltos:0, fotosTotal:0 },
     medallasGanadas:[],
     ropa:[],
     ropaHoy:null,
     tareaActual:null,
     miniRecordatorios:[],
+    rutinas:[],
+    rutinasHechas:{},
+    pendientes:[],
     conchitas:0,
     comprados:[],
     equipado:{ sombrero:null, gafas:null, cuello:null, fondo:null },
@@ -406,12 +454,15 @@ function cargar(){
     if(!d.recordatorios) d.recordatorios=base.recordatorios;
     else { for(var rk in base.recordatorios){ if(d.recordatorios[rk]===undefined) d.recordatorios[rk]=base.recordatorios[rk]; } }
     if(!d.contadores) d.contadores=base.contadores;
-    else { ['ropaUsos','tareasUsos','miniToques','tocarBoyaTotal','comprasTotal','conchitasGanadasTotal'].forEach(function(ck){ if(d.contadores[ck]===undefined) d.contadores[ck]=0; }); }
+    else { ['ropaUsos','tareasUsos','miniToques','tocarBoyaTotal','comprasTotal','conchitasGanadasTotal','pendientesResueltos','fotosTotal'].forEach(function(ck){ if(d.contadores[ck]===undefined) d.contadores[ck]=0; }); }
     if(!d.usuario) d.usuario=base.usuario;
     else { if(d.usuario.nombre===undefined) d.usuario.nombre=''; if(d.usuario.foto===undefined) d.usuario.foto=null; }
     if(!d.boya) d.boya=base.boya;
     else if(d.boya.nombre===undefined) d.boya.nombre='Boya';
     if(!d.miniRecordatorios) d.miniRecordatorios=[];
+    if(!d.rutinas) d.rutinas=[];
+    if(!d.rutinasHechas) d.rutinasHechas={};
+    if(!d.pendientes) d.pendientes=[];
     if(!d.medallasGanadas) d.medallasGanadas=[];
     if(d.conchitas===undefined) d.conchitas=0;
     if(!d.comprados) d.comprados=[];
@@ -427,13 +478,51 @@ function guardar(){
 }
 function entradaHoy(){
   var iso=hoyISO();
-  if(!S.entradas[iso]) S.entradas[iso]={ desayuno:false, almuerzo:false, cena:false, agua:0, ducha:false, bano:false, mover:false, dormir:false, extra:{} };
+  if(!S.entradas[iso]) S.entradas[iso]={ desayuno:false, almuerzo:false, cena:false, agua:0, ducha:false, bano:false, mover:false, dormir:false, extra:{}, fotos:{} };
   return S.entradas[iso];
 }
 function extraDeHoy(){
   var e=entradaHoy();
   if(!e.extra) e.extra={};
   return e.extra;
+}
+function fotosDeHoy(){
+  var e=entradaHoy();
+  if(!e.fotos) e.fotos={};
+  return e.fotos;
+}
+
+/* ===================== rutinas ===================== */
+var RUTINAS_SUGERIDAS=[
+  {nombre:'Mañana', emo:'🌅', pasos:['Tomar agua','Medicación, si aplica','Ducha','Vestirme','Desayunar']},
+  {nombre:'Antes de salir', emo:'🚪', pasos:['Llaves','Billetera y celular','Revisar la hora','Algo de comer, si hace falta']},
+  {nombre:'Noche', emo:'🌙', pasos:['Lavarme la cara','Cepillarme los dientes','Dejar lista la ropa de mañana','Celular fuera de la cama']}
+];
+function pasosHechosHoy(rutinaId){
+  var iso=hoyISO();
+  if(!S.rutinasHechas[iso]) S.rutinasHechas[iso]={};
+  if(!S.rutinasHechas[iso][rutinaId]) S.rutinasHechas[iso][rutinaId]=[];
+  return S.rutinasHechas[iso][rutinaId];
+}
+function rutinaCompletaHoy(rutina){
+  var hechos=pasosHechosHoy(rutina.id);
+  return rutina.pasos.length>0 && rutina.pasos.every(function(p){ return hechos.indexOf(p.id)>=0; });
+}
+function rutinaRachaConsecutiva(rutina){
+  var hoy=new Date(); hoy.setHours(0,0,0,0);
+  var n=0, cursor=new Date(hoy), vueltas=0;
+  while(vueltas<370){
+    vueltas++;
+    var iso=toISO(cursor);
+    var hechos=(S.rutinasHechas[iso]&&S.rutinasHechas[iso][rutina.id])||[];
+    var completa=rutina.pasos.length>0 && rutina.pasos.every(function(p){ return hechos.indexOf(p.id)>=0; });
+    var esHoy=(cursor.getTime()===hoy.getTime());
+    if(completa){ n++; }
+    else if(esHoy){ /* hoy no cuenta en contra todavía */ }
+    else{ break; }
+    cursor.setDate(cursor.getDate()-1);
+  }
+  return n;
 }
 
 /* ===================== cálculos del juego ===================== */
@@ -499,11 +588,22 @@ function calcularEstadisticas(){
     if(e.dormir) dormirTotal++;
     if(e.agua>aguaMaxDia) aguaMaxDia=e.agua;
   });
+  var rutinasCompletadasTotal=0;
+  Object.keys(S.rutinasHechas).forEach(function(iso){
+    S.rutinas.forEach(function(r){
+      var hechos=S.rutinasHechas[iso][r.id]||[];
+      if(r.pasos.length>0 && r.pasos.every(function(p){ return hechos.indexOf(p.id)>=0; })) rutinasCompletadasTotal++;
+    });
+  });
+  var rutinaMejorRacha=0;
+  S.rutinas.forEach(function(r){ rutinaMejorRacha=Math.max(rutinaMejorRacha, rutinaRachaConsecutiva(r)); });
   return {
     totalBool:totalBool, totalAgua:totalAgua, desayunos:desayunos, moverTotal:moverTotal, dormirTotal:dormirTotal,
     aguaMaxDia:aguaMaxDia, racha:calcularRacha(), duchaSeguidos:calcularConsecutivos('ducha'),
     ropaUsos:S.contadores.ropaUsos||0, tareasUsos:S.contadores.tareasUsos||0, miniToques:S.contadores.miniToques||0,
     comprasTotal:S.contadores.comprasTotal||0, vinculoNivel:calcularVinculo().nivel,
+    rutinasCompletadasTotal:rutinasCompletadasTotal, rutinaMejorRacha:rutinaMejorRacha,
+    pendientesResueltos:S.contadores.pendientesResueltos||0, fotosTotal:S.contadores.fotosTotal||0,
     volviste:detectarRegreso()
   };
 }
@@ -521,7 +621,11 @@ function medallasCrudas(stats){
     {id:'mini5', emo:'📌', titulo:'Detalles que suman', desc:'Usaste un mini recordatorio 5 veces', cumple:stats.miniToques>=5},
     {id:'regreso', emo:'🕊️', titulo:'Volviste', desc:'Volviste a abrir Ancla después de unos días sin entrar — eso también cuenta', cumple:stats.volviste},
     {id:'primer_regalo', emo:'🎁', titulo:'Su primer regalo', desc:'Le compraste algo a Boya por primera vez', cumple:stats.comprasTotal>=1},
-    {id:'vinculo_max', emo:'💞', titulo:'Inseparables', desc:'Llegaste al vínculo más alto con Boya', cumple:stats.vinculoNivel>=NIVELES_VINCULO.length}
+    {id:'vinculo_max', emo:'💞', titulo:'Inseparables', desc:'Llegaste al vínculo más alto con Boya', cumple:stats.vinculoNivel>=NIVELES_VINCULO.length},
+    {id:'rutina1', emo:'🗺️', titulo:'Rutina completa', desc:'Terminaste una rutina de principio a fin', cumple:stats.rutinasCompletadasTotal>=1},
+    {id:'rutina_racha7', emo:'🧭', titulo:'Ya es tuya', desc:'7 días seguidos con la misma rutina completa', cumple:stats.rutinaMejorRacha>=7},
+    {id:'pendiente5', emo:'✅', titulo:'Lo tachaste', desc:'Resolviste 5 pendientes', cumple:stats.pendientesResueltos>=5},
+    {id:'foto5', emo:'📸', titulo:'Con pruebas', desc:'Adjuntaste 5 fotos de respaldo', cumple:stats.fotosTotal>=5}
   ];
 }
 function sincronizarMedallasGanadas(stats){
@@ -725,7 +829,7 @@ function lanzarConfeti(n){
   setTimeout(function(){ cont.remove(); }, 2300);
 }
 var celebracionTimer=null;
-var BONO_CONCHITAS={ nivel:10, medalla:8, dia:5 };
+var BONO_CONCHITAS={ nivel:10, medalla:8, dia:5, rutina:6 };
 function celebrar(tipo, datos){
   clearTimeout(celebracionTimer);
   var obj={tipo:tipo};
@@ -739,25 +843,61 @@ function celebrar(tipo, datos){
 }
 
 /* ===================== foto de perfil ===================== */
-function manejarFoto(file){
-  if(!file || file.type.indexOf('image/')!==0) return;
+function comprimirImagen(file, tam, calidad, cb){
+  if(!file || file.type.indexOf('image/')!==0){ cb(null); return; }
   var reader=new FileReader();
   reader.onload=function(){
     var img=new Image();
     img.onload=function(){
-      var tam=160;
       var canvas=document.createElement('canvas');
       canvas.width=tam; canvas.height=tam;
       var ctx=canvas.getContext('2d');
       var lado=Math.min(img.width, img.height);
       var sx=(img.width-lado)/2, sy=(img.height-lado)/2;
       ctx.drawImage(img, sx, sy, lado, lado, 0, 0, tam, tam);
-      try{ S.usuario.foto=canvas.toDataURL('image/jpeg', 0.82); }catch(e){}
-      guardar(); render();
+      var dataURL=null;
+      try{ dataURL=canvas.toDataURL('image/jpeg', calidad); }catch(e){}
+      cb(dataURL);
     };
+    img.onerror=function(){ cb(null); };
     img.src=reader.result;
   };
+  reader.onerror=function(){ cb(null); };
   reader.readAsDataURL(file);
+}
+function manejarFoto(file){
+  comprimirImagen(file, 160, 0.82, function(dataURL){
+    if(!dataURL) return;
+    S.usuario.foto=dataURL;
+    guardar(); render();
+  });
+}
+function manejarFotoCategoria(catId, file){
+  comprimirImagen(file, 220, 0.6, function(dataURL){
+    if(!dataURL){ mostrarToast('No se pudo leer esa foto.'); return; }
+    var fotos=fotosDeHoy();
+    var esNueva=!fotos[catId];
+    fotos[catId]=dataURL;
+    if(esNueva){
+      S.contadores.fotosTotal=(S.contadores.fotosTotal||0)+1;
+      ganarConchitas(3);
+      sonidoArpegio(); vibrar([15,30,15]);
+      mostrarToast('Foto guardada — +3 conchas 🐚');
+    }
+    guardar(); render();
+  });
+}
+function podarFotosViejas(){
+  var limite=new Date(); limite.setDate(limite.getDate()-14); limite.setHours(0,0,0,0);
+  var huboAlguna=false;
+  Object.keys(S.entradas).forEach(function(iso){
+    var d=new Date(iso+'T00:00:00');
+    if(d<limite && S.entradas[iso].fotos && Object.keys(S.entradas[iso].fotos).length){
+      delete S.entradas[iso].fotos;
+      huboAlguna=true;
+    }
+  });
+  if(huboAlguna) guardar();
 }
 function avatarHTML(){
   if(S.usuario.foto) return '<img src="'+S.usuario.foto+'" alt="">';
@@ -769,7 +909,9 @@ function avatarHTML(){
 var V = {
   tab:'hoy', mostrarMedallas:false, ropaNueva:'', tareaTexto:'', onboardingNombre:'', miniTexto:'', miniEmo:'📌',
   toast:null, celebracion:null, pulsoConchitas:false, subtabBoya:'vestuario', respirando:null, aterrizajePaso:0,
-  onboardingPaso:'huevo', huevoTambaleando:false
+  onboardingPaso:'huevo', huevoTambaleando:false, verFoto:null,
+  pendienteTexto:'', rutinaNombre:'', rutinaPasoTexto:'', rutinaPasos:[],
+  calmaVista:'respirar', relajacionPaso:0
 };
 
 /* ===================== respiración guiada ===================== */
@@ -913,6 +1055,7 @@ function render(){
     h+=renderOnboarding();
   } else {
     if(V.tab==='hoy') h+=renderHoy();
+    else if(V.tab==='rutinas') h+=renderRutinas();
     else if(V.tab==='calma') h+=renderCalma();
     else if(V.tab==='herramientas') h+=renderHerramientas();
     else if(V.tab==='recordatorios') h+=renderRecordatorios();
@@ -922,6 +1065,7 @@ function render(){
   h+='</div>';
   if(S.onboardingVisto) h+=renderNav();
   if(V.celebracion) h+=renderCelebracion();
+  if(V.verFoto) h+=renderVisorFoto();
   app.innerHTML=h;
   document.title='Ancla';
 }
@@ -971,18 +1115,28 @@ function renderOnboarding(){
 
 function renderCelebracion(){
   var c=V.celebracion; if(!c) return '';
-  var emo = c.tipo==='medalla' ? c.emo : c.tipo==='nivel' ? '⬆️' : c.tipo==='bienvenida' ? '⚓' : '🎉';
+  var emo = c.tipo==='medalla' ? c.emo : c.tipo==='nivel' ? '⬆️' : c.tipo==='bienvenida' ? '⚓' : c.tipo==='rutina' ? '🗺️' : '🎉';
   return '<div class="overlay-celebracion" data-action="cerrar-celebracion"><div class="tarjeta-celebracion">'+
     '<div class="cel-emo">'+emo+'</div><div class="cel-titulo">'+esc(c.titulo||'')+'</div>'+
     (c.sub?'<div class="cel-sub">'+esc(c.sub)+'</div>':'')+'</div></div>';
 }
 
+function renderVisorFoto(){
+  var fotos=fotosDeHoy();
+  var url=fotos[V.verFoto];
+  if(!url) return '';
+  return '<div class="overlay-celebracion" data-action="cerrar-foto"><div class="tarjeta-celebracion visor-foto" style="padding:14px; max-width:340px">'+
+    '<img src="'+url+'" alt="">'+
+    '<button class="btn btn-fantasma btn-chico" style="margin-top:14px; width:100%" data-action="quitar-foto-cat" data-value="'+V.verFoto+'">Quitar esta foto</button>'+
+    '</div></div>';
+}
+
 function renderNav(){
   var tabs=[
     ['hoy','🏠','Hoy'],
+    ['rutinas','🗺️','Rutinas'],
     ['calma','🌊','Calma'],
     ['herramientas','🧰','Herramientas'],
-    ['recordatorios','⏰','Recordatorios'],
     ['ajustes','⚙️','Ajustes']
   ];
   var h='<div class="nav">';
@@ -1021,19 +1175,47 @@ function renderHoy(){
   var textoVerBoya = nEquipado>0 ? nEquipado+' puesto'+(nEquipado===1?'':'s')+' · Ver a '+esc((S.boya&&S.boya.nombre)||'Boya') : 'Vestir a '+esc((S.boya&&S.boya.nombre)||'Boya');
   h+='<div class="boya-txt"><div class="titulo">'+bm.t+'</div><div class="sub">'+bm.s+'</div><button class="ver-boya-link" data-action="nav" data-value="boya">🎀 '+textoVerBoya+' ›</button></div>';
   h+='</div>';
+  h+='</div>';
 
-  h+='<div class="grid-cats">';
-  CATS.forEach(function(c){
+  var fotos=fotosDeHoy();
+  var momActual=momentoActual();
+  function renderCat(c){
     if(c.contable){
       var n=e.agua||0;
-      h+='<div class="cat '+(n>0?'on':'')+'"><div class="emo">'+c.emo+'</div><div class="et">'+c.et+'</div>';
-      h+='<div class="agua-row"><button data-action="agua-menos">–</button><span class="badge-n">'+n+'</span><button data-action="agua-mas">+</button></div></div>';
-    } else {
-      h+='<button class="cat '+(e[c.id]?'on':'')+'" data-action="toggle-cat" data-value="'+c.id+'"><div class="emo">'+c.emo+'</div><div class="et">'+c.et+'</div></button>';
+      return '<div class="cat '+(n>0?'on':'')+'"><div class="emo">'+c.emo+'</div><div class="et">'+c.et+'</div>'+
+        '<div class="agua-row"><button data-action="agua-menos">–</button><span class="badge-n">'+n+'</span><button data-action="agua-mas">+</button></div></div>';
     }
+    var hecho=!!e[c.id];
+    var hh='<div class="cat-wrap">';
+    hh+='<button class="cat '+(hecho?'on':'')+'" data-action="toggle-cat" data-value="'+c.id+'"><div class="emo">'+c.emo+'</div><div class="et">'+c.et+'</div></button>';
+    if(c.foto){
+      if(fotos[c.id]){
+        hh+='<button class="foto-mini" data-action="ver-foto" data-value="'+c.id+'"><img src="'+fotos[c.id]+'" alt=""></button>';
+      } else if(hecho){
+        hh+='<label class="foto-agregar" title="Agregar foto de respaldo (+3 conchas)">📸<input type="file" accept="image/*" capture="environment" id="inp-foto-cat-'+c.id+'" style="display:none"></label>';
+      }
+    }
+    hh+='</div>';
+    return hh;
+  }
+
+  MOMENTOS.forEach(function(mom){
+    var cats=CATS.filter(function(c){ return c.momento===mom.id; });
+    if(!cats.length) return;
+    var esAhora=(mom.id===momActual);
+    h+='<div class="card '+(esAhora?'momento-actual':'')+'">';
+    h+='<div class="momento-titulo"><h3>'+mom.et+'</h3>'+(esAhora?'<span class="momento-chip">ahora</span>':'')+'</div>';
+    h+='<div class="grid-cats">';
+    cats.forEach(function(c){ h+=renderCat(c); });
+    h+='</div></div>';
   });
-  h+='</div>';
-  h+='</div>';
+
+  var diaCats=CATS.filter(function(c){ return c.momento==='dia'; });
+  if(diaCats.length){
+    h+='<div class="card"><h3>Todo el día</h3><div class="grid-cats" style="margin-top:12px">';
+    diaCats.forEach(function(c){ h+=renderCat(c); });
+    h+='</div></div>';
+  }
 
   if(S.miniRecordatorios.length){
     var extra=extraDeHoy();
@@ -1074,6 +1256,82 @@ function renderHoy(){
     h+='<div class="medalla-desc">'+jg.medallas.map(function(m){ return (m.on?m.emo:'🔒')+' <b>'+esc(m.titulo)+'</b> — '+esc(m.desc); }).join('<br>')+'</div>';
     h+='</div>';
   }
+
+  return h;
+}
+
+function renderRutinas(){
+  var h='';
+
+  h+='<div class="card">';
+  h+='<h3>Pendientes de hoy</h3>';
+  h+='<p class="sub">Cosas sueltas, no una rutina — anótalas y táchalas cuando salgan.</p>';
+  h+='<div class="fila-input" style="margin-top:12px">';
+  h+='<input type="text" id="inp-pendiente" placeholder="Ej: llamar al banco" value="'+esc(V.pendienteTexto)+'">';
+  h+='<button class="btn btn-fantasma btn-chico" data-action="agregar-pendiente">Agregar</button>';
+  h+='</div>';
+  if(S.pendientes.length){
+    h+='<div>';
+    S.pendientes.forEach(function(p){
+      h+='<div class="pendiente-card"><div class="pendiente-top"><div class="t">'+esc(p.texto)+'</div><button data-action="quitar-pendiente" data-value="'+p.id+'">✕</button></div>';
+      h+='<button class="btn btn-fantasma btn-chico" style="margin-top:10px" data-action="completar-pendiente" data-value="'+p.id+'">Hecho</button></div>';
+    });
+    h+='</div>';
+  }
+  h+='</div>';
+
+  S.rutinas.forEach(function(r){
+    var hechos=pasosHechosHoy(r.id);
+    var completa=rutinaCompletaHoy(r);
+    var racha=rutinaRachaConsecutiva(r);
+    h+='<div class="card rutina-card '+(completa?'completa':'')+'">';
+    h+='<div class="rutina-top"><h3>'+r.emo+' '+esc(r.nombre)+'</h3>';
+    if(racha>0) h+='<span class="sub num">🔥 '+racha+'</span>';
+    h+='</div>';
+    h+='<div class="pasos" style="margin-top:10px">';
+    r.pasos.forEach(function(p){
+      var hecho=hechos.indexOf(p.id)>=0;
+      h+='<div class="paso '+(hecho?'hecho':'')+'" data-action="toggle-paso-rutina" data-value="'+r.id+'|'+p.id+'"><div class="c">'+(hecho?'✓':'')+'</div><div class="t">'+esc(p.t)+'</div></div>';
+    });
+    h+='</div>';
+    if(completa) h+='<p class="sub" style="margin-top:10px">Rutina completa hoy'+(racha>1?' — van '+racha+' días seguidos.':'.')+'</p>';
+    h+='<button class="btn btn-fantasma btn-chico" style="margin-top:12px" data-action="quitar-rutina" data-value="'+r.id+'">Quitar esta rutina</button>';
+    h+='</div>';
+  });
+
+  var nombresActivos=S.rutinas.map(function(r){ return r.nombre; });
+  var sugeridas=RUTINAS_SUGERIDAS.filter(function(rs){ return nombresActivos.indexOf(rs.nombre)===-1; });
+  if(sugeridas.length){
+    h+='<div class="card">';
+    h+='<h3>Rutinas sugeridas</h3>';
+    h+='<p class="sub">Plantillas listas para usar — se pueden editar después.</p>';
+    sugeridas.forEach(function(rs){
+      var idx=RUTINAS_SUGERIDAS.indexOf(rs);
+      h+='<div class="pendiente-card"><div class="pendiente-top"><div class="t">'+rs.emo+' '+esc(rs.nombre)+' · '+rs.pasos.length+' pasos</div></div>';
+      h+='<button class="btn btn-principal btn-chico" style="margin-top:10px" data-action="adoptar-rutina" data-value="'+idx+'">Usar esta rutina</button></div>';
+    });
+    h+='</div>';
+  }
+
+  h+='<div class="card">';
+  h+='<h3>Crear una rutina propia</h3>';
+  h+='<p class="sub">Ponle nombre y agrega los pasos, uno a uno — a tu manera.</p>';
+  h+='<div class="fila-input" style="margin-top:12px">';
+  h+='<input type="text" id="inp-rutina-nombre" placeholder="Ej: Antes de dormir" value="'+esc(V.rutinaNombre)+'">';
+  h+='</div>';
+  h+='<div class="fila-input" style="margin-top:8px">';
+  h+='<input type="text" id="inp-rutina-paso" placeholder="Un paso…" value="'+esc(V.rutinaPasoTexto)+'">';
+  h+='<button class="btn btn-fantasma btn-chico" data-action="agregar-paso-nueva-rutina">+ Paso</button>';
+  h+='</div>';
+  if(V.rutinaPasos.length){
+    h+='<div class="rutina-borrar">';
+    V.rutinaPasos.forEach(function(t, i){
+      h+='<div class="paso-editable"><span class="t">'+esc(t)+'</span><button data-action="quitar-paso-nueva-rutina" data-value="'+i+'">✕</button></div>';
+    });
+    h+='</div>';
+  }
+  h+='<button class="btn btn-principal" style="margin-top:14px" data-action="crear-rutina">Crear rutina</button>';
+  h+='</div>';
 
   return h;
 }
@@ -1152,43 +1410,90 @@ function renderBoyaPanel(){
   return h;
 }
 
+var TECNICAS_CALMA=[
+  {id:'respirar', et:'Respirar', emo:'🫁'},
+  {id:'aterrizar', et:'Aterrizar', emo:'🧭'},
+  {id:'relajar', et:'Relajar', emo:'💆'},
+  {id:'mirar', et:'Mirar', emo:'🌊'}
+];
+var PASOS_ATERRIZAJE=[
+  ['5','cosas que puedes ver a tu alrededor'],
+  ['4','cosas que puedes tocar cerca de ti'],
+  ['3','cosas que puedes oír ahora mismo'],
+  ['2','cosas que puedes oler'],
+  ['1','cosa que sientes en tu cuerpo, respirando']
+];
+var PASOS_RELAJACION=[
+  ['Manos y brazos','Cierra los puños fuerte — 5 segundos — y suelta.'],
+  ['Hombros','Súbelos hacia las orejas — 5 segundos — y déjalos caer.'],
+  ['Cara','Arruga toda la cara — 5 segundos — y afloja.'],
+  ['Estómago','Aprieta el abdomen — 5 segundos — y suelta.'],
+  ['Piernas','Estira y tensa las piernas — 5 segundos — y relaja.'],
+  ['Todo el cuerpo','Una respiración larga, y sacude lo que quede.']
+];
+
 function renderCalma(){
   var h='';
-  h+='<div class="card">';
-  h+='<h3>Respiración guiada</h3>';
-  h+='<p class="sub">Cuando los estímulos son muchos. Sin números, sin racha — solo un momento para bajar el ritmo.</p>';
-  h+='<div class="respirar-circulo-wrap">';
-  h+='<div class="respirar-circulo '+((V.respirando==='inhala'||V.respirando==='sosten1')?'grande':'chico')+'" id="circulo-respirar">';
-  h+='<div class="respirar-nutria">'+dibujarNutria('tranquila')+'</div>';
-  h+='<div class="respirar-texto">'+(V.respirando?FASES_RESPIRACION[V.respirando]:'Respiro con vos')+'</div>';
-  h+='</div>';
-  if(V.respirando){
-    h+='<button class="btn btn-fantasma btn-chico" style="margin-top:22px" data-action="detener-respiracion">Detener</button>';
-  } else {
-    h+='<button class="btn btn-principal" style="margin-top:22px; max-width:200px" data-action="iniciar-respiracion">Empezar a respirar</button>';
-  }
-  h+='</div>';
+  h+='<p class="sub" style="margin-bottom:2px">Sin números, sin racha, sin conchas — acá no hay nada que ganar. Elegí lo que necesites ahora.</p>';
+  h+='<div class="calma-picker" style="margin-top:12px">';
+  TECNICAS_CALMA.forEach(function(t){
+    h+='<button class="'+(V.calmaVista===t.id?'act':'')+'" data-action="elegir-calma" data-value="'+t.id+'">'+t.emo+' '+t.et+'</button>';
+  });
   h+='</div>';
 
-  h+='<div class="card">';
-  h+='<h3>Aterrizaje · 5-4-3-2-1</h3>';
-  h+='<p class="sub">Una técnica para volver al cuerpo cuando todo se siente demasiado — nombra, sin apuro.</p>';
-  var pasos=[
-    ['5','cosas que puedes ver a tu alrededor'],
-    ['4','cosas que puedes tocar cerca de ti'],
-    ['3','cosas que puedes oír ahora mismo'],
-    ['2','cosas que puedes oler'],
-    ['1','cosa que sientes en tu cuerpo, respirando']
-  ];
-  var i=V.aterrizajePaso||0;
-  if(i>=pasos.length){
-    h+='<div class="aterrizaje-paso"><div class="txt">Ya recorriste tus sentidos. 🌊</div><p class="sub" style="margin-top:8px">Cuando quieras, volvés a Hoy.</p></div>';
-    h+='<button class="btn btn-fantasma btn-chico" style="margin-top:14px; width:100%" data-action="reiniciar-aterrizaje">Volver a empezar</button>';
+  if(V.calmaVista==='aterrizar'){
+    h+='<div class="card">';
+    h+='<h3>Aterrizaje · 5-4-3-2-1</h3>';
+    h+='<p class="sub">Para volver al cuerpo cuando todo se siente demasiado — nombra, sin apuro.</p>';
+    var i=V.aterrizajePaso||0;
+    if(i>=PASOS_ATERRIZAJE.length){
+      h+='<div class="aterrizaje-paso"><div class="txt">Ya recorriste tus sentidos. 🌊</div><p class="sub" style="margin-top:8px">Cuando quieras, volvés a Hoy.</p></div>';
+      h+='<button class="btn btn-fantasma btn-chico" style="margin-top:14px; width:100%" data-action="reiniciar-aterrizaje">Volver a empezar</button>';
+    } else {
+      h+='<div class="aterrizaje-paso"><div class="num">Paso '+(i+1)+' de '+PASOS_ATERRIZAJE.length+'</div><div class="txt">Nombra '+PASOS_ATERRIZAJE[i][0]+' '+PASOS_ATERRIZAJE[i][1]+'</div></div>';
+      h+='<button class="btn btn-principal" style="margin-top:14px" data-action="siguiente-aterrizaje">Listo, siguiente</button>';
+    }
+    h+='</div>';
+  } else if(V.calmaVista==='relajar'){
+    h+='<div class="card">';
+    h+='<h3>Relajación muscular</h3>';
+    h+='<p class="sub">Tensa cada grupo de músculos y suéltalo — el cuerpo aprende a bajar la guardia.</p>';
+    var j=V.relajacionPaso||0;
+    if(j>=PASOS_RELAJACION.length){
+      h+='<div class="aterrizaje-paso"><div class="txt">Ya recorriste el cuerpo entero. 🌊</div><p class="sub" style="margin-top:8px">Cuando quieras, volvés a Hoy.</p></div>';
+      h+='<button class="btn btn-fantasma btn-chico" style="margin-top:14px; width:100%" data-action="reiniciar-relajacion">Volver a empezar</button>';
+    } else {
+      h+='<div class="aterrizaje-paso"><div class="num">Paso '+(j+1)+' de '+PASOS_RELAJACION.length+' · '+PASOS_RELAJACION[j][0]+'</div><div class="txt">'+PASOS_RELAJACION[j][1]+'</div></div>';
+      h+='<button class="btn btn-principal" style="margin-top:14px" data-action="siguiente-relajacion">Listo, siguiente</button>';
+    }
+    h+='</div>';
+  } else if(V.calmaVista==='mirar'){
+    h+='<div class="card">';
+    h+='<h3>Solo mirar</h3>';
+    h+='<p class="sub">No hace falta hacer nada. Mirá el agua moverse un rato.</p>';
+    h+='<div class="escena-calma">';
+    h+='<div class="escena-texto">Nada que lograr acá.</div>';
+    h+='<div class="escena-ola o2"></div><div class="escena-ola o1"></div>';
+    h+='<div class="escena-nutria">'+dibujarNutria('tranquila')+'</div>';
+    h+='</div>';
+    h+='</div>';
   } else {
-    h+='<div class="aterrizaje-paso"><div class="num">Paso '+(i+1)+' de '+pasos.length+'</div><div class="txt">Nombra '+pasos[i][0]+' '+pasos[i][1]+'</div></div>';
-    h+='<button class="btn btn-principal" style="margin-top:14px" data-action="siguiente-aterrizaje">Listo, siguiente</button>';
+    h+='<div class="card">';
+    h+='<h3>Respiración guiada</h3>';
+    h+='<p class="sub">Inhala, sostén, exhala, sostén — un círculo que marca el ritmo por vos.</p>';
+    h+='<div class="respirar-circulo-wrap">';
+    h+='<div class="respirar-circulo '+((V.respirando==='inhala'||V.respirando==='sosten1')?'grande':'chico')+'" id="circulo-respirar">';
+    h+='<div class="respirar-nutria">'+dibujarNutria('tranquila')+'</div>';
+    h+='<div class="respirar-texto">'+(V.respirando?FASES_RESPIRACION[V.respirando]:'Respiro con vos')+'</div>';
+    h+='</div>';
+    if(V.respirando){
+      h+='<button class="btn btn-fantasma btn-chico" style="margin-top:22px" data-action="detener-respiracion">Detener</button>';
+    } else {
+      h+='<button class="btn btn-principal" style="margin-top:22px; max-width:200px" data-action="iniciar-respiracion">Empezar a respirar</button>';
+    }
+    h+='</div>';
+    h+='</div>';
   }
-  h+='</div>';
 
   return h;
 }
@@ -1273,7 +1578,7 @@ function renderHerramientas(){
 
 function renderRecordatorios(){
   var r=S.recordatorios;
-  var h='';
+  var h='<div class="boya-panel-header"><button data-action="nav" data-value="ajustes">← Volver</button></div>';
 
   if(notiSoportada() && Notification.permission==='denied'){
     h+='<div class="aviso-permiso">Bloqueaste las notificaciones para esta página en tu navegador. Los recordatorios seguirán apareciendo dentro de la app (como un aviso), pero no como notificación del sistema.</div>';
@@ -1328,6 +1633,12 @@ function renderRecordatorios(){
 
 function renderAjustes(){
   var h='';
+
+  h+='<div class="card">';
+  h+='<h3>Recordatorios de horario</h3>';
+  h+='<p class="sub">Avisos para comidas, agua y dormir a horas fijas.</p>';
+  h+='<button class="btn btn-fantasma btn-chico" style="margin-top:12px" data-action="nav" data-value="recordatorios">Configurar ›</button>';
+  h+='</div>';
 
   h+='<div class="card">';
   h+='<h3>Tu perfil</h3>';
@@ -1385,7 +1696,7 @@ function cambiarAgua(delta){
   guardar();
 }
 
-var ACCIONES_JUEGO=['toggle-cat','agua-mas','agua-menos','toggle-mini','elegir-ropa','dividir-tarea','tarea-rapida'];
+var ACCIONES_JUEGO=['toggle-cat','agua-mas','agua-menos','toggle-mini','elegir-ropa','dividir-tarea','tarea-rapida','toggle-paso-rutina'];
 
 app.addEventListener('click', function(ev){
   var b=ev.target.closest('[data-action]');
@@ -1395,6 +1706,12 @@ app.addEventListener('click', function(ev){
   var esJuego = ACCIONES_JUEGO.indexOf(act)>=0;
   var prevCuenta = esJuego ? contarCategorias(entradaHoy()) : 0;
   var prevJg = esJuego ? calcularProgreso() : null;
+  var rutinaIdActual=null, prevRutinaCompleta=false, nombreRutinaActual='';
+  if(act==='toggle-paso-rutina'){
+    rutinaIdActual=val.split('|')[0];
+    var rutPrev=S.rutinas.filter(function(r){ return r.id===rutinaIdActual; })[0];
+    if(rutPrev){ prevRutinaCompleta=rutinaCompletaHoy(rutPrev); nombreRutinaActual=rutPrev.emo+' '+rutPrev.nombre; }
+  }
 
   if(act==='nav'){ V.tab=val; V.mostrarMedallas=false; }
   else if(act==='toggle-cat'){
@@ -1519,6 +1836,9 @@ app.addEventListener('click', function(ev){
   else if(act==='detener-respiracion'){ detenerRespiracion(); }
   else if(act==='siguiente-aterrizaje'){ V.aterrizajePaso=(V.aterrizajePaso||0)+1; vibrar(8); }
   else if(act==='reiniciar-aterrizaje'){ V.aterrizajePaso=0; }
+  else if(act==='elegir-calma'){ V.calmaVista=val; V.aterrizajePaso=0; V.relajacionPaso=0; detenerRespiracion(); }
+  else if(act==='siguiente-relajacion'){ V.relajacionPaso=(V.relajacionPaso||0)+1; vibrar(8); }
+  else if(act==='reiniciar-relajacion'){ V.relajacionPaso=0; }
   else if(act==='toggle-paso'){
     if(S.tareaActual){
       var p=S.tareaActual.pasos[Number(val)];
@@ -1540,6 +1860,68 @@ app.addEventListener('click', function(ev){
   }
   else if(act==='snooze'){ recordar30(val); return; }
   else if(act==='exportar'){ exportarDatos(); return; }
+  else if(act==='agregar-pendiente'){
+    var inpP=document.getElementById('inp-pendiente');
+    var textoP=(inpP?inpP.value:'').trim();
+    if(textoP){ S.pendientes.push({id:'pd'+Date.now(), texto:textoP}); V.pendienteTexto=''; guardar(); }
+  }
+  else if(act==='quitar-pendiente'){ S.pendientes=S.pendientes.filter(function(p){ return p.id!==val; }); guardar(); }
+  else if(act==='completar-pendiente'){
+    S.pendientes=S.pendientes.filter(function(p){ return p.id!==val; });
+    S.contadores.pendientesResueltos=(S.contadores.pendientesResueltos||0)+1;
+    ganarConchitas(1); sonidoPop(680); vibrar(10);
+    guardar();
+  }
+  else if(act==='toggle-paso-rutina'){
+    var partesR=val.split('|'), rid=partesR[0], pid=partesR[1];
+    var hechosR=pasosHechosHoy(rid);
+    var iR=hechosR.indexOf(pid);
+    if(iR>=0){ hechosR.splice(iR,1); }
+    else{ hechosR.push(pid); flotarPuntos(b, S.modoSuave?'✨':'+1'); sonidoPop(660); vibrar(12); ganarConchitas(1); }
+  }
+  else if(act==='adoptar-rutina'){
+    var rs=RUTINAS_SUGERIDAS[Number(val)];
+    if(rs){
+      S.rutinas.push({id:'rt'+Date.now(), nombre:rs.nombre, emo:rs.emo, pasos:rs.pasos.map(function(t,i){ return {id:'p'+i, t:t}; })});
+      sonidoPop(600); vibrar(10);
+      mostrarToast('Rutina agregada.');
+      guardar();
+    }
+  }
+  else if(act==='quitar-rutina'){
+    if(confirm('¿Quitar esta rutina? Se borra su racha de días seguidos.')){
+      S.rutinas=S.rutinas.filter(function(r){ return r.id!==val; });
+      guardar();
+    } else { return; }
+  }
+  else if(act==='agregar-paso-nueva-rutina'){
+    var inpRP=document.getElementById('inp-rutina-paso');
+    var textoRP=(inpRP?inpRP.value:'').trim();
+    if(textoRP){ V.rutinaPasos.push(textoRP); V.rutinaPasoTexto=''; }
+  }
+  else if(act==='quitar-paso-nueva-rutina'){ V.rutinaPasos.splice(Number(val), 1); }
+  else if(act==='crear-rutina'){
+    var inpRN=document.getElementById('inp-rutina-nombre');
+    var nombreR=(inpRN?inpRN.value:'').trim();
+    if(nombreR && V.rutinaPasos.length){
+      S.rutinas.push({id:'rt'+Date.now(), nombre:nombreR, emo:'🗺️', pasos:V.rutinaPasos.map(function(t,i){ return {id:'p'+i, t:t}; })});
+      V.rutinaNombre=''; V.rutinaPasoTexto=''; V.rutinaPasos=[];
+      sonidoArpegio(); vibrar([15,30,15]);
+      mostrarToast('Rutina creada.');
+      guardar();
+    } else {
+      mostrarToast(nombreR ? 'Agrega al menos un paso.' : 'Ponle un nombre primero.');
+      return;
+    }
+  }
+  else if(act==='ver-foto'){ V.verFoto=val; }
+  else if(act==='cerrar-foto'){ V.verFoto=null; }
+  else if(act==='quitar-foto-cat'){
+    var fotosQ=fotosDeHoy();
+    delete fotosQ[val];
+    V.verFoto=null;
+    guardar();
+  }
   else if(act==='cerrar-celebracion'){ clearTimeout(celebracionTimer); V.celebracion=null; }
   else if(act==='borrar-todo'){
     if(confirm('¿Borrar todos tus datos de Ancla? No se puede deshacer.')){
@@ -1559,9 +1941,15 @@ app.addEventListener('click', function(ev){
     });
     var nuevoCuenta=contarCategorias(entradaHoy());
     var completoAhora = nuevoCuenta>=CATS.length && prevCuenta<CATS.length;
+    var rutinaCompletadaAhora=false;
+    if(act==='toggle-paso-rutina' && rutinaIdActual){
+      var rutAhora=S.rutinas.filter(function(r){ return r.id===rutinaIdActual; })[0];
+      if(rutAhora){ rutinaCompletadaAhora = !prevRutinaCompleta && rutinaCompletaHoy(rutAhora); }
+    }
 
     if(subioNivel){ celebrar('nivel', {titulo:S.modoSuave?'Subiste de nivel':'Nivel '+nuevoJg.nivel, sub:nuevoJg.nombre}); }
     else if(medallaNueva){ celebrar('medalla', {emo:medallaNueva.emo, titulo:'Nueva medalla', sub:medallaNueva.titulo}); }
+    else if(rutinaCompletadaAhora){ celebrar('rutina', {titulo:'Rutina completa', sub:nombreRutinaActual}); }
     else if(completoAhora){ celebrar('dia', {titulo:'Día completo', sub:'Orgullo, no perfección.'}); }
   }
 
@@ -1583,6 +1971,10 @@ app.addEventListener('change', function(ev){
     manejarFoto(ev.target.files[0]);
     return;
   }
+  if(ev.target.id && ev.target.id.indexOf('inp-foto-cat-')===0 && ev.target.files && ev.target.files[0]){
+    manejarFotoCategoria(ev.target.id.slice('inp-foto-cat-'.length), ev.target.files[0]);
+    return;
+  }
   if(ev.target.id==='inp-importar' && ev.target.files && ev.target.files[0]){
     importarDatos(ev.target.files[0]);
   }
@@ -1592,6 +1984,9 @@ app.addEventListener('input', function(ev){
   if(ev.target.id==='inp-tarea') V.tareaTexto=ev.target.value;
   if(ev.target.id==='inp-nombre-onboarding') V.onboardingNombre=ev.target.value;
   if(ev.target.id==='inp-mini-texto') V.miniTexto=ev.target.value;
+  if(ev.target.id==='inp-pendiente') V.pendienteTexto=ev.target.value;
+  if(ev.target.id==='inp-rutina-nombre') V.rutinaNombre=ev.target.value;
+  if(ev.target.id==='inp-rutina-paso') V.rutinaPasoTexto=ev.target.value;
 });
 app.addEventListener('keydown', function(ev){
   if(ev.key==='Enter'){
@@ -1599,6 +1994,8 @@ app.addEventListener('keydown', function(ev){
     if(ev.target.id==='inp-tarea'){ ev.preventDefault(); document.querySelector('[data-action="dividir-tarea"]').click(); }
     if(ev.target.id==='inp-nombre-onboarding'){ ev.preventDefault(); document.querySelector('[data-action="terminar-onboarding"]').click(); }
     if(ev.target.id==='inp-mini-texto'){ ev.preventDefault(); document.querySelector('[data-action="agregar-mini"]').click(); }
+    if(ev.target.id==='inp-pendiente'){ ev.preventDefault(); document.querySelector('[data-action="agregar-pendiente"]').click(); }
+    if(ev.target.id==='inp-rutina-paso'){ ev.preventDefault(); document.querySelector('[data-action="agregar-paso-nueva-rutina"]').click(); }
   }
 });
 
@@ -1628,6 +2025,7 @@ function importarDatos(file){
 
 /* ===================== arranque ===================== */
 registrarApertura();
+podarFotosViejas();
 revisarRecordatorios();
 setInterval(revisarRecordatorios, 30000);
 render();
