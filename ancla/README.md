@@ -12,9 +12,52 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.17.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.18.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.17.0" al reportar algo raro.
+> pasó en la v0.18.0" al reportar algo raro.
+
+## Guardarropa con fotos, y cada cosa en su espacio (v0.18.0)
+
+### Mi ropa: el problema no era combinar, era acordarse
+*"Soy MUY básica para vestirme, pero es que se me olvida hasta lo que tengo, y repito mucho
+la misma ropa."* Eso no se arregla con fuerza de voluntad: se arregla con datos.
+
+- **Cada prenda va con foto.** Se toma tal como está en el clóset. La memoria visual no
+  depende de recordar cómo se llamaba algo.
+- Se clasifican por **arriba / abajo / vestido / zapatos / abrigo**, con clima opcional.
+- **La app arma el conjunto**, y elige a propósito **entre lo que lleva más tiempo sin
+  ponerse** — que es justo lo contrario de repetir siempre lo mismo. Al confirmar *"Me lo
+  pongo"*, esas prendas quedan al final de la fila.
+- **"No te pones esto hace rato"**: una fila con lo más olvidado y cuántos días lleva ahí.
+  *Está ahí y se te olvidó. Eso es todo — no es que no te guste.*
+- Cada prenda muestra hace cuánto se usó y cuántas veces.
+- Las fotos se guardan en el teléfono, así que la app avisa el espacio usado al pasar del
+  60%. Los conjuntos escritos de la versión anterior **no se pierden**: siguen ahí.
+
+### Los botones del día ya no se pierden
+Plegar el día en franjas los escondía. Ahora es **una sola rejilla siempre visible**,
+agrupada por momento, con el de ahora resaltado. Lo que hay que marcar está a la vista, sin
+desplegar nada.
+
+### La casilla de nivel era enorme e innecesaria
+Pasó de tarjetón oscuro a **una tira de una línea**: nivel, racha, medallas y barra. Se toca
+para ver el detalle.
+
+### Boya: el punto medio
+Tiene vida interior sin volverse otra tarea. **Tú eliges cuánto te busca**, en su pestaña →
+*Ella*:
+- **Tranquila** — casi nunca pide nada, está ahí y ya.
+- **Normal** (por defecto) — pide algo de vez en cuando, sin insistir.
+- **Compañera** — más presente, te busca varias veces al día.
+
+Y con cualquiera de las tres, **nunca se enferma ni se pone triste por no atenderla**. Ahí
+mismo está su nombre y *"Lo que han hecho juntas"*: caricias, comidas, juegos, cosas
+recogidas y regalos.
+
+### Cada función con su espacio
+La barra pasa a **Hoy · Cuidados · Boya · Calma · Más**, y *Más* deja de ser una lista muerta:
+cada entrada muestra en vivo cómo va — *"12 prendas · 3 sin usar hace rato"*, *"45 de 120 min
+hoy"*, *"2 de 3 rutinas"*.
 
 ## Boya vuelve a ser una mascota (v0.17.0)
 

@@ -446,6 +446,76 @@ body{background:linear-gradient(178deg, var(--bg2, #f2ebdc) 0%, var(--bg) 34%)}
 .md-et{flex:none; width:82px; font-size:11.5px; font-weight:600; color:var(--sub)}
 .md-bar{flex:1; height:7px; background:var(--line); border-radius:5px; overflow:hidden}
 .md-bar i{display:block; height:100%; background:var(--t); border-radius:5px; transition:width .4s}
+
+/* ---- guardarropa ---- */
+.conjunto{display:flex; gap:9px; margin-top:16px; justify-content:center; flex-wrap:wrap}
+.cj-pieza{width:88px; display:flex; flex-direction:column; gap:5px; align-items:center}
+.cj-pieza img{width:88px; height:88px; object-fit:cover; border-radius:var(--radius-s); border:1.5px solid var(--line); display:block}
+.cj-pieza i{font-style:normal; font-size:10.5px; color:var(--sub); text-align:center; line-height:1.3}
+.cj-sinfoto{width:88px; height:88px; border-radius:var(--radius-s); border:1.5px dashed var(--line); background:var(--bg);
+  display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:var(--sub); text-align:center; padding:6px}
+.cj-btns{display:flex; align-items:center; gap:16px; margin-top:18px; justify-content:center; flex-wrap:wrap}
+.cj-btns .btn-principal{flex:0 1 auto; min-width:172px; width:auto}
+.cj-btns .ahora-link{white-space:nowrap; color:var(--coral)}
+.prendas-fila{display:flex; gap:9px; overflow-x:auto; margin-top:13px; padding-bottom:5px}
+.pf-item{flex:none; width:76px; background:none; border:none; padding:0; display:flex; flex-direction:column; gap:4px; align-items:center}
+.pf-item img{width:76px; height:76px; object-fit:cover; border-radius:var(--radius-s); border:1.5px solid var(--coral); display:block}
+.pf-item .cj-sinfoto{width:76px; height:76px}
+.pf-item i{font-style:normal; font-family:var(--font-mono); font-size:9.5px; color:var(--coral)}
+.tipo-row{display:flex; gap:7px; margin-top:14px; flex-wrap:wrap}
+.tipo-op{flex:1; min-width:74px; background:var(--bg); border:1.5px solid var(--line); border-radius:var(--radius-s);
+  padding:9px 7px; font-size:11.5px; font-weight:700; color:var(--ink)}
+.tipo-op.sel{border-color:var(--coral); background:rgba(178,94,57,.1)}
+.arm-tit{margin:18px 0 9px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.9px; color:var(--ink); opacity:.6}
+.arm-tit span{font-family:var(--font-mono); font-weight:500; opacity:.7}
+.prendas-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(94px,1fr)); gap:10px}
+.pg-item{position:relative; display:flex; flex-direction:column; gap:4px}
+.pg-item img{width:100%; aspect-ratio:1; object-fit:cover; border-radius:var(--radius-s); border:1.5px solid var(--line); display:block}
+.pg-item .cj-sinfoto{width:100%; height:auto; aspect-ratio:1}
+.pg-item b{font-size:11.5px; font-weight:700; color:var(--ink); line-height:1.25}
+.pg-item i{font-style:normal; font-family:var(--font-mono); font-size:9px; color:var(--sub)}
+.pg-x{position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; background:rgba(0,0,0,.5);
+  color:#fff; font-size:11px; display:flex; align-items:center; justify-content:center; padding:0}
+
+/* ---- el día: rejilla siempre visible ---- */
+.dia-card{padding:6px 14px 16px}
+.dia-grupo{margin-top:14px}
+.dia-grupo.ahora .dg-et{color:var(--coral)}
+.dg-et{display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:800; text-transform:uppercase;
+  letter-spacing:.9px; color:var(--sub); margin-bottom:9px}
+.dg-et span{font-family:var(--font-mono); font-size:8.5px; font-weight:600; letter-spacing:.7px;
+  border:1px solid var(--coral); border-radius:10px; padding:2px 6px; text-transform:uppercase}
+.dia-grupo.ahora .grid-cats .cat{box-shadow:0 1px 5px rgba(0,0,0,.07)}
+
+/* ---- nivel: una tira, no un bloque ---- */
+.nivel-tira{display:flex; align-items:center; gap:10px; width:100%; margin-top:20px; padding:12px 14px;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius-s); text-align:left}
+.nt-niv{font-size:12.5px; font-weight:700; color:var(--ink); white-space:nowrap}
+.nt-dato{font-family:var(--font-mono); font-size:10.5px; color:var(--sub); white-space:nowrap}
+.nt-bar{flex:1; min-width:26px; height:5px; background:var(--line); border-radius:4px; overflow:hidden}
+.nt-bar i{display:block; height:100%; background:var(--coral); border-radius:4px}
+.nt-fl{color:var(--sub); font-size:16px}
+
+/* ---- hub "Más": informa, no solo lista ---- */
+.hub{display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line);
+  border-radius:var(--radius-s); overflow:hidden}
+.hub-item{display:flex; align-items:center; gap:13px; padding:15px 14px; background:var(--card); text-align:left; width:100%}
+.hb-emo{color:var(--t); flex:none; display:flex}
+.hb-txt{flex:1; min-width:0}
+.hb-txt b{display:block; font-size:14.5px; font-weight:700; color:var(--ink)}
+.hb-txt i{display:block; font-style:normal; font-size:11.5px; color:var(--sub); margin-top:2px}
+.hb-fl{color:var(--sub); font-size:18px; flex:none}
+
+/* ---- ajustes de la mascota ---- */
+.ritmo-op{display:block; width:100%; text-align:left; padding:13px 14px; margin-top:9px; border-radius:var(--radius-s);
+  border:1.5px solid var(--line); background:var(--bg)}
+.ritmo-op.sel{border-color:var(--coral); background:rgba(178,94,57,.09)}
+.ritmo-op b{display:block; font-size:14px; font-weight:700; color:var(--ink)}
+.ritmo-op i{display:block; font-style:normal; font-size:12px; color:var(--sub); margin-top:3px; line-height:1.45}
+.juntas{display:grid; grid-template-columns:repeat(auto-fit, minmax(84px,1fr)); gap:10px; margin-top:13px}
+.jt{background:var(--bg); border:1.5px solid var(--line); border-radius:var(--radius-s); padding:12px 8px; text-align:center}
+.jt b{display:block; font-family:var(--font-mono); font-size:20px; color:var(--ink)}
+.jt span{font-size:10.5px; color:var(--sub)}
 .huevo-wrap{display:flex; flex-direction:column; align-items:center; padding:26px 0 10px}
 .huevo-svg{width:150px; height:180px; cursor:pointer; filter:drop-shadow(0 10px 18px rgba(0,0,0,.15))}
 .huevo-svg.tambalea{animation:tambaleo .55s ease}
@@ -664,7 +734,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.17.0-beta';
+var VERSION='0.18.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -850,7 +920,7 @@ function estadoInicial(){
     creado:hoyISO(),
     onboardingVisto:false,
     usuario:{ nombre:'', foto:null },
-    boya:{ nombre:'Boya' },
+    boya:{ nombre:'Boya', ritmo:'normal' },
     modoSuave:false,
     efectos:true,
     nudgeVisto:null,
@@ -865,6 +935,8 @@ function estadoInicial(){
     cuidadosCfg:{},
     enfoque:{ metaMin:120, min:{}, activa:null, rachaDias:0 },
     ropa:[],
+    prendas:[],
+    conjuntoHoy:null,
     ropaHoy:null,
     tareaActual:null,
     miniRecordatorios:[],
@@ -901,7 +973,7 @@ function cargar(){
     if(!d.usuario) d.usuario=base.usuario;
     else { if(d.usuario.nombre===undefined) d.usuario.nombre=''; if(d.usuario.foto===undefined) d.usuario.foto=null; }
     if(!d.boya) d.boya=base.boya;
-    else if(d.boya.nombre===undefined) d.boya.nombre='Boya';
+    else { if(d.boya.nombre===undefined) d.boya.nombre='Boya'; if(!d.boya.ritmo) d.boya.ritmo='normal'; }
     if(!d.miniRecordatorios) d.miniRecordatorios=[];
     if(!d.rutinas) d.rutinas=[];
     if(!d.rutinasHechas) d.rutinasHechas={};
@@ -911,6 +983,8 @@ function cargar(){
     if(!d.eventos) d.eventos=[];
     if(!d.perras) d.perras=[];
     if(!d.medicamentos) d.medicamentos=[];
+    if(!d.prendas) d.prendas=[];
+    if(d.conjuntoHoy===undefined) d.conjuntoHoy=null;
     if(!d.cuidadosCfg) d.cuidadosCfg={};
     if(!d.enfoque) d.enfoque=base.enfoque;
     else { if(d.enfoque.metaMin===undefined) d.enfoque.metaMin=120;
@@ -1532,7 +1606,9 @@ function listaPendientes(){
                           {act:'nav', val:'cuidados', et:'Ver todo', cls:'btn-fantasma'}] });
   });
 
-  if(hr>=6 && hr<13 && S.ropa.length && !(S.ropaHoy && S.ropaHoy.fecha===hoyISO())){
+  var tieneRopa=(S.prendas&&S.prendas.length)||S.ropa.length;
+  var yaVestida=(S.conjuntoHoy && S.conjuntoHoy.fecha===hoyISO() && S.conjuntoHoy.puesto);
+  if(hr>=6 && hr<13 && tieneRopa && !yaVestida){
     out.push({ urg:0, ico:'camiseta', tono:'indigo', t:'Vestirte', meta:'sin elegir',
       sub:'No lo pienses: deja que Ancla elija de lo que ya guardaste.',
       tipo:'ir', actos:[{act:'nav', val:'vestirme', et:'Que elija por mí', cls:'btn-principal'}] });
@@ -1575,15 +1651,28 @@ function listaPendientes(){
    es para alguien a quien la culpa ya le pesa de sobra; una mascota que
    sufre por descuido sería exactamente lo contrario de lo que hace falta.
    Sus necesidades son una invitación, jamás un reproche. */
-var HORAS_HAMBRE=7, HORAS_JUEGO=20;
+/* El punto medio: que Boya tenga vida interior sin volverse una tarea
+   más. El ritmo lo elige la usuaria; por defecto pide poco. Aunque pida,
+   nunca pasa nada malo si no la atienden — eso no cambia. */
+var RITMOS_BOYA=[
+  {id:'tranquila', et:'Tranquila', desc:'Casi nunca pide nada. Está ahí y ya.', hambre:26, juego:60},
+  {id:'normal',    et:'Normal',    desc:'Pide algo de vez en cuando, sin insistir.', hambre:13, juego:32},
+  {id:'compania',  et:'Compañera', desc:'Más presente: te busca varias veces al día.', hambre:7,  juego:18}
+];
+function ritmoBoya(){
+  var id=(S.boya&&S.boya.ritmo)||'normal';
+  return RITMOS_BOYA.filter(function(r){ return r.id===id; })[0] || RITMOS_BOYA[1];
+}
 function necesidadesBoya(){
+  var _r=ritmoBoya(), HORAS_HAMBRE=_r.hambre, HORAS_JUEGO=_r.juego;
   var tc=ultimaVez('boya:comer'), tj=ultimaVez('boya:jugar'), tm=ultimaVez('boya:caricia');
   var hc = tc===null ? HORAS_HAMBRE : (Date.now()-tc)/3600000;
   var hj = tj===null ? HORAS_JUEGO : (Date.now()-tj)/3600000;
   var hm = tm===null ? 12 : (Date.now()-tm)/3600000;
+  var HORAS_MIMO=Math.round(HORAS_JUEGO*0.7);
   var hambre=Math.max(0, Math.min(100, Math.round(hc/HORAS_HAMBRE*100)));
   var juego =Math.max(0, Math.min(100, Math.round(hj/HORAS_JUEGO*100)));
-  var mimos =Math.max(0, Math.min(100, Math.round(hm/14*100)));
+  var mimos =Math.max(0, Math.min(100, Math.round(hm/HORAS_MIMO*100)));
   return {
     hambre:hambre, juego:juego, mimos:mimos,
     saciada:100-hambre, entretenida:100-juego, querida:100-mimos,
@@ -2006,6 +2095,27 @@ function comprimirImagen(file, tam, calidad, cb){
   reader.onerror=function(){ cb(null); };
   reader.readAsDataURL(file);
 }
+function guardarPrenda(foto){
+  var inp=document.getElementById('inp-prenda-nombre');
+  var nombre=(inp?inp.value:'').trim() || (V.prendaNombre||'').trim();
+  if(!nombre && !foto){ mostrarToast('Ponle un nombre o tómale una foto.'); return; }
+  S.prendas.push({
+    id:'w'+Date.now(), foto:foto||null, tipo:V.prendaTipo||'superior',
+    nombre:nombre.slice(0,32) || 'Sin nombre', clima:V.prendaClima||null,
+    ultimoUso:null, usos:0
+  });
+  V.prendaNombre='';
+  S.contadores.prendasTotal=(S.contadores.prendasTotal||0)+1;
+  sonidoPop(680); vibrar(12);
+  guardar(); render();
+  mostrarToast('Guardada. Ya no tienes que acordarte de ella.');
+}
+function manejarPrendaFoto(file){
+  comprimirImagen(file, 320, 0.66, function(dataURL){
+    if(!dataURL){ mostrarToast('No se pudo leer la foto.'); return; }
+    guardarPrenda(dataURL);
+  });
+}
 function manejarFoto(file){
   comprimirImagen(file, 160, 0.82, function(dataURL){
     if(!dataURL) return;
@@ -2054,7 +2164,8 @@ var V = {
   pendienteTexto:'', rutinaNombre:'', rutinaPasoTexto:'', rutinaPasos:[],
   calmaVista:'respirar', relajacionPaso:0, dialogoBoya:null, boyaTocada:false,
   perraNombre:'', perraEmo:'🐕', distraccion:'', climaHoy:null, ropaClima:null,
-  medNombre:'', medDosis:'', medVeces:1, momentoAbierto:null, verResto:false, boyaAccion:null
+  medNombre:'', medDosis:'', medVeces:1, momentoAbierto:null, verResto:false, boyaAccion:null,
+  prendaNombre:'', prendaTipo:'superior', prendaClima:null
 };
 var dialogoTimer=null;
 
@@ -2174,6 +2285,73 @@ function elegirRopa(clima){
   var mitad=Math.max(1, Math.ceil(candidatos.length/2));
   var top=candidatos.slice(0, mitad);
   return top[Math.floor(Math.random()*top.length)];
+}
+
+/* ===================== guardarropa =====================
+   El problema real no es "no sé combinar": es no acordarse de lo que se
+   tiene. Por eso las prendas van con FOTO — la memoria visual no depende
+   de recordar el nombre — y la app lleva la cuenta de cuándo se usó cada
+   una. Con eso puede armar conjuntos prefiriendo lo que lleva más tiempo
+   guardado, que es justo lo contrario de repetir siempre lo mismo. */
+var TIPOS_PRENDA=[
+  {id:'superior', et:'Arriba',   ico:'camiseta', nec:true},
+  {id:'inferior', et:'Abajo',    ico:'camiseta', nec:true},
+  {id:'completo', et:'Vestido / enterizo', ico:'camiseta', nec:false},
+  {id:'calzado',  et:'Zapatos',  ico:'camiseta', nec:false},
+  {id:'abrigo',   et:'Abrigo',   ico:'camiseta', nec:false}
+];
+function prendasDe(tipo, clima){
+  return (S.prendas||[]).filter(function(pr){
+    if(pr.tipo!==tipo) return false;
+    if(clima && pr.clima && pr.clima!==clima) return false;
+    return true;
+  });
+}
+function diasSinUsar(pr){
+  if(!pr.ultimoUso) return 999;
+  var d=new Date(pr.ultimoUso+'T00:00:00');
+  return Math.floor((Date.now()-d.getTime())/86400000);
+}
+/* elige entre las que llevan más tiempo sin ponerse, con algo de azar
+   para que no sea siempre la misma rotación mecánica */
+function elegirPrenda(tipo, clima, excluir){
+  var lista=prendasDe(tipo, clima).filter(function(pr){ return !excluir || excluir.indexOf(pr.id)<0; });
+  if(!lista.length) lista=prendasDe(tipo, null).filter(function(pr){ return !excluir || excluir.indexOf(pr.id)<0; });
+  if(!lista.length) return null;
+  lista.sort(function(a,b){ return diasSinUsar(b)-diasSinUsar(a); });
+  var tope=Math.max(1, Math.ceil(lista.length/2));
+  return lista[Math.floor(Math.random()*tope)];
+}
+function armarConjunto(clima){
+  var piezas=[], usados=[];
+  var vestido = prendasDe('completo', clima).length && Math.random()<0.5 ? elegirPrenda('completo', clima, usados) : null;
+  if(vestido){ piezas.push(vestido); usados.push(vestido.id); }
+  else {
+    var arriba=elegirPrenda('superior', clima, usados);
+    if(arriba){ piezas.push(arriba); usados.push(arriba.id); }
+    var abajo=elegirPrenda('inferior', clima, usados);
+    if(abajo){ piezas.push(abajo); usados.push(abajo.id); }
+  }
+  var zap=elegirPrenda('calzado', clima, usados);
+  if(zap){ piezas.push(zap); usados.push(zap.id); }
+  if(clima==='frio'){
+    var abr=elegirPrenda('abrigo', clima, usados);
+    if(abr) piezas.push(abr);
+  }
+  return piezas.length ? piezas : null;
+}
+function olvidadas(n){
+  return (S.prendas||[]).slice()
+    .sort(function(a,b){ return diasSinUsar(b)-diasSinUsar(a); })
+    .slice(0, n||6);
+}
+/* localStorage tiene un tope real (~5 MB) y las fotos pesan: hay que
+   avisarle antes de que se le rompa, no después */
+function espacioUsado(){
+  try{
+    var kb=Math.round((JSON.stringify(S).length*2)/1024);
+    return {kb:kb, pct:Math.min(100, Math.round(kb/4600*100))};
+  }catch(e){ return {kb:0, pct:0}; }
 }
 
 /* ===================== divide tarea ===================== */
@@ -2307,7 +2485,7 @@ function renderNav(){
   var tabs=[
     ['hoy','casa','Hoy'],
     ['cuidados','pastilla','Cuidados'],
-    ['enfoque','diana','Enfoque'],
+    ['boya','nutria','Boya'],
     ['calma','ola','Calma'],
     ['mas','mas','Más']
   ];
@@ -2409,106 +2587,40 @@ function renderHoy(){
   }
 
   h+='<div class="seccion"><span>El día</span><em>'+cuenta+' de '+CATS.length+'</em></div>';
-  var grupos=MOMENTOS.concat([{id:'dia', et:'Todo el día'}]);
-  function catsDe(id){ return CATS.filter(function(c){ return c.momento===id; }); }
-  function hechasDe(cats){ return cats.filter(function(c){ return c.contable ? (e.agua||0)>0 : !!e[c.id]; }).length; }
-  function pintaFranja(mom, forzarAbierta){
-    var cats=catsDe(mom.id);
-    if(!cats.length) return '';
-    var hechas=hechasDe(cats);
+  /* Plegar el día en franjas escondía los botones: lo que hay que marcar
+     tiene que estar SIEMPRE a la vista. Una sola rejilla, agrupada por
+     momento, con el de ahora resaltado. */
+  h+='<div class="card dia-card">';
+  MOMENTOS.concat([{id:'dia', et:'Todo el día'}]).forEach(function(mom){
+    var cats=CATS.filter(function(c){ return c.momento===mom.id; });
+    if(!cats.length) return;
     var esAhora=(mom.id===momActual);
-    var open = forzarAbierta ? (V.momentoAbierto!==mom.id) : (V.momentoAbierto===mom.id);
-    var x='<div class="franja'+(open?' abierta':'')+(esAhora?' esahora':'')+'">';
-    x+='<button class="fr-cab" data-action="abrir-franja" data-value="'+mom.id+'">';
-    x+='<span class="fr-et">'+mom.et+'</span>';
-    if(esAhora) x+='<span class="fr-chip">ahora</span>';
-    if(!open){
-      x+='<span class="fr-mini">';
-      cats.forEach(function(c){
-        var ok = c.contable ? (e.agua||0)>0 : !!e[c.id];
-        x+='<span class="'+(ok?'ok':'')+'" style="--t:var(--h-'+(c.tono||'humo')+')">'+ico(c.ico,15)+'</span>';
-      });
-      x+='</span>';
-    }
-    x+='<span class="fr-cont">'+hechas+' de '+cats.length+'</span>';
-    x+='<span class="fr-fl">'+(open?'▾':'▸')+'</span>';
-    x+='</button>';
-    if(open){
-      x+='<div class="grid-cats">';
-      cats.forEach(function(c){ x+=renderCat(c); });
-      x+='</div>';
-    }
-    return x+'</div>';
-  }
-
-  h+='<div class="franjas">';
-  var actual=grupos.filter(function(m){ return m.id===momActual; })[0];
-  if(actual) h+=pintaFranja(actual, true);
-  var resto=grupos.filter(function(m){ return m.id!==momActual && catsDe(m.id).length; });
-  var catsResto=[], hechasResto=0;
-  resto.forEach(function(m){ var cs=catsDe(m.id); catsResto=catsResto.concat(cs); hechasResto+=hechasDe(cs); });
-  if(resto.length){
-    if(V.verResto){
-      resto.forEach(function(m){ h+=pintaFranja(m, false); });
-      h+='<button class="fr-cab plegar" data-action="ver-resto"><span class="fr-et">Ocultar el resto</span><span class="fr-fl">▴</span></button>';
-    } else {
-      /* mañana + noche + todo el día en UN renglón, no tres */
-      h+='<button class="fr-cab" data-action="ver-resto">';
-      h+='<span class="fr-et">Resto del día</span>';
-      h+='<span class="fr-mini">';
-      catsResto.forEach(function(c){
-        var ok = c.contable ? (e.agua||0)>0 : !!e[c.id];
-        h+='<span class="'+(ok?'ok':'')+'" style="--t:var(--h-'+(c.tono||'humo')+')">'+ico(c.ico,15)+'</span>';
-      });
-      h+='</span>';
-      h+='<span class="fr-cont">'+hechasResto+' de '+catsResto.length+'</span>';
-      h+='<span class="fr-fl">▸</span>';
-      h+='</button>';
-    }
-  }
+    h+='<div class="dia-grupo'+(esAhora?' ahora':'')+'">';
+    h+='<div class="dg-et">'+mom.et+(esAhora?'<span>ahora</span>':'')+'</div>';
+    h+='<div class="grid-cats">';
+    cats.forEach(function(c){ h+=renderCat(c); });
+    h+='</div></div>';
+  });
   if(S.miniRecordatorios.length){
     var extra=extraDeHoy();
-    var hechasM=S.miniRecordatorios.filter(function(m){ return !!extra[m.id]; }).length;
-    var openM=(V.momentoAbierto==='mios');
-    h+='<div class="franja'+(openM?' abierta':'')+'">';
-    h+='<button class="fr-cab" data-action="abrir-franja" data-value="mios">';
-    h+='<span class="fr-et">Tus recordatorios</span>';
-    if(!openM){
-      h+='<span class="fr-mini">';
-      S.miniRecordatorios.forEach(function(m){ h+='<span class="'+(extra[m.id]?'ok':'')+'" style="--t:var(--h-humo)">'+m.emo+'</span>'; });
-      h+='</span>';
-    }
-    h+='<span class="fr-cont">'+hechasM+' de '+S.miniRecordatorios.length+'</span>';
-    h+='<span class="fr-fl">'+(openM?'▾':'▸')+'</span>';
-    h+='</button>';
-    if(openM){
-      h+='<div class="grid-cats">';
-      S.miniRecordatorios.forEach(function(m){
-        h+='<button class="cat '+(extra[m.id]?'on':'')+'" data-action="toggle-mini" data-value="'+m.id+'" style="--t:var(--h-humo)"><div class="emo">'+m.emo+'</div><div class="et">'+esc(m.texto)+'</div></button>';
-      });
-      h+='</div>';
-    }
-    h+='</div>';
+    h+='<div class="dia-grupo">';
+    h+='<div class="dg-et">Tuyos</div>';
+    h+='<div class="grid-cats">';
+    S.miniRecordatorios.forEach(function(m){
+      h+='<button class="cat '+(extra[m.id]?'on':'')+'" data-action="toggle-mini" data-value="'+m.id+'" style="--t:var(--h-humo)"><div class="emo">'+m.emo+'</div><div class="et">'+esc(m.texto)+'</div></button>';
+    });
+    h+='</div></div>';
   }
   h+='</div>';
 
-  /* ---- 5. el progreso, deliberadamente callado al final ---- */
-  h+='<div class="nivel-card" data-action="ver-medallas">';
-  h+='<div class="nivel-top">';
-  if(S.modoSuave){
-    h+='<div class="l">'+jg.nombre+'<span>vas construyendo tu ritmo</span></div>';
-    h+='<div class="r">🔥<span>racha activa</span></div>';
-  } else {
-    h+='<div class="l">Nivel '+jg.nivel+' · '+jg.nombre+'<span>'+(jg.esMax?'nivel máximo — sigues sumando de todas formas':jg.faltan+' pts para el siguiente nivel')+'</span></div>';
-    h+='<div class="r">🔥 '+jg.racha+'<span>'+(jg.racha===1?'día seguido':'días seguidos')+'</span></div>';
-  }
-  h+='</div>';
-  h+='<div class="bar"><i style="width:'+jg.prog+'%"></i></div>';
-  h+='<div class="medallas-mini">';
-  jg.medallas.slice(0,7).forEach(function(m){ h+='<span class="'+(m.on?'on':'')+'">'+(m.on?m.emo:'🔒')+'</span>'; });
-  h+='<span class="med-link">'+(S.modoSuave?'medallas ›':jg.ganadas+' de '+jg.medallas.length+' ›')+'</span>';
-  h+='</div>';
-  h+='</div>';
+  /* ---- 5. el progreso: una línea, no un tarjetón ---- */
+  h+='<button class="nivel-tira" data-action="ver-medallas">';
+  h+='<span class="nt-niv">'+(S.modoSuave?jg.nombre:'Nivel '+jg.nivel+' · '+jg.nombre)+'</span>';
+  if(!S.modoSuave) h+='<span class="nt-dato">🔥 '+jg.racha+'</span>';
+  h+='<span class="nt-dato">'+jg.ganadas+'/'+jg.medallas.length+'</span>';
+  h+='<span class="nt-bar"><i style="width:'+jg.prog+'%"></i></span>';
+  h+='<span class="nt-fl">›</span>';
+  h+='</button>';
 
   if(V.mostrarMedallas){
     h+='<div class="card">';
@@ -2696,9 +2808,39 @@ function renderBoyaPanel(){
   h+='</div>';
 
   h+='<div class="subtabs">';
-  h+='<button class="'+(V.subtabBoya!=='tienda'?'act':'')+'" data-action="subtab-boya" data-value="vestuario">Vestuario</button>';
+  h+='<button class="'+(V.subtabBoya!=='tienda'&&V.subtabBoya!=='cuidar'?'act':'')+'" data-action="subtab-boya" data-value="vestuario">Vestuario</button>';
   h+='<button class="'+(V.subtabBoya==='tienda'?'act':'')+'" data-action="subtab-boya" data-value="tienda">Tienda</button>';
+  h+='<button class="'+(V.subtabBoya==='cuidar'?'act':'')+'" data-action="subtab-boya" data-value="cuidar">Ella</button>';
   h+='</div>';
+
+  if(V.subtabBoya==='cuidar'){
+    h+='<div class="card">';
+    h+='<h3>Cómo quieres que sea</h3>';
+    h+='<p class="sub">Cuánto te busca '+esc(nombreBoya)+'. Pase lo que pase, <b>nunca se enferma ni se pone triste por no atenderla</b> — esto solo decide qué tan seguido te pide algo.</p>';
+    RITMOS_BOYA.forEach(function(r){
+      var sel=(ritmoBoya().id===r.id);
+      h+='<button class="ritmo-op '+(sel?'sel':'')+'" data-action="ritmo-boya" data-value="'+r.id+'">'+
+         '<b>'+r.et+'</b><i>'+r.desc+'</i></button>';
+    });
+    h+='</div>';
+
+    h+='<div class="card">';
+    h+='<h3>Su nombre</h3>';
+    h+='<div class="boya-nombre-fila" style="margin-top:10px">';
+    h+='<input type="text" data-bind="boya.nombre" value="'+esc(nombreBoya)+'" maxlength="16">';
+    h+='</div></div>';
+
+    var c=S.contadores||{};
+    h+='<div class="card">';
+    h+='<h3>Lo que han hecho juntas</h3>';
+    h+='<div class="juntas">';
+    [['Caricias', c.tocarBoyaTotal||0],['Comidas', c.vecesComio||0],['Juegos', c.vecesJugo||0],
+     ['Cosas recogidas', c.recogidos||0],['Regalos', c.comprasTotal||0]].forEach(function(x){
+      h+='<div class="jt"><b>'+x[1]+'</b><span>'+x[0]+'</span></div>';
+    });
+    h+='</div></div>';
+    return h;
+  }
 
   if(V.subtabBoya==='tienda'){
     var disponibles=ITEMS_BOYA.filter(function(it){ return S.comprados.indexOf(it.id)===-1; });
@@ -2996,54 +3138,119 @@ var CLIMAS=[{id:'frio',et:'Frío',emo:'🧥'},{id:'normal',et:'Normal',emo:'🌤
 function renderVestirme(){
   var h='';
   h+='<div class="boya-panel-header"><button data-action="nav" data-value="hoy">← Volver</button></div>';
-  var yaHoy = S.ropaHoy && S.ropaHoy.fecha===hoyISO();
+  var nPrendas=(S.prendas||[]).length;
+  var hoyIso=hoyISO();
+  var conj = (S.conjuntoHoy && S.conjuntoHoy.fecha===hoyIso) ? S.conjuntoHoy : null;
 
+  /* ---- 1. lo de hoy ---- */
   h+='<div class="card">';
-  h+='<h3>Vestirte hoy</h3>';
-  h+='<p class="sub">Elegir ropa no es una decisión pequeña cuando la cabeza no coopera. Acá no eliges: Ancla saca uno de los tuyos y ya.</p>';
+  h+='<h3>Qué me pongo hoy</h3>';
+  h+='<p class="sub">Dime el clima y yo saco un conjunto. Prefiero siempre lo que llevas más tiempo sin ponerte.</p>';
   h+='<div class="clima-row">';
   CLIMAS.forEach(function(c){
     h+='<button class="clima-op '+(V.climaHoy===c.id?'sel':'')+'" data-action="elegir-clima" data-value="'+c.id+'"><span>'+c.emo+'</span>'+c.et+'</button>';
   });
   h+='</div>';
 
-  if(yaHoy){
-    var el=S.ropa.filter(function(r){ return r.id===S.ropaHoy.id; })[0];
-    h+='<div class="ropa-resultado">';
-    h+='<div class="rr-et">Hoy te pones</div>';
-    h+='<div class="rr-txt">'+(el?esc(el.texto):'—')+'</div>';
-    h+='<div class="rr-btns">';
-    h+='<button class="btn btn-fantasma btn-chico" data-action="elegir-ropa">Otro</button>';
-    h+='</div></div>';
-  } else if(S.ropa.length){
-    h+='<button class="btn btn-principal" style="margin-top:16px" data-action="elegir-ropa">Elige por mí</button>';
+  if(conj && conj.piezas && conj.piezas.length){
+    h+='<div class="conjunto">';
+    conj.piezas.forEach(function(pid){
+      var pr=(S.prendas||[]).filter(function(x){ return x.id===pid; })[0];
+      if(!pr) return;
+      h+='<div class="cj-pieza">'+(pr.foto?'<img src="'+pr.foto+'" alt="">':'<span class="cj-sinfoto">'+esc(pr.nombre||'?')+'</span>')+
+         '<i>'+esc(pr.nombre||'')+'</i></div>';
+    });
+    h+='</div>';
+    h+='<div class="cj-btns">';
+    h+='<button class="btn btn-principal btn-chico" data-action="confirmar-conjunto">Me lo pongo</button>';
+    h+='<button class="ahora-link" data-action="armar-conjunto">Otro ›</button>';
+    h+='</div>';
+    if(conj.puesto) h+='<p class="sub" style="text-align:center; margin-top:10px">Anotado. Estas prendas quedan al final de la fila.</p>';
+  } else if(nPrendas){
+    h+='<button class="btn btn-principal" style="margin-top:14px" data-action="armar-conjunto">Ármame un conjunto</button>';
+  } else if(S.ropa && S.ropa.length){
+    h+='<button class="btn btn-principal" style="margin-top:14px" data-action="elegir-ropa">Elige de mis conjuntos escritos</button>';
+    if(S.ropaHoy && S.ropaHoy.fecha===hoyIso){
+      var elg=S.ropa.filter(function(r){ return r.id===S.ropaHoy.id; })[0];
+      if(elg) h+='<div class="ropa-resultado"><div class="rr-et">Hoy te pones</div><div class="rr-txt">'+esc(elg.texto)+'</div></div>';
+    }
+    h+='<p class="sub" style="margin-top:14px">Y abajo puedes empezar a subir fotos de tus prendas: es lo que hace que no se te olvide lo que tienes.</p>';
   } else {
-    h+='<p class="sub" style="margin-top:14px"><b>Primero guarda combinaciones que ya sabes que te sirven</b> — abajo. No hace falta que sean muchas: con 4 o 5 basta para no volver a decidir.</p>';
+    h+='<p class="sub" style="margin-top:14px"><b>Primero súbele fotos a tus prendas</b>, abajo. No tienen que ser bonitas: sirven para que veas de un golpe lo que tienes, sin tener que acordarte.</p>';
   }
   h+='</div>';
 
+  /* ---- 2. lo que tiene olvidado ---- */
+  if(nPrendas>=3){
+    var olv=olvidadas(6).filter(function(pr){ return diasSinUsar(pr)>=7; });
+    if(olv.length){
+      h+='<div class="card">';
+      h+='<h3>No te pones esto hace rato</h3>';
+      h+='<p class="sub">Está ahí y se te olvidó. Eso es todo — no es que no te guste.</p>';
+      h+='<div class="prendas-fila">';
+      olv.forEach(function(pr){
+        var d=diasSinUsar(pr);
+        h+='<button class="pf-item" data-action="ver-prenda" data-value="'+pr.id+'">'+
+           (pr.foto?'<img src="'+pr.foto+'" alt="">':'<span class="cj-sinfoto">'+esc(pr.nombre||'?')+'</span>')+
+           '<i>'+(d>=999?'nunca':'hace '+d+' d')+'</i></button>';
+      });
+      h+='</div></div>';
+    }
+  }
+
+  /* ---- 3. el armario ---- */
   h+='<div class="card">';
-  h+='<h3>Tus combinaciones</h3>';
-  h+='<p class="sub">Escríbelas como te las imaginas puestas. El clima es opcional.</p>';
-  h+='<div class="clima-row" style="margin-top:12px">';
-  CLIMAS.forEach(function(c){
-    h+='<button class="clima-op chico '+(V.ropaClima===c.id?'sel':'')+'" data-action="elegir-clima-nueva" data-value="'+c.id+'"><span>'+c.emo+'</span>'+c.et+'</button>';
+  h+='<h3>Mi ropa</h3>';
+  h+='<p class="sub">'+(nPrendas? nPrendas+' prenda'+(nPrendas===1?'':'s')+' guardada'+(nPrendas===1?'':'s') : 'Todavía no has guardado nada')+'. Toma la foto tal como está en el clóset.</p>';
+
+  h+='<div class="tipo-row">';
+  TIPOS_PRENDA.forEach(function(t){
+    h+='<button class="tipo-op '+((V.prendaTipo||'superior')===t.id?'sel':'')+'" data-action="elegir-tipo-prenda" data-value="'+t.id+'">'+t.et+'</button>';
   });
-  h+='<button class="clima-op chico '+(!V.ropaClima?'sel':'')+'" data-action="elegir-clima-nueva" data-value="">Cualquiera</button>';
   h+='</div>';
-  h+='<div class="fila-input" style="margin-top:10px">';
-  h+='<input type="text" id="inp-ropa" placeholder="Ej: jean azul + camiseta gris" value="'+esc(V.ropaNueva)+'">';
-  h+='<button class="btn btn-fantasma btn-chico" data-action="agregar-ropa">Agregar</button>';
+  h+='<div class="clima-row" style="margin-top:9px">';
+  CLIMAS.forEach(function(c){
+    h+='<button class="clima-op chico '+(V.prendaClima===c.id?'sel':'')+'" data-action="elegir-clima-prenda" data-value="'+c.id+'"><span>'+c.emo+'</span>'+c.et+'</button>';
+  });
+  h+='<button class="clima-op chico '+(!V.prendaClima?'sel':'')+'" data-action="elegir-clima-prenda" data-value="">Cualquiera</button>';
   h+='</div>';
-  if(S.ropa.length){
-    h+='<div class="ropa-lista">';
-    S.ropa.forEach(function(r){
-      var cl=CLIMAS.filter(function(c){ return c.id===r.clima; })[0];
-      h+='<div class="ropa-item"><span class="t">'+(cl?cl.emo+' ':'')+esc(r.texto)+
-         (r.ultimoUso?'<i class="ropa-ult">usado '+esc(r.ultimoUso)+'</i>':'')+
-         '</span><button data-action="quitar-ropa" data-value="'+r.id+'">✕</button></div>';
+  h+='<div class="fila-input" style="margin-top:9px">';
+  h+='<input type="text" id="inp-prenda-nombre" placeholder="Cómo la llamas — ej: buzo gris" value="'+esc(V.prendaNombre||'')+'">';
+  h+='</div>';
+  h+='<label class="btn btn-principal" style="margin-top:11px; display:flex; cursor:pointer">'+ico('camara',18)+'&nbsp;Tomar foto y guardar'+
+     '<input type="file" accept="image/*" capture="environment" id="inp-prenda-foto" style="display:none"></label>';
+  h+='<button class="ahora-link" style="margin:10px auto 0; display:block" data-action="agregar-prenda-sinfoto">Guardarla sin foto ›</button>';
+
+  if(nPrendas){
+    TIPOS_PRENDA.forEach(function(t){
+      var lista=(S.prendas||[]).filter(function(pr){ return pr.tipo===t.id; });
+      if(!lista.length) return;
+      h+='<div class="arm-tit">'+t.et+' <span>'+lista.length+'</span></div>';
+      h+='<div class="prendas-grid">';
+      lista.forEach(function(pr){
+        var d=diasSinUsar(pr);
+        h+='<div class="pg-item">';
+        h+=(pr.foto?'<img src="'+pr.foto+'" alt="">':'<span class="cj-sinfoto">'+esc(pr.nombre||'?')+'</span>');
+        h+='<b>'+esc(pr.nombre||'—')+'</b>';
+        h+='<i>'+(d>=999?'sin usar':'hace '+d+' d')+' · '+(pr.usos||0)+' vec'+((pr.usos||0)===1?'':'es')+'</i>';
+        h+='<button class="pg-x" data-action="quitar-prenda" data-value="'+pr.id+'">✕</button>';
+        h+='</div>';
+      });
+      h+='</div>';
     });
-    h+='</div>';
+    var esp=espacioUsado();
+    /* si ya tenía conjuntos escritos de la versión anterior, no se pierden */
+    if(S.ropa && S.ropa.length){
+      h+='<div class="arm-tit">Conjuntos que escribiste antes <span>'+S.ropa.length+'</span></div>';
+      h+='<div class="ropa-lista">';
+      S.ropa.forEach(function(r){
+        h+='<div class="ropa-item"><span class="t">'+esc(r.texto)+'</span><button data-action="quitar-ropa" data-value="'+r.id+'">✕</button></div>';
+      });
+      h+='</div>';
+    }
+    if(esp.pct>=60){
+      h+='<p class="sub" style="margin-top:14px"><b>Espacio usado: '+esp.pct+'%</b> ('+esp.kb+' KB). Las fotos se guardan en este teléfono; si se llena, borra alguna prenda o exporta una copia desde Ajustes.</p>';
+    }
   }
   h+='</div>';
   return h;
@@ -3051,22 +3258,27 @@ function renderVestirme(){
 
 function renderMas(){
   var h='';
+  var nPr=(S.prendas||[]).length;
+  var olv=olvidadas(20).filter(function(pr){ return diasSinUsar(pr)>=7; }).length;
+  var minH=minutosHoy(), metaH=metaEnfoque();
+  var rutHechas=S.rutinas.filter(function(r){ return rutinaCompletaHoy(r); }).length;
   var opciones=[
-    ['rutinas','🗺️','Rutinas y pendientes','Tus secuencias fijas y lo que anotaste'],
-    ['vestirme','👕','Vestirme','Que Ancla elija por ti'],
-    ['boya','🐾','Cuarto de '+((S.boya&&S.boya.nombre)||'Boya'),'Su cuarto, su ropa y la tienda'],
-    ['herramientas','🧰','Herramientas','Partir una tarea, recordatorios propios'],
-    ['recordatorios','🔔','Avisos','Horas de comida, agua y dormir'],
-    ['ajustes','⚙️','Ajustes','Tu nombre, copia de seguridad, modo suave']
+    ['vestirme','camiseta','Mi ropa', nPr ? nPr+' prendas'+(olv? ' · '+olv+' sin usar hace rato':'') : 'Sube fotos de tus prendas', 'indigo'],
+    ['enfoque','diana','Enfoque', minH>=metaH ? 'Meta de hoy cumplida' : minH+' de '+metaH+' min hoy', 'terra'],
+    ['rutinas','mapa','Rutinas y pendientes', (S.rutinas.length? rutHechas+' de '+S.rutinas.length+' rutinas hoy':'Sin rutinas todavía')+(S.pendientes.length? ' · '+S.pendientes.length+' pendientes':''), 'oliva'],
+    ['herramientas','caja','Herramientas', 'Partir una tarea, recordatorios propios', 'humo'],
+    ['recordatorios','campana','Avisos', S.recordatorios.activos?'Activados':'Desactivados', 'ambar'],
+    ['ajustes','engranaje','Ajustes', 'Color, perfil, copia de seguridad', 'humo']
   ];
-  h+='<div class="card"><h3>Más</h3><div class="mas-lista">';
+  h+='<div class="seccion"><span>Todo lo demás</span></div>';
+  h+='<div class="hub">';
   opciones.forEach(function(o){
-    h+='<button class="mas-item" data-action="nav" data-value="'+o[0]+'">'+
-       '<span class="mi-emo">'+o[1]+'</span>'+
-       '<span class="mi-txt"><b>'+esc(o[2])+'</b><i>'+esc(o[3])+'</i></span>'+
-       '<span class="mi-fl">›</span></button>';
+    h+='<button class="hub-item" data-action="nav" data-value="'+o[0]+'" style="--t:var(--h-'+o[4]+')">'+
+       '<span class="hb-emo">'+ico(o[1],23)+'</span>'+
+       '<span class="hb-txt"><b>'+esc(o[2])+'</b><i>'+esc(o[3])+'</i></span>'+
+       '<span class="hb-fl">›</span></button>';
   });
-  h+='</div></div>';
+  h+='</div>';
   return h;
 }
 
@@ -3438,6 +3650,10 @@ app.addEventListener('click', function(ev){
     }
   }
   else if(act==='subtab-boya'){ V.subtabBoya=val; }
+  else if(act==='ritmo-boya'){
+    if(!S.boya) S.boya={nombre:'Boya'};
+    S.boya.ritmo=val; sonidoPop(620); vibrar(10);
+  }
   else if(act==='comprar-item'){
     var art=ITEMS_BOYA.filter(function(x){return x.id===val;})[0];
     var vinc=calcularVinculo();
@@ -3552,6 +3768,38 @@ app.addEventListener('click', function(ev){
   else if(act==='elegir-tema'){
     S.tema = (val==='auto') ? null : val;
     guardar(); aplicarTema(); sonidoPop(640); vibrar(10);
+  }
+  else if(act==='elegir-tipo-prenda'){ V.prendaTipo=val; }
+  else if(act==='elegir-clima-prenda'){ V.prendaClima=val||null; }
+  else if(act==='agregar-prenda-sinfoto'){ guardarPrenda(null); return; }
+  else if(act==='quitar-prenda'){
+    S.prendas=S.prendas.filter(function(x){ return x.id!==val; });
+    if(S.conjuntoHoy && S.conjuntoHoy.piezas) S.conjuntoHoy.piezas=S.conjuntoHoy.piezas.filter(function(z){ return z!==val; });
+  }
+  else if(act==='armar-conjunto'){
+    var piezas=armarConjunto(V.climaHoy);
+    if(piezas){
+      S.conjuntoHoy={fecha:hoyISO(), piezas:piezas.map(function(x){ return x.id; }), puesto:false};
+      sonidoPop(640); vibrar(10);
+    } else { mostrarToast('Todavía no hay prendas suficientes.'); }
+  }
+  else if(act==='confirmar-conjunto'){
+    if(S.conjuntoHoy && !S.conjuntoHoy.puesto){
+      S.conjuntoHoy.puesto=true;
+      S.conjuntoHoy.piezas.forEach(function(pid){
+        var pr=(S.prendas||[]).filter(function(x){ return x.id===pid; })[0];
+        if(pr){ pr.ultimoUso=hoyISO(); pr.usos=(pr.usos||0)+1; }
+      });
+      S.ropaHoy={id:S.conjuntoHoy.piezas[0], fecha:hoyISO()};
+      S.contadores.ropaUsos=(S.contadores.ropaUsos||0)+1;
+      registrarEvento('vestirse');
+      ganarConchitas(2); sonidoArpegio(); vibrar([15,30,15]);
+      mostrarToast('Listo. Una decisión menos hoy.');
+    }
+  }
+  else if(act==='ver-prenda'){
+    var pv=(S.prendas||[]).filter(function(x){ return x.id===val; })[0];
+    if(pv && pv.foto) V.verFoto=pv.foto;
   }
   else if(act==='elegir-clima'){ V.climaHoy=val; }
   else if(act==='elegir-clima-nueva'){ V.ropaClima=val||null; }
@@ -3740,6 +3988,11 @@ app.addEventListener('change', function(ev){
     if(mEd && ev.target.value){ mEd.horas[idx]=ev.target.value; guardar(); render(); }
     return;
   }
+  if(ev.target.id==='inp-prenda-foto' && ev.target.files && ev.target.files[0]){
+    manejarPrendaFoto(ev.target.files[0]);
+    ev.target.value='';
+    return;
+  }
   if(ev.target.id==='inp-importar' && ev.target.files && ev.target.files[0]){
     importarDatos(ev.target.files[0]);
   }
@@ -3748,6 +4001,7 @@ app.addEventListener('input', function(ev){
   if(ev.target.id==='inp-ropa') V.ropaNueva=ev.target.value;
   if(ev.target.id==='inp-perra') V.perraNombre=ev.target.value;
   if(ev.target.id==='inp-med') V.medNombre=ev.target.value;
+  if(ev.target.id==='inp-prenda-nombre') V.prendaNombre=ev.target.value;
   if(ev.target.id==='inp-med-dosis') V.medDosis=ev.target.value;
   if(ev.target.id==='inp-distraccion') V.distraccion=ev.target.value;
   if(ev.target.id==='inp-tarea') V.tareaTexto=ev.target.value;
