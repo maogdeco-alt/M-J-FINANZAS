@@ -516,6 +516,9 @@ body{background:linear-gradient(178deg, var(--bg2, #f2ebdc) 0%, var(--bg) 34%)}
 .jt{background:var(--bg); border:1.5px solid var(--line); border-radius:var(--radius-s); padding:12px 8px; text-align:center}
 .jt b{display:block; font-family:var(--font-mono); font-size:20px; color:var(--ink)}
 .jt span{font-size:10.5px; color:var(--sub)}
+
+.hub-item.urge{background:linear-gradient(90deg, rgba(178,94,57,.1), var(--card) 60%)}
+.hub-item.urge .hb-txt i{color:var(--coral); font-weight:600}
 .huevo-wrap{display:flex; flex-direction:column; align-items:center; padding:26px 0 10px}
 .huevo-svg{width:150px; height:180px; cursor:pointer; filter:drop-shadow(0 10px 18px rgba(0,0,0,.15))}
 .huevo-svg.tambalea{animation:tambaleo .55s ease}
@@ -734,7 +737,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.18.0-beta';
+var VERSION='0.19.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -1583,7 +1586,7 @@ function listaPendientes(){
       t:t.med.nombre, meta:t.hora,
       sub:'Esta toma no está registrada'+(t.med.dosis?' ('+t.med.dosis+')':'')+'. La última que anotaste fue '+(ultimaTomaDe(t.med)?haceTexto(ultimaTomaDe(t.med)):'—')+'.',
       tipo:'marcar', actos:[{act:'tomar-med', val:t.med.id+'|'+t.i, et:'Ya la tomé', cls:'btn-principal'},
-                         {act:'nav', val:'cuidados', et:'Ver todo', cls:'btn-fantasma'}] });
+                         {act:'nav', val:'medicamentos', et:'Ver todo', cls:'btn-fantasma'}] });
   });
 
   if(S.enfoque && S.enfoque.activa){
@@ -1603,7 +1606,7 @@ function listaPendientes(){
       meta:(u.ultima===null?'sin registro':haceTexto(u.ultima)),
       sub:(u.ultima===null?'Hoy no hay registro todavía.':'La última vez fue '+haceTexto(u.ultima)+'.')+' Ella no puede recordártelo.',
       tipo:'marcar', actos:[{act:'registrar-cuidado', val:u.perra.id+'|'+u.cuidado.id, et:u.cuidado.verbo, cls:'btn-principal'},
-                          {act:'nav', val:'cuidados', et:'Ver todo', cls:'btn-fantasma'}] });
+                          {act:'nav', val:'medicamentos', et:'Ver todo', cls:'btn-fantasma'}] });
   });
 
   var tieneRopa=(S.prendas&&S.prendas.length)||S.ropa.length;
@@ -2407,7 +2410,10 @@ function render(){
     else if(V.tab==='recordatorios') h+=renderRecordatorios();
     else if(V.tab==='ajustes') h+=renderAjustes();
     else if(V.tab==='boya') h+=renderBoyaPanel();
-    else if(V.tab==='cuidados') h+=renderCuidados();
+    else if(V.tab==='cuidados' || V.tab==='medicamentos') h+=renderMedicamentos();
+    else if(V.tab==='yo') h+=renderYo();
+    else if(V.tab==='perras') h+=renderPerras();
+    else if(V.tab==='mas') h+=renderYo();
     else if(V.tab==='enfoque') h+=renderEnfoque();
     else if(V.tab==='vestirme') h+=renderVestirme();
     else if(V.tab==='mas') h+=renderMas();
@@ -2482,12 +2488,16 @@ function renderVisorFoto(){
 }
 
 function renderNav(){
+  /* Una sola regla, y todo cae en su sitio:
+     Hoy = el ahora · Yo = mi cuidado · Perras = ellas · Boya = ella ·
+     Calma = la emergencia. Los ajustes viven detrás del avatar, que es
+     donde uno los busca. */
   var tabs=[
     ['hoy','casa','Hoy'],
-    ['cuidados','pastilla','Cuidados'],
+    ['yo','cuerpo','Yo'],
+    ['perras','pata','Perras'],
     ['boya','nutria','Boya'],
-    ['calma','ola','Calma'],
-    ['mas','mas','Más']
+    ['calma','ola','Calma']
   ];
   var h='<div class="nav">';
   tabs.forEach(function(t){
@@ -2516,7 +2526,7 @@ function renderHoy(){
          Antes esto eran dos bloques ("Ahora" y "Pendiente ahora") y el
          mismo pendiente salía dos veces seguidas. ---- */
   var pend=listaPendientes();
-  h+='<div class="seccion"><span>Lo que sigue</span>'+(pend.length>1?'<em>'+pend.length+' cosas</em>':'')+'</div>';
+  h+='<div class="seccion"><span>Ahora</span>'+(pend.length>1?'<em>'+pend.length+' pendientes</em>':'')+'</div>';
   if(!pend.length){
     h+='<div class="ahora n-1" style="--t:var(--h-agua)">';
     h+='<div class="ahora-fila"><span class="ahora-emo">'+ico('ola',28)+'</span>';
@@ -2544,23 +2554,10 @@ function renderHoy(){
         h+='<span class="f-marca '+(f.tipo==='ir'?'flecha':'')+'">'+(f.tipo==='ir'?'›':'')+'</span>';
         h+='</button>';
       });
-      if(resto.length>3) h+='<button class="fila-mas" data-action="nav" data-value="cuidados">y '+(resto.length-3)+' más ›</button>';
+      if(resto.length>3) h+='<button class="fila-mas" data-action="nav" data-value="yo">y '+(resto.length-3)+' más ›</button>';
       h+='</div>';
     }
   }
-
-  /* ---- 2. Boya ---- */
-  var fondoEq = S.equipado.fondo && FONDOS_BOYA[S.equipado.fondo];
-  h+='<div class="escena" '+(fondoEq?'style="background:'+fondoEq.grad+'"':'')+'>';
-  h+='<div class="esc-suelo"></div>';
-  h+='<button class="esc-boya'+(V.boyaTocada?' tocada':'')+'" data-action="tocar-boya">'+dibujarNutria(bm.id, null, V.boyaAccion||actividadBoya())+'</button>';
-  h+='<div class="esc-panel" data-action="nav" data-value="boya">';
-  h+='<b>'+bm.t+'</b><i>'+bm.s+'</i>';
-  h+='<div class="esc-bar"><span style="width:'+pct+'%"></span></div>';
-  h+='<em>'+cuenta+' de '+CATS.length+' hoy · su cuarto ›</em>';
-  h+='</div>';
-  if(V.dialogoBoya) h+='<div class="globo-dialogo">'+esc(V.dialogoBoya)+'</div>';
-  h+='</div>';
 
   /* ---- 4. el día: solo la franja de ahora abierta, el resto plegado ---- */
   var fotos=fotosDeHoy();
@@ -2586,7 +2583,7 @@ function renderHoy(){
     return hh;
   }
 
-  h+='<div class="seccion"><span>El día</span><em>'+cuenta+' de '+CATS.length+'</em></div>';
+  h+='<div class="seccion"><span>Todo lo de hoy</span><em>'+cuenta+' de '+CATS.length+'</em></div>';
   /* Plegar el día en franjas escondía los botones: lo que hay que marcar
      tiene que estar SIEMPRE a la vista. Una sola rejilla, agrupada por
      momento, con el de ahora resaltado. */
@@ -2613,25 +2610,19 @@ function renderHoy(){
   }
   h+='</div>';
 
-  /* ---- 5. el progreso: una línea, no un tarjetón ---- */
-  h+='<button class="nivel-tira" data-action="ver-medallas">';
-  h+='<span class="nt-niv">'+(S.modoSuave?jg.nombre:'Nivel '+jg.nivel+' · '+jg.nombre)+'</span>';
-  if(!S.modoSuave) h+='<span class="nt-dato">🔥 '+jg.racha+'</span>';
-  h+='<span class="nt-dato">'+jg.ganadas+'/'+jg.medallas.length+'</span>';
-  h+='<span class="nt-bar"><i style="width:'+jg.prog+'%"></i></span>';
-  h+='<span class="nt-fl">›</span>';
-  h+='</button>';
+  /* ---- 3. Boya: acompaña después de lo que hay que hacer ---- */
+  var fondoEq = S.equipado.fondo && FONDOS_BOYA[S.equipado.fondo];
+  h+='<div class="escena" '+(fondoEq?'style="background:'+fondoEq.grad+'"':'')+'>';
+  h+='<div class="esc-suelo"></div>';
+  h+='<button class="esc-boya'+(V.boyaTocada?' tocada':'')+'" data-action="tocar-boya">'+dibujarNutria(bm.id, null, V.boyaAccion||actividadBoya())+'</button>';
+  h+='<div class="esc-panel" data-action="nav" data-value="boya">';
+  h+='<b>'+bm.t+'</b><i>'+bm.s+'</i>';
+  h+='<div class="esc-bar"><span style="width:'+pct+'%"></span></div>';
+  h+='<em>'+cuenta+' de '+CATS.length+' hoy · su cuarto ›</em>';
+  h+='</div>';
+  if(V.dialogoBoya) h+='<div class="globo-dialogo">'+esc(V.dialogoBoya)+'</div>';
+  h+='</div>';
 
-  if(V.mostrarMedallas){
-    h+='<div class="card">';
-    h+='<h3>Medallas</h3>';
-    h+='<p class="sub">Estas no se pierden nunca, una vez las ganas son tuyas.</p>';
-    h+='<div class="medallas-grid">';
-    jg.medallas.forEach(function(m){ h+='<div class="medalla '+(m.on?'on':'')+'" title="'+esc(m.titulo)+'">'+(m.on?m.emo:'🔒')+'</div>'; });
-    h+='</div>';
-    h+='<div class="medalla-desc">'+jg.medallas.map(function(m){ return (m.on?m.emo:'🔒')+' <b>'+esc(m.titulo)+'</b> — '+esc(m.desc); }).join('<br>')+'</div>';
-    h+='</div>';
-  }
   return h;
 }
 
@@ -2924,6 +2915,7 @@ var PASOS_RELAJACION=[
 
 function renderMedicamentos(){
   var h='';
+  h+='<div class="boya-panel-header"><button data-action="nav" data-value="yo">← Yo</button></div>';
   h+='<div class="seccion"><span>Medicamentos</span></div>';
   if(!S.medicamentos || !S.medicamentos.length){
     h+='<div class="card">';
@@ -2980,16 +2972,11 @@ function renderMedicamentos(){
   return h;
 }
 
-function renderCuidados(){
-  var h='';
-  h+=renderMedicamentos();
-  h+='<div class="seccion"><span>Las perras</span></div>';
-  h+=renderPerras();
-  return h;
-}
+function renderCuidados(){ return renderMedicamentos(); }
 
 function renderPerras(){
   var h='';
+  h+='<div class="seccion"><span>Las perras</span></div>';
 
   if(!S.perras || !S.perras.length){
     h+='<div class="card">';
@@ -3256,29 +3243,72 @@ function renderVestirme(){
   return h;
 }
 
-function renderMas(){
+function renderYo(){
   var h='';
   var nPr=(S.prendas||[]).length;
-  var olv=olvidadas(20).filter(function(pr){ return diasSinUsar(pr)>=7; }).length;
+  var olv=olvidadas(30).filter(function(pr){ return diasSinUsar(pr)>=7; }).length;
   var minH=minutosHoy(), metaH=metaEnfoque();
   var rutHechas=S.rutinas.filter(function(r){ return rutinaCompletaHoy(r); }).length;
-  var opciones=[
-    ['vestirme','camiseta','Mi ropa', nPr ? nPr+' prendas'+(olv? ' · '+olv+' sin usar hace rato':'') : 'Sube fotos de tus prendas', 'indigo'],
-    ['enfoque','diana','Enfoque', minH>=metaH ? 'Meta de hoy cumplida' : minH+' de '+metaH+' min hoy', 'terra'],
-    ['rutinas','mapa','Rutinas y pendientes', (S.rutinas.length? rutHechas+' de '+S.rutinas.length+' rutinas hoy':'Sin rutinas todavía')+(S.pendientes.length? ' · '+S.pendientes.length+' pendientes':''), 'oliva'],
-    ['herramientas','caja','Herramientas', 'Partir una tarea, recordatorios propios', 'humo'],
-    ['recordatorios','campana','Avisos', S.recordatorios.activos?'Activados':'Desactivados', 'ambar'],
-    ['ajustes','engranaje','Ajustes', 'Color, perfil, copia de seguridad', 'humo']
+  var meds=(S.medicamentos||[]).length;
+  var tomasPend=pendientesMedicamentos().length;
+  var tomasHoy=0, tomasTotal=0;
+  (S.medicamentos||[]).forEach(function(m){
+    if(m.activo===false) return;
+    tomasDeHoy(m).forEach(function(t){ tomasTotal++; if(t.tomada) tomasHoy++; });
+  });
+
+  h+='<div class="seccion"><span>Mi cuidado</span></div>';
+  var areas=[
+    ['medicamentos','pastilla','Medicamentos',
+      meds ? tomasHoy+' de '+tomasTotal+' tomas hoy'+(tomasPend? ' · '+tomasPend+' sin registrar':'') : 'Agrega tus medicamentos',
+      'ciruela', tomasPend>0],
+    ['vestirme','camiseta','Mi ropa',
+      nPr ? nPr+' prendas'+(olv? ' · '+olv+' sin usar hace rato':'') : 'Sube fotos de tus prendas',
+      'indigo', false],
+    ['enfoque','diana','Mi trabajo',
+      minH>=metaH ? 'Meta de hoy cumplida' : minH+' de '+metaH+' min hoy',
+      'terra', false],
+    ['rutinas','mapa','Rutinas y pendientes',
+      (S.rutinas.length? rutHechas+' de '+S.rutinas.length+' rutinas hoy' : 'Sin rutinas todavía')+
+      (S.pendientes.length? ' · '+S.pendientes.length+' pendientes':''),
+      'oliva', false],
+    ['herramientas','caja','Partir una tarea',
+      'Cuando algo se ve demasiado grande', 'humo', false]
   ];
-  h+='<div class="seccion"><span>Todo lo demás</span></div>';
   h+='<div class="hub">';
-  opciones.forEach(function(o){
-    h+='<button class="hub-item" data-action="nav" data-value="'+o[0]+'" style="--t:var(--h-'+o[4]+')">'+
+  areas.forEach(function(o){
+    h+='<button class="hub-item'+(o[5]?' urge':'')+'" data-action="nav" data-value="'+o[0]+'" style="--t:var(--h-'+o[4]+')">'+
        '<span class="hb-emo">'+ico(o[1],23)+'</span>'+
        '<span class="hb-txt"><b>'+esc(o[2])+'</b><i>'+esc(o[3])+'</i></span>'+
        '<span class="hb-fl">›</span></button>';
   });
   h+='</div>';
+
+  h+='<div class="seccion"><span>Cómo vas</span></div>';
+  var jg=calcularProgreso();
+  h+='<div class="card">';
+  h+='<div class="nivel-top">';
+  if(S.modoSuave){
+    h+='<div class="l">'+jg.nombre+'<span>vas construyendo tu ritmo</span></div>';
+    h+='<div class="r">🔥<span>racha activa</span></div>';
+  } else {
+    h+='<div class="l">Nivel '+jg.nivel+' · '+jg.nombre+'<span>'+(jg.esMax?'nivel máximo':jg.faltan+' pts para el siguiente')+'</span></div>';
+    h+='<div class="r">🔥 '+jg.racha+'<span>'+(jg.racha===1?'día seguido':'días seguidos')+'</span></div>';
+  }
+  h+='</div>';
+  h+='<div class="bar" style="background:var(--line); margin-top:12px"><i style="width:'+jg.prog+'%; background:var(--coral)"></i></div>';
+  h+='<button class="ahora-link" style="margin-top:12px; color:var(--coral)" data-action="ver-medallas">'+jg.ganadas+' de '+jg.medallas.length+' medallas ›</button>';
+  h+='</div>';
+  if(V.mostrarMedallas){
+    h+='<div class="card">';
+    h+='<h3>Medallas</h3>';
+    h+='<p class="sub">Estas no se pierden nunca, una vez las ganas son tuyas.</p>';
+    h+='<div class="medallas-grid">';
+    jg.medallas.forEach(function(m){ h+='<div class="medalla '+(m.on?'on':'')+'" title="'+esc(m.titulo)+'">'+(m.on?m.emo:'🔒')+'</div>'; });
+    h+='</div>';
+    h+='<div class="medalla-desc">'+jg.medallas.map(function(m){ return (m.on?m.emo:'🔒')+' <b>'+esc(m.titulo)+'</b> — '+esc(m.desc); }).join('<br>')+'</div>';
+    h+='</div>';
+  }
   return h;
 }
 

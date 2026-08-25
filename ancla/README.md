@@ -12,9 +12,47 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.18.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.19.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.18.0" al reportar algo raro.
+> pasó en la v0.19.0" al reportar algo raro.
+
+## Una regla para todo (v0.19.0)
+
+El reclamo era de fondo: *"el orden de la información no tiene lógica ni es intuitivo"*. Y
+era cierto — **no existía una regla que explicara dónde vive cada cosa**:
+
+- *Cuidados* mezclaba **mis medicamentos** con **las perras**: dos dueños distintos en una
+  sola pantalla.
+- *Más* era un cajón de sastre donde **Mi ropa** y **Mi trabajo** convivían con los ajustes,
+  mientras Boya —una mascota— tenía pestaña propia.
+- En Hoy, **Boya se metía entre dos bloques de tareas**, partiendo en dos lo que era una
+  sola idea.
+- El progreso aparecía **dos veces** en la misma pantalla.
+
+### La regla: la app se ordena por a quién cuidas
+
+| Pestaña | Qué es |
+|---|---|
+| **Hoy** | el ahora — qué toca y qué falta del día |
+| **Yo** | mi cuidado: medicamentos, ropa, trabajo, rutinas, partir tareas |
+| **Perras** | ellas |
+| **Boya** | ella |
+| **Calma** | la emergencia |
+
+Y los **ajustes viven detrás del avatar**, que es donde uno los busca. Con eso, cada cosa
+cae en un solo sitio y la pregunta *"¿dónde estaba esto?"* tiene una respuesta corta.
+
+### Hoy quedó como una sola idea
+**Ahora** (lo más urgente, con lo demás en renglones) → **Todo lo de hoy** (la rejilla
+completa) → **Boya**. Las tareas juntas; ella acompaña después, no interrumpe. Los nombres
+explican la relación: *Ahora* es un destacado de *Todo lo de hoy*, no otra lista.
+
+El progreso salió de Hoy y vive completo en **Yo → Cómo vas**, con su nivel, racha y
+medallas — en un solo lugar, no repartido.
+
+### "Yo" muestra en vivo cómo va cada área
+*"0 de 2 tomas hoy · 1 sin registrar"*, *"12 prendas · 3 sin usar hace rato"*, *"30 de 120
+min hoy"*, *"0 de 1 rutinas · 1 pendientes"*. Y lo que necesita atención se resalta solo.
 
 ## Guardarropa con fotos, y cada cosa en su espacio (v0.18.0)
 
