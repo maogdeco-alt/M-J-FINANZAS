@@ -12,9 +12,49 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.16.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.17.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.16.0" al reportar algo raro.
+> pasó en la v0.17.0" al reportar algo raro.
+
+## Boya vuelve a ser una mascota (v0.17.0)
+
+Crítica justa: buscando utilidad y calma, Boya había quedado reducida a un adorno bonito.
+No se le podía dar de comer, no se podía limpiar su cuarto, y la interacción era
+prácticamente nula. Esta versión la convierte en una mascota de verdad.
+
+### Tiene necesidades propias
+Hambre, ganas de jugar y ganas de mimos, con tres medidores a la vista: *Saciada*,
+*Entretenida*, *Querida*. **No corren con un temporizador**: se calculan desde la hora del
+último evento, así que funcionan igual si la app estuvo cerrada tres días, sin procesos
+colgados ni estados imposibles.
+
+> **La regla que no se rompe:** Boya nunca se enferma, nunca se pone triste "por tu culpa" y
+> nunca se pierde nada por no atenderla. Esta app es para alguien a quien la culpa ya le pesa
+> de sobra; una mascota que sufre por descuido sería exactamente lo contrario de lo que hace
+> falta. Sus necesidades son una invitación, jamás un reproche — y lo dice en pantalla.
+
+### Cuatro acciones reales
+**Darle de comer**, **jugar**, **acariciar** y **ordenar**. Cada una la hace cambiar de cara,
+hacer algo durante unos segundos y decir algo — no es solo guardar un dato. Cada botón
+muestra hace cuánto fue la última vez.
+
+### El cuarto se puede limpiar
+Antes las cosas tiradas solo se miraban: eran un termómetro de tu autocuidado. Ahora
+**cada cosa se recoge con un toque** (con su recompensa), o se ordena todo de una. Cuando
+queda impecable, Boya lo celebra.
+
+### Cinco expresiones nuevas
+Hambrienta, jugando, mimada, sorprendida y comiendo — además de las cinco que ya tenía.
+Sostiene una pelota cuando juega, aparecen corazones cuando la acaricias, un platito cuando
+come.
+
+### Y sobre todo: se siente viva
+- **La mirada sigue el dedo.** Los ojos se mueven hacia donde estás tocando la pantalla. Es
+  el detalle más barato y el que más la hace parecer viva.
+- **Gestos sueltos** cada 8–17 segundos: se estira, mira alrededor, da un brinquito. Se
+  aplican tocando el DOM directamente, sin volver a dibujar la pantalla.
+- **Dice cosas que vienen de lo que de verdad pasó**: que te falta la toma de las 8, que
+  llevas 3 días seguidos, que llegaste a tus minutos de trabajo, que hay cosas tiradas.
 
 ## Menos botones, más lista (v0.16.0)
 

@@ -414,6 +414,38 @@ body{background:linear-gradient(178deg, var(--bg2, #f2ebdc) 0%, var(--bg) 34%)}
 .medallas-mini .med-link{margin-left:auto; font-family:var(--font-mono); font-size:10.5px; opacity:.75; color:rgba(255,255,255,.75); white-space:nowrap; flex:none}
 .fr-cab.plegar{color:var(--sub)}
 .fr-cab.plegar .fr-et{font-size:12.5px; color:var(--sub); font-weight:600}
+
+/* ---- Boya como mascota: mirada, gestos e interacción ---- */
+.ojo-mira{transform-box:view-box; transform:translate(var(--mx,0), var(--my,0)); transition:transform .18s ease-out}
+@keyframes gEstira{ 0%,100%{transform:translateY(0) scale(1,1)} 40%{transform:translateY(-5px) scale(.96,1.07)} 70%{transform:translateY(0) scale(1.03,.97)} }
+@keyframes gMira{ 0%,100%{transform:rotate(0)} 30%{transform:rotate(-3.5deg)} 65%{transform:rotate(3deg)} }
+@keyframes gBrinco{ 0%,100%{transform:translateY(0)} 30%{transform:translateY(-9px)} 55%{transform:translateY(0) scale(1.05,.94)} 75%{transform:translateY(-3px) scale(1,1)} }
+.gesto-estira{animation:gEstira 1.5s ease-in-out !important}
+.gesto-mira{animation:gMira 1.5s ease-in-out !important}
+.gesto-brinco{animation:gBrinco 1.4s cubic-bezier(.34,1.4,.64,1) !important}
+
+.cuarto-boya{height:340px}
+.cuarto-personaje{border:none; background:none; padding:0; cursor:pointer; z-index:3}
+.cuarto-desorden{border:none; padding:0; cursor:pointer; z-index:4; transition:transform .15s}
+.cuarto-desorden:active{transform:scale(.75) rotate(-12deg); opacity:.4}
+.globo-cuarto{position:absolute; left:50%; top:10px; transform:translateX(-50%); z-index:6;
+  background:var(--card); color:var(--ink); padding:9px 14px; border-radius:14px; font-size:12.5px;
+  font-weight:600; max-width:78%; text-align:center; box-shadow:0 5px 16px rgba(0,0,0,.25); animation:globoPop .25s ease}
+
+.pide{margin-top:14px; text-align:center; font-family:var(--font-display); font-size:17px; font-weight:600; color:var(--ink)}
+.acciones-boya{display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:13px}
+.acc{display:flex; flex-direction:column; align-items:center; gap:3px; padding:13px 8px; border-radius:var(--radius-s);
+  border:1.5px solid var(--line); background:var(--bg); color:var(--sub)}
+.acc span{font-size:12.5px; font-weight:700; color:var(--ink)}
+.acc i{font-style:normal; font-family:var(--font-mono); font-size:9.5px; color:var(--sub)}
+.acc.urge{border-color:var(--coral); background:rgba(178,94,57,.09); color:var(--coral)}
+.acc:disabled{opacity:.45}
+.acc:active{transform:scale(.97)}
+.medidores{display:flex; flex-direction:column; gap:7px; margin-top:15px}
+.medidor{display:flex; align-items:center; gap:10px}
+.md-et{flex:none; width:82px; font-size:11.5px; font-weight:600; color:var(--sub)}
+.md-bar{flex:1; height:7px; background:var(--line); border-radius:5px; overflow:hidden}
+.md-bar i{display:block; height:100%; background:var(--t); border-radius:5px; transition:width .4s}
 .huevo-wrap{display:flex; flex-direction:column; align-items:center; padding:26px 0 10px}
 .huevo-svg{width:150px; height:180px; cursor:pointer; filter:drop-shadow(0 10px 18px rgba(0,0,0,.15))}
 .huevo-svg.tambalea{animation:tambaleo .55s ease}
@@ -562,7 +594,7 @@ body{background:linear-gradient(178deg, var(--bg2, #f2ebdc) 0%, var(--bg) 34%)}
 .cuarto-desorden{position:absolute; width:9.5%; font-size:22px; opacity:.85; filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))}
 .cuarto-velo{position:absolute; inset:0; background:rgba(20,20,25,.28); pointer-events:none; transition:opacity .4s}
 .cuarto-brillo{position:absolute; inset:0; background:radial-gradient(ellipse at 50% 15%, rgba(255,255,255,.25), transparent 55%); pointer-events:none}
-.cuarto-etiqueta{position:absolute; top:12px; right:12px; background:rgba(0,0,0,.35); color:#fff; font-size:11px; font-weight:700; padding:5px 11px; border-radius:20px; backdrop-filter:blur(2px)}
+.cuarto-etiqueta{position:absolute; bottom:10px; left:12px; background:rgba(0,0,0,.35); color:#fff; font-size:11px; font-weight:700; padding:5px 11px; border-radius:20px; backdrop-filter:blur(2px)}
 .cuarto-swatches{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px}
 .swatches-label{font-size:12px; font-weight:700; color:var(--sub); margin-right:2px}
 .swatch{width:26px; height:26px; border-radius:50%; border:2px solid var(--card); box-shadow:0 0 0 1.5px var(--line); cursor:pointer; padding:0; flex:none}
@@ -632,7 +664,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.16.0-beta';
+var VERSION='0.17.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -769,6 +801,18 @@ var MENSAJES_BOYA=[
   'Contarte estas cosas me hace sentir útil. Gracias por venir a buscarme.'
 ];
 function mensajeAlTocar(){
+  /* primero lo que está pasando de verdad hoy; el pozo genérico es el respaldo */
+  var n=necesidadesBoya();
+  var pm=pendientesMedicamentos();
+  var propios=[];
+  if(pm.length) propios.push('Te falta la de las '+pm[0].hora+'. Lo digo y ya, sin drama.');
+  if(n.hambre>=85) propios.push('Oye… ¿me das algo de comer?');
+  if(n.juego>=85) propios.push('¿Jugamos un rato? Te vendría bien a ti también.');
+  if(desordenPendiente()>=3) propios.push('Hay cosas tiradas. Si quieres las recogemos juntas.');
+  if(minutosHoy()>=metaEnfoque()) propios.push('Llegaste a tus minutos de hoy. Yo vi todo el rato.');
+  var rr=calcularProgreso();
+  if(rr.racha>=3) propios.push('Van '+rr.racha+' días seguidos. No lo digo por presionar, lo digo porque lo vi.');
+  if(propios.length && Math.random()<0.62) return propios[Math.floor(Math.random()*propios.length)];
   var stats=statsExtra(calcularEstadisticas());
   var cuenta=contarCategorias(entradaHoy());
   var h=new Date().getHours();
@@ -1521,6 +1565,48 @@ function listaPendientes(){
   return out;
 }
 
+/* ===================== Boya como mascota =====================
+   Sus necesidades NO corren con un temporizador: se calculan desde la
+   hora del último evento. Así funcionan igual si la app estuvo cerrada
+   tres días, sin procesos colgados ni estados imposibles.
+
+   Regla de diseño que no se rompe: Boya nunca se enferma, nunca se pone
+   triste "por tu culpa" y nunca se pierde nada por no atenderla. Esta app
+   es para alguien a quien la culpa ya le pesa de sobra; una mascota que
+   sufre por descuido sería exactamente lo contrario de lo que hace falta.
+   Sus necesidades son una invitación, jamás un reproche. */
+var HORAS_HAMBRE=7, HORAS_JUEGO=20;
+function necesidadesBoya(){
+  var tc=ultimaVez('boya:comer'), tj=ultimaVez('boya:jugar'), tm=ultimaVez('boya:caricia');
+  var hc = tc===null ? HORAS_HAMBRE : (Date.now()-tc)/3600000;
+  var hj = tj===null ? HORAS_JUEGO : (Date.now()-tj)/3600000;
+  var hm = tm===null ? 12 : (Date.now()-tm)/3600000;
+  var hambre=Math.max(0, Math.min(100, Math.round(hc/HORAS_HAMBRE*100)));
+  var juego =Math.max(0, Math.min(100, Math.round(hj/HORAS_JUEGO*100)));
+  var mimos =Math.max(0, Math.min(100, Math.round(hm/14*100)));
+  return {
+    hambre:hambre, juego:juego, mimos:mimos,
+    saciada:100-hambre, entretenida:100-juego, querida:100-mimos,
+    ultimaComida:tc, ultimoJuego:tj, ultimaCaricia:tm,
+    // el ánimo es el promedio de lo que sí está cubierto
+    animo: Math.round(((100-hambre)+(100-juego)+(100-mimos))/3)
+  };
+}
+function boyaPideAlgo(){
+  var n=necesidadesBoya();
+  if(n.hambre>=85) return {id:'comer', et:'Tiene hambre', accion:'dar-comer'};
+  if(n.juego>=85) return {id:'jugar', et:'Quiere jugar', accion:'jugar-boya'};
+  if(n.mimos>=90) return {id:'caricia', et:'Quiere un mimo', accion:'tocar-boya'};
+  return null;
+}
+/* cuántas cosas tiradas quedan por recoger hoy */
+function desordenPendiente(){
+  var orden=ordenCuarto();
+  var total = orden===0?5:orden===1?3:orden===2?1:0;
+  var recogidas=vecesHoy('boya:limpiar');
+  return Math.max(0, total-recogidas);
+}
+
 /* ===================== dibujar a la nutria ===================== */
 var _nutriaSeq=0;
 function etapaVinculo(){
@@ -1582,11 +1668,11 @@ function dibujarNutria(moodId, etapaParam, actividadParam){
   /* --- piezas de la cara. El pivote del parpadeo va por elemento, en
      coordenadas del viewBox (ver .ojo-parpadeo en el CSS). --- */
   function ojo(cx, rx, ry){
-    return '<g class="ojo-parpadeo" style="transform-origin:'+cx+'px 48px">'+
+    return '<g class="ojo-mira"><g class="ojo-parpadeo" style="transform-origin:'+cx+'px 48px">'+
       '<ellipse cx="'+cx+'" cy="48" rx="'+rx+'" ry="'+ry+'" fill="url(#gOjo'+u+')"/>'+
       '<circle cx="'+(cx-rx*0.30).toFixed(2)+'" cy="'+(48-ry*0.40).toFixed(2)+'" r="'+(rx*0.35).toFixed(2)+'" fill="#fff" opacity=".95"/>'+
       '<circle cx="'+(cx+rx*0.36).toFixed(2)+'" cy="'+(48+ry*0.44).toFixed(2)+'" r="'+(rx*0.17).toFixed(2)+'" fill="#fff" opacity=".5"/>'+
-      '</g>';
+      '</g></g>';
   }
   function ojoFeliz(cx){
     return '<path d="M'+(cx-6.6)+',50.6 q6.6,-8.4 13.2,0" stroke="#2c2016" stroke-width="2.9" fill="none" stroke-linecap="round"/>';
@@ -1614,6 +1700,19 @@ function dibujarNutria(moodId, etapaParam, actividadParam){
     brilla:    ojoFeliz(38.5)+ojoFeliz(61.5)+rubor('.62')+bocaW(0,7.4)+
                '<path d="M14,20 l1.6,4.4 4.4,1.6 -4.4,1.6 -1.6,4.4 -1.6,-4.4 -4.4,-1.6 4.4,-1.6 Z" fill="#f6d16b"/>'+
                '<path d="M87,27 l1.2,3.3 3.3,1.2 -3.3,1.2 -1.2,3.3 -1.2,-3.3 -3.3,-1.2 3.3,-1.2 Z" fill="#f6d16b" opacity=".85"/>',
+    hambrienta: ceja(38.5,1.4)+ceja(61.5,1.4)+ojo(38.5,6.4,6.8)+ojo(61.5,6.4,6.8)+
+               '<path d="M42,69.5 q8,-3.4 16,0" stroke="#3a2a1c" stroke-width="2.2" fill="none" stroke-linecap="round"/>'+
+               '<path d="M31,74 q1.6,4 0,7.4" stroke="#5f8fb0" stroke-width="1.9" fill="none" stroke-linecap="round" opacity=".75"/>',
+    jugando:   '<path d="M32,50.6 q6.5,-8.4 13,0" stroke="#2c2016" stroke-width="2.9" fill="none" stroke-linecap="round"/>'+
+               '<path d="M55,50.6 q6.5,-8.4 13,0" stroke="#2c2016" stroke-width="2.9" fill="none" stroke-linecap="round"/>'+
+               rubor('.55')+
+               '<path d="M40,66.4 q10,11 20,0 z" fill="#8a4a48" stroke="#3a2a1c" stroke-width="2.2" stroke-linejoin="round"/>'+
+               '<path d="M45,72 q5,4 10,0" fill="#d9738a"/>',
+    mimada:    '<path d="M33,49.8 q6,5.6 12,0" stroke="#2c2016" stroke-width="2.7" fill="none" stroke-linecap="round"/>'+
+               '<path d="M55,49.8 q6,5.6 12,0" stroke="#2c2016" stroke-width="2.7" fill="none" stroke-linecap="round"/>'+
+               rubor('.68')+bocaW(0,6.4),
+    sorprendida: ojo(38.5,7.2,7.6)+ojo(61.5,7.2,7.6)+
+               '<ellipse cx="50" cy="70" rx="4.6" ry="5.4" fill="#3a2a1c"/>',
     dormida:   ojoCerrado(38.5)+ojoCerrado(61.5)+
                '<ellipse cx="50" cy="69.5" rx="3.2" ry="2.1" fill="#3a2a1c" opacity=".5"/>'+
                '<text x="70" y="26" font-size="10" fill="#6e4c31" opacity=".8">z</text>'+
@@ -1669,7 +1768,12 @@ function dibujarNutria(moodId, etapaParam, actividadParam){
        '<path d="M50,20 q7,2 11,6" stroke="#c39468" stroke-width="1.8" fill="none" stroke-linecap="round"/>'+
        '</g>';
   }
-  s+=(caras[durmiendo?'dormida':moodId]||caras.flote);
+  var caraId = durmiendo ? 'dormida'
+             : actividad==='jugando' ? 'jugando'
+             : actividad==='mimada'  ? 'mimada'
+             : actividad==='comiendo'? 'brilla'
+             : moodId;
+  s+=(caras[caraId]||caras.flote);
   s+='<path d="M50,56.4 C54.2,56.4 56.9,58.1 56.9,60.4 C56.9,62.9 53.8,64.9 50,64.9 '+
      'C46.2,64.9 43.1,62.9 43.1,60.4 C43.1,58.1 45.8,56.4 50,56.4 Z" fill="#33241a"/>';
   s+='<ellipse cx="47.4" cy="58.4" rx="1.9" ry="1.2" fill="#fff" opacity=".38"/>';
@@ -1692,7 +1796,15 @@ function dibujarNutria(moodId, etapaParam, actividadParam){
   } else {
     /* Manitas apoyadas en la panza. Van fijas y sin brazos largos: es la
        pose real de una nutria de pie y ademas no hay nada que se despegue. */
-    if(actividad==='trabajando'){
+    if(actividad==='jugando'){
+      s+='<circle cx="50" cy="104" r="11" fill="#e0663f" stroke="'+TRAZO+'" stroke-width="1.9"/>';
+      s+='<path d="M39,104 q11,-7 22,0 M39,104 q11,7 22,0" fill="none" stroke="#f4d9a8" stroke-width="1.7"/>';
+      s+='<path d="M14,84 l2.4,5 5,2.4 -5,2.4 -2.4,5 -2.4,-5 -5,-2.4 5,-2.4z" fill="#f6d16b" opacity=".9"/>';
+    } else if(actividad==='mimada'){
+      s+='<path d="M50,112 c-4.6,-4.6 -9,-7 -9,-11 0-3 2.4,-4.6 4.6,-4.6 1.8,0 3.4,1 4.4,2.6 1,-1.6 2.6,-2.6 4.4,-2.6 2.2,0 4.6,1.6 4.6,4.6 0,4 -4.4,6.4 -9,11z" fill="#d9738a" stroke="'+TRAZO+'" stroke-width="1.6" stroke-linejoin="round"/>';
+      s+='<path d="M22,74 c-3,-3 -5.8,-4.6 -5.8,-7.2 0,-2 1.6,-3 3,-3 1.2,0 2.2,.6 2.8,1.6 .6,-1 1.6,-1.6 2.8,-1.6 1.4,0 3,1 3,3 0,2.6 -2.8,4.2 -5.8,7.2z" fill="#e08aa0" opacity=".85"/>';
+      s+='<path d="M79,66 c-2.4,-2.4 -4.6,-3.6 -4.6,-5.8 0,-1.6 1.2,-2.4 2.4,-2.4 1,0 1.8,.5 2.2,1.3 .5,-.8 1.3,-1.3 2.2,-1.3 1.2,0 2.4,.8 2.4,2.4 0,2.2 -2.2,3.4 -4.6,5.8z" fill="#e08aa0" opacity=".7"/>';
+    } else if(actividad==='trabajando'){
       s+='<path d="M37,113 L63,113 L59,100 L41,100 Z" fill="#cfd9dc" stroke="'+TRAZO+'" stroke-width="1.6" stroke-linejoin="round"/>';
       s+='<path d="M41,100 L59,100 L57,88 L43,88 Z" fill="#e9eef0" stroke="'+TRAZO+'" stroke-width="1.6" stroke-linejoin="round"/>';
       s+='<path d="M45,91.5 L55,91.5 M45,95 L53,95" stroke="#8fa3aa" stroke-width="1.4" stroke-linecap="round"/>';
@@ -1735,6 +1847,71 @@ function dibujarNutria(moodId, etapaParam, actividadParam){
     '<g transform="translate(50,140) scale('+escala+') translate(-50,-140)">'+s+acc+'</g>'+
     '</svg>';
 }
+
+/* ===================== reacciones de Boya =====================
+   Una acción no es solo guardar un dato: Boya cambia de cara, hace algo
+   durante unos segundos y dice algo que viene de lo que de verdad pasó.
+   Eso es lo que separa una mascota de un contador. */
+var accionTimer=null;
+var REACCIONES={
+  comer:['Mmm. Gracias.','Justo tenía hambre.','Esto estaba muy bueno.','Comer también es cuidarse — para las dos.'],
+  jugar:['¡Otra vez!','Me encanta cuando jugamos.','Ya me cansé un poquito. Del bueno.','Esto también cuenta como un descanso, ¿sabías?'],
+  caricia:['Ay, qué rico.','Me quedo así un rato.','Yo también me alegro de verte.','Gracias por venir.'],
+  ordenado:['¡Quedó impecable!','Ahora sí se respira.','Gracias — se sentía apretado.','Mira cómo se ve todo.']
+};
+function accionBoya(actividad, tipo){
+  clearTimeout(accionTimer); clearTimeout(dialogoTimer);
+  V.boyaAccion=actividad;
+  V.boyaTocada=true;
+  var pool=REACCIONES[tipo];
+  V.dialogoBoya = pool ? pool[Math.floor(Math.random()*pool.length)] : mensajeAlTocar();
+  ganarConchitas(1);
+  sonidoArpegio(); vibrar([12,28,12]);
+  guardar(); render();
+  accionTimer=setTimeout(function(){
+    V.boyaAccion=null; V.boyaTocada=false; render();
+  }, 3400);
+  dialogoTimer=setTimeout(function(){ V.dialogoBoya=null; render(); }, 4400);
+}
+
+/* La mirada sigue el dedo. Es el detalle barato que más la hace parecer
+   viva: mueve los ojos unos píxeles hacia donde está tocando. */
+function seguirMirada(ev){
+  var esc=ev.target.closest && ev.target.closest('.escena, .cuarto-boya');
+  if(!esc) return;
+  /* la decoración también son SVG: hay que apuntar a la de Boya, no a la
+     primera del cuarto, o la maceta terminaría "mirando" en su lugar */
+  var svg=esc.querySelector('.cuarto-personaje svg, .esc-boya svg');
+  if(!svg) return;
+  var r=svg.getBoundingClientRect();
+  var px=(ev.clientX-(r.left+r.width/2))/(r.width/2);
+  var py=(ev.clientY-(r.top+r.height*0.32))/(r.height/2);
+  var mx=Math.max(-1,Math.min(1,px))*1.7, my=Math.max(-1,Math.min(1,py))*1.2;
+  svg.style.setProperty('--mx', mx.toFixed(2)+'px');
+  svg.style.setProperty('--my', my.toFixed(2)+'px');
+}
+document.addEventListener('pointermove', seguirMirada, {passive:true});
+document.addEventListener('pointerleave', function(){
+  document.querySelectorAll('.cuarto-personaje svg, .esc-boya svg').forEach(function(sv){
+    sv.style.removeProperty('--mx'); sv.style.removeProperty('--my');
+  });
+}, {passive:true});
+
+/* Gestos sueltos cada tanto: estirarse, mirar alrededor, sacudir la cola.
+   Se aplican tocando la clase en el DOM, sin volver a renderizar. */
+var GESTOS=['gesto-estira','gesto-mira','gesto-brinco'];
+function gestoBoya(){
+  var sv=document.querySelector('.escena svg, .cuarto-personaje svg');
+  if(sv && !V.boyaAccion){
+    var g=GESTOS[Math.floor(Math.random()*GESTOS.length)];
+    GESTOS.forEach(function(x){ sv.classList.remove(x); });
+    void sv.offsetWidth;
+    sv.classList.add(g);
+    setTimeout(function(){ sv.classList.remove(g); }, 1600);
+  }
+  setTimeout(gestoBoya, 8000+Math.random()*9000);
+}
+setTimeout(gestoBoya, 5000);
 
 /* ===================== sonido, vibración, confeti, puntos flotantes ===================== */
 var audioCtx=null;
@@ -1877,7 +2054,7 @@ var V = {
   pendienteTexto:'', rutinaNombre:'', rutinaPasoTexto:'', rutinaPasos:[],
   calmaVista:'respirar', relajacionPaso:0, dialogoBoya:null, boyaTocada:false,
   perraNombre:'', perraEmo:'🐕', distraccion:'', climaHoy:null, ropaClima:null,
-  medNombre:'', medDosis:'', medVeces:1, momentoAbierto:null, verResto:false
+  medNombre:'', medDosis:'', medVeces:1, momentoAbierto:null, verResto:false, boyaAccion:null
 };
 var dialogoTimer=null;
 
@@ -2198,7 +2375,7 @@ function renderHoy(){
   var fondoEq = S.equipado.fondo && FONDOS_BOYA[S.equipado.fondo];
   h+='<div class="escena" '+(fondoEq?'style="background:'+fondoEq.grad+'"':'')+'>';
   h+='<div class="esc-suelo"></div>';
-  h+='<button class="esc-boya'+(V.boyaTocada?' tocada':'')+'" data-action="tocar-boya">'+dibujarNutria(bm.id, null, actividadBoya())+'</button>';
+  h+='<button class="esc-boya'+(V.boyaTocada?' tocada':'')+'" data-action="tocar-boya">'+dibujarNutria(bm.id, null, V.boyaAccion||actividadBoya())+'</button>';
   h+='<div class="esc-panel" data-action="nav" data-value="boya">';
   h+='<b>'+bm.t+'</b><i>'+bm.s+'</i>';
   h+='<div class="esc-bar"><span style="width:'+pct+'%"></span></div>';
@@ -2436,11 +2613,13 @@ function renderBoyaPanel(){
   var pared = fondoEq ? fondoEq.pared : PARED_DEFECTO;
   var piso = fondoEq ? fondoEq.piso : PISO_DEFECTO;
   var orden = ordenCuarto();
+  var nec = necesidadesBoya();
+  var actAhora = V.boyaAccion || actividadBoya();
   var h='';
   h+='<div class="boya-panel-header"><button data-action="nav" data-value="hoy">← Volver</button></div>';
 
   h+='<div class="card">';
-  h+='<div class="cuarto-boya">';
+  h+='<div class="cuarto-boya" id="cuarto-escena">';
   h+='<div class="cuarto-pared" style="background:'+pared+'"></div>';
   h+='<div class="cuarto-piso" style="background:'+piso+'"></div>';
 
@@ -2452,16 +2631,44 @@ function renderBoyaPanel(){
     h+='<div class="cuarto-decor '+(orden<=1?'sucio':'')+'" style="'+estilo+'">'+(dibujoDecor(id)||it.emo)+'</div>';
   });
 
-  var nClutter = orden===0?5:orden===1?3:orden===2?1:0;
-  for(var ci=0; ci<nClutter; ci++){
-    h+='<div class="cuarto-desorden" style="left:'+CLUTTER_POS[ci].left+'; bottom:'+CLUTTER_POS[ci].bottom+'">'+DIBUJO_DESORDEN[ci%DIBUJO_DESORDEN.length]+'</div>';
+  /* cada cosa tirada se recoge con un toque: el cuarto deja de ser un
+     termómetro que solo se mira y pasa a ser algo que sí se puede arreglar */
+  var nClutter = desordenPendiente();
+  var recogidasHoy = vecesHoy('boya:limpiar');
+  for(var ci=recogidasHoy; ci<recogidasHoy+nClutter && ci<CLUTTER_POS.length; ci++){
+    h+='<button class="cuarto-desorden" data-action="recoger" data-value="'+ci+'" style="left:'+CLUTTER_POS[ci].left+'; bottom:'+CLUTTER_POS[ci].bottom+'">'+DIBUJO_DESORDEN[ci%DIBUJO_DESORDEN.length]+'</button>';
   }
 
-  h+='<div class="cuarto-personaje">'+dibujarNutria(bm.id, null, actividadBoya())+'</div>';
+  h+='<button class="cuarto-personaje'+(V.boyaTocada?' tocada':'')+'" data-action="tocar-boya">'+dibujarNutria(bm.id, null, actAhora)+'</button>';
+  if(V.dialogoBoya) h+='<div class="globo-cuarto">'+esc(V.dialogoBoya)+'</div>';
   h+='<div class="cuarto-velo" style="opacity:'+(orden===0?'.45':orden===1?'.22':'0')+'"></div>';
   if(orden>=3) h+='<div class="cuarto-brillo"></div>';
-  h+='<div class="cuarto-etiqueta">Cuarto de '+esc(nombreBoya)+'</div>';
   h+='</div>';
+
+  /* ---- lo que Boya necesita ahora ---- */
+  var pide=boyaPideAlgo();
+  h+='<div class="pide">'+(pide
+     ? '<b>'+esc(nombreBoya)+' '+(pide.id==='comer'?'tiene hambre':pide.id==='jugar'?'quiere jugar':'quiere un mimo')+'</b>'
+     : '<b>'+esc(nombreBoya)+' está bien</b>')+'</div>';
+
+  h+='<div class="acciones-boya">';
+  h+='<button class="acc'+(nec.hambre>=70?' urge':'')+'" data-action="dar-comer">'+ico('cuenco',22)+'<span>Darle de comer</span>'+
+     '<i>'+(nec.ultimaComida?haceTexto(nec.ultimaComida):'nunca')+'</i></button>';
+  h+='<button class="acc'+(nec.juego>=70?' urge':'')+'" data-action="jugar-boya">'+ico('diana',22)+'<span>Jugar</span>'+
+     '<i>'+(nec.ultimoJuego?haceTexto(nec.ultimoJuego):'nunca')+'</i></button>';
+  h+='<button class="acc'+(nec.mimos>=80?' urge':'')+'" data-action="tocar-boya">'+ico('respirar',22)+'<span>Acariciar</span>'+
+     '<i>'+(nec.ultimaCaricia?haceTexto(nec.ultimaCaricia):'nunca')+'</i></button>';
+  h+='<button class="acc'+(nClutter?' urge':'')+'" data-action="recoger-todo" '+(nClutter?'':'disabled')+'>'+ico('caja',22)+'<span>Ordenar</span>'+
+     '<i>'+(nClutter? nClutter+' por recoger':'todo en su lugar')+'</i></button>';
+  h+='</div>';
+
+  h+='<div class="medidores">';
+  [['Saciada',nec.saciada,'ambar'],['Entretenida',nec.entretenida,'oliva'],['Querida',nec.querida,'ciruela']].forEach(function(m){
+    h+='<div class="medidor" style="--t:var(--h-'+m[2]+')"><span class="md-et">'+m[0]+'</span>'+
+       '<span class="md-bar"><i style="width:'+m[1]+'%"></i></span></div>';
+  });
+  h+='</div>';
+  h+='<p class="sub" style="margin-top:10px; font-size:12px">No se enferma ni se pone triste si no la atiendes. Esto es una invitación, no una cuenta pendiente.</p>';
 
   var fondosComprados=S.comprados.filter(function(id){ var it=ITEMS_BOYA.filter(function(x){return x.id===id;})[0]; return it && it.tipo==='fondo'; });
   if(fondosComprados.length){
@@ -3144,13 +3351,8 @@ app.addEventListener('click', function(ev){
   else if(act==='agua-menos'){ cambiarAgua(-1); }
   else if(act==='tocar-boya'){
     S.contadores.tocarBoyaTotal=(S.contadores.tocarBoyaTotal||0)+1;
-    sonidoPop(540); vibrar(8);
-    V.dialogoBoya=mensajeAlTocar();
-    V.boyaTocada=true;
-    guardar();
-    render();
-    clearTimeout(dialogoTimer);
-    dialogoTimer=setTimeout(function(){ V.dialogoBoya=null; V.boyaTocada=false; render(); }, 4200);
+    registrarEvento('boya:caricia');
+    accionBoya('mimada','caricia');
     return;
   }
   else if(act==='ver-medallas'){ V.mostrarMedallas=!V.mostrarMedallas; }
@@ -3279,6 +3481,30 @@ app.addEventListener('click', function(ev){
       S.pendientes.unshift({id:'x'+Date.now(), texto:txtD.slice(0,120), fecha:hoyISO()});
       V.distraccion=''; sonidoPop(560); vibrar(8);
       mostrarToast('Guardado en pendientes. Sigue en lo tuyo.');
+    }
+  }
+  else if(act==='dar-comer' || act==='jugar-boya'){
+    var esComer = act==='dar-comer';
+    registrarEvento(esComer?'boya:comer':'boya:jugar');
+    S.contadores[esComer?'vecesComio':'vecesJugo']=(S.contadores[esComer?'vecesComio':'vecesJugo']||0)+1;
+    accionBoya(esComer?'comiendo':'jugando', esComer?'comer':'jugar');
+    return;
+  }
+  else if(act==='recoger'){
+    registrarEvento('boya:limpiar');
+    S.contadores.recogidos=(S.contadores.recogidos||0)+1;
+    ganarConchitas(1); sonidoPop(760); vibrar(10);
+    flotarPuntos(b, S.modoSuave?'✨':'+1');
+    if(desordenPendiente()===0){ accionBoya('jugando','ordenado'); return; }
+  }
+  else if(act==='recoger-todo'){
+    var faltan=desordenPendiente();
+    for(var rz=0; rz<faltan; rz++) registrarEvento('boya:limpiar');
+    if(faltan){
+      S.contadores.recogidos=(S.contadores.recogidos||0)+faltan;
+      ganarConchitas(faltan);
+      accionBoya('jugando','ordenado');
+      return;
     }
   }
   else if(act==='ver-resto'){ V.verResto=!V.verResto; }
