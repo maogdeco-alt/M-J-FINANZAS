@@ -12,9 +12,42 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.20.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.21.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.20.0" al reportar algo raro.
+> pasó en la v0.21.0" al reportar algo raro.
+
+## Raíces: un progreso que no se puede perder (v0.21.0)
+
+La v0.20.0 pedía **"12 de los últimos 14 días"** para graduar un hábito. El problema no era
+el 12 — era el **"de los últimos 14"**.
+
+Esa ventana **baja**. Se podía llegar a 11, tener una mala semana, y ver el número caer a 6,
+perdiendo algo que ya estaba ganado. Para un cerebro donde la inconsistencia *es el síntoma*,
+ver retroceder lo conseguido es la mecánica más desmoralizante posible. Y encima metía un
+reloj: siempre había una fecha corriendo en contra.
+
+### Las raíces se acumulan y nunca bajan
+Que lo hiciste el lunes es un hecho, y un jueves malo no puede borrarlo.
+
+- **No hay plazo.** Si toma seis meses, toma seis meses, y cada vez contó.
+- **La constancia no es requisito, es acelerador**: un día suelto vale 1, dentro de una racha
+  de 3+ vale 1.5, dentro de una de 7+ vale 2.
+- **Volver después de faltar suma un extra.** A propósito: volver tras fallar es el momento
+  más difícil, y es justo el que casi todas las apps castigan poniendo la racha en cero. Acá
+  se premia — y Boya lo dice: *"Volver cuenta más que no haber faltado. En serio."*
+- El hábito crece por etapas visibles: **Brotó → Asomando → Enraizando → Arraigado → Es
+  tuyo**, con la primera a la **primera vez** que lo haces.
+
+Verificado con una historia realista: 19 días constantes, una recaída de 5, y el regreso. La
+ventana de 14 días marcaba **4/14** —bajo el sistema viejo, "nunca te vas a graduar"— mientras
+las raíces conservaban **44 de 55**.
+
+### No todo tiene que ser diario
+Cada hábito puede ir a **todos los días, 5 por semana o 3 por semana**. Obligar a que moverse
+sea diario es diseñar el fracaso: ahora la meta se ajusta al hábito y la app muestra *"esta
+semana: 2 de 3"*.
+
+Los últimos 14 días siguen ahí como **información**, no como el examen.
 
 ## La app deja de registrar y empieza a construir hábitos (v0.20.0)
 
