@@ -2005,6 +2005,21 @@ const ICONS = {
 const SKEY = 'maog:flota:sesion';
 let SESION = { url:'', key:'', token:'', refresh:'', usuarioId:'', correo:'', nombre:'', avatar:'sol', ultimoNegocioId:'' };
 
+/* Supabase por defecto: para que la app abra directo en la pantalla de
+   iniciar sesión, sin pedir "conectar" cada vez que se abre desde un
+   sitio o un navegador nuevo (eso pasaba porque estos datos se
+   guardaban en el navegador — un sitio nuevo de Netlify es, para el
+   navegador, un lugar en blanco, sin nada guardado todavía). La clave
+   de acá es la pública (anon/publishable) — está hecha para vivir en
+   el navegador, protegida por las reglas de la base de datos, así que
+   no es un secreto. La clave "service_role"/"secret" ESA NUNCA debe
+   ponerse aquí ni en ningún archivo.
+   Solo se usan si esta persona/navegador todavía no tiene nada
+   guardado — una vez alguien conecta un proyecto distinto (con
+   "Cambiar Supabase"), ese queda guardado y manda sobre esto. */
+const SUPABASE_URL_DEFAULT = '';
+const SUPABASE_KEY_DEFAULT = '';
+
 /* Aviso automático si algo se rompe — antes, si la app fallaba, solo se
    enteraba quien lo estuviera mirando en ese momento (o nadie). Ahora
    se manda un correo con el error a quien administra este proyecto,
@@ -2048,7 +2063,12 @@ window.addEventListener('unhandledrejection', e=>{
 });
 let MIS_NEGOCIOS = [], NEGOCIO = null;
 
-function cargarSesion(){ try{ const s = localStorage.getItem(SKEY); if(s) SESION = Object.assign(SESION, JSON.parse(s)); }catch(e){} }
+function cargarSesion(){
+  try{ const s = localStorage.getItem(SKEY); if(s) SESION = Object.assign(SESION, JSON.parse(s)); }catch(e){}
+  if(!SESION.url && !SESION.key && SUPABASE_URL_DEFAULT && SUPABASE_KEY_DEFAULT){
+    SESION.url = SUPABASE_URL_DEFAULT; SESION.key = SUPABASE_KEY_DEFAULT;
+  }
+}
 function guardarSesion(){ try{ localStorage.setItem(SKEY, JSON.stringify(SESION)); }catch(e){} }
 function sesionLista(){ return !!(SESION.url && SESION.key); }
 function autenticado(){ return !!(sesionLista() && SESION.token); }
@@ -5448,7 +5468,7 @@ function pantallaSesion(estadoExtra){
         ${modo==='entrar' ? `<p class="gate-foot"><button class="linkbtn" data-modo="recuperar">¿Olvidaste tu contraseña?</button></p>` : ''}
         ${modo==='recuperar' ? `<p class="gate-foot"><button class="linkbtn" data-modo="entrar">Volver a entrar</button></p>` : ''}
         ${modo==='crear' ? `<p class="gate-help" style="margin-top:-6px">Al crear tu cuenta, aceptas los <button class="linkbtn" data-legal="terminos" style="font-size:inherit;padding:0">Términos de uso</button> y la <button class="linkbtn" data-legal="privacidad" style="font-size:inherit;padding:0">Política de privacidad</button>.</p>` : ''}
-        <p class="gate-help">Conectado a <code>${esc(SESION.url.replace(/^https?:\/\//,''))}</code> · <button class="linkbtn" id="cambiarProyecto" style="font-size:12px">cambiar proyecto</button></p>
+        <p class="gate-help">Conectado a <code>${esc(SESION.url.replace(/^https?:\/\//,''))}</code> · <button class="linkbtn" id="cambiarProyecto" style="font-size:12px">Cambiar Supabase</button></p>
         <p class="gate-help" style="margin-top:2px"><button class="linkbtn" data-legal="terminos" style="font-size:11.5px">Términos</button> · <button class="linkbtn" data-legal="privacidad" style="font-size:11.5px">Privacidad</button></p>
       </div>
     </div>`;
