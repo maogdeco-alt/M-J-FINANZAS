@@ -591,6 +591,42 @@ body{background:linear-gradient(178deg, var(--bg2, #f2ebdc) 0%, var(--bg) 34%)}
 .frec-op.sel{border-color:var(--t); background:var(--card); color:var(--t)}
 .hab-sem{margin-top:10px; font-size:12px; font-weight:600; color:var(--sub)}
 .hab-sem.ok{color:var(--h-oliva)}
+
+/* ---- Boya con su cuarto, en la primera pantalla ---- */
+.escena-hoy{height:196px; overflow:hidden; box-shadow:0 5px 18px rgba(0,0,0,.18); margin-top:6px; margin-bottom:10px}
+.escena-hoy .cuarto-pared{position:absolute; inset:0 0 34% 0}
+.escena-hoy .cuarto-piso{position:absolute; left:0; right:0; bottom:0; height:34%}
+.escena-hoy .cuarto-decor{position:absolute; filter:drop-shadow(0 3px 4px rgba(0,0,0,.22)); transition:filter .4s, opacity .4s}
+.escena-hoy .cuarto-desorden{position:absolute; width:8%; z-index:4; border:none; padding:0; cursor:pointer}
+.escena-hoy .esc-boya{left:50%; transform:translateX(-50%); height:88%; bottom:2px; z-index:3}
+.escena-hoy:before{display:none}
+.esc-ir{position:absolute; top:9px; right:9px; z-index:6; width:30px; height:30px; border-radius:50%;
+  background:rgba(0,0,0,.32); color:#fff; font-size:14px; display:flex; align-items:center; justify-content:center; padding:0}
+.globo-cuarto.pide{background:var(--coral); color:#fff}
+.acc-rapidas{display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:6px}
+.ar{display:flex; flex-direction:column; align-items:center; gap:3px; padding:10px 4px; border-radius:var(--radius-s);
+  border:1.5px solid var(--line); background:var(--card); color:var(--sub)}
+.ar span{font-size:11px; font-weight:700; color:var(--ink)}
+.ar.urge{border-color:var(--coral); background:rgba(178,94,57,.09); color:var(--coral)}
+.ar:disabled{opacity:.4}
+.ar:active{transform:scale(.96)}
+
+/* ---- ancla e historial ---- */
+.ancla-caja{margin-top:14px; padding:12px 13px; border-radius:var(--radius-s); border:1.5px dashed var(--line); background:var(--bg)}
+.ancla-caja.puesta{border-style:solid; border-color:var(--t)}
+.an-et{font-family:var(--font-mono); font-size:9.5px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--sub)}
+.ancla-caja .fila-input{margin-top:7px}
+.an-nota{margin-top:8px; font-size:11.5px; line-height:1.5; color:var(--sub)}
+.ancla-caja.puesta .an-nota{color:var(--ink)}
+.mapa-t{display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; color:var(--ink); margin:14px 0 7px}
+.mapa-t:first-child{margin-top:0}
+.mapa{display:flex; gap:4px}
+.mw{flex:1; height:26px; border-radius:4px; background:var(--line)}
+.mw.n1{background:var(--t); opacity:.28}
+.mw.n2{background:var(--t); opacity:.5}
+.mw.n3{background:var(--t); opacity:.75}
+.mw.n4{background:var(--t)}
+.hb-emoji{font-size:17px; line-height:1}
 .huevo-wrap{display:flex; flex-direction:column; align-items:center; padding:26px 0 10px}
 .huevo-svg{width:150px; height:180px; cursor:pointer; filter:drop-shadow(0 10px 18px rgba(0,0,0,.15))}
 .huevo-svg.tambalea{animation:tambaleo .55s ease}
@@ -612,7 +648,7 @@ body{background:linear-gradient(178deg, var(--bg2, #f2ebdc) 0%, var(--bg) 34%)}
 .boya-retrato{position:relative; width:150px; height:150px; border-radius:50%; overflow:hidden; background:linear-gradient(160deg, var(--teal), var(--teal-d)); box-shadow:0 8px 24px rgba(14,124,134,.3)}
 .boya-retrato svg{width:88%; height:88%; position:absolute; left:6%; top:6%; animation:respirar 4.6s ease-in-out infinite; transform-origin:50% 100%}
 .boya-nombre-fila{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:14px}
-.boya-nombre-fila input{font-family:var(--font-display); font-style:italic; font-size:22px; font-weight:600; text-align:center; border:none; background:none; color:var(--ink); width:auto; max-width:200px; border-bottom:1.5px dashed var(--line); padding:2px 4px}
+.boya-nom-fijo{font-family:var(--font-display); font-style:italic; font-size:24px; font-weight:600; color:var(--ink)}
 .vinculo-barra{margin-top:14px; width:100%}
 .subtabs{display:flex; gap:8px; margin:16px 0 14px; background:var(--bg); padding:4px; border-radius:20px}
 .subtabs button{flex:1; padding:9px; border-radius:16px; font-size:13px; font-weight:700; color:var(--sub)}
@@ -809,7 +845,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.21.0-beta';
+var VERSION='0.22.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -858,6 +894,7 @@ function momentoActual(){
   if(h>=12 && h<18) return 'tarde';
   return 'noche';
 }
+var NOMBRE_BOYA='Boya';
 var NIVELES=['Semilla','Brote','Raíz firme','Tallo alto','Copa abierta','Bosque entero'];
 var EMOJIS_MINI=['💊','🌱','📞','🧴','🧘','📚','🧺','🔋','❤️','🐾','🎯','🧠'];
 var NIVELES_VINCULO=['Recién se conocen','Se van conociendo','Cómplices','Un equipo','Inseparables'];
@@ -1004,11 +1041,12 @@ function estadoInicial(){
     contadores:{ ropaUsos:0, tareasUsos:0, miniToques:0, tocarBoyaTotal:0, comprasTotal:0, conchitasGanadasTotal:0, pendientesResueltos:0, fotosTotal:0 },
     medallasGanadas:[],
     habitosCfg:{},
+    anclas:{},
     foco:[],
     graduados:[],
     tema:null,
     eventos:[],
-    perras:[],
+    mascotas:[],
     medicamentos:[],
     cuidadosCfg:{},
     enfoque:{ metaMin:120, min:{}, activa:null, rachaDias:0 },
@@ -1051,18 +1089,25 @@ function cargar(){
     if(!d.usuario) d.usuario=base.usuario;
     else { if(d.usuario.nombre===undefined) d.usuario.nombre=''; if(d.usuario.foto===undefined) d.usuario.foto=null; }
     if(!d.boya) d.boya=base.boya;
-    else { if(d.boya.nombre===undefined) d.boya.nombre='Boya'; if(!d.boya.ritmo) d.boya.ritmo='normal'; }
+    else { d.boya.nombre='Boya'; if(!d.boya.ritmo) d.boya.ritmo='normal'; }
     if(!d.miniRecordatorios) d.miniRecordatorios=[];
     if(!d.rutinas) d.rutinas=[];
     if(!d.rutinasHechas) d.rutinasHechas={};
     if(!d.pendientes) d.pendientes=[];
     if(!d.medallasGanadas) d.medallasGanadas=[];
     if(!d.habitosCfg) d.habitosCfg={};
+    if(!d.anclas) d.anclas={};
     if(!d.foco) d.foco=[];
     if(!d.graduados) d.graduados=[];
     if(d.tema===undefined) d.tema=null;
     if(!d.eventos) d.eventos=[];
-    if(!d.perras) d.perras=[];
+    /* migración: lo que se llamaba "perras" pasa a "mascotas" con especie
+       perro; los eventos ya guardados conservan su clave para no perder
+       ningún registro histórico */
+    if(!d.mascotas) d.mascotas = (d.perras||[]).map(function(x){
+      return {id:x.id, nombre:x.nombre, emo:x.emo, especie:'perro'};
+    });
+    delete d.perras;
     if(!d.medicamentos) d.medicamentos=[];
     if(!d.prendas) d.prendas=[];
     if(d.conjuntoHoy===undefined) d.conjuntoHoy=null;
@@ -1224,8 +1269,8 @@ function statsExtra(st){
   st.medDiaCompleto=(S.medicamentos||[]).length>0 && (S.medicamentos||[]).every(function(m){
     return m.activo===false || tomasDeHoy(m).every(function(t){ return t.tomada; });
   });
-  st.perrasDiaCompleto=(S.perras||[]).length>0 && pendientesPerras().length===0 &&
-    (S.perras||[]).some(function(pe){ return CUIDADOS.some(function(c){ return cuidadoActivo(c) && vecesHoy('perra:'+pe.id+':'+c.id)>0; }); });
+  st.mascotasDiaCompleto=(S.mascotas||[]).length>0 && pendientesPerras().length===0 &&
+    (S.mascotas||[]).some(function(pe){ return cuidadosDe(pe).some(function(c){ return cuidadoActivo(c) && vecesHoy('perra:'+pe.id+':'+c.id)>0; }); });
   return st;
 }
 function medallasCrudas(stats){
@@ -1250,7 +1295,7 @@ function medallasCrudas(stats){
     {id:'med_dia', emo:'💊', titulo:'Todas las de hoy', desc:'Registraste todas las tomas de un día', cumple:stats.medDiaCompleto},
     {id:'med20', emo:'🧾', titulo:'Sin perder el hilo', desc:'20 tomas registradas en total', cumple:stats.medTomas>=20},
     {id:'perra10', emo:'🐾', titulo:'Ellas primero', desc:'10 cuidados de tus perras registrados', cumple:stats.cuidadosPerra>=10},
-    {id:'perra_dia', emo:'🦴', titulo:'Un día completo para ellas', desc:'Un día con todos sus cuidados al día', cumple:stats.perrasDiaCompleto},
+    {id:'perra_dia', emo:'🦴', titulo:'Un día completo para ellas', desc:'Un día con todos sus cuidados al día', cumple:stats.mascotasDiaCompleto},
     {id:'enfoque_1', emo:'⏱️', titulo:'Arranqué', desc:'Terminaste tu primer bloque de trabajo', cumple:stats.minutosEnfoque>=5},
     {id:'enfoque_meta', emo:'🎯', titulo:'Llegué a la meta', desc:'Alcanzaste tu meta de minutos en un día', cumple:stats.enfoqueMetaDias>=1},
     {id:'enfoque_600', emo:'🧠', titulo:'Diez horas', desc:'600 minutos de trabajo acumulados', cumple:stats.minutosEnfoque>=600}
@@ -1282,7 +1327,7 @@ function calcularProgreso(){
   };
 }
 function mensajeBoya(cuenta){
-  var n=(S.boya&&S.boya.nombre)||'Boya';
+  var n=NOMBRE_BOYA;
   if(cuenta<=0) return {id:'deriva', t:n+' está dormida', s:'Tócala, aunque sea solo para saludar. Eso también cuenta.'};
   if(cuenta<=2) return {id:'bajito', t:n+' flota bajo', s:'Lo que sea que hagas ahora suma, sin apuro.'};
   if(cuenta<=4) return {id:'flote', t:n+' se mantiene a flote', s:'Vas bien, a tu ritmo — no al de nadie más.'};
@@ -1477,12 +1522,30 @@ function horaDe(ms){
    cabeza no guarda. Nunca dice "olvidaste"; dice qué toca y cuándo fue
    la última vez. */
 var CUIDADOS=[
-  {id:'comida',  et:'Comida',    tono:'ambar', ico:'cuenco', emo:'🍖', veces:2, cadaH:9,  verbo:'Ya comieron'},
-  {id:'salida',  et:'Salida',    tono:'oliva', ico:'pata', emo:'🐾', veces:3, cadaH:5,  verbo:'Ya salieron'},
-  {id:'paseo',   et:'Paseo largo', tono:'terra', ico:'correa', emo:'🦮', veces:1, cadaH:22, verbo:'Ya pasearon'},
-  {id:'agua',    et:'Agua fresca', tono:'agua', ico:'gota', emo:'💧', veces:1, cadaH:12, verbo:'Ya les cambié'}
+  {id:'comida',  et:'Comida',      tono:'ambar', ico:'cuenco', emo:'🍖', veces:2, cadaH:9,  verbo:'Ya comió'},
+  {id:'agua',    et:'Agua fresca', tono:'agua',  ico:'gota',   emo:'💧', veces:1, cadaH:12, verbo:'Ya le cambié'},
+  {id:'salida',  et:'Salida',      tono:'oliva', ico:'pata',   emo:'🐾', veces:3, cadaH:5,  verbo:'Ya salió'},
+  {id:'paseo',   et:'Paseo largo', tono:'terra', ico:'correa', emo:'🦮', veces:1, cadaH:22, verbo:'Ya paseamos'},
+  {id:'arena',   et:'Arena',       tono:'humo',  ico:'caja',   emo:'🪣', veces:1, cadaH:20, verbo:'Ya la cambié'},
+  {id:'limpieza',et:'Limpieza',    tono:'humo',  ico:'caja',   emo:'🧽', veces:1, cadaH:72, verbo:'Ya limpié'}
 ];
-var EMOJIS_PERRA=['🐕','🐩','🦮','🐕‍🦺','🐶','🐾'];
+/* Cada especie necesita cosas distintas: un gato no sale a pasear y un
+   perro no tiene arena. Mostrar cuidados que no aplican es ruido, y peor:
+   hace que la app se sienta ajena a quien de verdad tiene esa mascota. */
+var ESPECIES=[
+  {id:'perro',   et:'Perro',            emo:'🐕', cuidados:['comida','agua','salida','paseo']},
+  {id:'gato',    et:'Gato',             emo:'🐈', cuidados:['comida','agua','arena']},
+  {id:'ave',     et:'Ave',              emo:'🦜', cuidados:['comida','agua','limpieza']},
+  {id:'pequeno', et:'Conejo o roedor',  emo:'🐹', cuidados:['comida','agua','limpieza']},
+  {id:'pez',     et:'Pez',              emo:'🐠', cuidados:['comida','limpieza']},
+  {id:'reptil',  et:'Reptil',           emo:'🦎', cuidados:['comida','agua','limpieza']},
+  {id:'otro',    et:'Otra',             emo:'🐾', cuidados:['comida','agua','limpieza']}
+];
+function especieDe(id){ return ESPECIES.filter(function(x){ return x.id===id; })[0] || ESPECIES[0]; }
+function cuidadosDe(m){
+  var esp=especieDe(m.especie||'perro');
+  return CUIDADOS.filter(function(c){ return esp.cuidados.indexOf(c.id)>=0; });
+}
 function cuidadoDe(id){ return CUIDADOS.filter(function(c){ return c.id===id; })[0]; }
 function vecesMeta(c){
   var cfg=S.cuidadosCfg&&S.cuidadosCfg[c.id];
@@ -1506,8 +1569,8 @@ function estadoCuidado(perra, c){
 }
 function pendientesPerras(){
   var out=[];
-  (S.perras||[]).forEach(function(pe){
-    CUIDADOS.forEach(function(c){
+  (S.mascotas||[]).forEach(function(pe){
+    cuidadosDe(pe).forEach(function(c){
       if(!cuidadoActivo(c)) return;
       var st=estadoCuidado(pe, c);
       if(st.urgencia>0){ st.perra=pe; out.push(st); }
@@ -1517,7 +1580,7 @@ function pendientesPerras(){
   return out;
 }
 function nombresPerras(){
-  var n=(S.perras||[]).map(function(p){ return p.nombre; });
+  var n=(S.mascotas||[]).map(function(p){ return p.nombre; });
   if(n.length===0) return '';
   if(n.length===1) return n[0];
   return n.slice(0,-1).join(', ')+' y '+n[n.length-1];
@@ -1741,8 +1804,29 @@ function diasSinHacer(id){
 function hechoEn(iso, id){
   var e=S.entradas[iso];
   if(!e) return false;
-  return id==='agua' ? (e.agua>0) : !!e[id];
+  if(id==='agua') return e.agua>0;
+  if(id.indexOf('mini:')===0) return !!(e.extra && e.extra[id.slice(5)]);
+  return !!e[id];
 }
+/* Cualquier recordatorio propio puede volverse un hábito en construcción:
+   el sistema no debería limitarse a las ocho categorías de fábrica. */
+function habitosDisponibles(){
+  var out=CATS.map(function(c){ return {id:c.id, et:c.et, ico:c.ico, tono:c.tono}; });
+  (S.miniRecordatorios||[]).forEach(function(m){
+    out.push({id:'mini:'+m.id, et:m.texto, ico:null, emo:m.emo, tono:'humo'});
+  });
+  return out;
+}
+function habitoPorId(id){
+  return habitosDisponibles().filter(function(x){ return x.id===id; })[0];
+}
+function iconoHabito(hb, tam){
+  return hb.ico ? ico(hb.ico, tam) : '<span class="hb-emoji">'+(hb.emo||'📌')+'</span>';
+}
+/* El ancla: "después de X, hago Y". Es la técnica con más respaldo para
+   formar hábitos — el disparador ya existente hace el trabajo que la
+   fuerza de voluntad no puede sostener. Y le da sentido al nombre de la app. */
+function anclaDe(id){ return (S.anclas && S.anclas[id]) || ''; }
 function ultimosDias(id, n){
   var hoy=new Date(); hoy.setHours(0,0,0,0);
   var out=[];
@@ -1787,7 +1871,7 @@ function estadoHabito(id){
   };
 }
 function catsDeFoco(){
-  return (S.foco||[]).map(function(id){ return CATS.filter(function(c){ return c.id===id; })[0]; })
+  return (S.foco||[]).map(function(id){ return habitoPorId(id); })
                      .filter(function(c){ return !!c; });
 }
 /* revisa si algún hábito en foco ya se sostiene solo */
@@ -2177,7 +2261,7 @@ function dibujarNutria(moodId, etapaParam, actividadParam){
    Antes solo reaccionaba si entrabas a su cuarto, y por eso parecía un
    adorno: la mascota tiene que estar en el bucle de lo que haces. */
 function reaccionBoya(catId){
-  var c=CATS.filter(function(x){ return x.id===catId; })[0];
+  var c=habitoPorId(catId);
   if(!c) return;
   var st=estadoHabito(catId);
   var enFoco=(S.foco||[]).indexOf(catId)>=0;
@@ -2428,7 +2512,7 @@ var V = {
   onboardingPaso:'huevo', huevoTambaleando:false, verFoto:null,
   pendienteTexto:'', rutinaNombre:'', rutinaPasoTexto:'', rutinaPasos:[],
   calmaVista:'respirar', relajacionPaso:0, dialogoBoya:null, boyaTocada:false,
-  perraNombre:'', perraEmo:'🐕', distraccion:'', climaHoy:null, ropaClima:null,
+  perraNombre:'', mascEspecie:'perro', distraccion:'', climaHoy:null, ropaClima:null,
   medNombre:'', medDosis:'', medVeces:1, momentoAbierto:null, verResto:false, boyaAccion:null,
   prendaNombre:'', prendaTipo:'superior', prendaClima:null
 };
@@ -2721,8 +2805,7 @@ function renderOnboarding(){
   h+='<h3 style="font-size:18px; margin:14px 0 4px">¡Nació! 🎉</h3>';
   h+='<p class="sub" style="margin-bottom:16px">Todavía no tiene nombre.</p>';
   h+='</div>';
-  h+='<input type="text" id="inp-nombre-boya-onboarding" class="input-nombre" placeholder="Ponle un nombre a tu nutria" style="margin-bottom:14px">';
-  h+='<p class="sub" style="text-align:center; margin-bottom:12px">¿Y tú cómo te llamas?</p>';
+    h+='<p class="sub" style="text-align:center; margin-bottom:12px">¿Y tú cómo te llamas?</p>';
   h+='<div style="display:flex; justify-content:center; margin-bottom:16px">';
   h+='<label class="avatar-picker">'+(S.usuario.foto?'<img src="'+S.usuario.foto+'" alt="">':'<span>📷</span>')+'<input type="file" accept="image/*" id="inp-foto-onboarding" style="display:none"></label>';
   h+='</div>';
@@ -2758,8 +2841,8 @@ function renderNav(){
   var tabs=[
     ['hoy','casa','Hoy'],
     ['yo','cuerpo','Yo'],
-    ['perras','pata','Perras'],
-    ['boya','nutria','Boya'],
+    ['perras','pata','Mascotas'],
+    ['habitos','diana','Hábitos'],
     ['calma','ola','Calma']
   ];
   var h='<div class="nav">';
@@ -2785,6 +2868,29 @@ function renderHoy(){
     h+='<div class="banner">🫧 <div>¿Sientes que estás revisando esto muchas veces seguidas? Puedes activar el <b>modo suave</b>, que oculta números y rachas.<div class="acciones"><button data-action="activar-suave">Activar modo suave</button><button data-action="descartar-nudge">Ahora no</button></div></div></div>';
   }
 
+  /* ---- Boya primero: es lo primero que se ve al abrir ---- */
+  var nec=necesidadesBoya();
+  var pide=boyaPideAlgo();
+  var ordenC=ordenCuarto();
+  h+='<div class="escena escena-hoy" id="escena-hoy">';
+  h+=fondoCuarto(ordenC);
+  var nSuc=desordenPendiente();
+  for(var ci=vecesHoy('boya:limpiar'); ci<vecesHoy('boya:limpiar')+nSuc && ci<CLUTTER_POS.length; ci++){
+    h+='<button class="cuarto-desorden" data-action="recoger" data-value="'+ci+'" style="left:'+CLUTTER_POS[ci].left+'; bottom:'+CLUTTER_POS[ci].bottom+'">'+DIBUJO_DESORDEN[ci%DIBUJO_DESORDEN.length]+'</button>';
+  }
+  h+='<button class="esc-boya'+(V.boyaTocada?' tocada':'')+'" data-action="tocar-boya">'+dibujarNutria(bm.id, null, V.boyaAccion||actividadBoya())+'</button>';
+  if(ordenC===0) h+='<div class="cuarto-velo" style="opacity:.28"></div>';
+  h+='<button class="esc-ir" data-action="nav" data-value="boya" title="Su cuarto">⤢</button>';
+  if(V.dialogoBoya) h+='<div class="globo-cuarto">'+esc(V.dialogoBoya)+'</div>';
+  else if(pide) h+='<div class="globo-cuarto pide">'+NOMBRE_BOYA+' '+(pide.id==='comer'?'tiene hambre':pide.id==='jugar'?'quiere jugar':'quiere un mimo')+'</div>';
+  h+='</div>';
+  h+='<div class="acc-rapidas">';
+  h+='<button class="ar'+(nec.hambre>=70?' urge':'')+'" data-action="dar-comer">'+ico('cuenco',19)+'<span>Comer</span></button>';
+  h+='<button class="ar'+(nec.juego>=70?' urge':'')+'" data-action="jugar-boya">'+ico('diana',19)+'<span>Jugar</span></button>';
+  h+='<button class="ar'+(nec.mimos>=80?' urge':'')+'" data-action="tocar-boya">'+ico('respirar',19)+'<span>Mimo</span></button>';
+  h+='<button class="ar'+(nSuc?' urge':'')+'" data-action="recoger-todo" '+(nSuc?'':'disabled')+'>'+ico('caja',19)+'<span>Ordenar</span></button>';
+  h+='</div>';
+
   /* ---- 1. lo que sigue: el primero en grande, el resto en renglones.
          Antes esto eran dos bloques ("Ahora" y "Pendiente ahora") y el
          mismo pendiente salía dos veces seguidas. ---- */
@@ -2793,7 +2899,7 @@ function renderHoy(){
   if(!pend.length){
     h+='<div class="ahora n-1" style="--t:var(--h-agua)">';
     h+='<div class="ahora-fila"><span class="ahora-emo">'+ico('ola',28)+'</span>';
-    h+='<div class="ahora-txt"><b>No hay nada urgente</b><i>En serio. Lo de hoy está cubierto — '+esc((S.boya&&S.boya.nombre)||'Boya')+' también lo nota.</i></div></div>';
+    h+='<div class="ahora-txt"><b>No hay nada urgente</b><i>En serio. Lo de hoy está cubierto — '+NOMBRE_BOYA+' también lo nota.</i></div></div>';
     h+='</div>';
   } else {
     var jefe=pend[0];
@@ -2887,29 +2993,17 @@ function renderHoy(){
     h+='<div class="construyendo">';
     focoHoy.forEach(function(c){
       var st=estadoHabito(c.id);
-      var ya = c.contable ? (e.agua||0)>0 : !!e[c.id];
-      h+='<button class="cn'+(ya?' ok':'')+'" style="--t:var(--h-'+(c.tono||'humo')+')" data-action="toggle-cat" data-value="'+c.id+'">';
-      h+='<span class="cn-ico">'+ico(c.ico,19)+'</span>';
-      h+='<span class="cn-txt"><b>'+c.et+'</b><i>'+st.etapa.et.toLowerCase()+' · '+st.raices+'</i></span>';
+      var esMini=c.id.indexOf('mini:')===0;
+      var ya = hechoEn(hoyISO(), c.id);
+      h+='<button class="cn'+(ya?' ok':'')+'" style="--t:var(--h-'+(c.tono||'humo')+')" data-action="'+(esMini?'toggle-mini':'toggle-cat')+'" data-value="'+(esMini?c.id.slice(5):c.id)+'">';
+      h+='<span class="cn-ico">'+iconoHabito(c,19)+'</span>';
+      h+='<span class="cn-txt"><b>'+esc(c.et)+'</b><i>'+st.etapa.et.toLowerCase()+' · '+st.raices+'</i></span>';
       h+=puntos14(c.id);
       h+='<span class="cn-marca">'+(ya?'✓':'')+'</span>';
       h+='</button>';
     });
     h+='</div>';
   }
-
-  /* ---- 3. Boya: acompaña después de lo que hay que hacer ---- */
-  var fondoEq = S.equipado.fondo && FONDOS_BOYA[S.equipado.fondo];
-  h+='<div class="escena" '+(fondoEq?'style="background:'+fondoEq.grad+'"':'')+'>';
-  h+='<div class="esc-suelo"></div>';
-  h+='<button class="esc-boya'+(V.boyaTocada?' tocada':'')+'" data-action="tocar-boya">'+dibujarNutria(bm.id, null, V.boyaAccion||actividadBoya())+'</button>';
-  h+='<div class="esc-panel" data-action="nav" data-value="boya">';
-  h+='<b>'+bm.t+'</b><i>'+bm.s+'</i>';
-  h+='<div class="esc-bar"><span style="width:'+pct+'%"></span></div>';
-  h+='<em>'+cuenta+' de '+CATS.length+' hoy · su cuarto ›</em>';
-  h+='</div>';
-  if(V.dialogoBoya) h+='<div class="globo-dialogo">'+esc(V.dialogoBoya)+'</div>';
-  h+='</div>';
 
   return h;
 }
@@ -2995,9 +3089,27 @@ var CLUTTER_POS=[
   {left:'12%', bottom:'6%'}, {left:'42%', bottom:'3%'}, {left:'64%', bottom:'9%'},
   {left:'26%', bottom:'15%'}, {left:'78%', bottom:'5%'}
 ];
+/* El cuarto se dibuja igual en Hoy y en su pantalla: verla flotando sobre
+   un degradado plano era justo lo que la hacía ver "quieta y aburrida".
+   Con su cuarto detrás, hay un lugar y hay contexto. */
+function fondoCuarto(orden){
+  var fondoEq = S.equipado.fondo && FONDOS_BOYA[S.equipado.fondo];
+  var h='';
+  h+='<div class="cuarto-pared" style="background:'+(fondoEq?fondoEq.pared:PARED_DEFECTO)+'"></div>';
+  h+='<div class="cuarto-piso" style="background:'+(fondoEq?fondoEq.piso:PISO_DEFECTO)+'"></div>';
+  (S.comprados||[]).forEach(function(id){
+    var it=ITEMS_BOYA.filter(function(x){ return x.id===id; })[0];
+    var slot=SLOTS_DECOR[id];
+    if(!it || it.tipo!=='decor' || !slot) return;
+    var estilo='left:'+slot.left+'; width:'+slot.width+'; '+(slot.top?'top:'+slot.top:'bottom:'+slot.bottom)+(slot.marginLeft?'; margin-left:'+slot.marginLeft:'');
+    h+='<div class="cuarto-decor '+(orden<=1?'sucio':'')+'" style="'+estilo+'">'+(dibujoDecor(id)||it.emo)+'</div>';
+  });
+  return h;
+}
+
 function renderBoyaPanel(){
   var vinc=calcularVinculo();
-  var nombreBoya=(S.boya&&S.boya.nombre)||'Boya';
+  var nombreBoya=NOMBRE_BOYA;
   var e=entradaHoy();
   var bm=mensajeBoya(contarCategorias(e));
   var fondoEq = S.equipado.fondo && FONDOS_BOYA[S.equipado.fondo];
@@ -3074,9 +3186,7 @@ function renderBoyaPanel(){
     h+='</div>';
   }
 
-  h+='<div class="boya-nombre-fila">';
-  h+='<input type="text" data-bind="boya.nombre" value="'+esc(nombreBoya)+'" maxlength="16">';
-  h+='</div>';
+  h+='<div class="boya-nombre-fila"><span class="boya-nom-fijo">'+NOMBRE_BOYA+'</span></div>';
   h+='<p class="sub" style="text-align:center; margin-top:6px">'+esc(TEXTOS_ORDEN[orden])+'</p>';
   h+='<p class="sub" style="text-align:center; margin-top:2px">'+esc(bm.s)+'</p>';
   h+='<div class="vinculo-barra">';
@@ -3103,11 +3213,7 @@ function renderBoyaPanel(){
     });
     h+='</div>';
 
-    h+='<div class="card">';
-    h+='<h3>Su nombre</h3>';
-    h+='<div class="boya-nombre-fila" style="margin-top:10px">';
-    h+='<input type="text" data-bind="boya.nombre" value="'+esc(nombreBoya)+'" maxlength="16">';
-    h+='</div></div>';
+
 
     var c=S.contadores||{};
     h+='<div class="card">';
@@ -3264,35 +3370,29 @@ function renderCuidados(){ return renderMedicamentos(); }
 
 function renderPerras(){
   var h='';
-  h+='<div class="seccion"><span>Las perras</span></div>';
+  h+='<div class="seccion"><span>Mis mascotas</span>'+((S.mascotas||[]).length?'<em>'+S.mascotas.length+'</em>':'')+'</div>';
 
-  if(!S.perras || !S.perras.length){
+  if(!S.mascotas || !S.mascotas.length){
     h+='<div class="card">';
     h+='<p class="sub">Ellas dependen de ti y no pueden recordarte nada. Ancla te muestra siempre <b>hace cuánto</b> fue cada cosa, para que no tengas que acordarte — solo mirar.</p>';
-    h+='<div class="emoji-pick" style="margin-top:14px">';
-    EMOJIS_PERRA.forEach(function(em){ h+='<button class="emoji-op '+(V.perraEmo===em?'sel':'')+'" data-action="elegir-perra-emo" data-value="'+em+'">'+em+'</button>'; });
-    h+='</div>';
-    h+='<div class="fila-input" style="margin-top:10px">';
-    h+='<input type="text" id="inp-perra" placeholder="Nombre de tu perra" value="'+esc(V.perraNombre||'')+'">';
-    h+='<button class="btn btn-fantasma btn-chico" data-action="agregar-perra">Agregar</button>';
-    h+='</div>';
+    h+=formNuevaMascota();
     h+='</div>';
     return h;
   }
 
   var pend=pendientesPerras();
   h+='<div class="card">';
-  h+='<div class="perras-cabecera">';
-  h+='<span class="sub">'+(pend.length ? pend.length+' cosa'+(pend.length===1?'':'s')+' por hacer' : 'Todo al día')+'</span>';
-  h+='</div>';
+  h+='<div class="perras-cabecera"><span class="sub">'+(pend.length ? pend.length+' cosa'+(pend.length===1?'':'s')+' por hacer' : 'Todo al día')+'</span></div>';
   h+='<p class="sub" style="margin-top:6px">Toca cuando lo hagas. Lo único que importa acá es la hora de la última vez — no la culpa.</p>';
   h+='</div>';
 
-  S.perras.forEach(function(pe){
+  S.mascotas.forEach(function(pe){
+    var esp=especieDe(pe.especie);
     h+='<div class="card">';
-    h+='<div class="perra-titulo"><span class="emo">'+pe.emo+'</span><span class="nom">'+esc(pe.nombre)+'</span>';
+    h+='<div class="perra-titulo"><span class="emo">'+(pe.emo||esp.emo)+'</span><span class="nom">'+esc(pe.nombre)+'</span>';
+    h+='<span class="esp-chip">'+esp.et+'</span>';
     h+='<button class="quitar-perra" data-action="quitar-perra" data-value="'+pe.id+'">✕</button></div>';
-    CUIDADOS.forEach(function(c){
+    cuidadosDe(pe).forEach(function(c){
       if(!cuidadoActivo(c)) return;
       var st=estadoCuidado(pe, c);
       var cls = st.urgencia===2 ? 'urg2' : st.urgencia===1 ? 'urg1' : 'ok';
@@ -3309,9 +3409,16 @@ function renderPerras(){
   });
 
   h+='<div class="card">';
+  h+='<h3>Agregar otra mascota</h3>';
+  h+=formNuevaMascota();
+  h+='</div>';
+
+  h+='<div class="card">';
   h+='<h3>Ajustar</h3>';
   h+='<p class="sub">Cuántas veces al día necesita cada cosa. Si algo no aplica, apágalo.</p>';
   CUIDADOS.forEach(function(c){
+    var usado=(S.mascotas||[]).some(function(m){ return cuidadosDe(m).some(function(x){ return x.id===c.id; }); });
+    if(!usado) return;
     var meta=vecesMeta(c), on=cuidadoActivo(c);
     h+='<div class="campo-fila" style="margin-top:12px">';
     h+='<span class="l">'+c.et+'</span>';
@@ -3322,13 +3429,24 @@ function renderPerras(){
     h+='<button class="cui-onoff" data-action="cuidado-onoff" data-value="'+c.id+'">'+(on?'apagar':'prender')+'</button>';
     h+='</span></div>';
   });
-  h+='<div class="emoji-pick" style="margin-top:16px">';
-  EMOJIS_PERRA.forEach(function(em){ h+='<button class="emoji-op '+(V.perraEmo===em?'sel':'')+'" data-action="elegir-perra-emo" data-value="'+em+'">'+em+'</button>'; });
   h+='</div>';
+  return h;
+}
+
+function formNuevaMascota(){
+  var h='';
+  h+='<div class="esp-row">';
+  ESPECIES.forEach(function(e){
+    h+='<button class="esp-op '+((V.mascEspecie||'perro')===e.id?'sel':'')+'" data-action="elegir-especie" data-value="'+e.id+'">'+
+       '<span>'+e.emo+'</span>'+e.et+'</button>';
+  });
+  h+='</div>';
+  var espSel=especieDe(V.mascEspecie||'perro');
+  h+='<p class="sub" style="margin-top:9px; font-size:11.5px">Va a llevar: '+
+     espSel.cuidados.map(function(cid){ return (CUIDADOS.filter(function(x){return x.id===cid;})[0]||{}).et; }).join(' · ')+'</p>';
   h+='<div class="fila-input" style="margin-top:10px">';
-  h+='<input type="text" id="inp-perra" placeholder="Agregar otra" value="'+esc(V.perraNombre||'')+'">';
+  h+='<input type="text" id="inp-perra" placeholder="Su nombre" value="'+esc(V.perraNombre||'')+'">';
   h+='<button class="btn btn-fantasma btn-chico" data-action="agregar-perra">Agregar</button>';
-  h+='</div>';
   h+='</div>';
   return h;
 }
@@ -3346,7 +3464,7 @@ function renderEnfoque(){
     h+='<div class="sesion-boya">'+dibujarNutria('tranquila', null, 'trabajando')+'</div>';
     h+='<div class="sesion-et">'+(a.pausadaEn?'En pausa':'Estás trabajando')+'</div>';
     h+='<div class="reloj" id="reloj-enfoque">'+mmss(rest)+'</div>';
-    h+='<div class="sub" style="text-align:center">Bloque de '+a.durMin+' min · '+esc((S.boya&&S.boya.nombre)||'Boya')+' se queda contigo</div>';
+    h+='<div class="sub" style="text-align:center">Bloque de '+a.durMin+' min · '+NOMBRE_BOYA+' se queda contigo</div>';
     h+='<div class="sesion-btns">';
     h+='<button class="btn btn-fantasma" data-action="pausar-sesion">'+(a.pausadaEn?'Seguir':'Pausa')+'</button>';
     h+='<button class="btn btn-principal" data-action="terminar-sesion">Terminar y contar</button>';
@@ -3555,8 +3673,8 @@ function renderHabitos(){
   foco.forEach(function(c){
     var st=estadoHabito(c.id);
     h+='<div class="card hab" style="--t:var(--h-'+(c.tono||'humo')+')">';
-    h+='<div class="hab-top"><span class="hab-ico">'+ico(c.ico,22)+'</span>';
-    h+='<div class="hab-nom"><b>'+c.et+'</b><i>'+st.etapa.et+' · '+st.etapa.desc+'</i></div>';
+    h+='<div class="hab-top"><span class="hab-ico">'+iconoHabito(c,22)+'</span>';
+    h+='<div class="hab-nom"><b>'+esc(c.et)+'</b><i>'+st.etapa.et+' · '+st.etapa.desc+'</i></div>';
     h+='<button class="hab-x" data-action="quitar-foco" data-value="'+c.id+'">✕</button></div>';
 
     h+='<div class="raiz-cifra"><b>'+st.raices+'</b><span>raíces de '+RAIZ_META+'</span>';
@@ -3581,11 +3699,19 @@ function renderHabitos(){
     h+=puntos14(c.id);
     h+='<div class="hab-pie"><span>últimos 14 días</span><span>'+
        (st.listo?'listo para quedarse solo':'las raíces no bajan nunca')+'</span></div>';
+    var anc=anclaDe(c.id);
+    h+='<div class="ancla-caja'+(anc?' puesta':'')+'">';
+    h+='<span class="an-et">Mi ancla</span>';
+    h+='<div class="fila-input"><input type="text" id="inp-ancla-'+c.id+'" placeholder="Después de… (ej: lavarme los dientes)" value="'+esc(anc)+'"></div>';
+    h+='<p class="an-nota">'+(anc
+      ? 'Después de <b>'+esc(anc)+'</b>, '+c.et.toLowerCase()+'.'
+      : 'Engancharlo a algo que YA haces todos los días funciona mejor que proponérselo.')+'</p>';
+    h+='</div>';
     h+='</div>';
   });
 
   if(foco.length<FOCO_MAX){
-    var libres=CATS.filter(function(c){ return (S.foco||[]).indexOf(c.id)<0 && !estaGraduado(c.id); });
+    var libres=habitosDisponibles().filter(function(c){ return (S.foco||[]).indexOf(c.id)<0 && !estaGraduado(c.id); });
     if(libres.length){
       h+='<div class="card">';
       h+='<h3>'+(foco.length?'Agregar otro':'Elige el primero')+'</h3>';
@@ -3594,7 +3720,7 @@ function renderHabitos(){
       libres.forEach(function(c){
         var st=estadoHabito(c.id);
         h+='<button class="eh" data-action="agregar-foco" data-value="'+c.id+'" style="--t:var(--h-'+(c.tono||'humo')+')">'+
-           ico(c.ico,20)+'<b>'+c.et+'</b><i>'+(st.raices? st.raices+' raíces':'sin empezar')+'</i></button>';
+           iconoHabito(c,20)+'<b>'+esc(c.et)+'</b><i>'+(st.raices? st.raices+' raíces':'sin empezar')+'</i></button>';
       });
       h+='</div></div>';
     }
@@ -3606,22 +3732,39 @@ function renderHabitos(){
     h+='<p class="sub">Se sostuvieron solos. Siguen contando en tu día, pero ya no hay que empujarlos.</p>';
     h+='<div class="graduados">';
     S.graduados.forEach(function(g){
-      var c=CATS.filter(function(x){ return x.id===g.id; })[0];
+      var c=habitoPorId(g.id);
       if(!c) return;
       var st=estadoHabito(c.id);
-      h+='<div class="gr" style="--t:var(--h-'+(c.tono||'humo')+')">'+ico(c.ico,20)+
-         '<b>'+c.et+'</b><i>'+st.raices+' raíces · mejor racha '+st.mejor+'</i>'+
+      h+='<div class="gr" style="--t:var(--h-'+(c.tono||'humo')+')">'+iconoHabito(c,20)+
+         '<b>'+esc(c.et)+'</b><i>'+st.raices+' raíces · mejor racha '+st.mejor+'</i>'+
          '<button class="gr-x" data-action="volver-foco" data-value="'+c.id+'">volver a trabajarlo</button></div>';
     });
     h+='</div></div>';
   }
 
+  if(foco.length){
+    h+='<div class="seccion"><span>Las últimas 8 semanas</span></div>';
+    h+='<div class="card">';
+    foco.forEach(function(c){
+      h+='<div class="mapa-t">'+iconoHabito(c,16)+esc(c.et)+'</div>';
+      h+='<div class="mapa">';
+      for(var w=7; w>=0; w--){
+        var hechos=tasaVentana(c.id, 7, w*7);
+        var nivel = hechos===0?0 : hechos<=2?1 : hechos<=4?2 : hechos<=6?3 : 4;
+        h+='<span class="mw n'+nivel+'" style="--t:var(--h-'+(c.tono||'humo')+')" title="'+hechos+' de 7"></span>';
+      }
+      h+='</div>';
+    });
+    h+='<p class="sub" style="margin-top:11px; font-size:11.5px">Cada bloque es una semana, de hace 8 hasta esta. Sirve para ver la tendencia, no para juzgar una semana suelta.</p>';
+    h+='</div>';
+  }
+
   h+='<div class="seccion"><span>Todos</span></div>';
   h+='<div class="card">';
-  CATS.forEach(function(c){
+  habitosDisponibles().forEach(function(c){
     var st=estadoHabito(c.id);
     h+='<div class="hab-fila" style="--t:var(--h-'+(c.tono||'humo')+')">';
-    h+='<span class="hf-ico">'+ico(c.ico,18)+'</span>';
+    h+='<span class="hf-ico">'+iconoHabito(c,18)+'</span>';
     h+='<span class="hf-et">'+c.et+'</span>';
     h+=puntos14(c.id);
     h+='<span class="hf-num">'+st.raices+'</span>';
@@ -3884,7 +4027,7 @@ function renderAjustes(){
 
   h+='<div class="card">';
   h+='<h3>Color de la app</h3>';
-  h+='<p class="sub">Cambia la paleta entera, no solo el fondo — incluido el mundo de '+esc((S.boya&&S.boya.nombre)||'Boya')+'.</p>';
+  h+='<p class="sub">Cambia la paleta entera, no solo el fondo — incluido el mundo de '+NOMBRE_BOYA+'.</p>';
   h+='<div class="temas">';
   h+='<button class="tema-op '+(!S.tema?'sel':'')+'" data-action="elegir-tema" data-value="auto">'+
      '<span class="tema-punto" style="background:linear-gradient(135deg,#ece3d1 50%,#0d1417 50%)"></span>Automático</button>';
@@ -3994,7 +4137,7 @@ app.addEventListener('click', function(ev){
       S.foco.push(val);
       S.graduados=(S.graduados||[]).filter(function(g){ return g.id!==val; });
       sonidoArpegio(); vibrar([12,26,12]);
-      var cf=CATS.filter(function(x){ return x.id===val; })[0];
+      var cf=habitoPorId(val);
       mostrarToast('Trabajando en '+(cf?cf.et.toLowerCase():'esto')+'. Un paso a la vez.');
     }
   }
@@ -4043,8 +4186,7 @@ app.addEventListener('click', function(ev){
     var inpN=document.getElementById('inp-nombre-onboarding');
     var inpB=document.getElementById('inp-nombre-boya-onboarding');
     S.usuario.nombre=(inpN?inpN.value:'').trim();
-    var nombreBoya=(inpB?inpB.value:'').trim();
-    if(nombreBoya) S.boya.nombre=nombreBoya;
+
     S.onboardingVisto=true; guardar();
     V.tab='habitos';
     celebrar('bienvenida', {titulo:'Listo'+(S.usuario.nombre?', '+S.usuario.nombre:'')+' 🎉', sub:'Ahora elige UNA cosa por la que empezar. Solo una.'});
@@ -4088,6 +4230,7 @@ app.addEventListener('click', function(ev){
     guardar();
   }
   else if(act==='toggle-mini'){
+
     var extra=extraDeHoy();
     extra[val]=!extra[val];
     if(extra[val]){
@@ -4118,7 +4261,7 @@ app.addEventListener('click', function(ev){
       if(art.tipo!=='decor') S.equipado[art.tipo]=art.id;
       S.contadores.comprasTotal=(S.contadores.comprasTotal||0)+1;
       sonidoArpegio(); vibrar([20,30,20]);
-      mostrarToast(art.tipo==='decor' ? 'Ya está en el cuarto de '+(S.boya.nombre||'Boya')+' 🎉' : (S.boya.nombre||'Boya')+' ya tiene '+art.nombre.toLowerCase()+' 🎉');
+      mostrarToast(art.tipo==='decor' ? 'Ya está en el cuarto de '+NOMBRE_BOYA+' 🎉' : NOMBRE_BOYA+' ya tiene '+art.nombre.toLowerCase()+' 🎉');
     }
   }
   else if(act==='equipar-item'){
@@ -4258,21 +4401,22 @@ app.addEventListener('click', function(ev){
   }
   else if(act==='elegir-clima'){ V.climaHoy=val; }
   else if(act==='elegir-clima-nueva'){ V.ropaClima=val||null; }
-  else if(act==='elegir-perra-emo'){ V.perraEmo=val; }
+  else if(act==='elegir-especie'){ V.mascEspecie=val; }
   else if(act==='agregar-perra'){
     var inpP=document.getElementById('inp-perra');
     var nomP=(inpP?inpP.value:'').trim();
     if(nomP){
-      S.perras.push({id:'p'+Date.now(), nombre:nomP.slice(0,18), emo:V.perraEmo||'🐕'});
+      var espN=especieDe(V.mascEspecie||'perro');
+      S.mascotas.push({id:'p'+Date.now(), nombre:nomP.slice(0,18), emo:espN.emo, especie:espN.id});
       V.perraNombre=''; sonidoPop(620); vibrar(12);
       mostrarToast(nomP+' ya está en Ancla 🐾');
     }
   }
   else if(act==='quitar-perra'){
-    S.perras=S.perras.filter(function(x){ return x.id!==val; });
+    S.mascotas=S.mascotas.filter(function(x){ return x.id!==val; });
   }
   else if(act==='registrar-cuidado'){
-    var prt=val.split('|'), peR=(S.perras||[]).filter(function(x){ return x.id===prt[0]; })[0], cR=cuidadoDe(prt[1]);
+    var prt=val.split('|'), peR=(S.mascotas||[]).filter(function(x){ return x.id===prt[0]; })[0], cR=cuidadoDe(prt[1]);
     if(peR && cR){
       registrarEvento('perra:'+peR.id+':'+cR.id);
       S.contadores.cuidadosPerra=(S.contadores.cuidadosPerra||0)+1;
@@ -4455,6 +4599,12 @@ app.addEventListener('change', function(ev){
 app.addEventListener('input', function(ev){
   if(ev.target.id==='inp-ropa') V.ropaNueva=ev.target.value;
   if(ev.target.id==='inp-perra') V.perraNombre=ev.target.value;
+  if(ev.target.id && ev.target.id.indexOf('inp-ancla-')===0){
+    var hid=ev.target.id.slice('inp-ancla-'.length);
+    if(!S.anclas) S.anclas={};
+    S.anclas[hid]=ev.target.value.slice(0,60);
+    guardar();
+  }
   if(ev.target.id==='inp-med') V.medNombre=ev.target.value;
   if(ev.target.id==='inp-prenda-nombre') V.prendaNombre=ev.target.value;
   if(ev.target.id==='inp-med-dosis') V.medDosis=ev.target.value;

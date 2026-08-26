@@ -12,9 +12,50 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.21.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.22.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.21.0" al reportar algo raro.
+> pasó en la v0.22.0" al reportar algo raro.
+
+## Mascotas, Boya en la portada y Hábitos como sección propia (v0.22.0)
+
+### Mascotas, no solo perras
+Cada especie necesita cosas distintas: **un gato no sale a pasear y un perro no tiene
+arena**. Mostrar cuidados que no aplican es ruido, y peor: hace que la app se sienta ajena a
+quien de verdad tiene esa mascota.
+
+Ahora se elige la especie —**perro, gato, ave, conejo o roedor, pez, reptil, otra**— y cada
+una trae solo lo suyo:
+
+| | |
+|---|---|
+| Perro | comida · agua · salida · paseo |
+| Gato | comida · agua · **arena** |
+| Ave / roedor / reptil | comida · agua · **limpieza** |
+| Pez | comida · limpieza |
+
+Lo ya registrado no se pierde: las perras existentes se migran a mascotas con especie perro,
+conservando todo su historial.
+
+### Boya se llama Boya
+Se quitó la posibilidad de cambiarle el nombre. Es su nombre y ya.
+
+### Boya abre la app, y en su cuarto
+Era lo primero que se veía… flotando sobre un degradado plano, y por eso se veía quieta.
+Ahora **abre la pantalla de Hoy dentro de su cuarto**: su pared, su piso, su decoración y las
+cosas tiradas si las hay. Debajo, cuatro acciones a un toque: **Comer · Jugar · Mimo ·
+Ordenar** — ya no hay que entrar a otra pantalla para interactuar con ella. Si necesita algo,
+lo dice en un globo ahí mismo, y el ⤢ lleva a su cuarto completo.
+
+### Hábitos, sección propia y con más fondo
+Sube a la barra como pestaña propia, y gana lo que de verdad forma hábitos:
+
+- **El ancla** — *"Después de lavarme los dientes, …"*. Enganchar un hábito nuevo a algo que
+  ya se hace todos los días funciona mejor que proponérselo, y es la técnica con más
+  respaldo. También es lo que le da sentido al nombre de la app.
+- **Las últimas 8 semanas** en bloques: sirve para ver la tendencia, no para juzgar una
+  semana suelta.
+- **Hábitos propios**: cualquier recordatorio tuyo puede entrar en construcción, no solo las
+  ocho categorías de fábrica.
 
 ## Raíces: un progreso que no se puede perder (v0.21.0)
 
