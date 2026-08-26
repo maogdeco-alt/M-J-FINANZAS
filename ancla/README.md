@@ -12,9 +12,50 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.19.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.20.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.19.0" al reportar algo raro.
+> pasó en la v0.20.0" al reportar algo raro.
+
+## La app deja de registrar y empieza a construir hábitos (v0.20.0)
+
+Dos personas la probaron y dijeron tres cosas: que Boya no interactúa de verdad, que la app
+**no tiene ruta**, y que **pierde de vista que se trata de formar hábitos**. Al revisar el
+código, tenían razón — y era comprobable: existía `calcularConsecutivos()` por categoría,
+pero **solo se usaba para repartir medallas**. Había una única racha global y las ocho
+categorías se trataban igual para siempre. Eso es un registro diario, no un formador de
+hábitos.
+
+### Uno a la vez, y se gradúa
+Un hábito no se forma persiguiendo ocho cosas cada día. Se forma trabajando en **pocas**,
+viendo la evidencia de que está pegando, y sabiendo cuándo ya quedó.
+
+- Eliges **de 1 a 3 hábitos en foco**. El resto sigue ahí, pero como registro opcional.
+- Cada uno muestra **su racha, sus últimos 14 días en puntos, y cuánto le falta**.
+- Cuando se sostiene solo —**12 de los últimos 14 días y 7 seguidos**— **se gradúa**: sale
+  del foco, pasa a *"Ya son tuyos"* y deja espacio para el siguiente. Con celebración y una
+  recompensa grande.
+- Comparación semanal por hábito: *"esta semana 5 · la pasada 3"*.
+- Se puede volver a trabajar un graduado si se cae.
+
+Eso es la ruta que faltaba: **siempre estás construyendo algo concreto, y las cosas
+terminan.**
+
+### La ruta se ve en Hoy
+Debajo de las tareas hay una tira **Construyendo** con los hábitos en foco, su racha y sus
+14 días — y se marcan desde ahí mismo. Si todavía no has elegido ninguno, Hoy te invita:
+*"Marcar todo cada día no forma un hábito. Elige una sola cosa."*
+
+Y el onboarding ahora termina llevándote a elegir el primero.
+
+### Boya entra en el bucle
+Antes solo reaccionaba si entrabas a su cuarto — por eso parecía un adorno. **Ahora responde
+en la pantalla donde estás, cada vez que marcas algo**, y lo que dice sale de tus datos
+reales:
+
+> *"Día uno de aseo. El uno también cuenta."*
+> *"Tres seguidos con desayuno. Ya no es casualidad."*
+> *"¡Una semana! Esto ya tiene forma."*
+> *"Catorce días. Dormir está a punto de quedarse solo."*
 
 ## Una regla para todo (v0.19.0)
 

@@ -519,6 +519,61 @@ body{background:linear-gradient(178deg, var(--bg2, #f2ebdc) 0%, var(--bg) 34%)}
 
 .hub-item.urge{background:linear-gradient(90deg, rgba(178,94,57,.1), var(--card) 60%)}
 .hub-item.urge .hb-txt i{color:var(--coral); font-weight:600}
+
+/* ---- hábitos: la ruta ---- */
+.p14{display:flex; gap:2.5px; align-items:center; margin:11px 0}
+.p14 i{width:8px; height:8px; border-radius:2px; background:var(--line); display:block}
+.p14 i.on{background:var(--t, var(--coral))}
+.p14 i.hoy{box-shadow:0 0 0 1.5px var(--ink)}
+.hab{border-left:4px solid var(--t)}
+.hab-top{display:flex; align-items:center; gap:11px}
+.hab-ico{color:var(--t); display:flex; flex:none}
+.hab-nom{flex:1; min-width:0}
+.hab-nom b{display:block; font-family:var(--font-display); font-size:18px; font-weight:600; color:var(--ink)}
+.hab-nom i{display:block; font-style:normal; font-size:12px; color:var(--sub); margin-top:2px}
+.hab-x{background:none; color:var(--sub); font-size:14px; padding:4px 6px}
+.hab-bar{height:6px; background:var(--line); border-radius:4px; overflow:hidden}
+.hab-bar i{display:block; height:100%; background:var(--t); border-radius:4px; transition:width .4s}
+.hab-pie{display:flex; justify-content:space-between; gap:10px; margin-top:9px; font-family:var(--font-mono); font-size:10px; color:var(--sub)}
+.hab-tend{margin-top:9px; font-size:11.5px; font-weight:600}
+.hab-tend.sube{color:var(--h-oliva)}
+.hab-tend.baja{color:var(--sub)}
+.elegir-hab{display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:9px; margin-top:13px}
+.eh{display:flex; flex-direction:column; align-items:center; gap:4px; padding:13px 8px; border-radius:var(--radius-s);
+  border:1.5px solid var(--line); background:var(--bg); color:var(--t)}
+.eh b{font-size:12px; font-weight:700; color:var(--ink)}
+.eh i{font-style:normal; font-family:var(--font-mono); font-size:9.5px; color:var(--sub)}
+.graduados{display:flex; flex-direction:column; gap:9px; margin-top:13px}
+.gr{display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:var(--radius-s);
+  background:var(--mint); color:var(--t)}
+.gr b{flex:none; font-size:13.5px; font-weight:700; color:var(--mint-ink)}
+.gr i{flex:1; font-style:normal; font-family:var(--font-mono); font-size:9.5px; color:var(--mint-ink); opacity:.75}
+.gr-x{background:none; font-size:10.5px; font-weight:700; color:var(--mint-ink); text-decoration:underline; padding:2px 0}
+.hab-fila{display:flex; align-items:center; gap:9px; padding:9px 0; border-bottom:1px solid var(--line)}
+.hab-fila:last-of-type{border-bottom:none}
+.hf-ico{color:var(--t); display:flex; flex:none}
+.hf-et{flex:1; font-size:13px; font-weight:600; color:var(--ink)}
+.hab-fila .p14{margin:0}
+.hf-num{font-family:var(--font-mono); font-size:12px; color:var(--sub); min-width:18px; text-align:right}
+
+/* ---- la ruta en Hoy ---- */
+.sec-link{background:none; font-size:11.5px; font-weight:700; color:var(--coral); padding:0}
+.construyendo{display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line);
+  border-radius:var(--radius-s); overflow:hidden}
+.cn{display:flex; align-items:center; gap:11px; padding:12px 13px; background:var(--card); text-align:left; width:100%;
+  border-left:3.5px solid var(--t)}
+.cn.ok{background:var(--mint)}
+.cn-ico{color:var(--t); display:flex; flex:none}
+.cn-txt{flex:none; min-width:82px}
+.cn-txt b{display:block; font-size:13.5px; font-weight:700; color:var(--ink)}
+.cn-txt i{display:block; font-style:normal; font-family:var(--font-mono); font-size:9.5px; color:var(--sub)}
+.cn .p14{margin:0; flex:1; justify-content:flex-end}
+.cn-marca{flex:none; width:22px; text-align:right; color:var(--t); font-weight:700}
+.invita{display:block; width:100%; text-align:left; padding:16px; border-radius:var(--radius);
+  border:1.5px dashed var(--coral); background:rgba(178,94,57,.06)}
+.invita b{display:block; font-family:var(--font-display); font-size:17px; font-weight:600; color:var(--ink)}
+.invita i{display:block; font-style:normal; font-size:12.5px; color:var(--sub); line-height:1.5; margin-top:5px}
+.invita span{display:block; margin-top:11px; font-size:12.5px; font-weight:700; color:var(--coral)}
 .huevo-wrap{display:flex; flex-direction:column; align-items:center; padding:26px 0 10px}
 .huevo-svg{width:150px; height:180px; cursor:pointer; filter:drop-shadow(0 10px 18px rgba(0,0,0,.15))}
 .huevo-svg.tambalea{animation:tambaleo .55s ease}
@@ -737,7 +792,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.19.0-beta';
+var VERSION='0.20.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -931,6 +986,8 @@ function estadoInicial(){
     entradas:{},
     contadores:{ ropaUsos:0, tareasUsos:0, miniToques:0, tocarBoyaTotal:0, comprasTotal:0, conchitasGanadasTotal:0, pendientesResueltos:0, fotosTotal:0 },
     medallasGanadas:[],
+    foco:[],
+    graduados:[],
     tema:null,
     eventos:[],
     perras:[],
@@ -982,6 +1039,8 @@ function cargar(){
     if(!d.rutinasHechas) d.rutinasHechas={};
     if(!d.pendientes) d.pendientes=[];
     if(!d.medallasGanadas) d.medallasGanadas=[];
+    if(!d.foco) d.foco=[];
+    if(!d.graduados) d.graduados=[];
     if(d.tema===undefined) d.tema=null;
     if(!d.eventos) d.eventos=[];
     if(!d.perras) d.perras=[];
@@ -1571,6 +1630,82 @@ function pendientesMedicamentos(){
 }
 function ultimaTomaDe(m){ return ultimaVez('med:'+m.id); }
 
+/* ===================== hábitos =====================
+   Hasta acá la app REGISTRABA el día pero no construía nada: una sola
+   racha global y ocho categorías tratadas igual para siempre. Un hábito
+   no se forma así. Se forma trabajando en POCAS cosas a la vez, viendo la
+   evidencia de que está pegando, y sabiendo cuándo ya quedó.
+
+   Por eso: eliges 1 a 3 hábitos en foco, la app te muestra la racha y los
+   últimos 14 días de cada uno, y cuando se sostiene solo, se GRADÚA — sale
+   del foco y deja espacio para el siguiente. Esa es la ruta. */
+var FOCO_MAX=3;
+var META_DIAS=12, META_VENTANA=14, META_RACHA=7;
+function hechoEn(iso, id){
+  var e=S.entradas[iso];
+  if(!e) return false;
+  return id==='agua' ? (e.agua>0) : !!e[id];
+}
+function ultimosDias(id, n){
+  var hoy=new Date(); hoy.setHours(0,0,0,0);
+  var out=[];
+  for(var i=n-1;i>=0;i--){
+    var d=new Date(hoy); d.setDate(d.getDate()-i);
+    out.push({iso:toISO(d), hecho:hechoEn(toISO(d), id), esHoy:i===0});
+  }
+  return out;
+}
+function tasaVentana(id, n, desplazamiento){
+  var hoy=new Date(); hoy.setHours(0,0,0,0);
+  var hechos=0;
+  for(var i=0;i<n;i++){
+    var d=new Date(hoy); d.setDate(d.getDate()-i-(desplazamiento||0));
+    if(hechoEn(toISO(d), id)) hechos++;
+  }
+  return hechos;
+}
+function mejorRachaHabito(id){
+  var hoy=new Date(); hoy.setHours(0,0,0,0);
+  var mejor=0, actual=0;
+  for(var i=180;i>=0;i--){
+    var d=new Date(hoy); d.setDate(d.getDate()-i);
+    if(hechoEn(toISO(d), id)){ actual++; if(actual>mejor) mejor=actual; }
+    else if(i>0){ actual=0; }
+  }
+  return mejor;
+}
+function estaGraduado(id){ return (S.graduados||[]).some(function(g){ return g.id===id; }); }
+function estadoHabito(id){
+  var racha=calcularConsecutivos(id);
+  var enVentana=tasaVentana(id, META_VENTANA, 0);
+  var listo = enVentana>=META_DIAS && racha>=META_RACHA;
+  return {
+    id:id, racha:racha, mejor:mejorRachaHabito(id),
+    ventana:enVentana, meta:META_DIAS,
+    semana:tasaVentana(id,7,0), semanaPrevia:tasaVentana(id,7,7),
+    graduado:estaGraduado(id), listo:listo,
+    /* qué tan cerca está de quedarse solo */
+    avance: Math.min(100, Math.round((Math.min(enVentana,META_DIAS)/META_DIAS*0.7 + Math.min(racha,META_RACHA)/META_RACHA*0.3)*100))
+  };
+}
+function catsDeFoco(){
+  return (S.foco||[]).map(function(id){ return CATS.filter(function(c){ return c.id===id; })[0]; })
+                     .filter(function(c){ return !!c; });
+}
+/* revisa si algún hábito en foco ya se sostiene solo */
+function revisarGraduacion(){
+  var subio=null;
+  (S.foco||[]).slice().forEach(function(id){
+    var st=estadoHabito(id);
+    if(st.listo && !estaGraduado(id)){
+      S.graduados.push({id:id, fecha:hoyISO()});
+      S.foco=S.foco.filter(function(x){ return x!==id; });
+      subio=CATS.filter(function(c){ return c.id===id; })[0];
+    }
+  });
+  return subio;
+}
+
 /* ===================== qué toca ahora =====================
    El resto de la app es una lista: la lista obliga a elegir, y elegir es
    justo lo que se traba. Esto devuelve UNA sola cosa, la que más pesa en
@@ -1940,6 +2075,28 @@ function dibujarNutria(moodId, etapaParam, actividadParam){
     '</svg>';
 }
 
+/* Boya responde a lo que acabas de marcar, en la pantalla donde estás.
+   Antes solo reaccionaba si entrabas a su cuarto, y por eso parecía un
+   adorno: la mascota tiene que estar en el bucle de lo que haces. */
+function reaccionBoya(catId){
+  var c=CATS.filter(function(x){ return x.id===catId; })[0];
+  if(!c) return;
+  var st=estadoHabito(catId);
+  var enFoco=(S.foco||[]).indexOf(catId)>=0;
+  var t;
+  if(st.racha===1) t='Día uno de '+c.et.toLowerCase()+'. El uno también cuenta.';
+  else if(st.racha===3) t='Tres seguidos con '+c.et.toLowerCase()+'. Ya no es casualidad.';
+  else if(st.racha===7) t='¡Una semana con '+c.et.toLowerCase()+'! Esto ya tiene forma.';
+  else if(st.racha===14) t='Catorce días. '+c.et+' está a punto de quedarse solo.';
+  else if(enFoco && st.racha>1) t='Van '+st.racha+' seguidos con '+c.et.toLowerCase()+'. Lo estoy viendo.';
+  else if(st.ventana>=10) t=c.et+' otra vez. Últimamente casi nunca falla.';
+  else t=['Anotado.','Listo, eso ya está.','Bien ahí.','Eso cuenta, aunque no lo parezca.'][Math.floor(Math.random()*4)];
+  clearTimeout(accionTimer); clearTimeout(dialogoTimer);
+  V.boyaAccion='mimada'; V.dialogoBoya=t;
+  accionTimer=setTimeout(function(){ V.boyaAccion=null; render(); }, 2200);
+  dialogoTimer=setTimeout(function(){ V.dialogoBoya=null; render(); }, 3600);
+}
+
 /* ===================== reacciones de Boya =====================
    Una acción no es solo guardar un dato: Boya cambia de cara, hace algo
    durante unos segundos y dice algo que viene de lo que de verdad pasó.
@@ -2062,7 +2219,7 @@ function lanzarConfeti(n){
   setTimeout(function(){ cont.remove(); }, 2300);
 }
 var celebracionTimer=null;
-var BONO_CONCHITAS={ nivel:10, medalla:8, dia:5, rutina:6, enfoque:4 };
+var BONO_CONCHITAS={ nivel:10, medalla:8, dia:5, rutina:6, enfoque:4, habito:25 };
 function celebrar(tipo, datos){
   clearTimeout(celebracionTimer);
   var obj={tipo:tipo};
@@ -2412,6 +2569,7 @@ function render(){
     else if(V.tab==='boya') h+=renderBoyaPanel();
     else if(V.tab==='cuidados' || V.tab==='medicamentos') h+=renderMedicamentos();
     else if(V.tab==='yo') h+=renderYo();
+    else if(V.tab==='habitos') h+=renderHabitos();
     else if(V.tab==='perras') h+=renderPerras();
     else if(V.tab==='mas') h+=renderYo();
     else if(V.tab==='enfoque') h+=renderEnfoque();
@@ -2609,6 +2767,31 @@ function renderHoy(){
     h+='</div></div>';
   }
   h+='</div>';
+
+  /* ---- la ruta: en qué se está trabajando ahora mismo ---- */
+  var focoHoy=catsDeFoco();
+  if(!focoHoy.length && !(S.graduados||[]).length){
+    h+='<div class="seccion"><span>Construyendo</span></div>';
+    h+='<button class="invita" data-action="nav" data-value="habitos">';
+    h+='<b>¿Por dónde quieres empezar?</b>';
+    h+='<i>Marcar todo cada día no forma un hábito. Elige una sola cosa y yo te muestro cómo va pegando.</i>';
+    h+='<span>Elegir mi primer hábito ›</span></button>';
+  }
+  if(focoHoy.length){
+    h+='<div class="seccion"><span>Construyendo</span><button class="sec-link" data-action="nav" data-value="habitos">ver ›</button></div>';
+    h+='<div class="construyendo">';
+    focoHoy.forEach(function(c){
+      var st=estadoHabito(c.id);
+      var ya = c.contable ? (e.agua||0)>0 : !!e[c.id];
+      h+='<button class="cn'+(ya?' ok':'')+'" style="--t:var(--h-'+(c.tono||'humo')+')" data-action="toggle-cat" data-value="'+c.id+'">';
+      h+='<span class="cn-ico">'+ico(c.ico,19)+'</span>';
+      h+='<span class="cn-txt"><b>'+c.et+'</b><i>'+(st.racha? st.racha+' seguidos':'empieza hoy')+'</i></span>';
+      h+=puntos14(c.id);
+      h+='<span class="cn-marca">'+(ya?'✓':'')+'</span>';
+      h+='</button>';
+    });
+    h+='</div>';
+  }
 
   /* ---- 3. Boya: acompaña después de lo que hay que hacer ---- */
   var fondoEq = S.equipado.fondo && FONDOS_BOYA[S.equipado.fondo];
@@ -3243,6 +3426,92 @@ function renderVestirme(){
   return h;
 }
 
+function puntos14(id){
+  var h='<span class="p14">';
+  ultimosDias(id, 14).forEach(function(d){
+    h+='<i class="'+(d.hecho?'on':'')+(d.esHoy?' hoy':'')+'"></i>';
+  });
+  return h+'</span>';
+}
+function renderHabitos(){
+  var h='';
+  h+='<div class="boya-panel-header"><button data-action="nav" data-value="yo">← Yo</button></div>';
+  var foco=catsDeFoco();
+
+  h+='<div class="seccion"><span>Estás construyendo</span><em>'+foco.length+' de '+FOCO_MAX+'</em></div>';
+  if(!foco.length){
+    h+='<div class="card">';
+    h+='<p class="sub">Un hábito no se forma persiguiendo ocho cosas a la vez. <b>Elige una</b> — dos como mucho — y deja que las demás sean opcionales mientras tanto.</p>';
+    h+='<p class="sub" style="margin-top:10px">Cuando se sostenga sola, se gradúa y eliges la siguiente.</p>';
+    h+='</div>';
+  }
+  foco.forEach(function(c){
+    var st=estadoHabito(c.id);
+    h+='<div class="card hab" style="--t:var(--h-'+(c.tono||'humo')+')">';
+    h+='<div class="hab-top"><span class="hab-ico">'+ico(c.ico,22)+'</span>';
+    h+='<div class="hab-nom"><b>'+c.et+'</b><i>'+(st.racha? st.racha+(st.racha===1?' día seguido':' días seguidos') : 'sin racha activa')+'</i></div>';
+    h+='<button class="hab-x" data-action="quitar-foco" data-value="'+c.id+'">✕</button></div>';
+    h+=puntos14(c.id);
+    h+='<div class="hab-bar"><i style="width:'+st.avance+'%"></i></div>';
+    h+='<div class="hab-pie">';
+    h+='<span>'+st.ventana+' de los últimos 14 días</span>';
+    h+='<span>'+(st.listo?'listo para graduarse':'faltan '+Math.max(0,META_DIAS-st.ventana)+' para que quede solo')+'</span>';
+    h+='</div>';
+    if(st.semana!==st.semanaPrevia){
+      var mejorS=st.semana>st.semanaPrevia;
+      h+='<div class="hab-tend '+(mejorS?'sube':'baja')+'">'+(mejorS?'▲':'▼')+' esta semana '+st.semana+' · la pasada '+st.semanaPrevia+'</div>';
+    }
+    h+='</div>';
+  });
+
+  if(foco.length<FOCO_MAX){
+    var libres=CATS.filter(function(c){ return (S.foco||[]).indexOf(c.id)<0 && !estaGraduado(c.id); });
+    if(libres.length){
+      h+='<div class="card">';
+      h+='<h3>'+(foco.length?'Agregar otro':'Elige el primero')+'</h3>';
+      h+='<p class="sub">Escoge el que más te cueste, no el más fácil. Es el que necesita el empujón.</p>';
+      h+='<div class="elegir-hab">';
+      libres.forEach(function(c){
+        var st=estadoHabito(c.id);
+        h+='<button class="eh" data-action="agregar-foco" data-value="'+c.id+'" style="--t:var(--h-'+(c.tono||'humo')+')">'+
+           ico(c.ico,20)+'<b>'+c.et+'</b><i>'+st.ventana+'/14</i></button>';
+      });
+      h+='</div></div>';
+    }
+  }
+
+  if((S.graduados||[]).length){
+    h+='<div class="seccion"><span>Ya son tuyos</span><em>'+S.graduados.length+'</em></div>';
+    h+='<div class="card">';
+    h+='<p class="sub">Se sostuvieron solos. Siguen contando en tu día, pero ya no hay que empujarlos.</p>';
+    h+='<div class="graduados">';
+    S.graduados.forEach(function(g){
+      var c=CATS.filter(function(x){ return x.id===g.id; })[0];
+      if(!c) return;
+      var st=estadoHabito(c.id);
+      h+='<div class="gr" style="--t:var(--h-'+(c.tono||'humo')+')">'+ico(c.ico,20)+
+         '<b>'+c.et+'</b><i>'+st.ventana+'/14 · mejor '+st.mejor+'</i>'+
+         '<button class="gr-x" data-action="volver-foco" data-value="'+c.id+'">volver a trabajarlo</button></div>';
+    });
+    h+='</div></div>';
+  }
+
+  h+='<div class="seccion"><span>Todos</span></div>';
+  h+='<div class="card">';
+  CATS.forEach(function(c){
+    var st=estadoHabito(c.id);
+    h+='<div class="hab-fila" style="--t:var(--h-'+(c.tono||'humo')+')">';
+    h+='<span class="hf-ico">'+ico(c.ico,18)+'</span>';
+    h+='<span class="hf-et">'+c.et+'</span>';
+    h+=puntos14(c.id);
+    h+='<span class="hf-num">'+st.racha+'</span>';
+    h+='</div>';
+  });
+  h+='<p class="sub" style="margin-top:12px">Los puntos son los últimos 14 días. El número de la derecha es la racha actual.</p>';
+  h+='</div>';
+  return h;
+}
+
 function renderYo(){
   var h='';
   var nPr=(S.prendas||[]).length;
@@ -3258,14 +3527,19 @@ function renderYo(){
   });
 
   h+='<div class="seccion"><span>Mi cuidado</span></div>';
+  var foco=catsDeFoco();
+  var focoTxt = foco.length
+    ? foco.map(function(c){ var st=estadoHabito(c.id); return c.et+' ('+st.racha+')'; }).join(' · ')
+    : 'Elige en qué quieres enfocarte';
   var areas=[
+    ['habitos','diana','Mis hábitos', focoTxt, 'oliva', !foco.length],
     ['medicamentos','pastilla','Medicamentos',
       meds ? tomasHoy+' de '+tomasTotal+' tomas hoy'+(tomasPend? ' · '+tomasPend+' sin registrar':'') : 'Agrega tus medicamentos',
       'ciruela', tomasPend>0],
     ['vestirme','camiseta','Mi ropa',
       nPr ? nPr+' prendas'+(olv? ' · '+olv+' sin usar hace rato':'') : 'Sube fotos de tus prendas',
       'indigo', false],
-    ['enfoque','diana','Mi trabajo',
+    ['enfoque','reloj','Mi trabajo',
       minH>=metaH ? 'Meta de hoy cumplida' : minH+' de '+metaH+' min hoy',
       'terra', false],
     ['rutinas','mapa','Rutinas y pendientes',
@@ -3584,7 +3858,30 @@ app.addEventListener('click', function(ev){
   if(act==='nav'){ V.tab=val; V.mostrarMedallas=false; }
   else if(act==='toggle-cat'){
     toggleCategoria(val);
-    if(entradaHoy()[val]){ flotarPuntos(b, S.modoSuave?'✨':'+3'); sonidoPop(660); vibrar(12); ganarConchitas(1); }
+    if(entradaHoy()[val]){
+      flotarPuntos(b, S.modoSuave?'✨':'+3'); sonidoPop(660); vibrar(12); ganarConchitas(1);
+      var gradu=revisarGraduacion();
+      if(gradu){
+        guardar();
+        celebrar('habito', {emo:'🌳', titulo:gradu.et+' ya es tuyo', sub:'Se sostuvo solo 12 de los últimos 14 días. Sale del foco: elige el siguiente cuando quieras.'});
+        return;
+      }
+      reaccionBoya(val);
+    }
+  }
+  else if(act==='agregar-foco'){
+    if((S.foco||[]).length<FOCO_MAX && S.foco.indexOf(val)<0){
+      S.foco.push(val);
+      S.graduados=(S.graduados||[]).filter(function(g){ return g.id!==val; });
+      sonidoArpegio(); vibrar([12,26,12]);
+      var cf=CATS.filter(function(x){ return x.id===val; })[0];
+      mostrarToast('Trabajando en '+(cf?cf.et.toLowerCase():'esto')+'. Un paso a la vez.');
+    }
+  }
+  else if(act==='quitar-foco'){ S.foco=(S.foco||[]).filter(function(x){ return x!==val; }); }
+  else if(act==='volver-foco'){
+    S.graduados=(S.graduados||[]).filter(function(g){ return g.id!==val; });
+    if((S.foco||[]).length<FOCO_MAX) S.foco.push(val);
   }
   else if(act==='agua-mas'){
     cambiarAgua(1);
@@ -3622,7 +3919,8 @@ app.addEventListener('click', function(ev){
     var nombreBoya=(inpB?inpB.value:'').trim();
     if(nombreBoya) S.boya.nombre=nombreBoya;
     S.onboardingVisto=true; guardar();
-    celebrar('bienvenida', {titulo:'Listo'+(S.usuario.nombre?', '+S.usuario.nombre:'')+' 🎉', sub:'Cuando quieras, toca lo que ya hiciste hoy.'});
+    V.tab='habitos';
+    celebrar('bienvenida', {titulo:'Listo'+(S.usuario.nombre?', '+S.usuario.nombre:'')+' 🎉', sub:'Ahora elige UNA cosa por la que empezar. Solo una.'});
   }
   else if(act==='saltar-onboarding'){
     S.onboardingVisto=true; guardar();
