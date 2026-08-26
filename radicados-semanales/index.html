@@ -278,6 +278,14 @@
   .workbench{display:grid;grid-template-columns:290px 1fr;gap:16px;align-items:start;}
   .workbench > *{min-width:0;} /* si no, el contenido interno evita que la columna angoste (celular) */
   @media (max-width:900px){.workbench{grid-template-columns:1fr;}}
+  /* con la cola oculta, el formulario usa todo el ancho -- pensado para trabajar con la ventana
+     angosta al lado de SIMIT/Fénix/ORFEO, sin perder ninguna función (Anterior/Siguiente y la
+     búsqueda con Enter siguen sirviendo para moverse entre radicados). */
+  .workbench.queue-hidden{grid-template-columns:1fr;}
+  .workbench.queue-hidden #queueCol{display:none;}
+  #toggleQueueBtn.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+  /* dentro de la propia ventana flotante no tiene sentido ofrecer abrir OTRA ventana flotante */
+  html.es-flotante #floatModeBtn{display:none;}
 
   .queue-panel{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:600px;overflow-y:auto;}
   .queue-item{padding:8px 10px;border-radius:7px;cursor:pointer;border:1px solid transparent;margin-bottom:3px;display:flex;gap:8px;align-items:flex-start;}
@@ -625,11 +633,13 @@
           <button data-filter="done">Completos</button>
           <button data-filter="all">Todos</button>
         </div>
+        <button class="btn ghost small" id="toggleQueueBtn" type="button" title="Ocultar la lista de la cola para que el formulario ocupe toda la pantalla -- útil en ventanas pequeñas">☰ Ocultar cola</button>
+        <button class="btn ghost small" id="floatModeBtn" type="button" title="Abrir el Paso 2 en una ventana flotante que se queda visible encima de otros programas (SIMIT, Fénix, ORFEO)">🪟 Modo flotante</button>
       </div>
     </div>
     <div class="panel-body">
-      <div class="workbench">
-        <div>
+      <div class="workbench" id="workbench">
+        <div id="queueCol">
           <div class="queue-count" id="queueCount">0 en la cola</div>
           <div class="queue-panel" id="queuePanel"></div>
         </div>
@@ -1190,6 +1200,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   var STORAGE_PREFIX = "radicados_semanales_v2";
   var HISTORY_PREFIX = "radicados_historial_v1"; // resumen por semana cerrada, uno por usuario
   var THEME_KEY = "radicados_theme_pref"; // "light" | "dark" | ausente = sigue el sistema
+  // Esta misma página, cargada dentro del iframe de la ventana flotante (ver "Modo flotante" más
+  // abajo), llega con #flotante=1 en la URL -- así sabe que debe arrancar ya compacta (modo enfocado
+  // + cola oculta) sin necesidad de que la persona lo configure cada vez que la abre.
+  var isFlotanteInstance = location.hash.indexOf("flotante=1") !== -1;
+  if(isFlotanteInstance) document.documentElement.classList.add("es-flotante");
 
   // ---------- tema claro/oscuro ----------
   // El <head> ya aplicó el tema guardado antes de pintar (evita el parpadeo); esto solo mantiene
@@ -1221,8 +1236,69 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   (function(){
     var saved = null;
     try{ saved = localStorage.getItem(FOCUS_MODE_KEY); }catch(e){}
-    applyFocusMode(saved === "1");
+    // La ventana flotante siempre arranca en modo enfocado -- es chica a propósito, no tiene caso
+    // mostrarle el resumen completo. Esto no toca la preferencia guardada de la pestaña principal.
+    applyFocusMode(isFlotanteInstance ? true : saved === "1");
   })();
+
+  // ---------- ocultar/mostrar la cola del Paso 2 ----------
+  // La lista de la cola es útil para ver de un vistazo qué falta, pero en una ventana angosta (ej.
+  // trabajando al lado de SIMIT/Fénix/ORFEO en un solo monitor) ocupa espacio valioso. Al ocultarla,
+  // el formulario usa todo el ancho -- Anterior/Siguiente y "Enter" en el buscador (ver más abajo)
+  // siguen permitiendo moverse entre radicados sin necesidad de verla. Preferencia de este navegador,
+  // igual que el tema y el modo enfocado -- no es un dato de trabajo.
+  var QUEUE_COLLAPSE_KEY = "radicados_queue_collapsed";
+  function applyQueueCollapse(collapsed){
+    document.getElementById("workbench").classList.toggle("queue-hidden", collapsed);
+    var btn = document.getElementById("toggleQueueBtn");
+    btn.classList.toggle("active", collapsed);
+    btn.textContent = collapsed ? "☰ Mostrar cola" : "☰ Ocultar cola";
+    btn.title = collapsed
+      ? "Mostrar otra vez la lista de radicados en cola"
+      : "Ocultar la lista de la cola para que el formulario ocupe toda la pantalla -- útil en ventanas pequeñas";
+  }
+  document.getElementById("toggleQueueBtn").addEventListener("click", function(){
+    var next = !document.getElementById("workbench").classList.contains("queue-hidden");
+    try{ localStorage.setItem(QUEUE_COLLAPSE_KEY, next ? "1" : "0"); }catch(e){}
+    applyQueueCollapse(next);
+  });
+  (function(){
+    var saved = null;
+    try{ saved = localStorage.getItem(QUEUE_COLLAPSE_KEY); }catch(e){}
+    // Igual que el modo enfocado: la ventana flotante arranca con la cola oculta por defecto.
+    applyQueueCollapse(isFlotanteInstance ? true : saved === "1");
+  })();
+
+  // ---------- modo flotante (ventana siempre visible encima de otros programas) ----------
+  // Un solo monitor + tener que ir y venir a SIMIT/Fénix/ORFEO es justo el problema que esto resuelve:
+  // usa la API real de "Picture-in-Picture de documento" de Chrome/Edge para abrir una ventanita que
+  // el sistema operativo mantiene SIEMPRE encima de todo (no solo de otras pestañas -- de cualquier
+  // programa), sin necesidad de un segundo monitor. Adentro va un <iframe> que carga esta misma
+  // página con #flotante=1 -- así corre su propia copia de la app, con su propio documento, y no se
+  // toca ni un solo elemento de la página principal (cero riesgo de romper alguna función existente).
+  // Contras honestos, para que no sorprendan: (1) solo funciona en navegadores basados en Chromium
+  // (Chrome, Edge) -- en los demás, el botón avisa y sugiere acomodar la ventana a un lado con
+  // Windows+flecha; (2) como la sesión vive solo en memoria (nunca en localStorage, a propósito, ver
+  // más abajo), hay que iniciar sesión una vez dentro de esa ventanita -- es la misma regla de
+  // seguridad que ya rige el resto de la app, no una falla nueva.
+  document.getElementById("floatModeBtn").addEventListener("click", function(){
+    if(isFlotanteInstance) return; // no tiene sentido abrir una flotante DESDE la flotante
+    if(!("documentPictureInPicture" in window)){
+      toast("Tu navegador no permite ventanas flotantes de este tipo (funciona en Chrome o Edge). Como alternativa, puedes acomodar esta ventana a un lado de la pantalla con Windows + flecha ← o →.", "warn");
+      return;
+    }
+    documentPictureInPicture.requestWindow({ width: 430, height: 720 }).then(function(pipWindow){
+      var iframe = pipWindow.document.createElement("iframe");
+      var base = location.href.split("#")[0];
+      iframe.src = base + "#flotante=1";
+      iframe.style.cssText = "position:fixed;inset:0;width:100%;height:100%;border:0;display:block;";
+      pipWindow.document.title = "Radicados Semanales — flotante";
+      pipWindow.document.body.style.margin = "0";
+      pipWindow.document.body.appendChild(iframe);
+    }).catch(function(err){
+      toast("No se pudo abrir la ventana flotante: " + (err && err.message ? err.message : "intenta de nuevo"), "warn");
+    });
+  });
 
   document.getElementById("themeToggleBtn").addEventListener("click", function(){
     var effective = document.documentElement.getAttribute("data-theme") ||
@@ -2867,6 +2943,17 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
   // ---------- Paso 2: filters / search / queue clicks ----------
   document.getElementById("searchBox").addEventListener("input", renderQueue);
+  // Con la cola oculta (ver applyQueueCollapse) no hay lista visible para hacer clic -- Enter en el
+  // buscador selecciona directo el primer resultado, para no obligar a mostrar la cola solo para
+  // saltar a un radicado puntual.
+  document.getElementById("searchBox").addEventListener("keydown", function(e){
+    if(e.key !== "Enter") return;
+    var list = visibleList();
+    if(!list.length) return;
+    var next = list[0].id;
+    if(next !== state.activeId) commitCurrentEdits();
+    selectRecord(next);
+  });
   document.getElementById("filterTabs").addEventListener("click", function(e){
     var btn = e.target.closest("button[data-filter]");
     if(!btn) return;
