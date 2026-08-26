@@ -12,9 +12,44 @@ específico de vivir con TDAH y TOC a la vez, con máxima prioridad en dos cosas
 casi cero** (un toque, nunca un formulario) y **gamificación con gancho instantáneo** (algo
 pasa en la pantalla apenas tocas algo — no hay que esperar ni imaginarse el progreso).
 
-> **Estado: beta (v0.22.0)**, para cargar y probar de verdad, con cosas por corregir. La
+> **Estado: beta (v0.23.0)**, para cargar y probar de verdad, con cosas por corregir. La
 > versión se muestra abajo del todo en Ajustes → Acerca de Ancla, útil para decir "esto
-> pasó en la v0.22.0" al reportar algo raro.
+> pasó en la v0.23.0" al reportar algo raro.
+
+## Clóset virtual (v0.23.0)
+
+### Un bug serio, encontrado antes de tocar la interfaz
+Al revisar el guardado apareció esto:
+
+```js
+function guardar(){
+  try{ localStorage.setItem(CLAVE, JSON.stringify(S)); }catch(e){}
+}
+```
+
+Ese `catch` vacío significaba que **si el teléfono se quedaba sin espacio, la app dejaba de
+guardar en silencio**. Con fotos eso pasa. La usuaria habría visto sus prendas desaparecer al
+recargar, sin ninguna explicación y sin forma de entender por qué.
+
+Corregido: `guardar()` ahora informa si falló. Si una prenda no cabe, **se deshace y se
+avisa** en vez de fingir que quedó guardada, y aparece un aviso arriba mientras el problema
+siga. Verificado forzando el fallo de escritura.
+
+### El clóset, primero y a plena vista
+La ropa ya no está escondida bajo un formulario: **el clóset es lo primero de la pantalla**,
+en cuadrícula grande, agrupado por tipo y con filtros (*Todo · Arriba · Abajo · Vestido ·
+Zapatos · Abrigo*). Se ve todo lo que se tiene de un golpe, sin abrir nada.
+
+- Cada prenda muestra su nombre y **hace cuánto se usó**.
+- Lo que lleva **14 días o más sin ponerse** se marca *olvidada*, con borde de color.
+- Al tocar una prenda se abre en grande, con sus datos y dos acciones: **"Me la puse hoy"**
+  (que la manda al final de la fila) y borrar.
+- Una barra muestra siempre el **espacio usado**, y avisa al pasar del 70%.
+
+### Y otro bug, del modal
+El detalle de prenda usaba `event.stopPropagation()`. Como la app despacha los clics **por
+delegación** desde un solo listener, eso dejaba **muertos todos los botones de adentro**.
+Corregido con una acción neutra que absorbe el clic sin cortar la propagación.
 
 ## Mascotas, Boya en la portada y Hábitos como sección propia (v0.22.0)
 

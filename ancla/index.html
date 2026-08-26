@@ -627,6 +627,50 @@ body{background:linear-gradient(178deg, var(--bg2, #f2ebdc) 0%, var(--bg) 34%)}
 .mw.n3{background:var(--t); opacity:.75}
 .mw.n4{background:var(--t)}
 .hb-emoji{font-size:17px; line-height:1}
+.banner.alerta{background:rgba(156,58,30,.12); color:var(--warn)}
+.banner.alerta .acciones button{background:var(--warn); color:#fff}
+
+/* ---- clóset virtual ---- */
+.closet-filtros{display:flex; gap:7px; overflow-x:auto; padding-bottom:6px; margin-bottom:12px}
+.cf{flex:none; background:var(--card); border:1.5px solid var(--line); border-radius:20px; padding:8px 13px;
+  font-size:12.5px; font-weight:700; color:var(--sub); display:flex; align-items:center; gap:6px}
+.cf i{font-style:normal; font-family:var(--font-mono); font-size:10px; opacity:.7}
+.cf.sel{background:var(--coral); border-color:var(--coral); color:#fff}
+.closet-tit{font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.9px;
+  color:var(--ink); opacity:.55; margin:16px 0 9px}
+.closet{display:grid; grid-template-columns:repeat(auto-fill, minmax(104px,1fr)); gap:11px}
+.cp{position:relative; padding:0; background:none; border:none; display:flex; flex-direction:column; gap:5px; text-align:left}
+.cp img{width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:var(--radius-s);
+  border:1.5px solid var(--line); display:block; background:var(--bg)}
+.cp-sinfoto{width:100%; aspect-ratio:3/4; border-radius:var(--radius-s); border:1.5px dashed var(--line);
+  background:var(--bg); display:flex; align-items:center; justify-content:center; color:var(--sub)}
+.cp-nom{font-size:12px; font-weight:700; color:var(--ink); line-height:1.25}
+.cp-meta{font-family:var(--font-mono); font-size:9.5px; color:var(--sub)}
+.cp.olvidada img{border-color:var(--coral)}
+.cp-flag{position:absolute; top:6px; left:6px; background:var(--coral); color:#fff; font-size:8.5px;
+  font-weight:700; text-transform:uppercase; letter-spacing:.5px; padding:3px 6px; border-radius:8px}
+.cp:active{transform:scale(.97)}
+.closet-vacio{text-align:center}
+.cv-ico{color:var(--sub); display:flex; justify-content:center; margin-bottom:10px; opacity:.55}
+.closet-vacio b{display:block; font-family:var(--font-display); font-size:19px; color:var(--ink); margin-bottom:7px}
+.subir-prenda{margin-top:18px; padding:14px; border-radius:var(--radius-s); border:1.5px dashed var(--line); background:var(--bg)}
+.esp-barra{display:flex; align-items:center; gap:9px; margin-top:14px; font-size:11px; color:var(--sub)}
+.esp-barra i{flex:1; height:5px; background:var(--line); border-radius:4px; overflow:hidden}
+.esp-barra i b{display:block; height:100%; background:var(--coral); border-radius:4px}
+.esp-barra em{font-style:normal; font-family:var(--font-mono)}
+
+/* detalle de una prenda */
+.visor-caja{position:relative; background:var(--card); border-radius:var(--radius); overflow:hidden; max-width:320px; width:100%}
+.vp-foto{width:100%; aspect-ratio:3/4; object-fit:cover; display:block}
+.vp-nofoto{aspect-ratio:3/4; display:flex; align-items:center; justify-content:center; background:var(--bg); color:var(--sub)}
+.vp-info{padding:15px 16px 0}
+.vp-info b{display:block; font-family:var(--font-display); font-size:20px; color:var(--ink)}
+.vp-info i{display:block; font-style:normal; font-size:12.5px; color:var(--sub); margin-top:3px}
+.vp-info span{display:block; font-family:var(--font-mono); font-size:10.5px; color:var(--sub); margin-top:7px}
+.vp-btns{display:flex; align-items:center; gap:14px; padding:14px 16px 16px}
+.vp-btns .btn{flex:1}
+.vp-cerrar{position:absolute; top:9px; right:9px; width:31px; height:31px; border-radius:50%;
+  background:rgba(0,0,0,.45); color:#fff; font-size:14px; display:flex; align-items:center; justify-content:center; padding:0}
 .huevo-wrap{display:flex; flex-direction:column; align-items:center; padding:26px 0 10px}
 .huevo-svg{width:150px; height:180px; cursor:pointer; filter:drop-shadow(0 10px 18px rgba(0,0,0,.15))}
 .huevo-svg.tambalea{animation:tambaleo .55s ease}
@@ -845,7 +889,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:16px 0}
 <script>
 (function(){
 "use strict";
-var VERSION='0.22.0-beta';
+var VERSION='0.23.0-beta';
 
 /* ===================== utilidades ===================== */
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -1125,8 +1169,20 @@ function cargar(){
     return d;
   }catch(e){ return estadoInicial(); }
 }
+/* El catch vacío de antes era peligroso: si localStorage se llena (y con
+   fotos se llena), la app dejaba de guardar EN SILENCIO. La usuaria vería
+   sus prendas desaparecer al recargar sin ninguna explicación. Ahora el
+   fallo se detecta y se avisa. */
+var sinEspacio=false;
 function guardar(){
-  try{ localStorage.setItem(CLAVE, JSON.stringify(S)); }catch(e){}
+  try{
+    localStorage.setItem(CLAVE, JSON.stringify(S));
+    sinEspacio=false;
+    return true;
+  }catch(e){
+    sinEspacio=true;
+    return false;
+  }
 }
 function entradaHoy(){
   var iso=hoyISO();
@@ -2453,10 +2509,18 @@ function guardarPrenda(foto){
     nombre:nombre.slice(0,32) || 'Sin nombre', clima:V.prendaClima||null,
     ultimoUso:null, usos:0
   });
+  /* si no cupo, se deshace: es preferible decirlo a fingir que se guardó */
+  if(!guardar()){
+    S.prendas.pop();
+    guardar();
+    render();
+    alert('No hay espacio en este teléfono para más fotos.\n\nPuedes borrar alguna prenda que ya no uses, o guardar una copia desde Ajustes y liberar espacio. La prenda no se agregó.');
+    return;
+  }
   V.prendaNombre='';
   S.contadores.prendasTotal=(S.contadores.prendasTotal||0)+1;
   sonidoPop(680); vibrar(12);
-  guardar(); render();
+  render();
   mostrarToast('Guardada. Ya no tienes que acordarte de ella.');
 }
 function manejarPrendaFoto(file){
@@ -2514,7 +2578,7 @@ var V = {
   calmaVista:'respirar', relajacionPaso:0, dialogoBoya:null, boyaTocada:false,
   perraNombre:'', mascEspecie:'perro', distraccion:'', climaHoy:null, ropaClima:null,
   medNombre:'', medDosis:'', medVeces:1, momentoAbierto:null, verResto:false, boyaAccion:null,
-  prendaNombre:'', prendaTipo:'superior', prendaClima:null
+  prendaNombre:'', prendaTipo:'superior', prendaClima:null, filtroPrenda:'todas', prendaAbierta:null
 };
 var dialogoTimer=null;
 
@@ -2746,6 +2810,9 @@ function render(){
   h+='<div class="envolt">';
   h+=renderTopbar();
   if(V.toast) h+='<div class="toast">'+esc(V.toast)+'</div>';
+  if(sinEspacio && S.onboardingVisto){
+    h+='<div class="banner alerta">⚠️ <div><b>No se está guardando.</b> Este teléfono se quedó sin espacio. Borra alguna prenda con foto o guarda una copia desde Ajustes.<div class="acciones"><button data-action="nav" data-value="vestirme">Ver mi ropa</button><button data-action="nav" data-value="ajustes">Ajustes</button></div></div></div>';
+  }
   if(!S.onboardingVisto){
     h+=renderOnboarding();
   } else {
@@ -2769,6 +2836,7 @@ function render(){
   if(S.onboardingVisto) h+=renderNav();
   if(V.celebracion) h+=renderCelebracion();
   if(V.verFoto) h+=renderVisorFoto();
+  if(V.prendaAbierta) h+=renderPrendaDetalle();
   app.innerHTML=h;
   document.title='Ancla';
 }
@@ -3530,122 +3598,151 @@ function renderEnfoque(){
 var CLIMAS=[{id:'frio',et:'Frío',emo:'🧥'},{id:'normal',et:'Normal',emo:'🌤️'},{id:'calor',et:'Calor',emo:'☀️'}];
 function renderVestirme(){
   var h='';
-  h+='<div class="boya-panel-header"><button data-action="nav" data-value="hoy">← Volver</button></div>';
-  var nPrendas=(S.prendas||[]).length;
+  h+='<div class="boya-panel-header"><button data-action="nav" data-value="yo">← Yo</button></div>';
+  var prendas=S.prendas||[];
+  var nPrendas=prendas.length;
   var hoyIso=hoyISO();
   var conj = (S.conjuntoHoy && S.conjuntoHoy.fecha===hoyIso) ? S.conjuntoHoy : null;
+  var filtro=V.filtroPrenda||'todas';
 
-  /* ---- 1. lo de hoy ---- */
+  /* ---- 1. EL CLÓSET: lo primero y a plena vista.
+         El punto de todo esto es poder VER lo que se tiene sin abrir nada,
+         así que la ropa va arriba y grande, no escondida bajo un formulario. ---- */
+  h+='<div class="seccion"><span>Mi clóset</span>'+(nPrendas?'<em>'+nPrendas+' prenda'+(nPrendas===1?'':'s')+'</em>':'')+'</div>';
+
+  if(!nPrendas){
+    h+='<div class="card closet-vacio">';
+    h+='<div class="cv-ico">'+ico('camiseta',40)+'</div>';
+    h+='<b>Tu clóset está vacío</b>';
+    h+='<p class="sub">Tómale una foto a cada prenda, tal como está guardada. No tienen que ser bonitas: sirven para verlo todo de un golpe, sin tener que acordarte.</p>';
+    h+=botonSubirPrenda();
+    h+='</div>';
+  } else {
+    var porTipo={};
+    TIPOS_PRENDA.forEach(function(t){ porTipo[t.id]=prendas.filter(function(pr){ return pr.tipo===t.id; }); });
+    h+='<div class="closet-filtros">';
+    h+='<button class="cf '+(filtro==='todas'?'sel':'')+'" data-action="filtrar-prenda" data-value="todas">Todo <i>'+nPrendas+'</i></button>';
+    TIPOS_PRENDA.forEach(function(t){
+      if(!porTipo[t.id].length) return;
+      h+='<button class="cf '+(filtro===t.id?'sel':'')+'" data-action="filtrar-prenda" data-value="'+t.id+'">'+t.et+' <i>'+porTipo[t.id].length+'</i></button>';
+    });
+    h+='</div>';
+
+    var mostrar = filtro==='todas' ? null : filtro;
+    TIPOS_PRENDA.forEach(function(t){
+      var lista=porTipo[t.id];
+      if(!lista.length || (mostrar && mostrar!==t.id)) return;
+      if(!mostrar) h+='<div class="closet-tit">'+t.et+'</div>';
+      h+='<div class="closet">';
+      lista.forEach(function(pr){
+        var d=diasSinUsar(pr);
+        var olvidada=d>=14;
+        h+='<button class="cp'+(olvidada?' olvidada':'')+'" data-action="abrir-prenda" data-value="'+pr.id+'">';
+        h+= pr.foto ? '<img src="'+pr.foto+'" alt="'+esc(pr.nombre)+'" loading="lazy">'
+                    : '<span class="cp-sinfoto">'+ico('camiseta',26)+'</span>';
+        h+='<span class="cp-nom">'+esc(pr.nombre||'—')+'</span>';
+        h+='<span class="cp-meta">'+(d>=999?'sin usar':d===0?'hoy':'hace '+d+' d')+'</span>';
+        if(olvidada && d<999) h+='<span class="cp-flag">olvidada</span>';
+        h+='</button>';
+      });
+      h+='</div>';
+    });
+    h+=botonSubirPrenda();
+    var esp=espacioUsado();
+    h+='<div class="esp-barra"><span>Espacio usado</span><i><b style="width:'+esp.pct+'%"></b></i><em>'+esp.pct+'%</em></div>';
+    if(esp.pct>=70) h+='<p class="sub" style="margin-top:8px">Las fotos se guardan en este teléfono. Si se llena, borra alguna prenda o guarda una copia desde Ajustes.</p>';
+  }
+
+  /* ---- 2. qué me pongo hoy ---- */
+  h+='<div class="seccion"><span>Qué me pongo hoy</span></div>';
   h+='<div class="card">';
-  h+='<h3>Qué me pongo hoy</h3>';
-  h+='<p class="sub">Dime el clima y yo saco un conjunto. Prefiero siempre lo que llevas más tiempo sin ponerte.</p>';
   h+='<div class="clima-row">';
   CLIMAS.forEach(function(c){
     h+='<button class="clima-op '+(V.climaHoy===c.id?'sel':'')+'" data-action="elegir-clima" data-value="'+c.id+'"><span>'+c.emo+'</span>'+c.et+'</button>';
   });
   h+='</div>';
-
   if(conj && conj.piezas && conj.piezas.length){
     h+='<div class="conjunto">';
     conj.piezas.forEach(function(pid){
-      var pr=(S.prendas||[]).filter(function(x){ return x.id===pid; })[0];
+      var pr=prendas.filter(function(x){ return x.id===pid; })[0];
       if(!pr) return;
       h+='<div class="cj-pieza">'+(pr.foto?'<img src="'+pr.foto+'" alt="">':'<span class="cj-sinfoto">'+esc(pr.nombre||'?')+'</span>')+
          '<i>'+esc(pr.nombre||'')+'</i></div>';
     });
     h+='</div>';
     h+='<div class="cj-btns">';
-    h+='<button class="btn btn-principal btn-chico" data-action="confirmar-conjunto">Me lo pongo</button>';
+    h+='<button class="btn btn-principal btn-chico" data-action="confirmar-conjunto">'+(conj.puesto?'Ya me lo puse ✓':'Me lo pongo')+'</button>';
     h+='<button class="ahora-link" data-action="armar-conjunto">Otro ›</button>';
     h+='</div>';
-    if(conj.puesto) h+='<p class="sub" style="text-align:center; margin-top:10px">Anotado. Estas prendas quedan al final de la fila.</p>';
   } else if(nPrendas){
     h+='<button class="btn btn-principal" style="margin-top:14px" data-action="armar-conjunto">Ármame un conjunto</button>';
+    h+='<p class="sub" style="margin-top:10px">Elijo siempre entre lo que llevas más tiempo sin ponerte.</p>';
   } else if(S.ropa && S.ropa.length){
     h+='<button class="btn btn-principal" style="margin-top:14px" data-action="elegir-ropa">Elige de mis conjuntos escritos</button>';
-    if(S.ropaHoy && S.ropaHoy.fecha===hoyIso){
-      var elg=S.ropa.filter(function(r){ return r.id===S.ropaHoy.id; })[0];
-      if(elg) h+='<div class="ropa-resultado"><div class="rr-et">Hoy te pones</div><div class="rr-txt">'+esc(elg.texto)+'</div></div>';
-    }
-    h+='<p class="sub" style="margin-top:14px">Y abajo puedes empezar a subir fotos de tus prendas: es lo que hace que no se te olvide lo que tienes.</p>';
   } else {
-    h+='<p class="sub" style="margin-top:14px"><b>Primero súbele fotos a tus prendas</b>, abajo. No tienen que ser bonitas: sirven para que veas de un golpe lo que tienes, sin tener que acordarte.</p>';
+    h+='<p class="sub" style="margin-top:12px">Cuando tengas prendas en el clóset, te armo el conjunto.</p>';
   }
   h+='</div>';
 
-  /* ---- 2. lo que tiene olvidado ---- */
-  if(nPrendas>=3){
-    var olv=olvidadas(6).filter(function(pr){ return diasSinUsar(pr)>=7; });
-    if(olv.length){
-      h+='<div class="card">';
-      h+='<h3>No te pones esto hace rato</h3>';
-      h+='<p class="sub">Está ahí y se te olvidó. Eso es todo — no es que no te guste.</p>';
-      h+='<div class="prendas-fila">';
-      olv.forEach(function(pr){
-        var d=diasSinUsar(pr);
-        h+='<button class="pf-item" data-action="ver-prenda" data-value="'+pr.id+'">'+
-           (pr.foto?'<img src="'+pr.foto+'" alt="">':'<span class="cj-sinfoto">'+esc(pr.nombre||'?')+'</span>')+
-           '<i>'+(d>=999?'nunca':'hace '+d+' d')+'</i></button>';
-      });
-      h+='</div></div>';
-    }
+  if(S.ropa && S.ropa.length){
+    h+='<div class="card">';
+    h+='<h3>Conjuntos que escribiste antes</h3>';
+    h+='<div class="ropa-lista">';
+    S.ropa.forEach(function(r){
+      h+='<div class="ropa-item"><span class="t">'+esc(r.texto)+'</span><button data-action="quitar-ropa" data-value="'+r.id+'">✕</button></div>';
+    });
+    h+='</div></div>';
   }
+  return h;
+}
 
-  /* ---- 3. el armario ---- */
-  h+='<div class="card">';
-  h+='<h3>Mi ropa</h3>';
-  h+='<p class="sub">'+(nPrendas? nPrendas+' prenda'+(nPrendas===1?'':'s')+' guardada'+(nPrendas===1?'':'s') : 'Todavía no has guardado nada')+'. Toma la foto tal como está en el clóset.</p>';
-
+function botonSubirPrenda(){
+  var h='';
+  h+='<div class="subir-prenda">';
   h+='<div class="tipo-row">';
   TIPOS_PRENDA.forEach(function(t){
     h+='<button class="tipo-op '+((V.prendaTipo||'superior')===t.id?'sel':'')+'" data-action="elegir-tipo-prenda" data-value="'+t.id+'">'+t.et+'</button>';
   });
   h+='</div>';
-  h+='<div class="clima-row" style="margin-top:9px">';
+  h+='<div class="clima-row" style="margin-top:8px">';
   CLIMAS.forEach(function(c){
     h+='<button class="clima-op chico '+(V.prendaClima===c.id?'sel':'')+'" data-action="elegir-clima-prenda" data-value="'+c.id+'"><span>'+c.emo+'</span>'+c.et+'</button>';
   });
   h+='<button class="clima-op chico '+(!V.prendaClima?'sel':'')+'" data-action="elegir-clima-prenda" data-value="">Cualquiera</button>';
   h+='</div>';
-  h+='<div class="fila-input" style="margin-top:9px">';
+  h+='<div class="fila-input" style="margin-top:8px">';
   h+='<input type="text" id="inp-prenda-nombre" placeholder="Cómo la llamas — ej: buzo gris" value="'+esc(V.prendaNombre||'')+'">';
   h+='</div>';
-  h+='<label class="btn btn-principal" style="margin-top:11px; display:flex; cursor:pointer">'+ico('camara',18)+'&nbsp;Tomar foto y guardar'+
+  h+='<label class="btn btn-principal" style="margin-top:10px; display:flex; cursor:pointer">'+ico('camara',18)+'&nbsp;Tomar foto y guardar'+
      '<input type="file" accept="image/*" capture="environment" id="inp-prenda-foto" style="display:none"></label>';
-  h+='<button class="ahora-link" style="margin:10px auto 0; display:block" data-action="agregar-prenda-sinfoto">Guardarla sin foto ›</button>';
-
-  if(nPrendas){
-    TIPOS_PRENDA.forEach(function(t){
-      var lista=(S.prendas||[]).filter(function(pr){ return pr.tipo===t.id; });
-      if(!lista.length) return;
-      h+='<div class="arm-tit">'+t.et+' <span>'+lista.length+'</span></div>';
-      h+='<div class="prendas-grid">';
-      lista.forEach(function(pr){
-        var d=diasSinUsar(pr);
-        h+='<div class="pg-item">';
-        h+=(pr.foto?'<img src="'+pr.foto+'" alt="">':'<span class="cj-sinfoto">'+esc(pr.nombre||'?')+'</span>');
-        h+='<b>'+esc(pr.nombre||'—')+'</b>';
-        h+='<i>'+(d>=999?'sin usar':'hace '+d+' d')+' · '+(pr.usos||0)+' vec'+((pr.usos||0)===1?'':'es')+'</i>';
-        h+='<button class="pg-x" data-action="quitar-prenda" data-value="'+pr.id+'">✕</button>';
-        h+='</div>';
-      });
-      h+='</div>';
-    });
-    var esp=espacioUsado();
-    /* si ya tenía conjuntos escritos de la versión anterior, no se pierden */
-    if(S.ropa && S.ropa.length){
-      h+='<div class="arm-tit">Conjuntos que escribiste antes <span>'+S.ropa.length+'</span></div>';
-      h+='<div class="ropa-lista">';
-      S.ropa.forEach(function(r){
-        h+='<div class="ropa-item"><span class="t">'+esc(r.texto)+'</span><button data-action="quitar-ropa" data-value="'+r.id+'">✕</button></div>';
-      });
-      h+='</div>';
-    }
-    if(esp.pct>=60){
-      h+='<p class="sub" style="margin-top:14px"><b>Espacio usado: '+esp.pct+'%</b> ('+esp.kb+' KB). Las fotos se guardan en este teléfono; si se llena, borra alguna prenda o exporta una copia desde Ajustes.</p>';
-    }
-  }
+  h+='<button class="ahora-link" style="margin:9px auto 0; display:block; color:var(--coral)" data-action="agregar-prenda-sinfoto">Guardarla sin foto ›</button>';
   h+='</div>';
+  return h;
+}
+
+function renderPrendaDetalle(){
+  var pr=(S.prendas||[]).filter(function(x){ return x.id===V.prendaAbierta; })[0];
+  if(!pr) return '';
+  var d=diasSinUsar(pr);
+  var cl=CLIMAS.filter(function(c){ return c.id===pr.clima; })[0];
+  var tp=TIPOS_PRENDA.filter(function(t){ return t.id===pr.tipo; })[0];
+  var h='<div class="visor" data-action="cerrar-prenda">';
+  /* La app despacha por delegación desde #app: un stopPropagation aquí
+     dejaría muertos todos los botones de adentro. Se marca la caja con
+     una acción neutra para que el clic no llegue al fondo y cierre. */
+  h+='<div class="visor-caja" data-action="nada">';
+  h+= pr.foto ? '<img class="vp-foto" src="'+pr.foto+'" alt="">' : '<div class="vp-nofoto">'+ico('camiseta',54)+'</div>';
+  h+='<div class="vp-info">';
+  h+='<b>'+esc(pr.nombre||'Sin nombre')+'</b>';
+  h+='<i>'+(tp?tp.et:'')+(cl?' · '+cl.et:'')+'</i>';
+  h+='<span>'+(d>=999?'nunca te la has puesto':d===0?'te la pusiste hoy':'hace '+d+' días')+' · '+(pr.usos||0)+' vec'+((pr.usos||0)===1?'':'es')+'</span>';
+  h+='</div>';
+  h+='<div class="vp-btns">';
+  h+='<button class="btn btn-principal btn-chico" data-action="usar-prenda" data-value="'+pr.id+'">Me la puse hoy</button>';
+  h+='<button class="ahora-link" data-action="quitar-prenda" data-value="'+pr.id+'">Borrar ›</button>';
+  h+='</div>';
+  h+='<button class="vp-cerrar" data-action="cerrar-prenda">✕</button>';
+  h+='</div></div>';
   return h;
 }
 
@@ -4372,6 +4469,7 @@ app.addEventListener('click', function(ev){
   else if(act==='agregar-prenda-sinfoto'){ guardarPrenda(null); return; }
   else if(act==='quitar-prenda'){
     S.prendas=S.prendas.filter(function(x){ return x.id!==val; });
+    V.prendaAbierta=null;
     if(S.conjuntoHoy && S.conjuntoHoy.piezas) S.conjuntoHoy.piezas=S.conjuntoHoy.piezas.filter(function(z){ return z!==val; });
   }
   else if(act==='armar-conjunto'){
@@ -4393,6 +4491,19 @@ app.addEventListener('click', function(ev){
       registrarEvento('vestirse');
       ganarConchitas(2); sonidoArpegio(); vibrar([15,30,15]);
       mostrarToast('Listo. Una decisión menos hoy.');
+    }
+  }
+  else if(act==='filtrar-prenda'){ V.filtroPrenda=val; }
+  else if(act==='abrir-prenda'){ V.prendaAbierta=val; }
+  else if(act==='cerrar-prenda'){ V.prendaAbierta=null; }
+  else if(act==='usar-prenda'){
+    var pu=(S.prendas||[]).filter(function(x){ return x.id===val; })[0];
+    if(pu){
+      pu.ultimoUso=hoyISO(); pu.usos=(pu.usos||0)+1;
+      registrarEvento('vestirse'); ganarConchitas(1);
+      sonidoPop(660); vibrar(10);
+      V.prendaAbierta=null;
+      mostrarToast('Anotado. Pasa al final de la fila.');
     }
   }
   else if(act==='ver-prenda'){
