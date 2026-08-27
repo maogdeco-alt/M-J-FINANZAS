@@ -587,7 +587,7 @@
 <body>
 
 <div class="institutional-bar"></div>
-<div id="dataSafetyBanner" class="data-safety-banner" hidden>
+<div id="dataSafetyBanner" class="data-safety-banner" role="alert" hidden>
   <div class="dsb-icon">⚠</div>
   <div class="dsb-body">
     <div class="dsb-title">Problema guardando tus datos</div>
@@ -714,8 +714,8 @@
           <button data-filter="done">Completos</button>
           <button data-filter="all">Todos</button>
         </div>
-        <button class="btn ghost small" id="toggleQueueBtn" type="button" title="Ocultar la lista de la cola para que el formulario ocupe toda la pantalla -- útil en ventanas pequeñas">☰ Ocultar cola</button>
-        <button class="btn ghost small" id="floatModeBtn" type="button" title="Abrir el Paso 2 en una ventana flotante que se queda visible encima de otros programas (SIMIT, Fénix, ORFEO)">🪟 Modo flotante</button>
+        <button class="icon-btn" id="toggleQueueBtn" type="button" title="Ocultar la lista de la cola para que el formulario ocupe toda la pantalla -- útil en ventanas pequeñas" aria-label="Ocultar la cola de radicados">☰</button>
+        <button class="icon-btn" id="floatModeBtn" type="button" title="Abrir el Paso 2 en una ventana flotante que se queda visible encima de otros programas (SIMIT, Fénix, ORFEO)" aria-label="Abrir en ventana flotante">🪟</button>
       </div>
     </div>
     <div class="panel-body">
@@ -1130,7 +1130,7 @@
 
       <div class="settings-section imperative-rules">
         <h3>Reglas de clasificación imperativas <span class="locked-badge">🔒 fijas</span></h3>
-        <p class="hint">Estas reglas quedan escritas aquí para que todo el equipo las conozca. Se aplican siempre, no son configurables ni se pueden desactivar desde la app — bloquean el avance al siguiente caso si se incumplen, sin excepción del formato T6.</p>
+        <p class="hint">Estas reglas quedan escritas aquí para que todo el equipo las conozca. Se aplican siempre, no son configurables ni se pueden desactivar desde la app, y no tienen excepción por formato (ni siquiera T6) — pero nunca bloquean el guardado: si se incumplen, el campo se marca en rojo y aparece un aviso destacado hasta que se corrijan, para que la información nunca se pierda por quedar atascada en un caso.</p>
         <ol class="rules-list">
           <li>Si el <b>Formato</b> es <b>T1</b>, el <b>Tipo de comparendo</b> debe ser <b>Manual</b>.</li>
           <li>Si el <b>Formato</b> es <b>T14</b>, el <b>Tipo de comparendo</b> debe ser <b>Electrónico</b>.</li>
@@ -1202,6 +1202,19 @@
   </div>
 </dialog>
 
+<!-- Dialog: aviso de seguridad de sincronización (completeLogin) -- propio de la app, NO usa
+     confirm() nativo: este es justo el aviso más grave de toda la app (posible pérdida de datos por
+     una sincronización fallida), el peor lugar para arriesgarse a que quede bloqueado en silencio
+     para siempre por un "no volver a preguntar" accidental del navegador. -->
+<dialog id="syncSafetyDialog" class="small" aria-labelledby="syncSafetyTitle">
+  <div class="panel-head"><h2 id="syncSafetyTitle">⚠ Aviso de seguridad</h2></div>
+  <div class="panel-body"><p id="syncSafetyMsg"></p></div>
+  <div class="form-actions">
+    <button class="btn ghost" id="syncSafetyCancel" type="button">Cancelar y detenerme aquí</button>
+    <button class="btn danger" id="syncSafetyProceed" type="button">Sí, continuar</button>
+  </div>
+</dialog>
+
 <!-- Dialog: ¿solicitante e infractor son la misma persona? -- propio de la app (NO usa confirm()
      del navegador: ese se puede quedar bloqueado en silencio para siempre después de varios usos,
      dejando esta validación imposible de pasar). -->
@@ -1232,7 +1245,7 @@
   </div>
 </dialog>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <button class="term-calc-fab" id="termCalcBtn" type="button" title="Abrir la calculadora de términos" aria-label="Abrir la calculadora de términos">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 3.2"/></svg>
@@ -1333,7 +1346,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("workbench").classList.toggle("queue-hidden", collapsed);
     var btn = document.getElementById("toggleQueueBtn");
     btn.classList.toggle("active", collapsed);
-    btn.textContent = collapsed ? "☰ Mostrar cola" : "☰ Ocultar cola";
+    // Botón de solo ícono (antes decía "Ocultar cola"/"Mostrar cola" en texto -- ocupaba espacio de
+    // sobra en una barra ya apretada con buscador + 3 pestañas + este botón + el de modo flotante).
+    // El estado se sigue comunicando: aria-label y title cambian según corresponda, y el ícono
+    // queda resaltado (fondo de acento) mientras la cola está oculta.
+    var label = collapsed ? "Mostrar la cola de radicados" : "Ocultar la cola de radicados";
+    btn.setAttribute("aria-label", label);
     btn.title = collapsed
       ? "Mostrar otra vez la lista de radicados en cola"
       : "Ocultar la lista de la cola para que el formulario ocupe toda la pantalla -- útil en ventanas pequeñas";
@@ -1586,6 +1604,24 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // la propia persona lo pidió de forma explícita (borrar un radicado puntual, o "Cerrar semana").
   var lastKnownSafeCount = 0;
   var explicitRemovalPending = false;
+  // Diálogo propio para el aviso de seguridad de sincronización de completeLogin() -- ver ahí mismo
+  // por qué NO usa confirm() nativo. pendingSyncSafetyProceed/Cancel se arman justo antes de abrir
+  // el diálogo y se limpian los dos apenas la persona responde, para no dejar un callback viejo
+  // colgado si el diálogo se llega a abrir dos veces seguidas (no debería, pero por si acaso).
+  var pendingSyncSafetyProceed = null;
+  var pendingSyncSafetyCancel = null;
+  document.getElementById("syncSafetyProceed").addEventListener("click", function(){
+    var fn = pendingSyncSafetyProceed;
+    pendingSyncSafetyProceed = null; pendingSyncSafetyCancel = null;
+    document.getElementById("syncSafetyDialog").close();
+    if(fn) fn();
+  });
+  document.getElementById("syncSafetyCancel").addEventListener("click", function(){
+    var fn = pendingSyncSafetyCancel;
+    pendingSyncSafetyProceed = null; pendingSyncSafetyCancel = null;
+    document.getElementById("syncSafetyDialog").close();
+    if(fn) fn();
+  });
   function queueCloudSync(){
     if(!supaSession) return;
     clearTimeout(cloudSyncTimer);
@@ -1756,41 +1792,51 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // decide en automático que la cantidad menor es la correcta.
       var remembered = getRememberedSafeCount(user.email);
       var nowCount = state.records.length;
-      if(remembered >= 5 && nowCount < remembered * 0.5){
-        var proceed = confirm(
-          "⚠ Aviso de seguridad: la última vez que se confirmó esta cuenta en este navegador había " + remembered +
-          " radicado(s), y ahora mismo solo se encontraron " + nowCount + ".\n\n" +
-          "Esto puede ser normal (si tú misma borraste varios o cerraste una semana), pero también puede ser " +
-          "un problema de sincronización -- como el que ya ocurrió una vez.\n\n" +
-          "Presiona Aceptar SOLO si estás segura de que " + nowCount + " es la cantidad correcta ahora mismo. " +
-          "Presiona Cancelar para detenerte aquí sin subir ni guardar nada, y avisa antes de seguir usando la app."
-        );
-        if(!proceed){
-          setSaveStatus("blocked");
-          showDataSafetyBanner("Sincronización detenida por seguridad: se esperaban al menos " + remembered + " radicado(s) y solo aparecieron " + nowCount + ". No se guardó ni se subió nada todavía. No sigas usando la app y avisa antes de continuar.", "warn");
-          renderAll();
-          return;
-        }
-      }
 
       // A partir de aquí, en esta sesión, se considera "segura" la cantidad de radicados que
       // acabamos de confirmar (de la nube, de este navegador, o de ambos ya fusionados). El freno
       // de seguridad de pushCloudNow() nunca deja que se suba menos que esto de la nada.
-      lastKnownSafeCount = nowCount;
-      rememberSafeCount(user.email, nowCount);
-      save(); saveSettingsToStorage(); saveHistory(); // espejo local, para seguir funcionando sin conexión
-      applyRequiredMarkers(); refreshFormatoDatalist();
-      if(recovered.addedRecords > 0){
-        queueCloudSync();
-        toast("Se recuperaron " + recovered.addedRecords + " radicado(s) guardados en este navegador de una versión anterior de la app — subiéndolos a tu cuenta ahora.");
-      } else if(!hasCloudData && (state.records.length || state.history.length)){
-        queueCloudSync();
-        toast("Se subieron a tu cuenta los radicados que tenías guardados en este navegador.");
-      } else if(!silent){
-        toast("Sesión iniciada como " + user.name);
+      function proceedAfterSyncCheck(){
+        lastKnownSafeCount = nowCount;
+        rememberSafeCount(user.email, nowCount);
+        save(); saveSettingsToStorage(); saveHistory(); // espejo local, para seguir funcionando sin conexión
+        applyRequiredMarkers(); refreshFormatoDatalist();
+        if(recovered.addedRecords > 0){
+          queueCloudSync();
+          toast("Se recuperaron " + recovered.addedRecords + " radicado(s) guardados en este navegador de una versión anterior de la app — subiéndolos a tu cuenta ahora.");
+        } else if(!hasCloudData && (state.records.length || state.history.length)){
+          queueCloudSync();
+          toast("Se subieron a tu cuenta los radicados que tenías guardados en este navegador.");
+        } else if(!silent){
+          toast("Sesión iniciada como " + user.name);
+        }
+        renderAll();
+        maybeRemindBackup(user.email);
       }
-      renderAll();
-      maybeRemindBackup(user.email);
+
+      // Comparación contra la memoria persistente de este navegador: si la última vez que se
+      // confirmó esta cuenta aquí había bastantes más radicados de los que se acaban de resolver
+      // ahora, se detiene ANTES de guardar o sincronizar nada, y se pregunta directamente. Nunca se
+      // decide en automático que la cantidad menor es la correcta. Diálogo propio, NO confirm()
+      // nativo del navegador -- este es justo el tipo de aviso más grave para que se quede
+      // bloqueado en silencio para siempre por un "no volver a preguntar" accidental.
+      if(remembered >= 5 && nowCount < remembered * 0.5){
+        document.getElementById("syncSafetyMsg").textContent =
+          "La última vez que se confirmó esta cuenta en este navegador había " + remembered +
+          " radicado(s), y ahora mismo solo se encontraron " + nowCount + ". Esto puede ser normal " +
+          "(si tú misma borraste varios o cerraste una semana), pero también puede ser un problema de " +
+          "sincronización -- como el que ya ocurrió una vez. Elige \"Sí, continuar\" SOLO si estás " +
+          "segura de que " + nowCount + " es la cantidad correcta ahora mismo.";
+        pendingSyncSafetyCancel = function(){
+          setSaveStatus("blocked");
+          showDataSafetyBanner("Sincronización detenida por seguridad: se esperaban al menos " + remembered + " radicado(s) y solo aparecieron " + nowCount + ". No se guardó ni se subió nada todavía. No sigas usando la app y avisa antes de continuar.", "warn");
+          renderAll();
+        };
+        pendingSyncSafetyProceed = proceedAfterSyncCheck;
+        document.getElementById("syncSafetyDialog").showModal();
+        return; // se retoma en proceedAfterSyncCheck (o en el aviso de "detenido") cuando la persona decida
+      }
+      proceedAfterSyncCheck();
     }).catch(function(){
       load(); loadSettings(); loadHistory();
       var recovered = recoverLegacyFlatDataInto(); // aunque falle la nube, no se pierde lo que hay en este navegador
@@ -3046,14 +3092,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   document.getElementById("queuePanel").addEventListener("click", function(e){
     var delBtn = e.target.closest("button[data-del]");
     if(delBtn){
-      var did = delBtn.getAttribute("data-del");
-      var rec = state.records.find(function(r){ return r.id===did; });
-      if(rec && confirm("¿Borrar el radicado " + rec.radicado + "?")){
-        state.records = state.records.filter(function(r){ return r.id!==did; });
-        explicitRemovalPending = true; // borrado deliberado por la persona -- el freno de la nube no debe bloquear esto
-        save(); renderAll();
-        toast("Radicado borrado");
-      }
+      // Mismo diálogo propio que "Borrar radicado" del Paso 2 (ver más abajo, junto a cc_delete) --
+      // antes esta lista usaba confirm() nativo del navegador, el mismo riesgo real de quedar
+      // bloqueado en silencio para siempre que ya se había corregido en todos los demás lugares.
+      requestDeleteRecord(delBtn.getAttribute("data-del"));
       return;
     }
     var item = e.target.closest(".queue-item[data-id]");
@@ -3612,15 +3654,20 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Diálogo propio para borrar UN radicado -- NO usa confirm() del navegador (mismo riesgo real que
   // el de nombreMismatchDialog: puede quedarse bloqueado en silencio para siempre después de varios
   // usos, y "borrar" es justo la acción donde eso sería más grave). Además, después de borrar queda
-  // "Deshacer" unos segundos, por si el clic fue un error.
+  // "Deshacer" unos segundos, por si el clic fue un error. Un solo mecanismo para las dos formas de
+  // borrar que tiene la app -- el botón "Borrar radicado" del Paso 2 (siempre sobre el radicado
+  // activo) y la "✕" de cada fila en la cola (puede ser sobre cualquier otro, no el activo).
   var deleteConfirmDialog = document.getElementById("deleteConfirmDialog");
   var pendingDeleteId = null;
-  document.getElementById("cc_delete").addEventListener("click", function(){
-    var rec = state.records.find(function(r){ return r.id===state.activeId; });
+  function requestDeleteRecord(id){
+    var rec = state.records.find(function(r){ return r.id===id; });
     if(!rec) return;
     pendingDeleteId = rec.id;
     document.getElementById("deleteConfirmRadicado").textContent = rec.radicado;
     deleteConfirmDialog.showModal();
+  }
+  document.getElementById("cc_delete").addEventListener("click", function(){
+    requestDeleteRecord(state.activeId);
   });
   document.getElementById("deleteConfirmCancel").addEventListener("click", function(){
     pendingDeleteId = null;
@@ -3633,7 +3680,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(idx === -1){ pendingDeleteId = null; return; }
     var rec = state.records[idx];
     state.records = state.records.filter(function(r){ return r.id!==pendingDeleteId; });
-    state.activeId = null;
+    // Solo se limpia el radicado activo si es justo el que se borró -- borrar desde la "✕" de la
+    // cola puede ser sobre uno DISTINTO al que se está editando en ese momento, y ese no se debe
+    // perder de la pantalla.
+    if(state.activeId === pendingDeleteId) state.activeId = null;
     explicitRemovalPending = true; // borrado deliberado por la persona -- el freno de la nube no debe bloquear esto
     save(); renderAll();
     var restoreAt = idx;
