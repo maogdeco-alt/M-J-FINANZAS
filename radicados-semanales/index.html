@@ -284,8 +284,49 @@
   .workbench.queue-hidden{grid-template-columns:1fr;}
   .workbench.queue-hidden #queueCol{display:none;}
   #toggleQueueBtn.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
-  /* dentro de la propia ventana flotante no tiene sentido ofrecer abrir OTRA ventana flotante */
-  html.es-flotante #floatModeBtn{display:none;}
+
+  /* ---- ventana flotante: SOLO el formulario del Paso 2, lo más bajo posible ----
+     La persona pidió expresamente que esta ventana pueda ser ancha (o un poco más) pero NO larga --
+     la usa pegada a un lado de la pantalla mientras copia y pega entre SIMIT/Fénix/ORFEO, con un solo
+     monitor. Por eso aquí se esconde todo lo que no sea el formulario en sí (marca, resumen, Paso 1,
+     Agendamientos, título y buscador del Paso 2 -- Anterior/Siguiente siguen sirviendo para moverse) y
+     se sube el botón de Guardar hasta arriba, justo debajo de a quién le pertenece el radicado. Nada
+     de esto toca la pestaña principal -- todo va bajo el selector html.es-flotante, que solo existe
+     en la copia de la página que corre DENTRO del iframe de la ventana flotante.  */
+  html.es-flotante #floatModeBtn{display:none;} /* no tiene sentido abrir otra flotante desde la flotante */
+  html.es-flotante .wrap{max-width:none;padding:6px 8px 14px;}
+  html.es-flotante header.top{margin-bottom:6px;}
+  html.es-flotante #weekBadge,
+  html.es-flotante #installAppBtn,
+  html.es-flotante #themeToggleBtn,
+  html.es-flotante #userBadge{display:none;}
+  html.es-flotante #saveStatus{font-size:0.7rem;}
+  html.es-flotante #paso1Accordion,
+  html.es-flotante #agendaTriggerSection{display:none;}
+  html.es-flotante #paso2Section{border:0;box-shadow:none;border-radius:0;margin-bottom:0;}
+  html.es-flotante #paso2Section > .panel-head{display:none;} /* título "Paso 2" + buscador/filtros/tabs: sin la cola visible, no hacen falta para ir avanzando */
+  html.es-flotante #paso2Section > .panel-body{padding:0;}
+  html.es-flotante .capture-card{padding:10px 12px;position:static;}
+  html.es-flotante .capture-card .cc-head h3{font-size:1.02rem;}
+  html.es-flotante .cc-sub{margin:0 0 4px;font-size:0.78rem;}
+  html.es-flotante .base-fields{font-size:0.78rem;margin-bottom:6px;}
+  html.es-flotante .work-fields{gap:6px 12px;max-width:none;}
+  html.es-flotante .cc-shortcut-hint{display:none;} /* atajo útil la primera vez, no hace falta repetirlo siempre a este tamaño */
+  /* el botón de Guardar / Guardar y siguiente sube justo debajo del encabezado del radicado, sin
+     mover ni un elemento del DOM -- mismos botones, mismos listeners, solo reordenados visualmente. */
+  /* !important necesario: renderCapture() pone display:block por JS en el estilo EN LÍNEA de este
+     mismo elemento (para mostrar/ocultar el formulario), y un estilo en línea le gana a cualquier
+     regla de una hoja de estilos en la propiedad "display", aunque sea por id -- sin el !important
+     aquí, todo el reordenamiento de abajo (order:...) quedaría sin efecto porque nunca llegaría a
+     ser un contenedor flex de verdad. */
+  html.es-flotante #captureForm{display:flex !important;flex-direction:column;}
+  html.es-flotante #captureForm > .cc-actions{order:1;margin-top:4px;padding-top:6px;}
+  html.es-flotante #captureForm > .cc-head{order:0;}
+  html.es-flotante #captureForm > .base-fields{order:2;}
+  html.es-flotante #captureForm > .base-edit-fields{order:3;}
+  html.es-flotante #captureForm > .work-fields{order:4;}
+  html.es-flotante #captureForm > #requiredSummary{order:5;}
+  html.es-flotante #captureForm > .cc-shortcut-hint{order:6;}
 
   .queue-panel{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:600px;overflow-y:auto;}
   .queue-item{padding:8px 10px;border-radius:7px;cursor:pointer;border:1px solid transparent;margin-bottom:3px;display:flex;gap:8px;align-items:flex-start;}
@@ -620,7 +661,7 @@
   </details>
 
   <!-- PASO 2: completar, diseñado para ir rápido -->
-  <section class="panel">
+  <section class="panel" id="paso2Section">
     <div class="panel-head">
       <div><span class="step">Paso 2</span><h2>Completar la información — tu trabajo</h2></div>
       <div class="toolbar">
@@ -729,7 +770,7 @@
   <!-- VENTANA APARTE: solo un botón de acceso -- el contenido real vive en #agendaDialog, para que
        no ocupe espacio permanente en la pantalla (antes era una sección siempre visible, aquí queda
        reducido a una sola fila, igual de rápido de abrir). -->
-  <section class="panel">
+  <section class="panel" id="agendaTriggerSection">
     <button class="agenda-trigger" id="agendaTriggerBtn" type="button">
       <span class="at-left">
         <span class="at-icon">📅</span>
@@ -1287,7 +1328,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       toast("Tu navegador no permite ventanas flotantes de este tipo (funciona en Chrome o Edge). Como alternativa, puedes acomodar esta ventana a un lado de la pantalla con Windows + flecha ← o →.", "warn");
       return;
     }
-    documentPictureInPicture.requestWindow({ width: 430, height: 720 }).then(function(pipWindow){
+    documentPictureInPicture.requestWindow({ width: 480, height: 520 }).then(function(pipWindow){
       var iframe = pipWindow.document.createElement("iframe");
       var base = location.href.split("#")[0];
       iframe.src = base + "#flotante=1";
