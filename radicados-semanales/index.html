@@ -302,28 +302,68 @@
   html.es-flotante #userBadge{display:none;}
   html.es-flotante #saveStatus{font-size:0.7rem;}
   html.es-flotante #paso1Accordion,
-  html.es-flotante #agendaTriggerSection{display:none;}
+  html.es-flotante #agendaTriggerSection,
+  html.es-flotante #paso3Section,
+  html.es-flotante .wrap > footer.note{display:none;} /* Paso 3 (exportar/respaldar) y el pie de página explicativo tampoco hacen falta para ir diligenciando -- siguen en la pestaña principal */
   html.es-flotante #paso2Section{border:0;box-shadow:none;border-radius:0;margin-bottom:0;}
   html.es-flotante #paso2Section > .panel-head{display:none;} /* título "Paso 2" + buscador/filtros/tabs: sin la cola visible, no hacen falta para ir avanzando */
   html.es-flotante #paso2Section > .panel-body{padding:0;}
-  html.es-flotante .capture-card{padding:10px 12px;position:static;}
-  html.es-flotante .capture-card .cc-head h3{font-size:1.02rem;}
-  html.es-flotante .cc-sub{margin:0 0 4px;font-size:0.78rem;}
-  html.es-flotante .base-fields{font-size:0.78rem;margin-bottom:6px;}
-  html.es-flotante .work-fields{gap:6px 12px;max-width:none;}
+  html.es-flotante .capture-card{padding:6px 8px;position:static;}
+  html.es-flotante .capture-card .cc-head{margin-bottom:0;}
+  html.es-flotante .capture-card .cc-head h3{font-size:0.9rem;}
+  html.es-flotante .cc-sub{margin:0;font-size:0.68rem;}
+  html.es-flotante .cc-nav{gap:3px;}
+  html.es-flotante .cc-nav .pos{font-size:0.66rem;}
+  html.es-flotante .cc-nav .btn{padding:2px 7px;font-size:0.68rem;}
   html.es-flotante .cc-shortcut-hint{display:none;} /* atajo útil la primera vez, no hace falta repetirlo siempre a este tamaño */
+  /* Cada helper de texto largo (explicaciones de cómo pegar SIMIT, qué campos separa el comparendo,
+     etc.) es justo lo que sobra para que quepa todo sin scroll -- ya se explicó una vez, no hace
+     falta repetirlo cada vez que se abre esta ventana. Sigue disponible como title="" al pasar el
+     cursor, por si hace falta releerlo. */
+  html.es-flotante .field-hint{display:none;}
+  html.es-flotante label{font-size:0.62rem;margin-bottom:1px;}
+  html.es-flotante input,
+  html.es-flotante select,
+  html.es-flotante textarea{padding:4px 7px;font-size:0.8rem;}
+  html.es-flotante .work-fields input,
+  html.es-flotante .work-fields select,
+  html.es-flotante .work-fields textarea{padding:4px 7px;font-size:0.8rem;}
+  html.es-flotante textarea{font-size:0.72rem;line-height:1.25;}
+  html.es-flotante #cc_comparendo{min-height:0;height:32px;}
+  html.es-flotante #cc_comentario{min-height:0;height:26px;}
+  html.es-flotante .base-fields{font-size:0.68rem;padding:3px 8px;margin-bottom:3px;gap:2px 10px;background:none;border:0;}
+  html.es-flotante .base-edit-toggle{padding:2px 6px;font-size:0.62rem;}
+  html.es-flotante .work-fields{gap:2px 10px;max-width:none;}
+  html.es-flotante .work-fields > div,
+  html.es-flotante .work-fields > .full{margin-bottom:0;}
+  html.es-flotante .insights{margin-top:2px;gap:3px;}
+  html.es-flotante .insight-chip{font-size:0.62rem;padding:1px 6px;}
+  html.es-flotante .breakdown-details{margin-top:1px;}
+  html.es-flotante .breakdown-details summary{font-size:0.64rem;}
+  html.es-flotante .simit-btn{padding:1px 6px;font-size:0.6rem;margin-left:4px;}
+  html.es-flotante #requiredSummary{margin:2px 0 0;font-size:0.62rem;}
+  html.es-flotante .cc-actions .btn{padding:4px 9px;font-size:0.72rem;}
+  html.es-flotante .cc-actions .btn.primary.big{padding:4px 10px;font-size:0.74rem;}
+  html.es-flotante .qi-priority-badge{font-size:0.58rem;padding:0 5px;}
   /* el botón de Guardar / Guardar y siguiente sube justo debajo del encabezado del radicado, sin
      mover ni un elemento del DOM -- mismos botones, mismos listeners, solo reordenados visualmente. */
-  /* !important necesario: renderCapture() pone display:block por JS en el estilo EN LÍNEA de este
-     mismo elemento (para mostrar/ocultar el formulario), y un estilo en línea le gana a cualquier
-     regla de una hoja de estilos en la propiedad "display", aunque sea por id -- sin el !important
-     aquí, todo el reordenamiento de abajo (order:...) quedaría sin efecto porque nunca llegaría a
-     ser un contenedor flex de verdad. */
-  html.es-flotante #captureForm{display:flex !important;flex-direction:column;}
+  /* El selector de atributo [style*="display: block"] es a propósito, no un descuido: renderCapture()
+     alterna el estilo EN LÍNEA de este elemento entre "display:none" (sin radicado activo) y
+     "display:block" (con uno activo) para mostrarlo/ocultarlo, y un estilo en línea le gana a
+     cualquier regla de una hoja de estilos en la propiedad "display" -- por eso hace falta
+     !important para poder reordenar sus hijos (ver order: más abajo). Pero un !important sin
+     condición alguna forzaría display:flex SIEMPRE, incluso cuando JS puso "display:none" a
+     propósito (sin radicado pendiente que mostrar) -- eso dejaba el formulario viejo pegado en
+     pantalla, encima del aviso de "nada pendiente". Al exigir que el estilo en línea diga
+     exactamente "display: block" para que esta regla aplique, el !important se desactiva solo en
+     cuanto JS vuelve a poner "display:none", y ahí sí se oculta de verdad. */
+  html.es-flotante #captureForm[style*="display: block"]{display:flex !important;flex-direction:column;}
   html.es-flotante #captureForm > .cc-actions{order:1;margin-top:4px;padding-top:6px;}
   html.es-flotante #captureForm > .cc-head{order:0;}
   html.es-flotante #captureForm > .base-fields{order:2;}
   html.es-flotante #captureForm > .base-edit-fields{order:3;}
+  html.es-flotante .base-edit-fields.open{grid-template-columns:repeat(4,1fr);gap:4px 8px;padding:5px 7px;margin-bottom:4px;max-width:none;}
+  html.es-flotante .base-edit-fields label{margin-bottom:1px;}
   html.es-flotante #captureForm > .work-fields{order:4;}
   html.es-flotante #captureForm > #requiredSummary{order:5;}
   html.es-flotante #captureForm > .cc-shortcut-hint{order:6;}
@@ -787,7 +827,7 @@
   </section>
 
   <!-- PASO 3: entregar y respaldar -->
-  <section class="panel">
+  <section class="panel" id="paso3Section">
     <div class="panel-head">
       <div><span class="step">Paso 3</span><h2>Generar y respaldar tus documentos</h2></div>
     </div>
@@ -1328,7 +1368,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       toast("Tu navegador no permite ventanas flotantes de este tipo (funciona en Chrome o Edge). Como alternativa, puedes acomodar esta ventana a un lado de la pantalla con Windows + flecha ← o →.", "warn");
       return;
     }
-    documentPictureInPicture.requestWindow({ width: 480, height: 520 }).then(function(pipWindow){
+    documentPictureInPicture.requestWindow({ width: 620, height: 540 }).then(function(pipWindow){
       var iframe = pipWindow.document.createElement("iframe");
       var base = location.href.split("#")[0];
       iframe.src = base + "#flotante=1";
