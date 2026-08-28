@@ -1377,63 +1377,63 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     applyQueueCollapse(isFlotanteInstance ? true : saved === "1");
   })();
 
-  // ---------- modo flotante (ventana siempre visible encima de otros programas) ----------
+  // ---------- modo flotante (ventana aparte, para tenerla a mano junto a SIMIT/Fénix/ORFEO) ----------
   // Un solo monitor + tener que ir y venir a SIMIT/Fénix/ORFEO es justo el problema que esto resuelve:
-  // usa la API real de "Picture-in-Picture de documento" de Chrome/Edge para abrir una ventanita que
-  // el sistema operativo mantiene SIEMPRE encima de todo (no solo de otras pestañas -- de cualquier
-  // programa), sin necesidad de un segundo monitor. Adentro va un <iframe> que carga esta misma
-  // página con #flotante=1 -- así corre su propia copia de la app, con su propio documento, y no se
-  // toca ni un solo elemento de la página principal (cero riesgo de romper alguna función existente).
-  // Contras honestos, para que no sorprendan: (1) solo funciona en navegadores basados en Chromium
-  // (Chrome, Edge) -- en los demás, el botón avisa y sugiere acomodar la ventana a un lado con
-  // Windows+flecha; (2) como la sesión vive solo en memoria (nunca en localStorage, a propósito, ver
-  // más abajo), hay que iniciar sesión una vez dentro de esa ventanita -- es la misma regla de
-  // seguridad que ya rige el resto de la app, no una falla nueva.
+  // abre una ventana normal del navegador (window.open), aparte de esta pestaña, que se puede acomodar
+  // a un lado de la pantalla o alternar con Alt+Tab mientras se trabaja en las otras páginas. Carga
+  // esta misma página con #flotante=1 -- corre su propia copia de la app, con su propio documento, y
+  // no toca ni un solo elemento de la página principal (cero riesgo de romper alguna función existente).
+  //
+  // Antes esto se hacía con la API "Picture-in-Picture de documento" de Chrome/Edge, que sí logra que
+  // el sistema operativo mantenga la ventanita encima de TODO (no solo de otras pestañas). Se cambió a
+  // una ventana normal después de encontrar, con pruebas aisladas y reproducibles, que esa tecnología
+  // tiene varias limitaciones reales que se fueron revelando una por una: (1) un <iframe> montado
+  // adentro de una ventana Picture-in-Picture nunca recibe postMessage desde la pestaña que la abrió
+  // (el navegador lo acepta sin error, pero jamás lo entrega -- confirmado con una prueba mínima sin
+  // nada de esta app de por medio; por eso se cambió a BroadcastChannel para pasar la sesión, ver
+  // abajo); y (2) los desplegables nativos de los campos (datalist, <select>) dentro de ese iframe no
+  // se despliegan de forma confiable -- justo el reporte de que "DEVUELTO, T14" no mostraba ninguna
+  // opción. Una ventana normal (window.open) no tiene ninguna de estas dos limitaciones porque no es
+  // una tecnología especial, es una ventana de navegador común y corriente.
+  // El trueque, para que no sorprenda: una ventana normal NO se queda encima de otros programas de
+  // forma automática como sí lo hacía la Picture-in-Picture -- hay que acomodarla a un lado (Windows +
+  // flecha ← o →) o alternar con Alt+Tab. A cambio, nunca vuelve a pedir iniciar sesión y todos los
+  // campos funcionan exactamente igual que en la pestaña principal.
   document.getElementById("floatModeBtn").addEventListener("click", function(){
     if(isFlotanteInstance) return; // no tiene sentido abrir una flotante DESDE la flotante
-    if(!("documentPictureInPicture" in window)){
-      toast("Tu navegador no permite ventanas flotantes de este tipo (funciona en Chrome o Edge). Como alternativa, puedes acomodar esta ventana a un lado de la pantalla con Windows + flecha ← o →.", "warn");
+    var base = location.href.split("#")[0];
+    var floatWin = window.open(base + "#flotante=1", "radicados_flotante", "width=620,height=540,resizable=yes");
+    if(!floatWin){
+      toast("El navegador bloqueó la ventana flotante (revisa si hay un bloqueador de ventanas emergentes). Como alternativa, puedes acomodar esta ventana a un lado de la pantalla con Windows + flecha ← o →.", "warn");
       return;
     }
-    documentPictureInPicture.requestWindow({ width: 620, height: 540 }).then(function(pipWindow){
-      var iframe = pipWindow.document.createElement("iframe");
-      var base = location.href.split("#")[0];
-      iframe.src = base + "#flotante=1";
-      iframe.style.cssText = "position:fixed;inset:0;width:100%;height:100%;border:0;display:block;";
-      pipWindow.document.title = "Radicados Semanales — flotante";
-      pipWindow.document.body.style.margin = "0";
-      pipWindow.document.body.appendChild(iframe);
-      // Le pasamos la sesión YA iniciada a la flotante en cuanto termina de cargar -- así no tiene
-      // que pedir usuario y contraseña otra vez solo por abrirse (el error real que se reportó:
-      // tener que iniciar sesión de nuevo cada vez). Nunca toca la URL ni localStorage -- la regla
-      // de "la sesión vive solo en memoria" se mantiene igual de estricta, solo que ahora esa
-      // memoria se copia una vez, al momento de abrir, en vez de pedirse otra vez. Si esta pestaña
-      // no tiene sesión activa (session es null), la flotante simplemente cae a su propio
-      // formulario de inicio de sesión, como antes.
-      //
-      // Usa BroadcastChannel, NO postMessage a iframe.contentWindow -- se probó primero con
-      // postMessage directo (la ruta obvia) y el navegador lo acepta sin error pero JAMÁS entrega
-      // el mensaje dentro de un iframe montado adentro de una ventana Picture-in-Picture de
-      // documento; se confirmó con una prueba mínima aislada, sin nada de esta app de por medio,
-      // que reproduce lo mismo. BroadcastChannel (no depende de una referencia de ventana, solo del
-      // mismo origen) sí atraviesa esa frontera sin problema.
-      iframe.addEventListener("load", function(){
-        try{
-          var handoffChannel = new BroadcastChannel("radicados_session_handoff");
-          handoffChannel.postMessage({ session: supaSession, profile: supaProfile });
-          handoffChannel.close();
-        }catch(e){}
-      });
-      // La flotante corre su PROPIA copia de la app, con su propia memoria -- no comparte nada en
-      // vivo con esta pestaña más allá de esa sesión inicial, solo la nube (y solo cuando cada una
-      // guarda). Si aquí también se guarda algo mientras la flotante está abierta, las dos compiten
-      // por escribir la misma cuenta; desde ahora eso ya no puede borrar nada en silencio
-      // (pushCloudNow lo bloquea y avisa si detecta que la otra ya guardó algo diferente), pero
-      // sigue siendo más simple no guardar nada aquí mientras se trabaja allá.
-      toast("Ventana flotante abierta — evita guardar cambios en esta pestaña mientras la uses, para que las dos no compitan por guardar al mismo tiempo.", "warn");
-    }).catch(function(err){
-      toast("No se pudo abrir la ventana flotante: " + (err && err.message ? err.message : "intenta de nuevo"), "warn");
-    });
+    // Le pasamos la sesión YA iniciada a la flotante en cuanto termina de cargar -- así no tiene que
+    // pedir usuario y contraseña otra vez solo por abrirse (el error real que se reportó: tener que
+    // iniciar sesión de nuevo cada vez). Nunca toca la URL ni localStorage -- la regla de "la sesión
+    // vive solo en memoria" se mantiene igual de estricta, solo que ahora esa memoria se copia una
+    // vez, al momento de abrir, en vez de pedirse otra vez. Si esta pestaña no tiene sesión activa
+    // (session es null), la flotante simplemente cae a su propio formulario de inicio de sesión.
+    //
+    // Se usa BroadcastChannel (igual que antes) en vez de postMessage directo a floatWin -- ya
+    // funcionaba de forma confiable y evita depender de sincronizar el "load" exacto de la ventana
+    // nueva con la referencia todavía viva.
+    var handoffTries = 0;
+    var handoffInterval = setInterval(function(){
+      handoffTries++;
+      try{
+        var handoffChannel = new BroadcastChannel("radicados_session_handoff");
+        handoffChannel.postMessage({ session: supaSession, profile: supaProfile });
+        handoffChannel.close();
+      }catch(e){}
+      if(handoffTries >= 15 || floatWin.closed) clearInterval(handoffInterval); // ~7.5s de intentos, de sobra para que cargue
+    }, 500);
+    // La flotante corre su PROPIA copia de la app, con su propia memoria -- no comparte nada en
+    // vivo con esta pestaña más allá de esa sesión inicial, solo la nube (y solo cuando cada una
+    // guarda). Si aquí también se guarda algo mientras la flotante está abierta, las dos compiten
+    // por escribir la misma cuenta; eso ya no puede borrar nada en silencio (pushCloudNow lo bloquea
+    // y avisa si detecta que la otra ya guardó algo diferente), pero sigue siendo más simple no
+    // guardar nada aquí mientras se trabaja allá.
+    toast("Ventana flotante abierta — evita guardar cambios en esta pestaña mientras la uses, para que las dos no compitan por guardar al mismo tiempo.", "warn");
   });
 
   document.getElementById("themeToggleBtn").addEventListener("click", function(){
@@ -1645,6 +1645,19 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // es justo lo que faltaba el día que la ventana flotante y la pestaña principal, abiertas a la
   // vez, se pisaron una a la otra y se perdieron horas de trabajo ya guardado.
   var lastKnownCloudActualizado = null;
+  // Freno contra un choque falso CONTRA SÍ MISMA: si se escribe rápido en varios campos seguidos
+  // (cada uno reinicia el temporizador de autoguardado) y luego se hace clic en "Guardar" antes de
+  // que ese temporizador se cumpla, es posible que ya haya una petición de guardado en camino a la
+  // nube cuando el temporizador dispare otra. Sin este freno, la segunda sale con la MISMA marca de
+  // tiempo vieja que la primera (porque la primera todavía no ha respondido para actualizarla), y
+  // cuando le llega el turno en el servidor, ya no coincide con lo que la primera acaba de dejar --
+  // se rechaza a sí misma y aparece un aviso de "se guardó desde otro lugar" que en realidad es la
+  // propia pestaña compitiendo consigo misma, no otro dispositivo. Con este freno, mientras hay una
+  // petición en camino, cualquier intento adicional de guardar se anota como pendiente y se repite
+  // en cuanto la primera termine (ya con la marca de tiempo puesta al día), en vez de salir en
+  // paralelo.
+  var cloudPushInFlight = false;
+  var cloudPushPendingRerun = false;
   // Mientras haya un conflicto sin resolver (ver pushCloudNow), el autoguardado mientras escribes y
   // cualquier otro save() de esta pestaña NO deben poder tapar el aviso con un "Guardado" optimista
   // -- ese "Guardado" se pone ANTES de saber si la nube lo aceptó, y si se deja pisar el aviso de
@@ -1688,6 +1701,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // seguir reintentando a ciegas con la misma marca de tiempo vieja; siempre va a volver a
     // rechazarse. Recargar la página es lo que realmente lo resuelve (trae la marca correcta).
     if(inConflictState) return;
+    // Ver la nota junto a "cloudPushInFlight" más arriba: si ya hay una petición de guardado en
+    // camino, no se manda otra en paralelo con la misma marca de tiempo vieja (eso se rechazaría a
+    // sí misma). Se anota que hace falta repetir, y se repite sola en cuanto la de en camino termine.
+    if(cloudPushInFlight){ cloudPushPendingRerun = true; return; }
     clearTimeout(cloudRetryTimer);
     if(state.records.length === 0 && lastKnownSafeCount > 0 && !explicitRemovalPending){
       setSaveStatus("blocked");
@@ -1707,14 +1724,39 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(lastKnownCloudActualizado){
       ruta += "&actualizado=eq." + encodeURIComponent(lastKnownCloudActualizado);
     }
+    cloudPushInFlight = true;
     supaFetch(ruta, {
       method:"PATCH", headers:{"Prefer":"return=representation"},
       body: JSON.stringify({records: state.records, settings: state.settings, history: state.history, actualizado: nuevoActualizado})
     }).then(function(rows){
       if(lastKnownCloudActualizado && (!rows || !rows.length)){
-        inConflictState = true;
-        setSaveStatus("conflict");
-        showDataSafetyBanner("Esta cuenta se guardó desde OTRO lugar (otra pestaña, otra ventana flotante, u otro computador) justo mientras trabajabas aquí. Para no arriesgar perder nada, este cambio de aquí NO se subió a la nube. Recarga esta página (F5) para traer la versión más reciente antes de seguir trabajando en ella -- lo que tengas sin guardar en esta pestaña sigue en pantalla, pero no se sincronizará hasta que recargues.", "warn");
+        // Antes de dar por hecho que hubo un choque real, se vuelve a consultar la nube directo
+        // (una lectura aparte, no la misma respuesta del PATCH). Esto es una segunda verificación
+        // a propósito: si el proyecto de Supabase no está devolviendo la fila en la respuesta del
+        // PATCH por algún tema de permisos de lectura (RLS) pero el guardado sí se aplicó de
+        // verdad, esta consulta lo confirma y evita un aviso de "conflicto" falso que no es real.
+        supaFetchDatos().then(function(check){
+          if(check && check.actualizado === nuevoActualizado){
+            // Sí se guardó -- el hueco era de permisos de lectura, no un choque real.
+            inConflictState = false;
+            setSaveStatus("ok");
+            lastKnownSafeCount = state.records.length;
+            lastKnownCloudActualizado = nuevoActualizado;
+            if(supaSession && supaSession.user) rememberSafeCount(supaSession.user.email, state.records.length);
+          } else {
+            inConflictState = true;
+            setSaveStatus("conflict");
+            showDataSafetyBanner("Esta cuenta se guardó desde OTRO lugar (otra pestaña, otra ventana flotante, u otro computador) justo mientras trabajabas aquí. Para no arriesgar perder nada, este cambio de aquí NO se subió a la nube. Recarga esta página (F5) para traer la versión más reciente antes de seguir trabajando en ella -- lo que tengas sin guardar en esta pestaña sigue en pantalla, pero no se sincronizará hasta que recargues.", "warn");
+          }
+          finishCloudPush();
+        }).catch(function(){
+          // No se pudo ni siquiera confirmar por esta segunda vía -- por seguridad se trata como
+          // conflicto (mejor avisar de más que sobrescribir sin estar segura).
+          inConflictState = true;
+          setSaveStatus("conflict");
+          showDataSafetyBanner("Esta cuenta se guardó desde OTRO lugar (otra pestaña, otra ventana flotante, u otro computador) justo mientras trabajabas aquí. Para no arriesgar perder nada, este cambio de aquí NO se subió a la nube. Recarga esta página (F5) para traer la versión más reciente antes de seguir trabajando en ella -- lo que tengas sin guardar en esta pestaña sigue en pantalla, pero no se sincronizará hasta que recargues.", "warn");
+          finishCloudPush();
+        });
         return;
       }
       inConflictState = false;
@@ -1722,10 +1764,24 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       lastKnownSafeCount = state.records.length;
       lastKnownCloudActualizado = nuevoActualizado;
       if(supaSession && supaSession.user) rememberSafeCount(supaSession.user.email, state.records.length);
+      finishCloudPush();
     }).catch(function(){
       setSaveStatus("cloud_error");
       cloudRetryTimer = setTimeout(pushCloudNow, 15000); // reintenta sola si hubo un corte de conexión
+      finishCloudPush();
     });
+  }
+  // Cierre obligatorio de cada intento de guardado en la nube (todas las salidas de pushCloudNow
+  // pasan por aquí): libera el freno de "petición en camino" y, si mientras tanto llegó otro pedido
+  // de guardar (cloudPushPendingRerun), lo repite ahora que ya hay una marca de tiempo al día -- así
+  // nunca hay dos peticiones en paralelo compitiendo con la misma marca vieja (ver la nota junto a
+  // "cloudPushInFlight" más arriba).
+  function finishCloudPush(){
+    cloudPushInFlight = false;
+    if(cloudPushPendingRerun){
+      cloudPushPendingRerun = false;
+      pushCloudNow();
+    }
   }
 
   function storageKeyFor(emailId){ return STORAGE_PREFIX + "::" + emailId; }
@@ -1883,7 +1939,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       function proceedAfterSyncCheck(){
         lastKnownSafeCount = nowCount;
         rememberSafeCount(user.email, nowCount);
-        save(); saveSettingsToStorage(); saveHistory(); // espejo local, para seguir funcionando sin conexión
+        // skipCloud=true: esto es solo el espejo local de lo que YA se acaba de traer de la nube (o
+        // de este mismo navegador si la nube estaba vacía) -- no hay que volver a subirlo. Si de
+        // verdad hace falta subir algo (datos recuperados de una versión vieja, o datos que solo
+        // existían en este navegador), eso se hace explícitamente más abajo con queueCloudSync().
+        save(true); saveSettingsToStorage(); saveHistory(); // espejo local, para seguir funcionando sin conexión
         applyRequiredMarkers(); refreshFormatoDatalist();
         if(recovered.addedRecords > 0){
           queueCloudSync();
@@ -2509,7 +2569,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       .map(function(h){ return [h.weekLabel, h.closedAtDisplay, h.total, h.done, h.pct+"%", h.devuelto, h.pctDevuelto+"%"]; });
   }
 
-  function save(){
+  // skipCloud: true cuando lo que se acaba de traer de la nube se está simplemente reflejando en el
+  // espejo local (este navegador) recién se inicia sesión -- no hace falta ni tiene sentido volver a
+  // subir a la nube el mismo dato que se acaba de bajar de ahí. Sin esto, cada inicio de sesión (por
+  // ejemplo, cada vez que se abre la ventana flotante y hereda la sesión) mandaba una escritura de
+  // más a la nube unos momentos después, aunque nadie hubiera cambiado nada -- eso adelantaba la
+  // marca de tiempo "actualizado" sin necesidad y podía chocar de vuelta contra un guardado real y
+  // legítimo que estuviera en camino desde otra pestaña en ese mismo instante, mostrando un aviso de
+  // conflicto que no tenía por qué haber pasado.
+  function save(skipCloud){
     if(!state.profile.activeUser) return true;
     if(state.loadCorrupted){
       setSaveStatus("error");
@@ -2527,7 +2595,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // "Guardado" es solo local (optimista) -- no se muestra encima del aviso de conflicto, para
       // no parecer resuelto sin estarlo.
       if(!inConflictState) setSaveStatus("ok");
-      queueCloudSync();
+      if(!skipCloud) queueCloudSync();
       warnIfStorageGettingFull(json.length);
       return true;
     }catch(e){
@@ -4259,7 +4327,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // principal no tenía sesión, se cerró antes de que esto cargara, o cualquier otro motivo -- cae
   // al mismo formulario de siempre, sin quedar nunca atascada esperando.
   if(isFlotanteInstance){
-    var flotanteHandoffTimer = setTimeout(function(){ openAuthDialog(true); }, 1500);
+    // La pestaña principal reintenta el envío cada medio segundo durante ~7.5s (ver floatModeBtn),
+    // así que aquí se espera un poco más que eso antes de rendirse y pedir login manual -- de sobra
+    // para que esta ventana nueva termine de cargar y quede escuchando el canal a tiempo.
+    var flotanteHandoffTimer = setTimeout(function(){ openAuthDialog(true); }, 4000);
     try{
       // Mismo canal que floatModeBtn en la pestaña principal -- ver ahí la nota sobre por qué es
       // BroadcastChannel y no postMessage a la ventana (no llega, se confirmó aparte).
