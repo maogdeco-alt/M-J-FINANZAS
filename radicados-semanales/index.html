@@ -1990,8 +1990,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // null a propósito -- no hay con qué comparar, y pushCloudNow() ya sabe tratar ese caso.
       lastKnownCloudActualizado = (cloud && cloud.actualizado) || null;
       var hasCloudData = cloud && ((Array.isArray(cloud.records) && cloud.records.length) || (Array.isArray(cloud.history) && cloud.history.length));
+      // Se lee la copia de ESTE navegador directo del almacenamiento (sin pasar por load(), que
+      // pisaría state.records de una) ANTES de decidir -- puede tener radicados o cambios que nunca
+      // llegaron a subirse (por ejemplo, justo después de un aviso de "se guardó desde otro lugar" en
+      // la ventana flotante o en otra pestaña). Ver mergeRecordsByRecency más arriba.
+      var localRecordsAntesDeDecidir = [];
+      try{
+        var rawLocalAntes = localStorage.getItem(storageKeyFor(user.email));
+        var parsedLocalAntes = rawLocalAntes ? JSON.parse(rawLocalAntes) : null;
+        if(Array.isArray(parsedLocalAntes)) localRecordsAntesDeDecidir = parsedLocalAntes;
+      }catch(e){}
+      var mergeDetectoCambiosSinSubir = false;
       if(hasCloudData){
-        state.records = Array.isArray(cloud.records) ? cloud.records : [];
+        var mergeResult = mergeRecordsByRecency(cloud.records, localRecordsAntesDeDecidir);
+        state.records = mergeResult.records;
+        mergeDetectoCambiosSinSubir = mergeResult.changed;
         state.settings = mergeSettings(cloud.settings);
         state.history = Array.isArray(cloud.history) ? cloud.history : [];
       } else {
@@ -2016,11 +2029,17 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         // de este mismo navegador si la nube estaba vacía) -- no hay que volver a subirlo. Si de
         // verdad hace falta subir algo (datos recuperados de una versión vieja, o datos que solo
         // existían en este navegador), eso se hace explícitamente más abajo con queueCloudSync().
-        save(true); saveSettingsToStorage(); saveHistory(); // espejo local, para seguir funcionando sin conexión
+        save(true); saveSettingsToStorage(true); saveHistory(true); // espejo local, para seguir funcionando sin conexión
         applyRequiredMarkers(); refreshFormatoDatalist();
         if(recovered.addedRecords > 0){
           queueCloudSync();
           toast("Se recuperaron " + recovered.addedRecords + " radicado(s) guardados en este navegador de una versión anterior de la app — subiéndolos a tu cuenta ahora.");
+        } else if(mergeDetectoCambiosSinSubir){
+          // Ver mergeRecordsByRecency: había cambios en este navegador que nunca alcanzaron a
+          // subirse (por ejemplo, tras un aviso de conflicto). Ya se fusionaron con lo de la nube en
+          // memoria -- ahora hace falta subir ese resultado fusionado para que quede a salvo.
+          queueCloudSync();
+          toast("Se recuperaron cambios que tenías aquí sin subir (por un aviso de sincronización anterior) y se combinaron con lo más reciente de tu cuenta — subiéndolos ahora.");
         } else if(!hasCloudData && (state.records.length || state.history.length)){
           queueCloudSync();
           toast("Se subieron a tu cuenta los radicados que tenías guardados en este navegador.");
@@ -2059,7 +2078,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var recovered = recoverLegacyFlatDataInto(); // aunque falle la nube, no se pierde lo que hay en este navegador
       lastKnownSafeCount = state.records.length;
       lastKnownCloudActualizado = null; // no se pudo leer la nube -- sin marca de tiempo con qué comparar todavía
-      save(); saveSettingsToStorage(); saveHistory();
+      // skipCloud=true aquí también: sin conexión no hay nada que subir todavía, y si se intentara,
+      // saldría sin ningún filtro de comparación (lastKnownCloudActualizado es null) -- mejor no
+      // arriesgar una escritura a ciegas apenas vuelva la conexión, sin haber leído antes qué hay.
+      save(true); saveSettingsToStorage(true); saveHistory(true);
       applyRequiredMarkers(); refreshFormatoDatalist();
       setSaveStatus("cloud_error"); // el estado NUNCA debe quedarse en "Sincronizando…" -- eso es lo que se veía cuando la conexión se colgaba en vez de fallar rápido
       renderAll();
@@ -2203,9 +2225,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     applyRequiredMarkers();
     refreshFormatoDatalist();
   }
-  function saveSettingsToStorage(){
+  // skipCloud: ver la nota junto a save() -- mismo motivo: reflejar en este navegador lo que se
+  // acaba de traer de la nube (por ejemplo, justo al iniciar sesión) no debería, de paso, disparar
+  // una subida a la nube de algo que no cambió.
+  function saveSettingsToStorage(skipCloud){
     if(!state.profile.activeUser) return;
-    try{ localStorage.setItem(settingsKeyFor(state.profile.activeUser), JSON.stringify(state.settings)); queueCloudSync(); }
+    try{ localStorage.setItem(settingsKeyFor(state.profile.activeUser), JSON.stringify(state.settings)); if(!skipCloud) queueCloudSync(); }
     catch(e){ showDataSafetyBanner("No se pudieron guardar los Ajustes en este navegador."); }
   }
 
@@ -2583,9 +2608,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       state.history = []; // el historial es un reporte auxiliar, no el trabajo en curso: si se dañó, se reinicia sin bloquear nada
     }
   }
-  function saveHistory(){
+  // skipCloud: ver la nota junto a save() -- mismo motivo.
+  function saveHistory(skipCloud){
     if(!state.profile.activeUser) return;
-    try{ localStorage.setItem(historyKeyFor(state.profile.activeUser), JSON.stringify(state.history)); queueCloudSync(); }
+    try{ localStorage.setItem(historyKeyFor(state.profile.activeUser), JSON.stringify(state.history)); if(!skipCloud) queueCloudSync(); }
     catch(e){ toast("No se pudo guardar el historial de esta semana en este navegador (tus radicados no se ven afectados)."); }
   }
   // Mismo cálculo que usa el panel de arriba, reutilizado para el resumen que se guarda al cerrar la semana.
@@ -2895,8 +2921,37 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function isDone(r){ return !!r.formato; }
   function hasComparendo(r){ return !!r.comparendoCompleto; }
 
+  // Fusiona los radicados de la nube con los que quedaron guardados en ESTE navegador, en vez de
+  // simplemente descartar uno de los dos -- ver la nota junto a completeLogin() sobre por qué esto
+  // hacía falta: la protección contra choques de sincronización avisa y NO sube el cambio cuando otro
+  // lugar (la ventana flotante, u otra pestaña) guardó algo en el medio, pero antes de esta función,
+  // recargar la página después de ese aviso tiraba a la basura lo que se había escrito aquí sin
+  // alcanzar a subirse -- aunque fuera un radicado COMPLETAMENTE DISTINTO al que se guardó del otro
+  // lado. Con esto, cada radicado se conserva de quien lo haya tocado más recientemente (comparando
+  // "modificadoEn"), y los que solo existen de un lado (por ejemplo, uno recién importado que
+  // todavía no había alcanzado a subirse) se conservan siempre, en vez de perderse.
+  function mergeRecordsByRecency(cloudRecords, localRecords){
+    cloudRecords = Array.isArray(cloudRecords) ? cloudRecords : [];
+    localRecords = Array.isArray(localRecords) ? localRecords : [];
+    var map = {};
+    var order = [];
+    cloudRecords.forEach(function(r){ if(!(r.id in map)) order.push(r.id); map[r.id] = r; });
+    var changed = false;
+    localRecords.forEach(function(r){
+      var enNube = map[r.id];
+      if(!enNube){
+        map[r.id] = r; order.push(r.id); changed = true; // solo existía en este navegador todavía
+        return;
+      }
+      var tLocal = r.modificadoEn || r.createdAt || 0;
+      var tNube = enNube.modificadoEn || enNube.createdAt || 0;
+      if(tLocal > tNube){ map[r.id] = r; changed = true; } // el cambio de aquí es más reciente
+    });
+    return { records: order.map(function(id){ return map[id]; }), changed: changed };
+  }
+
   function blankRecord(){
-    return { id: uid(), createdAt: Date.now(), order: state.records.length,
+    return { id: uid(), createdAt: Date.now(), modificadoEn: Date.now(), order: state.records.length,
       radicado:"", fechaRadicacion:"", fechaAsignacion:"", nombre:"",
       direccion:"", formato:"", tipoComparendo:"", comentario:"", res:"", fechaRes:"",
       comparendoCompleto:"", comparendoRaw:"", cod:"", imposicion:"", notificacion:"", curso:"",
@@ -3837,6 +3892,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(!estabaHechoAntes && isDone(rec) && !rec.completadoEn){
       rec.completadoEn = new Date().toISOString();
     }
+    // Marca de cuándo se tocó este radicado POR ÚLTIMA VEZ -- se usa para fusionar en vez de
+    // descartar sin más cuando la pestaña principal y la ventana flotante trabajaron cada una en
+    // radicados DIFERENTES al mismo tiempo (ver mergeRecordsByRecency, en completeLogin()).
+    rec.modificadoEn = Date.now();
     return rec;
   }
 
@@ -4449,16 +4508,18 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // <script> separado ese nombre queda tapado por el <div id="toast"> del HTML en vez de la función.
   (function(){
     var installBtn = document.getElementById("installAppBtn");
-    var INSTALLED_KEY = "radicados_pwa_installed";
     var isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-    // "display-mode: standalone" solo es true DENTRO de la ventana ya instalada — no en la pestaña
-    // normal del navegador donde se dio clic en "Instalar". Por eso, además, se guarda la bandera
-    // en localStorage al instalar: así, aunque se vuelva a esa misma pestaña del navegador (no la
-    // ventana instalada), el botón no reaparece pensando que todavía hace falta instalar.
-    var alreadyInstalled = isStandalone;
-    try{ if(localStorage.getItem(INSTALLED_KEY) === "1") alreadyInstalled = true; }catch(e){}
-    if(isStandalone){ try{ localStorage.setItem(INSTALLED_KEY, "1"); }catch(e){} }
-    if(alreadyInstalled) return; // ya está instalada — no tiene sentido ofrecerlo de nuevo
+    // IMPORTANTE: el botón solo se oculta cuando ESTA MISMA ventana, AHORA MISMO, ya es la app
+    // instalada corriendo en modo standalone -- ahí sí no tiene sentido ofrecer instalarla de nuevo.
+    // A propósito, YA NO se usa ninguna bandera guardada de una sesión anterior para decidir esto
+    // (antes sí se usaba localStorage para eso): una bandera así puede quedar mal puesta -- por
+    // ejemplo, si el navegador llegó a disparar "appinstalled" alguna vez sin que la instalación
+    // haya quedado realmente disponible, o si la app se desinstaló después -- y entonces el botón
+    // desaparecería PARA SIEMPRE en esa pestaña, sin ninguna forma de recuperarlo desde la pantalla.
+    // Justo el problema real que se reportó ("no aparece la opción de instalar por ningún lado").
+    // Mejor mostrarlo de más alguna vez (aunque ya esté instalada en otra ventana) que arriesgarse a
+    // que deje de aparecer cuando sí hace falta.
+    if(isStandalone) return; // ya está instalada Y es esta misma ventana -- no tiene sentido ofrecerlo aquí
 
     var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     var isAndroid = /Android/.test(navigator.userAgent);
@@ -4527,11 +4588,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       }
     });
     // "appinstalled" avisa tanto si se instaló con este botón como si se instaló por el ícono propio
-    // del navegador (barra de direcciones o menú) — de cualquier forma, se oculta y se recuerda.
+    // del navegador (barra de direcciones o menú) -- se oculta AQUÍ MISMO, en esta pestaña, para esta
+    // sesión (no se guarda en localStorage para sesiones futuras -- ver la nota junto a isStandalone
+    // más arriba sobre por qué eso causaba que el botón desapareciera para siempre).
     window.addEventListener("appinstalled", function(){
       installBtn.hidden = true;
       deferredPrompt = null;
-      try{ localStorage.setItem(INSTALLED_KEY, "1"); }catch(e){}
       toast("¡App instalada! Ya la puedes abrir directo desde el escritorio o el menú de aplicaciones.");
     });
   })();
