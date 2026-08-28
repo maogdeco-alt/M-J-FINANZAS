@@ -303,7 +303,14 @@
   html.es-flotante #installAppBtn,
   html.es-flotante #themeToggleBtn,
   html.es-flotante #userBadge{display:none;}
-  html.es-flotante #saveStatus{font-size:0.7rem;}
+  /* Se agranda un poco y se le pone un borde de color a juego (chip), en vez de dejarlo como texto
+     suelto casi invisible -- a este tamaño tan compacto, el estado de guardado es justo lo que más
+     tranquilidad necesita dar, no algo para esconder. El color cambia según el estado real (ver
+     setSaveStatus): verde cuando de verdad se guardó, ámbar/rojo cuando hace falta revisar algo. */
+  html.es-flotante #saveStatus{font-size:0.74rem;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--ok-soft);border:1.5px solid var(--ok);}
+  html.es-flotante #saveStatus.saving{background:var(--warn-soft);border-color:var(--warn);}
+  html.es-flotante #saveStatus.warn{background:var(--warn-soft);border-color:var(--warn);}
+  html.es-flotante #saveStatus.error{background:var(--stamp-soft);border-color:var(--stamp);}
   html.es-flotante #paso1Accordion,
   html.es-flotante #agendaTriggerSection,
   html.es-flotante #paso3Section,
