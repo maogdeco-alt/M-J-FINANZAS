@@ -1394,6 +1394,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       pipWindow.document.title = "Radicados Semanales — flotante";
       pipWindow.document.body.style.margin = "0";
       pipWindow.document.body.appendChild(iframe);
+      // La flotante corre su PROPIA copia de la app, con su propia memoria -- no comparte nada en
+      // vivo con esta pestaña, solo la nube (y solo cuando cada una guarda). Si aquí también se
+      // guarda algo mientras la flotante está abierta, las dos compiten por escribir la misma
+      // cuenta; desde ahora eso ya no puede borrar nada en silencio (pushCloudNow lo bloquea y
+      // avisa si detecta que la otra ya guardó algo diferente), pero sigue siendo más simple no
+      // guardar nada aquí mientras se trabaja allá.
+      toast("Ventana flotante abierta — evita guardar cambios en esta pestaña mientras la uses, para que las dos no compitan por guardar al mismo tiempo.", "warn");
     }).catch(function(err){
       toast("No se pudo abrir la ventana flotante: " + (err && err.message ? err.message : "intenta de nuevo"), "warn");
     });
@@ -1589,13 +1596,31 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       .then(function(rows){ return (rows && rows[0]) || null; });
   }
   function supaFetchDatos(){
-    return supaFetch("/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id + "&select=records,settings,history")
+    // "actualizado" se trae siempre, aunque nadie más lo muestre en pantalla -- pushCloudNow() lo usa
+    // para saber si esta cuenta se guardó desde OTRO lugar (otra pestaña, otra ventana) justo antes
+    // de intentar guardar desde aquí (ver lastKnownCloudActualizado más abajo).
+    return supaFetch("/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id + "&select=records,settings,history,actualizado")
       .then(function(rows){ return (rows && rows[0]) || null; });
   }
 
   // ---------- sincronización a la nube: se dispara sola después de cada guardado local ----------
   var cloudSyncTimer = null;
   var cloudRetryTimer = null;
+  // Freno de seguridad contra que ESTA MISMA CUENTA, abierta en dos lugares al mismo tiempo (dos
+  // pestañas, o la pestaña principal junto con la ventana flotante), se pise a sí misma: cada vez
+  // que se lee o se escribe la nube con éxito, se recuerda su marca de tiempo "actualizado". Antes
+  // de escribir de nuevo, el PATCH exige que esa marca siga siendo la misma (ver pushCloudNow) --
+  // si alguien más ya guardó en el medio, PostgREST no encuentra ninguna fila que cumpla el filtro
+  // y no cambia nada, en vez de machacar lo más reciente con una copia más vieja en memoria. Esto
+  // es justo lo que faltaba el día que la ventana flotante y la pestaña principal, abiertas a la
+  // vez, se pisaron una a la otra y se perdieron horas de trabajo ya guardado.
+  var lastKnownCloudActualizado = null;
+  // Mientras haya un conflicto sin resolver (ver pushCloudNow), el autoguardado mientras escribes y
+  // cualquier otro save() de esta pestaña NO deben poder tapar el aviso con un "Guardado" optimista
+  // -- ese "Guardado" se pone ANTES de saber si la nube lo aceptó, y si se deja pisar el aviso de
+  // conflicto, parece resuelto sin estarlo. Solo se limpia con un push que sí se acepte (lo cual,
+  // en la práctica, exige recargar para traer la marca de tiempo correcta primero).
+  var inConflictState = false;
   // Freno de seguridad contra pérdidas silenciosas: si la lista en memoria se queda en CERO justo
   // cuando antes había radicados reales, NUNCA se sube sola a la nube -- se bloquea y se avisa en
   // grande. Así, si algún día vuelve a fallar la carga (como pasó una vez, por una llave de
@@ -1629,6 +1654,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
   function pushCloudNow(){
     if(!supaSession || !supaConfig) return;
+    // Ya se sabe que hay un conflicto sin resolver (otro lugar guardó encima) -- no tiene caso
+    // seguir reintentando a ciegas con la misma marca de tiempo vieja; siempre va a volver a
+    // rechazarse. Recargar la página es lo que realmente lo resuelve (trae la marca correcta).
+    if(inConflictState) return;
     clearTimeout(cloudRetryTimer);
     if(state.records.length === 0 && lastKnownSafeCount > 0 && !explicitRemovalPending){
       setSaveStatus("blocked");
@@ -1637,12 +1666,31 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }
     explicitRemovalPending = false;
     setSaveStatus("syncing");
-    supaFetch("/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id, {
-      method:"PATCH", headers:{"Prefer":"return=minimal"},
-      body: JSON.stringify({records: state.records, settings: state.settings, history: state.history, actualizado: new Date().toISOString()})
-    }).then(function(){
+    var nuevoActualizado = new Date().toISOString();
+    var ruta = "/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id;
+    // Comparación optimista: si ya sabemos cuál era la última marca de tiempo de la nube, el PATCH
+    // exige que SIGA siendo esa justo antes de escribir (filtro extra en la misma petición, no una
+    // consulta aparte -- así no queda ningún hueco de tiempo entre "revisar" y "escribir"). Si
+    // alguien más ya guardó en el medio (otra pestaña, otra ventana flotante, otro computador con
+    // la misma cuenta), la marca ya cambió, el filtro no encuentra ninguna fila, y PostgREST no
+    // toca nada -- en vez de sobrescribir a ciegas con lo que había en la memoria de ESTA pestaña.
+    if(lastKnownCloudActualizado){
+      ruta += "&actualizado=eq." + encodeURIComponent(lastKnownCloudActualizado);
+    }
+    supaFetch(ruta, {
+      method:"PATCH", headers:{"Prefer":"return=representation"},
+      body: JSON.stringify({records: state.records, settings: state.settings, history: state.history, actualizado: nuevoActualizado})
+    }).then(function(rows){
+      if(lastKnownCloudActualizado && (!rows || !rows.length)){
+        inConflictState = true;
+        setSaveStatus("conflict");
+        showDataSafetyBanner("Esta cuenta se guardó desde OTRO lugar (otra pestaña, otra ventana flotante, u otro computador) justo mientras trabajabas aquí. Para no arriesgar perder nada, este cambio de aquí NO se subió a la nube. Recarga esta página (F5) para traer la versión más reciente antes de seguir trabajando en ella -- lo que tengas sin guardar en esta pestaña sigue en pantalla, pero no se sincronizará hasta que recargues.", "warn");
+        return;
+      }
+      inConflictState = false;
       setSaveStatus("ok");
       lastKnownSafeCount = state.records.length;
+      lastKnownCloudActualizado = nuevoActualizado;
       if(supaSession && supaSession.user) rememberSafeCount(supaSession.user.email, state.records.length);
     }).catch(function(){
       setSaveStatus("cloud_error");
@@ -1776,6 +1824,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("searchBox").value = "";
     setSaveStatus("syncing");
     supaFetchDatos().then(function(cloud){
+      // Punto de partida para la comparación optimista de pushCloudNow() (ver más arriba, junto a
+      // su declaración): esta sesión recién se enteró de cuál es la marca de tiempo real de la
+      // nube en este momento, así que el primer guardado desde aquí puede exigir que siga siendo
+      // esa misma. Si el fetch no trajo fila (cuenta nueva, sin nada guardado todavía), queda en
+      // null a propósito -- no hay con qué comparar, y pushCloudNow() ya sabe tratar ese caso.
+      lastKnownCloudActualizado = (cloud && cloud.actualizado) || null;
       var hasCloudData = cloud && ((Array.isArray(cloud.records) && cloud.records.length) || (Array.isArray(cloud.history) && cloud.history.length));
       if(hasCloudData){
         state.records = Array.isArray(cloud.records) ? cloud.records : [];
@@ -1841,6 +1895,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       load(); loadSettings(); loadHistory();
       var recovered = recoverLegacyFlatDataInto(); // aunque falle la nube, no se pierde lo que hay en este navegador
       lastKnownSafeCount = state.records.length;
+      lastKnownCloudActualizado = null; // no se pudo leer la nube -- sin marca de tiempo con qué comparar todavía
       save(); saveSettingsToStorage(); saveHistory();
       applyRequiredMarkers(); refreshFormatoDatalist();
       setSaveStatus("cloud_error"); // el estado NUNCA debe quedarse en "Sincronizando…" -- eso es lo que se veía cuando la conexión se colgaba en vez de fallar rápido
@@ -2438,7 +2493,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     try{
       var json = JSON.stringify(state.records);
       localStorage.setItem(storageKeyFor(state.profile.activeUser), json);
-      setSaveStatus("ok");
+      // Ver "inConflictState" arriba: si hay un conflicto de sincronización sin resolver, este
+      // "Guardado" es solo local (optimista) -- no se muestra encima del aviso de conflicto, para
+      // no parecer resuelto sin estarlo.
+      if(!inConflictState) setSaveStatus("ok");
       queueCloudSync();
       warnIfStorageGettingFull(json.length);
       return true;
@@ -2487,6 +2545,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       el.className = "save-status warn";
     } else if(status === "blocked"){
       el.textContent = "⛔ Sincronización bloqueada — revisa el aviso";
+      el.className = "save-status error";
+    } else if(status === "conflict"){
+      el.textContent = "⛔ Se guardó desde otro lugar — recarga la página";
       el.className = "save-status error";
     } else {
       el.textContent = "⚠ Sin guardar — revisa el aviso";
