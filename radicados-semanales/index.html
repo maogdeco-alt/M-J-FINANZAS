@@ -911,8 +911,8 @@
     <div><span class="step">Instalar</span><h2 id="installHelpTitle">Instalar en iPhone o iPad</h2></div>
   </div>
   <div class="panel-body">
-    <p class="panel-desc" style="margin-top:0;">Safari en iOS no deja instalar apps con un solo botón como Chrome o Android — pero sí se puede, en tres pasos:</p>
-    <ol style="margin:0 0 16px;padding-left:22px;line-height:1.7;">
+    <p class="panel-desc" id="installHelpDesc" style="margin-top:0;">Safari en iOS no deja instalar apps con un solo botón como Chrome o Android — pero sí se puede, en tres pasos:</p>
+    <ol id="installHelpSteps" style="margin:0 0 16px;padding-left:22px;line-height:1.7;">
       <li>Toca el botón de <b>Compartir</b> (el cuadrito con la flecha hacia arriba, abajo o arriba de la pantalla según tu Safari).</li>
       <li>Busca <b>"Agregar a pantalla de inicio"</b> en la lista (puede que tengas que bajar un poco).</li>
       <li>Confirma. Queda el ícono en tu pantalla de inicio, igual que cualquier app descargada.</li>
@@ -4388,34 +4388,70 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(alreadyInstalled) return; // ya está instalada — no tiene sentido ofrecerlo de nuevo
 
     var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    var isAndroid = /Android/.test(navigator.userAgent);
     var deferredPrompt = null;
 
+    // IMPORTANTE: el botón se muestra SIEMPRE de entrada (salvo que ya esté instalada) -- ya NO
+    // depende de esperar a que el navegador dispare "beforeinstallprompt". Antes sí dependía de eso
+    // en Chrome/Edge, y Chrome tiene sus propias reglas para decidir CUÁNDO (o si) lo dispara -- por
+    // ejemplo, si el aviso ya se descartó una vez, Chrome deja de ofrecerlo solo durante meses. Eso
+    // hacía que el botón pudiera desaparecer sin ningún cambio de este lado, y sin ninguna forma de
+    // saber por qué. Ahora, si el navegador SÍ ofrece el camino automático, el clic lo usa; si no (o
+    // todavía no ha avisado), el clic muestra instrucciones manuales para instalarla desde el propio
+    // menú del navegador -- así SIEMPRE hay una forma de instalar, sin depender de que el navegador
+    // "quiera" mostrar el aviso automático justo en ese momento.
+    installBtn.hidden = false;
+
+    function showManualInstructions(){
+      var title = document.getElementById("installHelpTitle");
+      var desc = document.getElementById("installHelpDesc");
+      var steps = document.getElementById("installHelpSteps");
+      if(isIOS){
+        title.textContent = "Instalar en iPhone o iPad";
+        desc.textContent = "Safari en iOS no deja instalar apps con un solo botón como Chrome o Android — pero sí se puede, en tres pasos:";
+        steps.innerHTML = "<li>Toca el botón de <b>Compartir</b> (el cuadrito con la flecha hacia arriba, abajo o arriba de la pantalla según tu Safari).</li>" +
+          "<li>Busca <b>\"Agregar a pantalla de inicio\"</b> en la lista (puede que tengas que bajar un poco).</li>" +
+          "<li>Confirma. Queda el ícono en tu pantalla de inicio, igual que cualquier app descargada.</li>";
+      } else if(isAndroid){
+        title.textContent = "Instalar en tu celular Android";
+        desc.textContent = "Tu navegador todavía no ofreció instalarla solo, pero se puede hacer manual desde su propio menú:";
+        steps.innerHTML = "<li>Toca los <b>tres puntos ⋮</b> arriba a la derecha del navegador.</li>" +
+          "<li>Busca <b>\"Instalar app\"</b> o <b>\"Agregar a pantalla de inicio\"</b> en el menú.</li>" +
+          "<li>Confirma. Queda el ícono en tu celular, igual que cualquier app descargada.</li>";
+      } else {
+        title.textContent = "Instalar en tu computador";
+        desc.textContent = "Tu navegador todavía no ofreció instalarla solo, pero se puede hacer manual desde su propio menú:";
+        steps.innerHTML = "<li>Busca el ícono de <b>instalar</b> en la barra de direcciones (una pantallita con una flecha hacia abajo, a la derecha de donde escribes la dirección) — o los <b>tres puntos ⋮</b> del menú del navegador, arriba a la derecha.</li>" +
+          "<li>Busca <b>\"Instalar Radicados Semanales…\"</b> o <b>\"Instalar app\"</b> en ese menú.</li>" +
+          "<li>Confirma. Queda como cualquier programa instalado en tu computador, con su propio ícono.</li>";
+      }
+      var dlg = document.getElementById("installHelpDialog");
+      if(!dlg.open) dlg.showModal();
+    }
+    document.getElementById("installHelpClose").addEventListener("click", function(){
+      document.getElementById("installHelpDialog").close();
+    });
+
     if(isIOS){
-      // Safari en iOS nunca dispara "beforeinstallprompt" ni "appinstalled" — no hay forma de saber
-      // con certeza si ya se instaló, así que el botón se deja siempre disponible y solo abre las
-      // instrucciones manuales (no hace daño volver a mostrarlas si ya la instalaste).
-      installBtn.hidden = false;
-      installBtn.addEventListener("click", function(){
-        var dlg = document.getElementById("installHelpDialog");
-        if(!dlg.open) dlg.showModal();
-      });
-      document.getElementById("installHelpClose").addEventListener("click", function(){
-        document.getElementById("installHelpDialog").close();
-      });
+      // Safari en iOS nunca dispara "beforeinstallprompt" ni "appinstalled" -- solo existe el
+      // camino manual.
+      installBtn.addEventListener("click", showManualInstructions);
       return;
     }
 
-    // Chrome/Edge (PC y Android): el navegador avisa cuando la app cumple los requisitos para
-    // instalarse (manifest + service worker) disparando este evento — ahí es cuando se muestra el botón.
+    // Chrome/Edge (PC y Android): si el navegador decide ofrecer el camino automático, avisa
+    // disparando este evento -- se guarda para usarlo si llegan a hacer clic en el botón.
     window.addEventListener("beforeinstallprompt", function(e){
       e.preventDefault();
       deferredPrompt = e;
-      installBtn.hidden = false;
     });
     installBtn.addEventListener("click", function(){
-      if(!deferredPrompt) return;
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.finally(function(){ deferredPrompt = null; });
+      if(deferredPrompt){
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.finally(function(){ deferredPrompt = null; });
+      } else {
+        showManualInstructions();
+      }
     });
     // "appinstalled" avisa tanto si se instaló con este botón como si se instaló por el ícono propio
     // del navegador (barra de direcciones o menú) — de cualquier forma, se oculta y se recuerda.
