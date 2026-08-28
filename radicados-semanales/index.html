@@ -1629,8 +1629,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // "actualizado" se trae siempre, aunque nadie más lo muestre en pantalla -- pushCloudNow() lo usa
     // para saber si esta cuenta se guardó desde OTRO lugar (otra pestaña, otra ventana) justo antes
     // de intentar guardar desde aquí (ver lastKnownCloudActualizado más abajo).
-    return supaFetch("/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id + "&select=records,settings,history,actualizado")
-      .then(function(rows){ return (rows && rows[0]) || null; });
+    var campos = actualizadoColumnMissing ? "records,settings,history" : "records,settings,history,actualizado";
+    return supaFetch("/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id + "&select=" + campos)
+      .then(function(rows){ return (rows && rows[0]) || null; })
+      .catch(function(err){
+        // Ver la nota junto a "actualizadoColumnMissing" más arriba -- si la columna de verdad no
+        // existe todavía en este proyecto, se reintenta la misma consulta sin pedirla, en vez de
+        // dejar caer TODA la lectura de la cuenta por una columna que ni siquiera hace falta para
+        // lo esencial (traer los radicados guardados).
+        if(!actualizadoColumnMissing && isMissingColumnError(err)){
+          actualizadoColumnMissing = true;
+          return supaFetch("/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id + "&select=records,settings,history")
+            .then(function(rows){ return (rows && rows[0]) || null; });
+        }
+        throw err;
+      });
   }
 
   // ---------- sincronización a la nube: se dispara sola después de cada guardado local ----------
@@ -1645,6 +1658,20 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // es justo lo que faltaba el día que la ventana flotante y la pestaña principal, abiertas a la
   // vez, se pisaron una a la otra y se perdieron horas de trabajo ya guardado.
   var lastKnownCloudActualizado = null;
+  // Freno contra que esta protección entera se caiga si el proyecto de Supabase todavía NO tiene la
+  // columna "actualizado" en la tabla (por ejemplo, una cuenta que ya existía antes de que esta
+  // protección se agregara). Pedirla o escribirla en ese caso hace que PostgREST rechace la petición
+  // COMPLETA (no solo esa columna) -- sin este freno, esto podría dejar a alguien sin poder guardar
+  // NUNCA en la nube (reintentando para siempre la misma petición condenada a fallar), lo cual desde
+  // afuera se ve exactamente como "se me perdieron los radicados" aunque nadie los haya borrado: en
+  // realidad nunca llegaron a guardarse en la nube en primer lugar. En cuanto se detecta esto una
+  // vez, se deja de usar esa columna en esta pestaña y todo sigue funcionando igual que antes de que
+  // existiera esta protección (guardando de verdad, aunque ya sin la comparación optimista).
+  var actualizadoColumnMissing = false;
+  function isMissingColumnError(err){
+    var msg = (err && err.data && err.data.message) || (err && err.message) || "";
+    return !!(err && err.data && err.data.code === "42703") || /column .*does not exist/i.test(msg);
+  }
   // Freno contra un choque falso CONTRA SÍ MISMA: si se escribe rápido en varios campos seguidos
   // (cada uno reinicia el temporizador de autoguardado) y luego se hace clic en "Guardar" antes de
   // que ese temporizador se cumpla, es posible que ya haya una petición de guardado en camino a la
@@ -1725,9 +1752,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       ruta += "&actualizado=eq." + encodeURIComponent(lastKnownCloudActualizado);
     }
     cloudPushInFlight = true;
+    var payload = {records: state.records, settings: state.settings, history: state.history};
+    if(!actualizadoColumnMissing) payload.actualizado = nuevoActualizado;
     supaFetch(ruta, {
       method:"PATCH", headers:{"Prefer":"return=representation"},
-      body: JSON.stringify({records: state.records, settings: state.settings, history: state.history, actualizado: nuevoActualizado})
+      body: JSON.stringify(payload)
     }).then(function(rows){
       if(lastKnownCloudActualizado && (!rows || !rows.length)){
         // Antes de dar por hecho que hubo un choque real, se vuelve a consultar la nube directo
@@ -1765,7 +1794,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       lastKnownCloudActualizado = nuevoActualizado;
       if(supaSession && supaSession.user) rememberSafeCount(supaSession.user.email, state.records.length);
       finishCloudPush();
-    }).catch(function(){
+    }).catch(function(err){
+      // Ver la nota junto a "actualizadoColumnMissing" más arriba: si el rechazo es justo porque esa
+      // columna no existe todavía en este proyecto, NO tiene caso reintentar la misma petición cada
+      // 15 segundos para siempre (siempre va a volver a fallar igual) -- se deja de usar esa columna
+      // en esta pestaña y se reintenta ESTE MISMO guardado de inmediato, ya sin ella, para no perder
+      // ni un segundo de protección real (guardar de verdad) por una comparación que no puede
+      // funcionar en este proyecto todavía.
+      if(!actualizadoColumnMissing && isMissingColumnError(err)){
+        actualizadoColumnMissing = true;
+        lastKnownCloudActualizado = null;
+        cloudPushInFlight = false;
+        cloudPushPendingRerun = false;
+        pushCloudNow();
+        return;
+      }
       setSaveStatus("cloud_error");
       cloudRetryTimer = setTimeout(pushCloudNow, 15000); // reintenta sola si hubo un corte de conexión
       finishCloudPush();
