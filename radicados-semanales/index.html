@@ -184,7 +184,10 @@
   .link-btn:hover{text-decoration:underline;}
 
   label{display:block;font-size:0.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;font-weight:600;}
-  input,select,textarea{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--ink);font:inherit;font-size:0.98rem;font-variant-numeric:tabular-nums;}
+  /* line-height:1.55 (heredado de body) tiene sentido para leer texto corrido, no para una sola
+     línea dentro de un campo -- sin bajarlo aquí, cada input/select terminaba más alto de lo que su
+     propio texto necesita, multiplicado por decenas de campos en el Paso 2. */
+  input,select,textarea{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--ink);font:inherit;font-size:0.98rem;line-height:1.3;font-variant-numeric:tabular-nums;}
   .work-fields input,.work-fields textarea,.work-fields select{padding:9px 12px;font-size:1rem;}
   textarea{resize:vertical;font-variant-numeric:normal;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:0.88rem;}
   input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent);}
@@ -275,7 +278,7 @@
   .auth-dialog .panel-body{padding-top:22px;}
 
   /* ---- workbench: queue + capture card, built for speed ---- */
-  .workbench{display:grid;grid-template-columns:290px 1fr;gap:16px;align-items:start;}
+  .workbench{display:grid;grid-template-columns:260px 1fr;gap:16px;align-items:start;}
   .workbench > *{min-width:0;} /* si no, el contenido interno evita que la columna angoste (celular) */
   @media (max-width:900px){.workbench{grid-template-columns:1fr;}}
   /* con la cola oculta, el formulario usa todo el ancho -- pensado para trabajar con la ventana
@@ -397,14 +400,14 @@
   .agenda-item .ai-dup{margin-top:7px;font-size:0.78rem;color:var(--stamp);font-weight:700;}
   .agenda-item .ai-actions{margin-top:9px;display:flex;gap:8px;}
 
-  .capture-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 16px;position:sticky;top:12px;}
+  .capture-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 18px;position:sticky;top:12px;}
   .capture-card .cc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:2px;flex-wrap:wrap;}
   .capture-card .cc-head h3{font-size:1.22rem;font-variant-numeric:tabular-nums;}
-  .cc-sub{color:var(--muted);font-size:0.86rem;margin:1px 0 9px;}
+  .cc-sub{color:var(--muted);font-size:0.86rem;margin:1px 0 6px;}
   .cc-nav{display:flex;gap:6px;align-items:center;}
   .cc-nav .pos{color:var(--muted);font-size:0.84rem;font-variant-numeric:tabular-nums;margin-right:2px;}
 
-  .base-fields{display:flex;flex-wrap:wrap;gap:4px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;margin-bottom:11px;font-size:0.84rem;color:var(--muted);}
+  .base-fields{display:flex;flex-wrap:wrap;gap:4px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;margin-bottom:8px;font-size:0.84rem;color:var(--muted);}
   .base-fields b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600;}
   .base-edit-toggle{margin-left:auto;}
   .base-edit-fields{display:none;grid-template-columns:1fr 1fr;gap:8px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:9px;max-width:640px;}
@@ -413,9 +416,13 @@
   /* Dos columnas para los campos cortos (Formato/Dirección, Res./Fecha res.) -- el pegado del
      comparendo y el Comentario ocupan las dos columnas (.full). Pensado para que el formulario quepa
      en pantalla de computador sin tener que bajar tanto el cursor. */
-  .work-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;max-width:640px;}
+  .work-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;}
   .work-fields > .full{grid-column:1 / -1;}
   .work-fields .formato-field input{font-weight:700;}
+  /* El botón de SIMIT comparte fila con su label (ver .res-label-row) en vez de quedar en su propia
+     línea entre el label y el campo -- una fila menos de alto en uno de los campos más usados. */
+  .res-label-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px;}
+  .res-label-row label{margin-bottom:0;}
   .simit-btn{margin-left:8px;padding:3px 11px;font-size:0.76rem;border-radius:999px;background:var(--accent-soft);border-color:transparent;color:var(--accent);vertical-align:middle;text-decoration:none;}
   .simit-btn:hover{background:var(--accent);color:var(--accent-ink);filter:none;}
   .simit-btn:disabled{background:var(--surface-2);color:var(--muted);cursor:default;opacity:0.7;}
@@ -442,7 +449,7 @@
   .insight-chip.warn{background:var(--warn-soft);color:var(--warn);}
   .insight-chip.alert{background:var(--stamp-soft);color:var(--stamp);}
 
-  .cc-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px solid var(--border);}
+  .cc-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);}
   .cc-actions .spacer{flex:1;}
   .cc-shortcut-hint{color:var(--muted);font-size:0.76rem;margin-top:6px;}
   /* En celular, un botón de texto largo dentro de una fila que se envuelve puede terminar más
@@ -783,8 +790,10 @@
               </div>
 
               <div id="wrap_res">
-                <label for="cc_res">Res.<span class="required-mark" id="req_res" hidden>*</span></label>
-                <a class="btn small simit-btn is-disabled" id="cc_simitBtn" href="https://www.fcm.org.co/simit/#/home-public" target="simitConsultaMJ" aria-disabled="true" title="Pega primero la línea del comparendo -- de ahí sale el número de documento">🔎 <span id="cc_simitBtnLabel">Buscar en SIMIT</span></a>
+                <div class="res-label-row">
+                  <label for="cc_res">Res.<span class="required-mark" id="req_res" hidden>*</span></label>
+                  <a class="btn small simit-btn is-disabled" id="cc_simitBtn" href="https://www.fcm.org.co/simit/#/home-public" target="simitConsultaMJ" aria-disabled="true" title="Pega primero la línea del comparendo -- de ahí sale el número de documento">🔎 <span id="cc_simitBtnLabel">Buscar en SIMIT</span></a>
+                </div>
                 <input id="cc_res" placeholder="pega directo de SIMIT: se separa sola de la fecha">
                 <div class="field-hint">Puedes pegar tal cual copias de SIMIT ("1368706 Fecha: 26/07/2024") — separa el número y la fecha solo.</div>
               </div>
@@ -1394,12 +1403,33 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       pipWindow.document.title = "Radicados Semanales — flotante";
       pipWindow.document.body.style.margin = "0";
       pipWindow.document.body.appendChild(iframe);
+      // Le pasamos la sesión YA iniciada a la flotante en cuanto termina de cargar -- así no tiene
+      // que pedir usuario y contraseña otra vez solo por abrirse (el error real que se reportó:
+      // tener que iniciar sesión de nuevo cada vez). Nunca toca la URL ni localStorage -- la regla
+      // de "la sesión vive solo en memoria" se mantiene igual de estricta, solo que ahora esa
+      // memoria se copia una vez, al momento de abrir, en vez de pedirse otra vez. Si esta pestaña
+      // no tiene sesión activa (session es null), la flotante simplemente cae a su propio
+      // formulario de inicio de sesión, como antes.
+      //
+      // Usa BroadcastChannel, NO postMessage a iframe.contentWindow -- se probó primero con
+      // postMessage directo (la ruta obvia) y el navegador lo acepta sin error pero JAMÁS entrega
+      // el mensaje dentro de un iframe montado adentro de una ventana Picture-in-Picture de
+      // documento; se confirmó con una prueba mínima aislada, sin nada de esta app de por medio,
+      // que reproduce lo mismo. BroadcastChannel (no depende de una referencia de ventana, solo del
+      // mismo origen) sí atraviesa esa frontera sin problema.
+      iframe.addEventListener("load", function(){
+        try{
+          var handoffChannel = new BroadcastChannel("radicados_session_handoff");
+          handoffChannel.postMessage({ session: supaSession, profile: supaProfile });
+          handoffChannel.close();
+        }catch(e){}
+      });
       // La flotante corre su PROPIA copia de la app, con su propia memoria -- no comparte nada en
-      // vivo con esta pestaña, solo la nube (y solo cuando cada una guarda). Si aquí también se
-      // guarda algo mientras la flotante está abierta, las dos compiten por escribir la misma
-      // cuenta; desde ahora eso ya no puede borrar nada en silencio (pushCloudNow lo bloquea y
-      // avisa si detecta que la otra ya guardó algo diferente), pero sigue siendo más simple no
-      // guardar nada aquí mientras se trabaja allá.
+      // vivo con esta pestaña más allá de esa sesión inicial, solo la nube (y solo cuando cada una
+      // guarda). Si aquí también se guarda algo mientras la flotante está abierta, las dos compiten
+      // por escribir la misma cuenta; desde ahora eso ya no puede borrar nada en silencio
+      // (pushCloudNow lo bloquea y avisa si detecta que la otra ya guardó algo diferente), pero
+      // sigue siendo más simple no guardar nada aquí mientras se trabaja allá.
       toast("Ventana flotante abierta — evita guardar cambios en esta pestaña mientras la uses, para que las dos no compitan por guardar al mismo tiempo.", "warn");
     }).catch(function(err){
       toast("No se pudo abrir la ventana flotante: " + (err && err.message ? err.message : "intenta de nuevo"), "warn");
@@ -4223,7 +4253,36 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // crear una cuenta desde aquí (eso lo hace quien administra el proyecto de Supabase). Esto es lo
   // que hace que cada persona (o cada compañero que abra el mismo enlace desde su propio computador)
   // tenga su espacio individual y separado, con su propia contraseña.
-  openAuthDialog(true);
+  // La ventana flotante es la única excepción: en vez de pedir usuario y contraseña de nuevo (el
+  // error real que se reportó), espera un momento corto a que la pestaña principal le pase la
+  // sesión que ya tenía abierta (ver floatModeBtn). Si no llega nada a tiempo -- la pestaña
+  // principal no tenía sesión, se cerró antes de que esto cargara, o cualquier otro motivo -- cae
+  // al mismo formulario de siempre, sin quedar nunca atascada esperando.
+  if(isFlotanteInstance){
+    var flotanteHandoffTimer = setTimeout(function(){ openAuthDialog(true); }, 1500);
+    try{
+      // Mismo canal que floatModeBtn en la pestaña principal -- ver ahí la nota sobre por qué es
+      // BroadcastChannel y no postMessage a la ventana (no llega, se confirmó aparte).
+      var handoffChannel = new BroadcastChannel("radicados_session_handoff");
+      handoffChannel.onmessage = function(ev){
+        clearTimeout(flotanteHandoffTimer);
+        handoffChannel.close();
+        if(ev.data && ev.data.session){
+          supaSession = ev.data.session;
+          supaProfile = ev.data.profile || null;
+          completeLogin(true);
+        } else {
+          openAuthDialog(true);
+        }
+      };
+    }catch(e){
+      // BroadcastChannel no disponible (navegador muy antiguo) -- cae directo al login normal.
+      clearTimeout(flotanteHandoffTimer);
+      openAuthDialog(true);
+    }
+  } else {
+    openAuthDialog(true);
+  }
 
   if(state.storageAvailable === false){
     setSaveStatus("nostorage");
