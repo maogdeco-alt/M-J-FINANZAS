@@ -1399,10 +1399,33 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // forma automática como sí lo hacía la Picture-in-Picture -- hay que acomodarla a un lado (Windows +
   // flecha ← o →) o alternar con Alt+Tab. A cambio, nunca vuelve a pedir iniciar sesión y todos los
   // campos funcionan exactamente igual que en la pestaña principal.
+  // Referencia a la ventana flotante ya abierta, para no volver a abrirla de cero si ya existe (ver
+  // el clic de abajo). Vive en memoria de ESTA pestaña -- si se recarga la pestaña principal (F5), se
+  // pierde esta referencia, pero eso es justo lo que hace que la flotante, si sigue abierta, NUNCA se
+  // vea afectada por eso (ver la nota junto al clic de abajo sobre por qué el nombre es único cada vez).
+  var floatWinRef = null;
   document.getElementById("floatModeBtn").addEventListener("click", function(){
     if(isFlotanteInstance) return; // no tiene sentido abrir una flotante DESDE la flotante
+    // Si ya hay una ventana flotante abierta y sigue viva, no se abre otra -- se enfoca la que ya
+    // existe. Esto es justo la corrección de un error real: antes se abría siempre con el MISMO
+    // nombre fijo ("radicados_flotante"), y en el navegador, volver a llamar a window.open() con un
+    // nombre que ya corresponde a una ventana abierta NO abre una ventana nueva -- NAVEGA/RECARGA esa
+    // misma ventana desde cero. Eso se sentía como "la ventana flotante se cierra": el clic (por
+    // costumbre, o porque se recargó la pestaña principal y con eso se perdió esta misma referencia
+    // en memoria) volvía a disparar exactamente esa recarga completa, borrando cualquier cosa sin
+    // guardar que hubiera en el formulario de la flotante justo en ese momento.
+    if(floatWinRef && !floatWinRef.closed){
+      floatWinRef.focus();
+      toast("La ventana flotante ya estaba abierta -- se puso al frente, en vez de abrir otra o recargarla.");
+      return;
+    }
     var base = location.href.split("#")[0];
-    var floatWin = window.open(base + "#flotante=1", "radicados_flotante", "width=620,height=540,resizable=yes");
+    // Nombre único en cada apertura (a propósito, no un nombre fijo): así, aunque se pierda la
+    // referencia de arriba (por ejemplo, al recargar esta pestaña con la flotante todavía abierta),
+    // el próximo clic SIEMPRE abre una ventana nueva de verdad -- nunca navega/recarga por accidente
+    // una flotante que ya estaba abierta y con trabajo sin guardar adentro.
+    var floatWin = window.open(base + "#flotante=1", "radicados_flotante_" + Date.now(), "width=620,height=540,resizable=yes");
+    floatWinRef = floatWin;
     if(!floatWin){
       toast("El navegador bloqueó la ventana flotante (revisa si hay un bloqueador de ventanas emergentes). Como alternativa, puedes acomodar esta ventana a un lado de la pantalla con Windows + flecha ← o →.", "warn");
       return;
