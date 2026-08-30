@@ -623,6 +623,7 @@
     <div class="dsb-title">Problema guardando tus datos</div>
     <div id="dataSafetyMsg" class="dsb-msg"></div>
   </div>
+  <button class="btn small" id="dataSafetyActionBtn" type="button" hidden></button>
   <button class="btn small" id="dataSafetyDismiss" type="button">Entendido</button>
 </div>
 <div class="wrap">
@@ -1799,11 +1800,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
             setSaveStatus("cloudok");
             lastKnownSafeCount = state.records.length;
             lastKnownCloudActualizado = nuevoActualizado;
+            notifyDataSynced(nuevoActualizado);
             if(supaSession && supaSession.user) rememberSafeCount(supaSession.user.email, state.records.length);
           } else {
             inConflictState = true;
             setSaveStatus("conflict");
-            showDataSafetyBanner("Esta cuenta se guardó desde OTRO lugar (otra pestaña, otra ventana flotante, u otro computador) justo mientras trabajabas aquí. Para no arriesgar perder nada, este cambio de aquí NO se subió a la nube todavía -- pero SIGUE guardado en este navegador, no se perdió. Recarga esta página (F5), o si es la ventana flotante ciérrala y ábrela de nuevo desde el botón 🪟: en cualquiera de los dos casos, lo que tengas escrito aquí se combina solo con lo más reciente de tu cuenta y se sube en cuanto vuelvas a entrar.", "warn");
+            showDataSafetyBanner("Esta cuenta se guardó desde OTRO lugar (otra pestaña, otra ventana flotante, u otro computador) justo mientras trabajabas aquí. Para no arriesgar perder nada, este cambio de aquí NO se subió a la nube todavía -- pero SIGUE guardado en este navegador, no se perdió. Usa el botón de abajo para traer lo más reciente y combinarlo con esto -- no hace falta recargar la página a mano.", "warn", "Traer lo más reciente y combinar", traerLoMasReciente);
           }
           finishCloudPush();
         }).catch(function(){
@@ -1811,7 +1813,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
           // conflicto (mejor avisar de más que sobrescribir sin estar segura).
           inConflictState = true;
           setSaveStatus("conflict");
-          showDataSafetyBanner("Esta cuenta se guardó desde OTRO lugar (otra pestaña, otra ventana flotante, u otro computador) justo mientras trabajabas aquí. Para no arriesgar perder nada, este cambio de aquí NO se subió a la nube todavía -- pero SIGUE guardado en este navegador, no se perdió. Recarga esta página (F5), o si es la ventana flotante ciérrala y ábrela de nuevo desde el botón 🪟: en cualquiera de los dos casos, lo que tengas escrito aquí se combina solo con lo más reciente de tu cuenta y se sube en cuanto vuelvas a entrar.", "warn");
+          showDataSafetyBanner("Esta cuenta se guardó desde OTRO lugar (otra pestaña, otra ventana flotante, u otro computador) justo mientras trabajabas aquí. Para no arriesgar perder nada, este cambio de aquí NO se subió a la nube todavía -- pero SIGUE guardado en este navegador, no se perdió. Usa el botón de abajo para traer lo más reciente y combinarlo con esto -- no hace falta recargar la página a mano.", "warn", "Traer lo más reciente y combinar", traerLoMasReciente);
           finishCloudPush();
         });
         return;
@@ -1820,6 +1822,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       setSaveStatus("cloudok");
       lastKnownSafeCount = state.records.length;
       lastKnownCloudActualizado = nuevoActualizado;
+      notifyDataSynced(nuevoActualizado);
       if(supaSession && supaSession.user) rememberSafeCount(supaSession.user.email, state.records.length);
       finishCloudPush();
     }).catch(function(err){
@@ -1853,6 +1856,62 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       cloudPushPendingRerun = false;
       pushCloudNow();
     }
+  }
+
+  // ---------- aviso entre pestaña principal y ventana flotante: "hay cambios de otro lugar" ----------
+  // La protección contra choques (más arriba) evita que una se sobrescriba a la otra en silencio,
+  // pero por sí sola NO hace que lo que se guarda en un lugar aparezca solo en el otro -- cada pestaña
+  // tiene su propia copia en memoria, y solo se entera de lo que pasó en la nube si vuelve a consultar
+  // (por ejemplo, al iniciar sesión). Sin este aviso, alguien podría escribir en la ventana flotante,
+  // ver que ahí sí dice "guardado y sincronizado con la nube", y aun así mirar la pestaña principal y
+  // encontrarla desactualizada -- pareciendo que el trabajo "no se refleja", aunque sí esté a salvo en
+  // el servidor. Con esto, en cuanto CUALQUIERA de las dos guarda algo de verdad, la otra se entera de
+  // inmediato y ofrece traer lo nuevo con un clic -- nunca de forma automática y silenciosa, para no
+  // arriesgar borrar algo que se esté escribiendo justo en ese momento sin avisar.
+  // Trae lo más reciente de la nube (fusionando con lo que haya sin subir aquí) de la forma SEGURA
+  // para cada contexto -- ver la nota larga más abajo sobre por qué la pestaña principal NUNCA hace
+  // location.reload() para esto. Se usa tanto para el aviso de "hay cambios de otro lugar" como para
+  // resolver un conflicto de sincronización real, en vez de pedir un F5 manual en ambos casos.
+  function traerLoMasReciente(){
+    // IMPORTANTE: en la pestaña PRINCIPAL nunca se usa location.reload() aquí -- se confirmó que
+    // recargar la pestaña que ABRIÓ la ventana flotante (Picture-in-Picture) hace que el navegador
+    // la CIERRE sola, sin avisar (así está diseñada esa API: la ventana flotante depende de que su
+    // pestaña de origen siga viva). Si esta persona tiene la flotante abierta justo mientras usa
+    // este botón desde la pestaña principal, un reload aquí se la cerraría de golpe -- exactamente
+    // lo que no debe volver a pasar. En vez de eso, se vuelve a correr el mismo flujo de inicio de
+    // sesión (trae la nube, fusiona lo que haya sin subir) SIN navegar a ningún lado. Dentro de la
+    // ventana flotante (un iframe, no la pestaña que la abrió) sí es seguro recargar -- se confirmó
+    // aparte que eso no la cierra.
+    if(isFlotanteInstance){
+      location.reload();
+    } else if(supaSession){
+      inConflictState = false; // completeLogin() trae una marca de tiempo nueva y válida -- ya no aplica
+      completeLogin(true);
+    } else {
+      location.reload();
+    }
+  }
+  try{
+    var dataSyncChannel = new BroadcastChannel("radicados_data_sync");
+    dataSyncChannel.onmessage = function(ev){
+      if(!ev.data || !ev.data.actualizado) return;
+      if(ev.data.actualizado === lastKnownCloudActualizado) return; // ya lo tenemos, nada que avisar
+      toastAction(
+        "Se guardó algo nuevo desde " + (isFlotanteInstance ? "la pestaña principal" : "la ventana flotante") + ".",
+        "Traer lo más reciente",
+        traerLoMasReciente,
+        20000
+      );
+    };
+  }catch(e){}
+  // Se llama justo después de que un guardado en la nube se confirma de verdad (setSaveStatus con
+  // "cloudok") -- avisa a cualquier OTRA pestaña/ventana con esta misma app abierta que hay algo nuevo.
+  function notifyDataSynced(actualizado){
+    try{
+      var ch = new BroadcastChannel("radicados_data_sync");
+      ch.postMessage({actualizado: actualizado});
+      ch.close();
+    }catch(e){}
   }
 
   function storageKeyFor(emailId){ return STORAGE_PREFIX + "::" + emailId; }
@@ -2704,10 +2763,23 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return false;
     }
   }
-  function showDataSafetyBanner(msg, kind){
+  // actionLabel/actionFn (opcionales): botón adicional para resolver el aviso con un clic, en vez de
+  // solo poder cerrarlo. Se usa, por ejemplo, en el aviso de conflicto de sincronización -- ver la
+  // nota junto a "dataSyncChannel" más arriba sobre por qué esa acción NUNCA hace location.reload()
+  // en la pestaña principal (cerraría la ventana flotante si está abierta).
+  function showDataSafetyBanner(msg, kind, actionLabel, actionFn){
     var banner = document.getElementById("dataSafetyBanner");
     document.getElementById("dataSafetyMsg").textContent = msg;
     banner.className = "data-safety-banner" + (kind === "warn" ? " warn" : "");
+    var actionBtn = document.getElementById("dataSafetyActionBtn");
+    if(actionLabel && actionFn){
+      actionBtn.textContent = actionLabel;
+      actionBtn.hidden = false;
+      actionBtn.onclick = function(){ banner.hidden = true; actionFn(); };
+    } else {
+      actionBtn.hidden = true;
+      actionBtn.onclick = null;
+    }
     banner.hidden = false;
   }
   document.getElementById("dataSafetyDismiss").addEventListener("click", function(){
@@ -2751,7 +2823,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       el.textContent = "⛔ Sincronización bloqueada — revisa el aviso";
       el.className = "save-status error";
     } else if(status === "conflict"){
-      el.textContent = "⛔ Se guardó desde otro lugar — recarga la página";
+      el.textContent = "⛔ Se guardó desde otro lugar — ver aviso arriba";
       el.className = "save-status error";
     } else {
       el.textContent = "⚠ Sin guardar — revisa el aviso";
