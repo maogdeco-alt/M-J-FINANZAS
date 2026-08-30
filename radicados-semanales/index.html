@@ -3092,13 +3092,20 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       .sort(function(a,b){
         // Prioridad por vencimiento: los pendientes con más días hábiles transcurridos desde su
         // ASIGNACIÓN (el lote más antiguo, ej. el del lunes antes que el del martes) van primero. Los
-        // ya clasificados quedan siempre al final de este criterio (valor -1), y dentro de un mismo
-        // nivel de urgencia se conserva el orden original de importación, para que la lista no se
-        // reordene sola sin razón.
+        // ya clasificados quedan siempre al final de este criterio (valor -1).
         var aDias = isDone(a) ? -1 : (diasHabilesTranscurridosDesdeAsignacion(a) || 0);
         var bDias = isDone(b) ? -1 : (diasHabilesTranscurridosDesdeAsignacion(b) || 0);
         if(aDias !== bDias) return bDias - aDias;
-        return (a.order||0)-(b.order||0);
+        // Dentro de un mismo nivel de urgencia (mismo lote, ej. varios asignados el mismo día): antes
+        // quedaban en el orden en que se importaron, que en la práctica es casi al azar según cómo
+        // vinieron pegados desde ORFEO -- no ayuda a trabajar la lista de forma predecible. Ahora se
+        // ordenan por número de RADICADO (de menor a mayor), un criterio estable y verificable: dos
+        // radicados consecutivos casi siempre corresponden al mismo lote de asignación, así que
+        // trabajarlos en ese orden es justo el orden natural en que se fueron generando.
+        var aRad = Number(String(a.radicado||"").replace(/\D/g,"")) || 0;
+        var bRad = Number(String(b.radicado||"").replace(/\D/g,"")) || 0;
+        if(aRad !== bRad) return aRad - bRad;
+        return (a.order||0)-(b.order||0); // último recurso, si hasta el radicado coincidiera
       });
   }
 
