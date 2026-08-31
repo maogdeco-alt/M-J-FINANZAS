@@ -9,7 +9,7 @@
    — abre rápido incluso con mala señal, y la próxima vez que se abra
    ya está actualizado. Sube el número de CACHE si algún día hay que
    forzar que todo el mundo baje una versión nueva del cascarón. */
-const CACHE = 'maog-shell-v9';
+const CACHE = 'maog-shell-v10';
 const SHELL = [
   '/', '/index.html', '/manifest.json',
   '/icons/icon-192.png', '/icons/icon-512.png',

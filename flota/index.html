@@ -365,6 +365,16 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .rowdel:active{color:var(--rojo);background:var(--rojo-suave);transform:scale(.9)}
 .rowdel .icono{width:16px;height:16px;display:block}
 @media(prefers-reduced-motion:reduce){.rowdel:active{transform:none}}
+/* Mismo botón chiquito que .rowdel, pero para una acción que NO borra
+   nada (p. ej. renombrar) — no debe verse roja como un peligro. */
+.rowedit{
+  background:none;border:0;color:var(--gris);cursor:pointer;font-size:16px;
+  line-height:1;padding:8px 10px;border-radius:9px;transition:transform .08s
+}
+.rowedit:hover{color:var(--acento);background:color-mix(in srgb, var(--acento) 10%, transparent)}
+.rowedit:active{color:var(--acento);background:color-mix(in srgb, var(--acento) 10%, transparent);transform:scale(.9)}
+.rowedit .icono{width:16px;height:16px;display:block}
+@media(prefers-reduced-motion:reduce){.rowedit:active{transform:none}}
 .tag{
   font-size:10.5px;font-weight:700;letter-spacing:.02em;
   border-radius:999px;padding:4px 10px;color:var(--gris2);white-space:nowrap;
@@ -1997,6 +2007,7 @@ const ICONS = {
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
   plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>',
   trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15M9.5 7V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v2M6.5 7l.9 12.1a2 2 0 0 0 2 1.9h5.2a2 2 0 0 0 2-1.9L17.5 7"/><path d="M10 11v6M14 11v6"/></svg>',
+  lapiz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.2L15.8 5 19 8.2 8.2 19 4 20Z"/><path d="M13.5 6.3l4.2 4.2"/></svg>',
   refrescar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.5-4.7M20 12a8 8 0 0 1-14.5 4.7"/><path d="M18.5 3v4.5H14M5.5 21v-4.5H10"/></svg>',
   salir: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4.5H7A1.5 1.5 0 0 0 5.5 6v12A1.5 1.5 0 0 0 7 19.5h6"/><path d="M11 12h9M17 8.3l3.3 3.7-3.3 3.7"/></svg>',
   descargar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11.5M8 12l4 4 4-4"/><path d="M4.5 17.5v2A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg>',
@@ -5981,6 +5992,7 @@ function elegirDestinoExcel(destino){
    emparejan primero por nombre, y lo que no encuentre se adivina igual. */
 function usarPlantillaExcel(plantilla){
   XLSX_IMPORT.plantillaObj = plantilla || null;
+  XLSX_IMPORT.extra = []; // filas agregadas a mano — arranca vacío cada vez que se entra de nuevo al mapeo
   prepararHojaExcel();
   XLSX_IMPORT.paso = 'mapeo';
   renderXlsxWizard();
@@ -6102,10 +6114,17 @@ function renderPasoPlantillaExcel(){
         <span class="ic icono">${ICONS.pagos}</span><b>Empezar de cero</b><span>Dejar que la app adivine las columnas por su nombre.</span>
       </button>
       ${guardadas.map(p=>`<div class="choice sm" data-plantilla-card="${p.id}" style="position:relative">
-        <span class="ic icono">${ICONS.guardar}</span><b>${esc(p.nombre)}</b><span>${p.creadoEn?('Guardada el '+fmtDate(p.creadoEn)):'Guardada'}${p.creadoPor?(' · '+esc(p.creadoPor)):''}</span>
-        <button type="button" class="rowdel" data-borrar-plantilla-excel="${p.id}" aria-label="Borrar esta plantilla" style="position:absolute;top:8px;right:8px"><span class="icono">${ICONS.trash}</span></button>
+        <span class="ic icono">${ICONS.guardar}</span><b>${esc(p.nombre)}</b><span>${p.creadoEn?('Guardada el '+fmtDate(p.creadoEn)):'Guardada'}${p.creadoPor?(' · '+esc(p.creadoPor)):''}${p.actualizadoEn?(' · corregida el '+fmtDate(p.actualizadoEn)):''}</span>
+        <span style="position:absolute;top:6px;right:6px;display:flex">
+          <button type="button" class="rowedit" data-renombrar-plantilla-excel="${p.id}" aria-label="Cambiarle el nombre a esta plantilla"><span class="icono">${ICONS.lapiz}</span></button>
+          <button type="button" class="rowdel" data-borrar-plantilla-excel="${p.id}" aria-label="Borrar esta plantilla"><span class="icono">${ICONS.trash}</span></button>
+        </span>
         <div class="hidden" data-confirm-borrar="${p.id}" style="margin-top:8px;font-size:12.5px">
           ¿Borrar "${esc(p.nombre)}"? <button type="button" class="linkbtn" data-si-borrar="${p.id}">Sí, borrar</button> · <button type="button" class="linkbtn" data-no-borrar="${p.id}">No</button>
+        </div>
+        <div class="hidden" data-renombrar-box="${p.id}" style="margin-top:8px">
+          <input type="text" data-renombrar-input="${p.id}" value="${esc(p.nombre)}" style="width:100%;margin-bottom:6px">
+          <button type="button" class="linkbtn" data-si-renombrar="${p.id}">Guardar nombre</button> · <button type="button" class="linkbtn" data-no-renombrar="${p.id}">Cancelar</button>
         </div>
       </div>`).join('')}
     </div>`;
@@ -6114,7 +6133,7 @@ function renderPasoPlantillaExcel(){
   document.querySelectorAll('#xlsxPlantillaCards [data-plantilla-cero]').forEach(b=>b.addEventListener('click', ()=>usarPlantillaExcel(null)));
   document.querySelectorAll('#xlsxPlantillaCards [data-plantilla-card]').forEach(card=>{
     card.addEventListener('click', e=>{
-      if(e.target.closest('[data-borrar-plantilla-excel],[data-si-borrar],[data-no-borrar]')) return;
+      if(e.target.closest('[data-borrar-plantilla-excel],[data-si-borrar],[data-no-borrar],[data-renombrar-plantilla-excel],[data-renombrar-input],[data-si-renombrar],[data-no-renombrar]')) return;
       const p = (S.plantillasExcel||[]).find(x=>x.id===card.dataset.plantillaCard);
       if(p) usarPlantillaExcel(p);
     });
@@ -6136,13 +6155,44 @@ function renderPasoPlantillaExcel(){
     toast('Plantilla borrada');
     renderPasoPlantillaExcel();
   }));
+  document.querySelectorAll('[data-renombrar-plantilla-excel]').forEach(b=>b.addEventListener('click', e=>{
+    e.stopPropagation();
+    const caja = document.querySelector(`[data-renombrar-box="${b.dataset.renombrarPlantillaExcel}"]`);
+    if(caja){ caja.classList.remove('hidden'); const inp = caja.querySelector('input'); inp.focus(); inp.select(); }
+  }));
+  document.querySelectorAll('[data-no-renombrar]').forEach(b=>b.addEventListener('click', e=>{
+    e.stopPropagation();
+    const caja = document.querySelector(`[data-renombrar-box="${b.dataset.noRenombrar}"]`);
+    if(caja) caja.classList.add('hidden');
+  }));
+  document.querySelectorAll('[data-renombrar-input]').forEach(inp=>{
+    inp.addEventListener('click', e=>e.stopPropagation());
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); document.querySelector(`[data-si-renombrar="${inp.dataset.renombrarInput}"]`).click(); } });
+  });
+  document.querySelectorAll('[data-si-renombrar]').forEach(b=>b.addEventListener('click', async e=>{
+    e.stopPropagation();
+    const id = b.dataset.siRenombrar;
+    const input = document.querySelector(`[data-renombrar-input="${id}"]`);
+    const nombreNuevo = (input.value||'').trim();
+    if(!nombreNuevo) return toast('Escriba un nombre para la plantilla.', true);
+    const p = (S.plantillasExcel||[]).find(x=>x.id===id);
+    if(p) p.nombre = nombreNuevo;
+    await save();
+    toast('Nombre actualizado');
+    renderPasoPlantillaExcel();
+  }));
 }
 function previewMovimientosHTML(){
-  const { campos, modoTipo } = XLSX_IMPORT;
+  const { campos, modoTipo, extra } = XLSX_IMPORT;
   const hayTipoCol = campos.includes('tipo'), hayCuentaCol = campos.includes('cuenta'), motos = esMotos();
   const filasProcesadas = procesarFilasMovimientosExcel();
-  const nGasto = filasProcesadas.filter(f=>f.incluir && f.esGasto).length;
-  const nIngreso = filasProcesadas.filter(f=>f.incluir && !f.esGasto).length;
+  // Filas que la persona agregó a mano (no vienen del Excel) — mismo
+  // molde, arrancan vacías y ya marcadas para incluir.
+  const filasExtra = (extra||[]).map(id=>({ id, esExtra:true, fecha:'', desc:'', cat:'', valor:0,
+    esGasto:true, cuentaId:'', motoId:'', condId:'', dias:0, incluir:true }));
+  const todas = [...filasProcesadas, ...filasExtra];
+  const nGasto = todas.filter(f=>f.incluir && f.esGasto).length;
+  const nIngreso = todas.filter(f=>f.incluir && !f.esGasto).length;
   const nSinFecha = filasProcesadas.filter(f=>f.incluir && !f.fecha).length;
   const nSinCond = motos ? filasProcesadas.filter(f=>!f.esGasto && !f.condId && f.valor>0).length : 0;
   const mostrarTipoPorFila = modoTipo!=='gasto' && modoTipo!=='ingreso';
@@ -6166,12 +6216,12 @@ function previewMovimientosHTML(){
         ${mostrarTipoPorFila ? '<th>Tipo</th>' : ''}${hayCuentaCol ? '<th>Cuenta</th>' : ''}
         ${motos ? '<th>Moto</th><th>Conductor</th><th>Días</th>' : ''}
       </tr></thead>
-      <tbody>${filasProcesadas.map((f,i)=>`<tr style="${f.incluir?'':'opacity:.45'}">
-        <td><input type="checkbox" data-fila="${i}" class="xlsx-incluir" ${f.incluir?'checked':''}></td>
+      <tbody>${todas.map((f,i)=>`<tr style="${f.incluir?'':'opacity:.45'}${f.esExtra?';background:color-mix(in srgb, var(--acento) 5%, transparent)':''}">
+        <td style="white-space:nowrap"><input type="checkbox" data-fila="${i}" class="xlsx-incluir" ${f.incluir?'checked':''}>${f.esExtra?`<button type="button" class="rowdel" data-quitar-fila-extra="${f.id}" aria-label="Quitar esta fila"><span class="icono">${ICONS.trash}</span></button>`:''}</td>
         <td><input type="date" data-fila="${i}" data-campo="fecha" class="xlsx-celda" value="${esc(f.fecha)}" style="min-width:135px"></td>
-        <td><input type="text" data-fila="${i}" data-campo="desc" class="xlsx-celda" value="${esc(f.desc)}" style="min-width:160px"></td>
-        <td><input type="text" data-fila="${i}" data-campo="cat" class="xlsx-celda" value="${esc(f.cat)}" style="min-width:120px"></td>
-        <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="valor" class="xlsx-celda" value="${f.valor}" style="min-width:100px;text-align:right"></td>
+        <td><input type="text" data-fila="${i}" data-campo="desc" class="xlsx-celda" value="${esc(f.desc)}" style="min-width:160px"${f.esExtra?' placeholder="Descripción"':''}></td>
+        <td><input type="text" data-fila="${i}" data-campo="cat" class="xlsx-celda" value="${esc(f.cat)}" style="min-width:120px"${f.esExtra?' placeholder="Categoría"':''}></td>
+        <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="valor" class="xlsx-celda" value="${f.valor||''}" style="min-width:100px;text-align:right" placeholder="0"></td>
         ${mostrarTipoPorFila ? `<td><select data-fila="${i}" data-campo="esGasto" class="xlsx-celda"><option value="1" ${f.esGasto?'selected':''}>Gasto</option><option value="0" ${!f.esGasto?'selected':''}>Ingreso</option></select></td>` : ''}
         ${hayCuentaCol ? `<td><select data-fila="${i}" data-campo="cuentaId" class="xlsx-celda"><option value="">Sin especificar</option>${(S.cuentas||[]).map(c=>`<option value="${c.id}" ${f.cuentaId===c.id?'selected':''}>${esc(c.nombre)}</option>`).join('')}</select></td>` : ''}
         ${motos ? `
@@ -6180,42 +6230,49 @@ function previewMovimientosHTML(){
         <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="dias" class="xlsx-celda" value="${f.dias||0}" style="min-width:60px;text-align:right"></td>` : ''}
       </tr>`).join('')}</tbody>
     </table></div>
-    <p class="sub" style="margin-top:10px">Se van a agregar <b>${filasProcesadas.filter(f=>f.incluir).length}</b> movimiento(s): <b>${nGasto}</b> a "${motos?'Gastos':'Lo que sale'}" y <b>${nIngreso}</b> a "${motos?'Pagos':'Lo que entra'}".</p>
+    <p style="margin-top:10px"><button type="button" class="linkbtn" id="xlsxAgregarFila">+ Agregar una fila a mano</button></p>
+    <p class="sub" style="margin-top:4px">Se van a agregar <b>${todas.filter(f=>f.incluir).length}</b> movimiento(s): <b>${nGasto}</b> a "${motos?'Gastos':'Lo que sale'}" y <b>${nIngreso}</b> a "${motos?'Pagos':'Lo que entra'}".</p>
   `;
 }
 function previewProductosHTML(){
   const filasProcesadas = procesarFilasProductosExcel();
+  const filasExtra = (XLSX_IMPORT.extra||[]).map(id=>({ id, esExtra:true, nombre:'', categoria:'', precio:0, costo:0, stock:'', notas:'', incluir:true }));
+  const todas = [...filasProcesadas, ...filasExtra];
   return `
     <p class="sub" style="margin:14px 0 6px"><b>Vista previa</b> — revise y corrija lo que haga falta antes de confirmar. Destilde las filas que no quiera importar.</p>
     <div class="ledger-wrap" style="max-height:360px;overflow-y:auto"><table class="ledger">
       <thead><tr><th></th><th>Nombre</th><th>Categoría</th><th class="num">Precio</th><th class="num">Costo</th><th class="num">Stock</th><th>Notas</th></tr></thead>
-      <tbody>${filasProcesadas.map((f,i)=>`<tr style="${f.incluir?'':'opacity:.45'}">
-        <td><input type="checkbox" data-fila="${i}" class="xlsx-incluir" ${f.incluir?'checked':''}></td>
-        <td><input type="text" data-fila="${i}" data-campo="nombre" class="xlsx-celda" value="${esc(f.nombre)}" style="min-width:160px"></td>
+      <tbody>${todas.map((f,i)=>`<tr style="${f.incluir?'':'opacity:.45'}${f.esExtra?';background:color-mix(in srgb, var(--acento) 5%, transparent)':''}">
+        <td style="white-space:nowrap"><input type="checkbox" data-fila="${i}" class="xlsx-incluir" ${f.incluir?'checked':''}>${f.esExtra?`<button type="button" class="rowdel" data-quitar-fila-extra="${f.id}" aria-label="Quitar esta fila"><span class="icono">${ICONS.trash}</span></button>`:''}</td>
+        <td><input type="text" data-fila="${i}" data-campo="nombre" class="xlsx-celda" value="${esc(f.nombre)}" style="min-width:160px"${f.esExtra?' placeholder="Nombre"':''}></td>
         <td><input type="text" data-fila="${i}" data-campo="categoria" class="xlsx-celda" value="${esc(f.categoria)}" style="min-width:120px"></td>
-        <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="precio" class="xlsx-celda" value="${f.precio}" style="min-width:100px;text-align:right"></td>
-        <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="costo" class="xlsx-celda" value="${f.costo}" style="min-width:100px;text-align:right"></td>
+        <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="precio" class="xlsx-celda" value="${f.precio||''}" style="min-width:100px;text-align:right" placeholder="0"></td>
+        <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="costo" class="xlsx-celda" value="${f.costo||''}" style="min-width:100px;text-align:right" placeholder="0"></td>
         <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="stock" class="xlsx-celda" value="${esc(f.stock)}" style="min-width:70px;text-align:right"></td>
         <td><input type="text" data-fila="${i}" data-campo="notas" class="xlsx-celda" value="${esc(f.notas)}" style="min-width:140px"></td>
       </tr>`).join('')}</tbody>
     </table></div>
-    <p class="sub" style="margin-top:10px">Se van a agregar <b>${filasProcesadas.filter(f=>f.incluir).length}</b> producto(s) al catálogo.</p>
+    <p style="margin-top:10px"><button type="button" class="linkbtn" id="xlsxAgregarFila">+ Agregar un producto a mano</button></p>
+    <p class="sub" style="margin-top:4px">Se van a agregar <b>${todas.filter(f=>f.incluir).length}</b> producto(s) al catálogo.</p>
   `;
 }
 function previewClientesHTML(){
   const filasProcesadas = procesarFilasClientesExcel();
+  const filasExtra = (XLSX_IMPORT.extra||[]).map(id=>({ id, esExtra:true, nombre:'', contacto:'', notas:'', incluir:true }));
+  const todas = [...filasProcesadas, ...filasExtra];
   return `
     <p class="sub" style="margin:14px 0 6px"><b>Vista previa</b> — revise y corrija lo que haga falta antes de confirmar. Destilde las filas que no quiera importar.</p>
     <div class="ledger-wrap" style="max-height:360px;overflow-y:auto"><table class="ledger">
       <thead><tr><th></th><th>Nombre</th><th>Contacto</th><th>Notas</th></tr></thead>
-      <tbody>${filasProcesadas.map((f,i)=>`<tr style="${f.incluir?'':'opacity:.45'}">
-        <td><input type="checkbox" data-fila="${i}" class="xlsx-incluir" ${f.incluir?'checked':''}></td>
-        <td><input type="text" data-fila="${i}" data-campo="nombre" class="xlsx-celda" value="${esc(f.nombre)}" style="min-width:160px"></td>
+      <tbody>${todas.map((f,i)=>`<tr style="${f.incluir?'':'opacity:.45'}${f.esExtra?';background:color-mix(in srgb, var(--acento) 5%, transparent)':''}">
+        <td style="white-space:nowrap"><input type="checkbox" data-fila="${i}" class="xlsx-incluir" ${f.incluir?'checked':''}>${f.esExtra?`<button type="button" class="rowdel" data-quitar-fila-extra="${f.id}" aria-label="Quitar esta fila"><span class="icono">${ICONS.trash}</span></button>`:''}</td>
+        <td><input type="text" data-fila="${i}" data-campo="nombre" class="xlsx-celda" value="${esc(f.nombre)}" style="min-width:160px"${f.esExtra?' placeholder="Nombre"':''}></td>
         <td><input type="text" data-fila="${i}" data-campo="contacto" class="xlsx-celda" value="${esc(f.contacto)}" style="min-width:140px"></td>
         <td><input type="text" data-fila="${i}" data-campo="notas" class="xlsx-celda" value="${esc(f.notas)}" style="min-width:140px"></td>
       </tr>`).join('')}</tbody>
     </table></div>
-    <p class="sub" style="margin-top:10px">Se van a agregar <b>${filasProcesadas.filter(f=>f.incluir).length}</b> cliente(s).</p>
+    <p style="margin-top:10px"><button type="button" class="linkbtn" id="xlsxAgregarFila">+ Agregar un cliente a mano</button></p>
+    <p class="sub" style="margin-top:4px">Se van a agregar <b>${todas.filter(f=>f.incluir).length}</b> cliente(s).</p>
   `;
 }
 function renderPasoMapeoExcel(){
@@ -6276,6 +6333,22 @@ function renderPasoMapeoExcel(){
     XLSX_IMPORT.paso = destinos.length>1 ? 'destino' : 'plantilla';
     renderXlsxWizard();
   });
+  // Agregar/quitar filas a mano — para completar algo que el Excel no
+  // traía, sin tener que cerrar el asistente y usar el formulario aparte.
+  const btnAgregar = $('xlsxAgregarFila');
+  if(btnAgregar) btnAgregar.addEventListener('click', ()=>{
+    if(!XLSX_IMPORT.extra) XLSX_IMPORT.extra = [];
+    XLSX_IMPORT.extra.push(uid());
+    renderPasoMapeoExcel();
+    // Deja el cursor listo en la primera celda de la fila nueva (la última de la tabla).
+    const filas = document.querySelectorAll('.ledger-wrap table.ledger tbody tr');
+    const primerCampo = filas[filas.length-1]?.querySelector('[data-campo]');
+    if(primerCampo) primerCampo.focus();
+  });
+  document.querySelectorAll('[data-quitar-fila-extra]').forEach(b=>b.addEventListener('click', ()=>{
+    XLSX_IMPORT.extra = (XLSX_IMPORT.extra||[]).filter(id=>id!==b.dataset.quitarFilaExtra);
+    renderPasoMapeoExcel();
+  }));
 }
 function confirmarMovimientosExcel(){
   const filas = [];
@@ -6359,9 +6432,12 @@ $('xlsxConfirmar').addEventListener('click', async ()=>{
       const mapa = {};
       XLSX_IMPORT.encabezados.forEach((h,i)=>{ if(XLSX_IMPORT.campos[i] && XLSX_IMPORT.campos[i]!=='ignorar') mapa[normalizarTexto(h)] = XLSX_IMPORT.campos[i]; });
       if(!S.plantillasExcel) S.plantillasExcel = [];
-      S.plantillasExcel.push({ id:uid(), nombre, destino,
-        modoTipo: destino==='movimientos' ? XLSX_IMPORT.modoTipo : null,
-        mapa, creadoPor:quien(), creadoEn: todayISO() });
+      const modoTipo = destino==='movimientos' ? XLSX_IMPORT.modoTipo : null;
+      // Si ya existe una plantilla con ese mismo nombre para este destino, se
+      // corrige/actualiza esa misma en vez de dejar dos con el mismo nombre.
+      const existente = S.plantillasExcel.find(p=>p.destino===destino && normalizarTexto(p.nombre)===normalizarTexto(nombre));
+      if(existente){ existente.mapa = mapa; existente.modoTipo = modoTipo; existente.actualizadoEn = todayISO(); }
+      else S.plantillasExcel.push({ id:uid(), nombre, destino, modoTipo, mapa, creadoPor:quien(), creadoEn: todayISO() });
     }
   }
   await save(); renderAll();
