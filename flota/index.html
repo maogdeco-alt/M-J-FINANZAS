@@ -1048,6 +1048,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
             </select>
           </div>
           <button class="btn acento" id="qSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span> Registrar pago</button>
+          <button type="button" class="linkbtn hidden" id="qCancelarEdicion">Cancelar edición</button>
           <span class="hint" id="qHint"></span>
         </div>
         <details class="fold">
@@ -1084,7 +1085,8 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
             <div class="f"><label for="pfNota">Nota</label><input id="pfNota" placeholder="Opcional"></div>
           </div>
         </details>
-        <div class="acts"><button class="btn acento" id="pfSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span> Registrar</button></div>
+        <div class="acts"><button class="btn acento" id="pfSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span> Registrar</button>
+          <button type="button" class="linkbtn hidden" id="pfCancelarEdicion">Cancelar edición</button></div>
       </div>
       <div id="pagosList"></div>
     </section>
@@ -1128,7 +1130,8 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
               </label>
             </div>
           </div>
-          <div class="acts"><button class="btn" id="dbSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar crédito</button></div>
+          <div class="acts"><button class="btn" id="dbSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar crédito</button>
+            <button class="linkbtn hidden" id="dbCancelarEdicion">Cancelar edición</button></div>
           <div class="grid2" id="deudasList" style="margin-top:14px"></div>
         </div>
       </div>
@@ -1157,7 +1160,8 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
             </select>
           </div>
         </div>
-        <div class="acts"><button class="btn" id="gSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Registrar gasto</button></div>
+        <div class="acts"><button class="btn" id="gSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Registrar gasto</button>
+          <button class="linkbtn hidden" id="gCancelarEdicion">Cancelar edición</button></div>
       </div>
       <div id="gastosList"></div>
     </section>
@@ -1300,6 +1304,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
           </div>
         </details>
         <div class="acts"><button class="btn" id="cSave"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Guardar conductor</button>
+          <button class="linkbtn hidden" id="cCancelarEdicion">Cancelar edición</button>
           <span class="hint" style="margin-left:0">Solo el nombre es obligatorio.</span></div>
       </div>
       <div class="grid2" id="condList"></div>
@@ -1707,16 +1712,19 @@ function confirmar(titulo, texto){
 /* Mismo cuadro de diálogo que confirmar(), pero con una casilla para
    escribir un número — para pedir un valor (p. ej. "¿cuánto abonó?")
    sin usar prompt() del navegador, que se ve feo y no combina con el
-   resto de la app. Devuelve el número, o null si cancela o deja vacío. */
-function pedirValor(titulo, texto, etiqueta){
+   resto de la app. valorInicial deja una sugerencia ya escrita (p. ej.
+   la cuota de siempre) que la persona puede confirmar tal cual o
+   cambiar por lo que de verdad pagó esta vez. Devuelve el número, o
+   null si cancela o deja vacío. */
+function pedirValor(titulo, texto, etiqueta, valorInicial){
   return new Promise(resolve=>{
     $('dlgTitle').textContent = titulo; $('dlgText').textContent = texto;
     $('dlgInputLbl').textContent = etiqueta || 'Valor';
     const input = $('dlgInput');
-    input.value = ''; $('dlgInputBox').classList.remove('hidden');
+    input.value = valorInicial ? String(valorInicial) : ''; $('dlgInputBox').classList.remove('hidden');
     $('dlgOk').textContent = 'Guardar'; $('dlgOk').classList.remove('danger');
     $('scrim').classList.add('on');
-    setTimeout(()=>input.focus(), 60);
+    setTimeout(()=>{ input.focus(); input.select(); }, 60);
     const cerrar = v => {
       $('scrim').classList.remove('on'); $('dlgInputBox').classList.add('hidden');
       $('dlgOk').textContent = 'Sí, continuar'; $('dlgOk').classList.add('danger');
@@ -2873,6 +2881,37 @@ function renderChart(){
       <div class="cap">${meses[i]}</div>
     </div>`).join('');
 }
+let EDITANDO_PAGO = null;
+function cargarPagoParaEditar(p){
+  EDITANDO_PAGO = p.id;
+  if(esMotos()){
+    $('qValor').value = p.valor||''; $('qCond').value = p.condId||''; $('qDias').value = p.dias||'';
+    $('qFecha').value = p.fecha||''; $('qMedio').value = p.medio||'Transferencia';
+    $('qRef').value = p.referencia||''; $('qNota').value = p.nota||'';
+    $('qSave').innerHTML = `<span class="icono">${ICONS.check}</span> Guardar cambios`;
+    setHidden('qCancelarEdicion', false);
+  } else {
+    $('pfFecha').value = p.fecha||''; $('pfValor').value = p.valor||''; $('pfConcepto').value = p.concepto||'';
+    $('pfMedio').value = p.medio||'Transferencia'; $('pfNota').value = p.nota||'';
+    if($('pfTipo')) $('pfTipo').value = p.tipoIngreso||'';
+    if($('pfCuenta')) $('pfCuenta').value = p.cuentaId||'';
+    $('pfSave').innerHTML = `<span class="icono">${ICONS.check}</span> Guardar cambios`;
+    setHidden('pfCancelarEdicion', false);
+  }
+  go('pagos');
+  toast('Editando ese pago');
+}
+function cancelarEdicionPago(){
+  EDITANDO_PAGO = null;
+  $('qValor').value=''; $('qRef').value=''; $('qNota').value='';
+  $('qSave').innerHTML = `<span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span> Registrar pago`;
+  setHidden('qCancelarEdicion', true);
+  $('pfValor').value=''; $('pfConcepto').value=''; $('pfNota').value='';
+  $('pfSave').innerHTML = `<span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span> Registrar`;
+  setHidden('pfCancelarEdicion', true);
+}
+$('qCancelarEdicion').addEventListener('click', cancelarEdicionPago);
+$('pfCancelarEdicion').addEventListener('click', cancelarEdicionPago);
 function renderPagos(){
   if(!S.pagos.length){
     const titulo = esMotos() ? 'Sin pagos registrados' : (esPersonal() ? 'Todavía no anotas nada' : 'Sin ingresos registrados');
@@ -2886,10 +2925,11 @@ function renderPagos(){
       <td>${fmtDate(p.fecha)}</td>
       <td><span class="name">${esc(p.concepto||'Ingreso')}</span><span class="sub">${esc(detalle)}${p.creadoPor?' · '+esc(p.creadoPor):''}</span></td>
       <td class="num money">${money(p.valor)}</td>
+      <td class="num"><button class="rowedit" data-editar-pago="${p.id}" aria-label="Editar"><span class="icono">${ICONS.lapiz}</span></button></td>
       <td class="num"><button class="rowdel" data-del-pago="${p.id}" aria-label="Eliminar"><span class="icono">${ICONS.trash}</span></button></td>
     </tr>`;}).join('');
     $('pagosList').innerHTML = `<div class="ledger-wrap"><table class="ledger">
-      <thead><tr><th>Fecha</th><th>Concepto</th><th class="num">Valor</th><th></th></tr></thead>
+      <thead><tr><th>Fecha</th><th>Concepto</th><th class="num">Valor</th><th></th><th></th></tr></thead>
       <tbody>${rows}</tbody></table></div>`;
     return;
   }
@@ -2904,14 +2944,38 @@ function renderPagos(){
       <td class="hide-s num">${p.dias}</td>
       <td class="num money">${money(p.valor)}</td>
       <td class="num money ${dif<0?'neg':''}">${dif===0?'—':money(dif)}</td>
+      <td class="num"><button class="rowedit" data-editar-pago="${p.id}" aria-label="Editar pago"><span class="icono">${ICONS.lapiz}</span></button></td>
       <td class="num"><button class="rowdel" data-del-pago="${p.id}" aria-label="Eliminar pago"><span class="icono">${ICONS.trash}</span></button></td>
     </tr>`;
   }).join('');
   $('pagosList').innerHTML = `<div class="ledger-wrap"><table class="ledger">
     <thead><tr><th>Fecha</th><th>Conductor</th><th class="hide-s num">Días</th>
-    <th class="num">Recibido</th><th class="num">Diferencia</th><th></th></tr></thead>
+    <th class="num">Recibido</th><th class="num">Diferencia</th><th></th><th></th></tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 }
+let EDITANDO_GASTO = null;
+function cargarGastoParaEditar(g){
+  EDITANDO_GASTO = g.id;
+  $('gFecha').value = g.fecha||''; $('gDesc').value = g.desc||''; $('gValor').value = g.valor||'';
+  $('gCat').value = g.cat||'';
+  if($('gMoto')) $('gMoto').value = g.motoId||'';
+  if($('gCargo')) $('gCargo').value = g.cargo||'Empresa';
+  if($('gCuenta')) $('gCuenta').value = g.cuentaId||'';
+  if($('gPagador')) $('gPagador').value = g.pagadoPor||'';
+  if($('gReparto')) $('gReparto').value = g.reparto||'pagador';
+  $('gSave').innerHTML = `<span class="icono">${ICONS.check}</span> Guardar cambios`;
+  setHidden('gCancelarEdicion', false);
+  go('gastos');
+  $('gFecha').scrollIntoView({behavior:'smooth', block:'start'});
+  toast('Editando ese gasto');
+}
+function cancelarEdicionGasto(){
+  EDITANDO_GASTO = null;
+  $('gValor').value=''; $('gDesc').value='';
+  $('gSave').innerHTML = `<span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Registrar gasto`;
+  setHidden('gCancelarEdicion', true);
+}
+$('gCancelarEdicion').addEventListener('click', cancelarEdicionGasto);
 function renderGastos(){
   if(!S.gastos.length){
     const sub = esMotos() ? 'Anote el SOAT, los mantenimientos y los comparendos aquí.'
@@ -2928,10 +2992,11 @@ function renderGastos(){
       <td>${fmtDate(g.fecha)}</td>
       <td><span class="name">${esc(g.desc||g.cat)}</span><span class="sub">${esc(g.cat)}${reparto}${g.creadoPor?' · '+esc(g.creadoPor):''}</span></td>
       <td class="num money">${money(g.valor)}</td>
+      <td class="num"><button class="rowedit" data-editar-gasto="${g.id}" aria-label="Editar gasto"><span class="icono">${ICONS.lapiz}</span></button></td>
       <td class="num"><button class="rowdel" data-del-gasto="${g.id}" aria-label="Eliminar gasto"><span class="icono">${ICONS.trash}</span></button></td>
     </tr>`;}).join('');
     $('gastosList').innerHTML = `<div class="ledger-wrap"><table class="ledger">
-      <thead><tr><th>Fecha</th><th>Concepto</th><th class="num">Valor</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      <thead><tr><th>Fecha</th><th>Concepto</th><th class="num">Valor</th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
     return;
   }
   const rows = [...S.gastos].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).map(g=>{
@@ -2947,12 +3012,13 @@ function renderGastos(){
       <td class="num">${g.cargo==='Conductor'
         ? `<button class="btn ghost sm" data-toggle-gasto="${g.id}">${g.recuperado?'Marcar pendiente':'<span class="icono">'+ICONS.check+'</span> Marcar cobrado'}</button>`
         : ''}</td>
+      <td class="num"><button class="rowedit" data-editar-gasto="${g.id}" aria-label="Editar gasto"><span class="icono">${ICONS.lapiz}</span></button></td>
       <td class="num"><button class="rowdel" data-del-gasto="${g.id}" aria-label="Eliminar gasto"><span class="icono">${ICONS.trash}</span></button></td>
     </tr>`;
   }).join('');
   $('gastosList').innerHTML = `<div class="ledger-wrap"><table class="ledger">
     <thead><tr><th>Fecha</th><th>Concepto</th><th class="num">Valor</th>
-    <th class="num">A cargo</th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <th class="num">A cargo</th><th></th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function renderMotos(){
   if(!S.motos.length){
@@ -3065,6 +3131,7 @@ function renderMotoDetalle(){
         ${saldada ? '' : `<button class="btn ghost sm" data-saldar-moto-deuda="${m.id}">Ya no debo esto</button>`}
         ${saldada ? '' : (pospuesta ? `<button class="btn ghost sm" data-quitar-posponer-moto="${m.id}">Quitar posponer</button>`
           : `<button class="btn ghost sm" data-posponer-moto-deuda="${m.id}"><span class="icono">${ICONS.calendario}</span> Posponer</button>`)}
+        <button class="btn ghost sm" data-editar-fin-moto="${m.id}"><span class="icono">${ICONS.lapiz}</span> Editar financiación</button>
         <button class="btn ghost sm" data-quitar-financiacion="${m.id}">Quitar financiación</button>
       </div>
       <!-- Confirmaciones AQUÍ MISMO, en vez del cuadro compartido de la app —
@@ -3078,10 +3145,33 @@ function renderMotoDetalle(){
         Se pierde el saldo y las cuotas registradas de este crédito (no la deuda real, solo el seguimiento aquí).
         <button type="button" class="linkbtn" data-si-quitar-fin="${m.id}">Sí, quitar</button> · <button type="button" class="linkbtn" data-no-quitar-fin="${m.id}">No</button>
       </div>
+      <div class="hidden" data-abonar-box-moto="${m.id}" style="margin-top:10px">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gris)">¿Cuánto abonó?</label>
+        <input type="text" inputmode="numeric" data-abonar-input-moto="${m.id}" value="${m.cuotaMensual||''}" placeholder="$0" style="margin:5px 0 6px;display:block;max-width:220px">
+        <span class="hint" style="display:block;margin-bottom:6px">Ya viene sugerida la cuota de siempre — cámbiela si pagó de más o de menos.</span>
+        <button type="button" class="linkbtn" data-si-abonar-moto="${m.id}">Abonar</button> · <button type="button" class="linkbtn" data-no-abonar-moto="${m.id}">Cancelar</button>
+      </div>
       <div class="hidden" data-posponer-box-moto="${m.id}" style="margin-top:10px">
         <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gris)">¿Hasta cuándo posponer?</label>
         <input type="date" data-posponer-input-moto="${m.id}" value="${sumarDias(hoy,7)}" style="margin:5px 0 6px;display:block">
         <button type="button" class="linkbtn" data-si-posponer-moto="${m.id}">Posponer</button> · <button type="button" class="linkbtn" data-no-posponer-moto="${m.id}">Cancelar</button>
+      </div>
+      <!-- Editar los TÉRMINOS del crédito (entidad, cuota, cuotas totales, día de
+           pago, saldo) — antes solo se podía Abonar/Saldar/Posponer/Quitar, sin
+           forma de corregir un dato mal puesto al registrarlo. Reusa el mismo
+           formulario y el mismo botón "motoFinanciarSave" de cuando todavía no
+           tenía crédito — ya sabe sobrescribir los campos de la moto. -->
+      <div class="hidden" data-editar-fin-box-moto="${m.id}" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--borde)">
+        <div class="fgrid">
+          <div class="f"><label for="mfEntidad">¿Con quién quedó el crédito?</label><input id="mfEntidad" value="${esc(m.entidad||'')}" placeholder="Banco, dealer, persona…"></div>
+          <div class="f"><label for="mfSaldo">Saldo que falta por pagar</label><input id="mfSaldo" inputmode="numeric" value="${m.saldo||''}" placeholder="$0"></div>
+          <div class="f"><label for="mfCuota">Cuota mensual</label><input id="mfCuota" inputmode="numeric" value="${m.cuotaMensual||''}" placeholder="$0"></div>
+          <div class="f"><label for="mfCuotasTotal">Total de cuotas pactadas</label><input id="mfCuotasTotal" inputmode="numeric" value="${m.cuotasTotal||''}" placeholder="Ej: 24"></div>
+          <div class="f"><label for="mfCuotasPagadas">Cuotas que ya pagó</label><input id="mfCuotasPagadas" inputmode="numeric" value="${m.cuotasPagadas||''}" placeholder="0"></div>
+          <div class="f"><label for="mfDia">Día de pago (opcional)</label><input id="mfDia" inputmode="numeric" value="${m.diaPago||''}" placeholder="Ej: 15"></div>
+        </div>
+        <button type="button" class="btn ghost sm" id="motoFinanciarSave"><span class="icono">${ICONS.check}</span> Guardar cambios</button>
+        <button type="button" class="linkbtn" data-no-editar-fin-moto="${m.id}">Cancelar</button>
       </div>
     </div>`;
 
@@ -3151,6 +3241,12 @@ function renderMotoDetalle(){
     await save(); renderAll(); renderMotoDetalle();
     toast('Financiación guardada');
   });
+  document.querySelectorAll('[data-editar-fin-moto]').forEach(b=>b.addEventListener('click', ()=>{
+    document.querySelector(`[data-editar-fin-box-moto="${b.dataset.editarFinMoto}"]`)?.classList.remove('hidden');
+  }));
+  document.querySelectorAll('[data-no-editar-fin-moto]').forEach(b=>b.addEventListener('click', ()=>{
+    document.querySelector(`[data-editar-fin-box-moto="${b.dataset.noEditarFinMoto}"]`)?.classList.add('hidden');
+  }));
   document.querySelectorAll('[data-quitar-financiacion]').forEach(b=>b.addEventListener('click', ()=>{
     const aviso = document.querySelector(`[data-confirm-quitar-fin="${b.dataset.quitarFinanciacion}"]`);
     if(aviso) aviso.classList.remove('hidden');
@@ -3168,26 +3264,42 @@ function renderMotoDetalle(){
     if(motoDeudaSaldada(m)) return;
     const mA = todayISO().slice(0,7);
     if(m.abonadoMes === mA){
+      // Desmarcar: se revierte por lo que el gasto realmente dice que se
+      // pagó, no por la cuota "de siempre" — puede haber sido otro valor.
+      const gastoVinculado = m.gastoId ? S.gastos.find(g=>g.id===m.gastoId) : null;
+      const montoRevertir = gastoVinculado ? gastoVinculado.valor : (m.cuotaMensual||0);
       if(m.gastoId){ S.gastos = S.gastos.filter(g=>g.id!==m.gastoId); }
-      m.saldo = (m.saldo||0) + (m.cuotaMensual||0);
+      m.saldo = (m.saldo||0) + montoRevertir;
       m.cuotasPagadas = Math.max(0, (m.cuotasPagadas||0) - 1);
       m.abonadoMes = ''; m.gastoId = '';
       await save(); renderAll(); renderMotoDetalle();
       toast('Se quitó el abono de este mes');
       return;
     }
-    const cuota = m.cuotaMensual || 0;
+    // Con la cuota de siempre ya sugerida en la casilla — se puede
+    // confirmar tal cual, o cambiar si pagó de más o de menos.
+    const caja = document.querySelector(`[data-abonar-box-moto="${m.id}"]`);
+    if(caja) caja.classList.remove('hidden');
+  }));
+  document.querySelectorAll('[data-no-abonar-moto]').forEach(b=>b.addEventListener('click', ()=>{
+    document.querySelector(`[data-abonar-box-moto="${b.dataset.noAbonarMoto}"]`)?.classList.add('hidden');
+  }));
+  document.querySelectorAll('[data-si-abonar-moto]').forEach(b=>b.addEventListener('click', async ()=>{
+    if(motoDeudaSaldada(m)) return;
+    const id = b.dataset.siAbonarMoto;
+    const input = document.querySelector(`[data-abonar-input-moto="${id}"]`);
+    const cuota = num(input && input.value);
+    if(!cuota) return toast('Escriba cuánto abonó.', true);
+    const mA = todayISO().slice(0,7);
     m.saldo = Math.max(0, (m.saldo||0) - cuota);
     m.cuotasPagadas = (m.cuotasPagadas||0) + 1;
     m.abonadoMes = mA; m.gastoId = ''; m.posponerHasta = '';
-    if(cuota > 0){
-      const gasto = { id:uid(), fecha:todayISO(), motoId:m.id, cat:CAT_DEUDA, desc:`Cuota de ${esc(m.placa)}`, valor:cuota,
-        cargo:'Empresa', cuentaId:null, pagadoPor:'', reparto:'', recuperado:false, creadoPor:quien(), origen:'moto-deuda', origenId:m.id };
-      S.gastos.push(gasto);
-      m.gastoId = gasto.id;
-    }
+    const gasto = { id:uid(), fecha:todayISO(), motoId:m.id, cat:CAT_DEUDA, desc:`Cuota de ${esc(m.placa)}`, valor:cuota,
+      cargo:'Empresa', cuentaId:null, pagadoPor:'', reparto:'', recuperado:false, creadoPor:quien(), origen:'moto-deuda', origenId:m.id };
+    S.gastos.push(gasto);
+    m.gastoId = gasto.id;
     await save(); renderAll(); renderMotoDetalle();
-    toast(cuota > 0 ? `Cuota abonada — se agregó a Gastos` : 'Cuota abonada');
+    toast(`Cuota abonada (${money(cuota)}) — se agregó a Gastos`);
   }));
   document.querySelectorAll('[data-saldar-moto-deuda]').forEach(b=>b.addEventListener('click', ()=>{
     if(motoDeudaSaldada(m)) return;
@@ -3242,6 +3354,37 @@ function renderMotoDetalle(){
     toast('Datos del vehículo actualizados');
   });
 }
+/* Editar un conductor ya registrado — reusa el mismo formulario de
+   arriba en vez de abrir algo aparte: se llena con sus datos, "Guardar
+   conductor" pasa a decir "Guardar cambios" mientras dure, y "Cancelar
+   edición" deja el formulario como estaba, listo para agregar uno
+   nuevo. Así no hace falta un formulario duplicado solo para editar. */
+let EDITANDO_COND = null;
+function cargarConductorParaEditar(c){
+  EDITANDO_COND = c.id;
+  $('cNombre').value = c.nombre||''; $('cCedula').value = c.cedula||''; $('cTel').value = c.tel||'';
+  $('cEstado').value = c.estado||'Candidato';
+  if($('cMoto')) $('cMoto').value = c.motoId||'';
+  $('cInicio').value = c.inicio||''; $('cDep').value = c.deposito||'';
+  $('cLic').value = c.licencia||''; $('cLicVence').value = c.licVence||'';
+  $('cSalud').value = c.salud||'Sin verificar'; $('cParq').value = c.parqueadero||'';
+  $('cRef').value = c.referencia||''; $('cDir').value = c.direccion||''; $('cCiudad').value = c.ciudad||'';
+  $('cCorreo').value = c.correo||''; $('cEmer').value = c.emergencia||'';
+  $('cSave').innerHTML = `<span class="icono">${ICONS.check}</span> Guardar cambios`;
+  setHidden('cCancelarEdicion', false);
+  go('conductores');
+  $('cNombre').scrollIntoView({behavior:'smooth', block:'start'});
+  toast(`Editando a ${c.nombre}`);
+}
+function cancelarEdicionCond(){
+  EDITANDO_COND = null;
+  ['cNombre','cCedula','cTel','cDep','cLic','cParq','cRef','cDir','cCiudad','cCorreo','cEmer','cLicVence','cInicio']
+    .forEach(i=>$(i).value='');
+  $('cEstado').value = 'Candidato'; if($('cMoto')) $('cMoto').value = ''; $('cSalud').value = 'Sin verificar';
+  $('cSave').innerHTML = `<span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Guardar conductor`;
+  setHidden('cCancelarEdicion', true);
+}
+$('cCancelarEdicion').addEventListener('click', cancelarEdicionCond);
 function renderCond(){
   if(!S.conductores.length){ $('condList').innerHTML=''; return; }
   $('condList').innerHTML = S.conductores.map(c=>{
@@ -3268,6 +3411,7 @@ function renderCond(){
       </div>
       <div class="acts">
         ${c.motoId ? `<button class="btn sm" data-contrato="${c.id}"><span class="icono">${ICONS.documento}</span> Generar contrato</button>` : ''}
+        <button class="btn ghost sm" data-editar-cond="${c.id}"><span class="icono">${ICONS.lapiz}</span> Editar</button>
         <button class="btn ghost sm" data-del-cond="${c.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button></div>
     </div>`;
   }).join('');
@@ -3427,6 +3571,28 @@ function deudaSaldada(d){
   const total = d.cuotasTotal||0;
   return (d.saldo||0) <= 0 || (total > 0 && (d.cuotasPagadas||0) >= total);
 }
+let EDITANDO_DEUDA = null;
+function cargarDeudaParaEditar(d){
+  EDITANDO_DEUDA = d.id;
+  $('dbNombre').value = d.nombre||''; $('dbEntidad').value = d.entidad||'';
+  $('dbSaldo').value = d.saldo||''; $('dbCuota').value = d.cuotaMensual||'';
+  $('dbCuotasTotal').value = d.cuotasTotal||''; $('dbCuotasPagadas').value = d.cuotasPagadas||'';
+  $('dbDia').value = d.diaPago||''; $('dbRecordatorio').checked = !!d.recordatorio;
+  if($('dbCuenta')) $('dbCuenta').value = d.cuentaId||'';
+  $('dbSave').innerHTML = `<span class="icono">${ICONS.check}</span> Guardar cambios`;
+  setHidden('dbCancelarEdicion', false);
+  go('gastos');
+  $('dbNombre').scrollIntoView({behavior:'smooth', block:'start'});
+  toast(`Editando "${d.nombre}"`);
+}
+function cancelarEdicionDeuda(){
+  EDITANDO_DEUDA = null;
+  ['dbNombre','dbEntidad','dbSaldo','dbCuota','dbCuotasTotal','dbCuotasPagadas','dbDia'].forEach(i=>$(i).value='');
+  $('dbRecordatorio').checked = false; if($('dbCuenta')) $('dbCuenta').value = '';
+  $('dbSave').innerHTML = `<span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Agregar crédito`;
+  setHidden('dbCancelarEdicion', true);
+}
+$('dbCancelarEdicion').addEventListener('click', cancelarEdicionDeuda);
 function renderDeudas(){
   const box = $('deudasList'); if(!box || !esPersonal()) return;
   if(!S.deudas.length){
@@ -3480,6 +3646,7 @@ function renderDeudas(){
         ${saldada ? '' : (pospuesta
           ? `<button class="btn ghost sm" data-quitar-posponer="${d.id}">Quitar posponer</button>`
           : `<button class="btn ghost sm" data-posponer-deuda="${d.id}"><span class="icono">${ICONS.calendario}</span> Posponer</button>`)}
+        <button class="btn ghost sm" data-editar-deuda="${d.id}"><span class="icono">${ICONS.lapiz}</span> Editar</button>
         <button class="btn ghost sm" data-del-deuda="${d.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button>
       </div>
     </div>`;
@@ -4100,8 +4267,18 @@ $('qSave').addEventListener('click', async ()=>{
   const condId = $('qCond').value, valor = num($('qValor').value), dias = num($('qDias').value);
   if(!condId) return toast('Primero agregue un conductor en Conductores.', true);
   if(!valor)  return toast('Escriba cuánto recibió.', true);
-  S.pagos.push({ id:uid(), condId, dias, valor, fecha:$('qFecha').value||todayISO(), medio:$('qMedio').value,
-    referencia:$('qRef').value.trim(), nota:$('qNota').value.trim(), creadoPor:quien() });
+  const datos = { condId, dias, valor, fecha:$('qFecha').value||todayISO(), medio:$('qMedio').value,
+    referencia:$('qRef').value.trim(), nota:$('qNota').value.trim() };
+  if(EDITANDO_PAGO){
+    const p = S.pagos.find(x=>x.id===EDITANDO_PAGO);
+    if(!p) return toast('Ese pago ya no existe.', true);
+    Object.assign(p, datos);
+    await save(); renderAll();
+    cancelarEdicionPago(); updateHint();
+    toast('Pago actualizado');
+    return;
+  }
+  S.pagos.push({ id:uid(), ...datos, creadoPor:quien() });
   await save(); renderAll();
   $('qValor').value=''; $('qRef').value=''; $('qNota').value=''; updateHint();
   toast(`Pago registrado · ${money(valor)}`);
@@ -4109,12 +4286,34 @@ $('qSave').addEventListener('click', async ()=>{
 $('gSave').addEventListener('click', async ()=>{
   const valor = num($('gValor').value);
   if(!valor) return toast('Escriba el valor del gasto.', true);
-  S.gastos.push({ id:uid(), fecha:$('gFecha').value||todayISO(), motoId: esMotos() ? $('gMoto').value : null,
+  const datos = { fecha:$('gFecha').value||todayISO(), motoId: esMotos() ? $('gMoto').value : null,
     cat:$('gCat').value, desc:$('gDesc').value.trim(), valor, cargo: esMotos() ? $('gCargo').value : 'Empresa',
     cuentaId: esPersonal() ? ($('gCuenta').value||null) : null,
     pagadoPor: esFamilia() ? ($('gPagador').value||'') : '',
-    reparto: esFamilia() ? $('gReparto').value : '',
-    recuperado:false, creadoPor:quien() });
+    reparto: esFamilia() ? $('gReparto').value : '' };
+  if(EDITANDO_GASTO){
+    const g = S.gastos.find(x=>x.id===EDITANDO_GASTO);
+    if(!g) return toast('Ese gasto ya no existe.', true);
+    const valorViejo = g.valor;
+    Object.assign(g, datos);
+    // Si este gasto es el abono de una deuda o del crédito de una moto,
+    // ese saldo ya se descontó cuando se creó — hay que mover el saldo
+    // por la diferencia, no simplemente dejarlo como estaba.
+    const delta = valor - valorViejo;
+    if(delta !== 0 && g.origen === 'deuda'){
+      const d = S.deudas.find(x=>x.id===g.origenId);
+      if(d) d.saldo = Math.max(0, (d.saldo||0) - delta);
+    }
+    if(delta !== 0 && g.origen === 'moto-deuda'){
+      const m = S.motos.find(x=>x.id===g.origenId);
+      if(m) m.saldo = Math.max(0, (m.saldo||0) - delta);
+    }
+    await save(); renderAll();
+    cancelarEdicionGasto();
+    toast('Gasto actualizado');
+    return;
+  }
+  S.gastos.push({ id:uid(), ...datos, recuperado:false, creadoPor:quien() });
   await save(); renderAll();
   $('gValor').value=''; $('gDesc').value='';
   toast('Gasto registrado');
@@ -4122,10 +4321,19 @@ $('gSave').addEventListener('click', async ()=>{
 $('pfSave').addEventListener('click', async ()=>{
   const valor = num($('pfValor').value);
   if(!valor) return toast('Escriba el valor.', true);
-  S.pagos.push({ id:uid(), valor, fecha:$('pfFecha').value||todayISO(), medio:$('pfMedio').value,
+  const datos = { valor, fecha:$('pfFecha').value||todayISO(), medio:$('pfMedio').value,
     concepto:$('pfConcepto').value.trim(), cuentaId: esPersonal() ? ($('pfCuenta').value||null) : null,
-    tipoIngreso: esPersonal() ? ($('pfTipo').value||'') : '', nota:$('pfNota').value.trim(),
-    creadoPor:quien() });
+    tipoIngreso: esPersonal() ? ($('pfTipo').value||'') : '', nota:$('pfNota').value.trim() };
+  if(EDITANDO_PAGO){
+    const p = S.pagos.find(x=>x.id===EDITANDO_PAGO);
+    if(!p) return toast('Ese pago ya no existe.', true);
+    Object.assign(p, datos);
+    await save(); renderAll();
+    cancelarEdicionPago();
+    toast('Registro actualizado');
+    return;
+  }
+  S.pagos.push({ id:uid(), ...datos, creadoPor:quien() });
   await save(); renderAll();
   $('pfValor').value=''; $('pfConcepto').value=''; $('pfNota').value='';
   toast(`Registrado · ${money(valor)}`);
@@ -4211,10 +4419,19 @@ $('fjSave').addEventListener('click', async ()=>{
 $('dbSave').addEventListener('click', async ()=>{
   const nombre = $('dbNombre').value.trim();
   if(!nombre) return toast('Escriba el nombre del crédito.', true);
-  S.deudas.push({ id:uid(), nombre, entidad:$('dbEntidad').value.trim(), saldo:num($('dbSaldo').value), cuotaMensual:num($('dbCuota').value),
+  const datos = { nombre, entidad:$('dbEntidad').value.trim(), saldo:num($('dbSaldo').value), cuotaMensual:num($('dbCuota').value),
     cuotasTotal:num($('dbCuotasTotal').value), cuotasPagadas:num($('dbCuotasPagadas').value),
-    diaPago: num($('dbDia').value)||null, recordatorio: $('dbRecordatorio').checked, cuentaId:$('dbCuenta').value||null,
-    abonadoMes:'', gastoId:'', posponerHasta:'', creadoPor:quien() });
+    diaPago: num($('dbDia').value)||null, recordatorio: $('dbRecordatorio').checked, cuentaId:$('dbCuenta').value||null };
+  if(EDITANDO_DEUDA){
+    const d = S.deudas.find(x=>x.id===EDITANDO_DEUDA);
+    if(!d) return toast('Ese crédito ya no existe.', true);
+    Object.assign(d, datos);
+    await save(); renderAll();
+    cancelarEdicionDeuda();
+    toast(`${nombre} actualizado`);
+    return;
+  }
+  S.deudas.push({ id:uid(), ...datos, abonadoMes:'', gastoId:'', posponerHasta:'', creadoPor:quien() });
   await save(); renderAll();
   ['dbNombre','dbEntidad','dbSaldo','dbCuota','dbCuotasTotal','dbCuotasPagadas','dbDia'].forEach(i=>$(i).value='');
   $('dbRecordatorio').checked = false; $('dbCuenta').value = '';
@@ -4287,13 +4504,23 @@ $('cSave').addEventListener('click', async ()=>{
   const estado = $('cEstado').value;
   if(estado === 'Activo' && !$('cMoto').value)
     return toast('Para marcarlo activo, asígnele una moto.', true);
-  S.conductores.push({ id:uid(), nombre, cedula:$('cCedula').value.trim(), tel:$('cTel').value.trim(),
+  const datos = { nombre, cedula:$('cCedula').value.trim(), tel:$('cTel').value.trim(),
     licencia:$('cLic').value.trim(), licVence:$('cLicVence').value,
     parqueadero:$('cParq').value.trim(), referencia:$('cRef').value.trim(),
     direccion:$('cDir').value.trim(), ciudad:$('cCiudad').value.trim(),
     correo:$('cCorreo').value.trim(), emergencia:$('cEmer').value.trim(),
-    salud:$('cSalud').value, estado, creadoPor:quien(),
-    motoId:$('cMoto').value, inicio:$('cInicio').value||todayISO(), deposito:num($('cDep').value) });
+    salud:$('cSalud').value, estado,
+    motoId:$('cMoto').value, inicio:$('cInicio').value||todayISO(), deposito:num($('cDep').value) };
+  if(EDITANDO_COND){
+    const c = S.conductores.find(x=>x.id===EDITANDO_COND);
+    if(!c) return toast('Ese conductor ya no existe.', true);
+    Object.assign(c, datos);
+    await save(); renderAll();
+    cancelarEdicionCond();
+    toast(`${nombre} actualizado`);
+    return;
+  }
+  S.conductores.push({ id:uid(), ...datos, creadoPor:quien() });
   await save(); renderAll();
   ['cNombre','cCedula','cTel','cDep','cLic','cParq','cRef','cDir','cCiudad','cCorreo','cEmer']
     .forEach(i=>$(i).value='');
@@ -4334,7 +4561,7 @@ document.addEventListener('click', async e=>{
      SVG adentro, y un clic que caiga sobre el ícono reporta el <svg>
      como e.target, no el <button> con el data-* — sin esto, tocar el
      ícono (en vez del texto) no hacía nada. */
-  const t = e.target.closest('[data-contrato],[data-del-cond],[data-del-moto],[data-del-pago],[data-del-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-abonar-deuda],[data-saldar-deuda],[data-posponer-deuda],[data-quitar-posponer],[data-del-negocio],[data-color],[data-avatar],[data-del-prestamo],[data-marcar-prestamo],[data-del-mercado],[data-toggle-mercado],[data-cal-dia],[data-cal-ir],[data-del-nota],[data-cal-guardar-nota],[data-legal]');
+  const t = e.target.closest('[data-contrato],[data-del-cond],[data-editar-cond],[data-del-moto],[data-del-pago],[data-editar-pago],[data-del-gasto],[data-editar-gasto],[data-toggle-gasto],[data-ir-negocio],[data-del-producto],[data-del-cliente],[data-del-cuenta],[data-del-meta],[data-abonar-meta],[data-del-fijo],[data-marcar-fijo],[data-del-deuda],[data-editar-deuda],[data-abonar-deuda],[data-saldar-deuda],[data-posponer-deuda],[data-quitar-posponer],[data-del-negocio],[data-color],[data-avatar],[data-del-prestamo],[data-marcar-prestamo],[data-del-mercado],[data-toggle-mercado],[data-cal-dia],[data-cal-ir],[data-del-nota],[data-cal-guardar-nota],[data-legal]');
   if(!t) return;
   if(t.dataset.legal){ e.preventDefault(); return abrirLegal(t.dataset.legal); }
   if(t.dataset.irNegocio) return cambiarNegocio(t.dataset.irNegocio);
@@ -4370,9 +4597,15 @@ document.addEventListener('click', async e=>{
     if(!(await confirmar('Eliminar cliente', 'Se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
     return rm('clientes', t.dataset.delCliente, 'Cliente eliminado');
   }
+  if(t.dataset.editarCond){
+    const c = S.conductores.find(x=>x.id===t.dataset.editarCond);
+    if(c) cargarConductorParaEditar(c);
+    return;
+  }
   if(t.dataset.delCond){
     const n = S.pagos.filter(p=>p.condId===t.dataset.delCond).length;
     if(n && !(await confirmar('Eliminar conductor', `Este conductor tiene ${n} pago(s) registrados. Si lo elimina, esos pagos quedan sin dueño. ¿Continuar?`))) return;
+    if(EDITANDO_COND === t.dataset.delCond) cancelarEdicionCond();
     return rm('conductores', t.dataset.delCond, 'Conductor eliminado');
   }
   if(t.dataset.delMoto){
@@ -4384,9 +4617,20 @@ document.addEventListener('click', async e=>{
     if(MOTO_ABIERTA === t.dataset.delMoto) cerrarMotoDetalle();
     return rm('motos', t.dataset.delMoto, 'Moto eliminada');
   }
+  if(t.dataset.editarPago){
+    const p = S.pagos.find(x=>x.id===t.dataset.editarPago);
+    if(p) cargarPagoParaEditar(p);
+    return;
+  }
   if(t.dataset.delPago){
     if(!(await confirmar('Eliminar pago', 'Este pago se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
+    if(EDITANDO_PAGO === t.dataset.delPago) cancelarEdicionPago();
     return rm('pagos', t.dataset.delPago, 'Pago eliminado');
+  }
+  if(t.dataset.editarGasto){
+    const g = S.gastos.find(x=>x.id===t.dataset.editarGasto);
+    if(g) cargarGastoParaEditar(g);
+    return;
   }
   if(t.dataset.delGasto){
     if(!(await confirmar('Eliminar gasto', 'Este gasto se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
@@ -4408,6 +4652,15 @@ document.addEventListener('click', async e=>{
         if(d.gastoId === g.id){ d.abonadoMes = ''; d.gastoId = ''; }
       }
     }
+    if(g && g.origen === 'moto-deuda'){
+      const m = S.motos.find(x=>x.id===g.origenId);
+      if(m){
+        m.saldo = (m.saldo||0) + g.valor;
+        m.cuotasPagadas = Math.max(0, (m.cuotasPagadas||0) - 1);
+        if(m.gastoId === g.id){ m.abonadoMes = ''; m.gastoId = ''; }
+      }
+    }
+    if(EDITANDO_GASTO === t.dataset.delGasto) cancelarEdicionGasto();
     return rm('gastos', t.dataset.delGasto, 'Gasto eliminado');
   }
   if(t.dataset.toggleGasto){
@@ -4463,8 +4716,14 @@ document.addEventListener('click', async e=>{
     }
     return;
   }
+  if(t.dataset.editarDeuda){
+    const d = S.deudas.find(x=>x.id===t.dataset.editarDeuda);
+    if(d) cargarDeudaParaEditar(d);
+    return;
+  }
   if(t.dataset.delDeuda){
     if(!(await confirmar('Eliminar deuda', 'Se borra del todo, sin poder deshacerlo. ¿Continuar?'))) return;
+    if(EDITANDO_DEUDA === t.dataset.delDeuda) cancelarEdicionDeuda();
     return rm('deudas', t.dataset.delDeuda, 'Deuda eliminada');
   }
   if(t.dataset.abonarDeuda){
@@ -4474,16 +4733,26 @@ document.addEventListener('click', async e=>{
     if(d.abonadoMes === mesActual){
       // Desmarcar: se revierte el abono de este mes, igual que con los
       // pagos fijos — así "Lo que sale" y "Créditos" nunca quedan en
-      // desacuerdo sobre si esto ya se pagó o no.
+      // desacuerdo sobre si esto ya se pagó o no. Se revierte por lo que
+      // el gasto realmente dice que se pagó, no por la cuota "de
+      // siempre" — puede haber sido un valor distinto ese mes.
+      const gastoVinculado = d.gastoId ? S.gastos.find(g=>g.id===d.gastoId) : null;
+      const montoRevertir = gastoVinculado ? gastoVinculado.valor : (d.cuotaMensual||0);
       if(d.gastoId){ S.gastos = S.gastos.filter(g=>g.id!==d.gastoId); }
-      d.saldo = (d.saldo||0) + (d.cuotaMensual||0);
+      d.saldo = (d.saldo||0) + montoRevertir;
       d.cuotasPagadas = Math.max(0, (d.cuotasPagadas||0) - 1);
       d.abonadoMes = ''; d.gastoId = '';
       await save(); renderAll();
       toast('Se quitó el abono de este mes');
       return;
     }
-    const cuota = d.cuotaMensual || 0;
+    // Se pregunta cuánto abonó, con la cuota de siempre ya sugerida —
+    // así de un tirón confirma lo normal, o lo cambia si pagó de más o
+    // de menos esta vez (abono parcial, un adelanto, etc.).
+    const cuota = await pedirValor(`Abonar "${d.nombre}"`,
+      'Ya viene sugerida la cuota de siempre — confírmela tal cual, o escriba lo que de verdad abonó esta vez.',
+      '¿Cuánto abonó?', d.cuotaMensual || '');
+    if(cuota === null) return;
     d.saldo = Math.max(0, (d.saldo||0) - cuota);
     d.cuotasPagadas = (d.cuotasPagadas||0) + 1;
     d.abonadoMes = mesActual; d.gastoId = ''; d.posponerHasta = '';
