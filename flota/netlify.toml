@@ -25,3 +25,15 @@
   for = "/index.html"
   [headers.values]
     Cache-Control = "no-cache"
+
+# CRÍTICO: el service worker (sw.js) es el archivo que decide si el navegador
+# se entera de que hay una versión nueva de la app. Si el navegador se queda
+# con una copia vieja de ESTE archivo en su caché, nunca llega a comparar
+# bytes con el de verdad y jamás descubre que hay algo nuevo — así se suba
+# lo que se suba, la persona sigue viendo la app de hace semanas, con sus
+# datos viejos y sus bugs ya corregidos, como si nada hubiera cambiado.
+# Por eso este archivo, y solo este, NUNCA se debe cachear.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
