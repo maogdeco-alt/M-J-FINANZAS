@@ -1524,7 +1524,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 
       <div class="section form" id="importarExcelBox">
         <h2 style="margin-bottom:8px">Importar desde Excel</h2>
-        <p class="sub">¿Ya llevaba sus cuentas en un Excel? Cárguelo aquí. La app trata de entender sus columnas sola, usted revisa y corrige lo que haga falta, y solo se guarda lo que confirme al final — nunca se borra ni se reemplaza nada de lo que ya tiene, esto solo agrega.</p>
+        <p class="sub">¿Ya llevaba su información en un Excel propio? Cárguelo aquí. La app trata de entender sus columnas sola, usted revisa y corrige lo que haga falta, y solo se guarda lo que confirme al final — nunca se borra ni se reemplaza nada de lo que ya tiene, esto solo agrega. Si suele recibir siempre el mismo tipo de Excel (una plataforma de ventas, un banco, etc.), puede guardar la configuración con su propio nombre y usarla de un clic la próxima vez.</p>
         <input type="file" id="xlsxInput" accept=".xlsx,.xls" class="hidden">
         <button class="btn block" id="xlsxElegir"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Elegir archivo de Excel</button>
       </div>
@@ -2273,7 +2273,7 @@ let DEMO = false;
 const KEY = () => 'maog:flota:datos:' + (NEGOCIO ? NEGOCIO.id : 'x');
 
 function vacio(){ return { motos:[], conductores:[], pagos:[], gastos:[], productos:[], clientes:[],
-  cuentas:[], fijos:[], deudas:[], metas:[], prestamos:[], mercado:[], notas:[], config:{} }; }
+  cuentas:[], fijos:[], deudas:[], metas:[], prestamos:[], mercado:[], notas:[], plantillasExcel:[], config:{} }; }
 
 async function nubeLeer(){
   const r = await api('/rest/v1/rpc/leer_datos_rpc', { method:'POST', body: JSON.stringify({ p_negocio_id: NEGOCIO.id }) });
@@ -2413,6 +2413,7 @@ function renderAll(){
   if(!S.prestamos) S.prestamos = [];
   if(!S.mercado) S.mercado = [];
   if(!S.notas) S.notas = [];
+  if(!S.plantillasExcel) S.plantillasExcel = [];
   aplicarColor();
   aplicarPlantillaUI();
   renderSelects(); renderKPIs(); renderAvisos(); renderCuentas(); renderPropietarios();
@@ -2504,7 +2505,6 @@ function aplicarPlantillaUI(){
   setHidden('gCuentaBox', !personal);
   setHidden('pfTipoBox', !personal);
   setHidden('compromisosBox', !personal);
-  setHidden('importarExcelBox', !personal);
   const familia = esFamilia();
   setHidden('integrantesBox', !familia);
   setHidden('gRepartoBox', !familia);
@@ -5807,32 +5807,101 @@ function renderInstalarApp(){
 renderInstalarApp();
 
 /* =========================================================
-   Importar desde Excel — para quien ya llevaba sus cuentas en un
-   Excel propio, armado como sea. La app NO adivina a ciegas: sugiere
-   qué es cada columna por el nombre del encabezado, arma una vista
-   previa editable en el idioma de la app (Fecha, Descripción,
-   Categoría, Valor...), la persona revisa y corrige lo que haga
-   falta con sus propios controles, y solo se guarda lo que confirme
-   al final. Nunca borra ni reemplaza nada existente — solo agrega
-   gastos/ingresos nuevos, igual que si los hubiera escrito a mano.
-   ========================================================= */
+   Importar desde Excel — para quien ya llevaba sus cuentas (o su
+   catálogo, o sus clientes) en un Excel propio, armado como sea.
+   Funciona en cualquier tipo de proyecto (motos, personal, familia,
+   productos/clientes) reusando las MISMAS estructuras que ya tiene
+   cada uno de esos módulos — nada nuevo que aprender.
+
+   La app NO adivina a ciegas: sugiere qué es cada columna por el
+   nombre del encabezado, arma una vista previa editable en el idioma
+   de la app, la persona revisa y corrige lo que haga falta con sus
+   propios controles, y solo se guarda lo que confirme al final. Nunca
+   borra ni reemplaza nada existente — solo agrega registros nuevos,
+   igual que si los hubiera escrito a mano.
+
+   Como cada quien suele tener SIEMPRE la misma forma de Excel para
+   una misma fuente de ingreso (su exportado de Mercado Libre, su
+   plantilla de ventas, etc.), la configuración de columnas se puede
+   guardar con un nombre propio ("Venta de objetos por marketplace")
+   y reusar en la próxima carga — ver S.plantillasExcel más abajo. */
+
+/* Qué campos existen por cada "destino" (a qué va a parar la
+   información) y con qué palabras se reconoce cada uno en un
+   encabezado de Excel, en español e inglés. Los destinos "productos"
+   y "clientes" solo aplican a negocios con esos módulos activos. */
 const SINONIMOS_EXCEL = {
-  fecha: ['fecha','date','dia','día'],
-  valor: ['valor','monto','total','precio','importe','cantidad','plata','amount','price','value','sum'],
-  desc:  ['descripcion','descripción','concepto','detalle','item','ítem','articulo','artículo','nota','notas','description','detail','note','notes'],
-  tipo:  ['tipo de movimiento','ingreso/gasto','ingreso o gasto','entrada/salida','entrada o salida','movimiento','tipo','type','income/expense','in/out'],
-  cat:   ['categoria','categoría','rubro','clase','tipo de gasto','category'],
-  cuenta:['cuenta','banco','medio de pago','metodo de pago','método de pago','medio','metodo','método','account','bank','payment method'],
+  movimientos: {
+    fecha: ['fecha','date','dia','día'],
+    valor: ['valor','monto','total','precio','importe','cantidad','plata','amount','price','value','sum'],
+    desc:  ['descripcion','descripción','concepto','detalle','item','ítem','articulo','artículo','nota','notas','description','detail','note','notes'],
+    tipo:  ['tipo de movimiento','ingreso/gasto','ingreso o gasto','entrada/salida','entrada o salida','movimiento','tipo','type','income/expense','in/out'],
+    cat:   ['categoria','categoría','rubro','clase','tipo de gasto','category'],
+    cuenta:['cuenta','banco','medio de pago','metodo de pago','método de pago','medio','metodo','método','account','bank','payment method'],
+    moto:  ['moto','placa','vehiculo','vehículo','plate'],
+    conductor:['conductor','arrendatario','driver'],
+    dias:  ['dias','días','cantidad de dias','cantidad de días','no. dias','no dias','days'],
+  },
+  productos: {
+    nombre:   ['nombre','producto','articulo','artículo','item','ítem','name','product'],
+    categoria:['categoria','categoría','rubro','category','tipo'],
+    precio:   ['precio','precio de venta','pvp','price'],
+    costo:    ['costo','precio de costo','costo unitario','cost'],
+    stock:    ['stock','cantidad','existencias','inventario','unidades','qty'],
+    notas:    ['nota','notas','observacion','observación','note','notes'],
+  },
+  clientes: {
+    nombre:  ['nombre','cliente','name','customer'],
+    contacto:['contacto','telefono','teléfono','celular','correo','email','contact','phone'],
+    notas:   ['nota','notas','observacion','observación','note','notes'],
+  },
+};
+const ETIQUETA_CAMPO_EXCEL = {
+  fecha:'Fecha', valor:'Valor', desc:'Descripción', cat:'Categoría', tipo:'Tipo (ingreso/gasto)',
+  cuenta:'Cuenta', moto:'Moto (placa)', conductor:'Conductor', dias:'Días',
+  nombre:'Nombre', categoria:'Categoría', precio:'Precio', costo:'Costo', stock:'Stock',
+  contacto:'Contacto', notas:'Notas',
 };
 function normalizarTexto(s){
   return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
 }
-function adivinarColumnaExcel(header){
+/* Los campos "movimientos" cambian según el tipo de proyecto: Cuenta
+   solo tiene sentido en Cuentas personales/familia, y Moto/Conductor/
+   Días solo en Alquiler de motos — el resto siempre están. */
+function camposMovimientosExcel(){
+  const campos = ['fecha','valor','desc','cat','tipo'];
+  if(esPersonal()) campos.push('cuenta');
+  if(esMotos()) campos.push('moto','conductor','dias');
+  return campos;
+}
+function camposDestinoExcel(destino){
+  return destino==='movimientos' ? camposMovimientosExcel() : Object.keys(SINONIMOS_EXCEL[destino]||{});
+}
+function opcionesCampoExcel(destino){
+  return [['ignorar','Ignorar esta columna'], ...camposDestinoExcel(destino).map(c=>[c, ETIQUETA_CAMPO_EXCEL[c]])];
+}
+/* ¿A qué destinos se puede importar en el proyecto activo? Siempre se
+   puede a "movimientos" (lo que entra/sale, o pagos/gastos de motos);
+   "productos" y "clientes" solo aparecen si el proyecto tiene esos
+   módulos activos — mismas estructuras que ya usan esas secciones. */
+function destinosDisponiblesExcel(){
+  const mods = modulosDe(NEGOCIO);
+  const d = [{ id:'movimientos',
+    nombre: esMotos() ? 'Pagos y gastos' : (esPersonal() ? 'Lo que entra y lo que sale' : 'Ingresos y gastos'),
+    desc:'Un excel con fechas y valores — lo que entró y lo que salió.', icono:'pagos' }];
+  if(mods.productos) d.push({ id:'productos', nombre:'Catálogo de productos',
+    desc:'Un excel con sus productos — nombre, precio, costo, cuánto queda.', icono:'productos' });
+  if(mods.clientes) d.push({ id:'clientes', nombre:'Lista de clientes',
+    desc:'Un excel con sus clientes — nombre y contacto.', icono:'clientes' });
+  return d;
+}
+function adivinarColumnaExcel(header, destino){
   const h = normalizarTexto(header);
   if(!h) return 'ignorar';
+  const dict = SINONIMOS_EXCEL[destino] || {};
   let mejor = null;
-  for(const campo in SINONIMOS_EXCEL){
-    for(const s of SINONIMOS_EXCEL[campo]){
+  for(const campo of camposDestinoExcel(destino)){
+    for(const s of (dict[campo]||[])){
       if(h === s) return campo;
       if(h.includes(s) && (!mejor || s.length > mejor.largo)) mejor = { campo, largo: s.length };
     }
@@ -5865,7 +5934,12 @@ function fechaDeCeldaExcel(v){
   }
   return '';
 }
-let XLSX_IMPORT = null; // { wb, hoja, encabezados, datos, campos, modoTipo }
+/* XLSX_IMPORT recorre un pequeño asistente de 3 pasos, guardado en
+   XLSX_IMPORT.paso: "destino" (¿qué trae el archivo?, se salta si solo
+   hay una opción posible) -> "plantilla" (¿usa alguna guardada?, se
+   salta si no hay ninguna para ese destino) -> "mapeo" (la vista de
+   emparejar columnas + previsualizar, igual que antes). */
+let XLSX_IMPORT = null; // { wb, hoja, encabezados, datos, destino, plantillaObj, campos, modoTipo, paso }
 function cerrarXlsxImport(){ $('xlsxScrim').classList.remove('on'); XLSX_IMPORT = null; }
 $('xlsxScrim').addEventListener('click', e=>{ if(e.target===$('xlsxScrim')) cerrarXlsxImport(); });
 $('xlsxElegir').addEventListener('click', ()=>$('xlsxInput').click());
@@ -5878,9 +5952,11 @@ $('xlsxInput').addEventListener('change', e=>{
     try{
       const wb = XLSX.read(ev.target.result, { type:'array', cellDates:true });
       if(!wb.SheetNames.length) throw new Error('sin hojas');
-      XLSX_IMPORT = { wb, hoja: wb.SheetNames[0], modoTipo:'gasto' };
-      prepararHojaExcel();
+      XLSX_IMPORT = { wb, hoja: wb.SheetNames[0] };
       $('xlsxScrim').classList.add('on');
+      const destinos = destinosDisponiblesExcel();
+      if(destinos.length === 1) elegirDestinoExcel(destinos[0].id);
+      else { XLSX_IMPORT.paso = 'destino'; renderXlsxWizard(); }
     }catch(err){
       toast('No se pudo leer ese archivo. ¿Es un Excel válido (.xlsx)?', true);
     }
@@ -5888,21 +5964,43 @@ $('xlsxInput').addEventListener('change', e=>{
   lector.onerror = () => toast('No se pudo leer ese archivo.', true);
   lector.readAsArrayBuffer(file);
 });
+function elegirDestinoExcel(destino){
+  XLSX_IMPORT.destino = destino;
+  const hayGuardadas = (S.plantillasExcel||[]).some(p=>p.destino===destino);
+  if(hayGuardadas){ XLSX_IMPORT.paso = 'plantilla'; renderXlsxWizard(); }
+  else usarPlantillaExcel(null);
+}
+/* plantilla=null -> "empezar de cero" (adivinar todo por el nombre de
+   encabezado); si se pasa una plantilla guardada, sus columnas se
+   emparejan primero por nombre, y lo que no encuentre se adivina igual. */
+function usarPlantillaExcel(plantilla){
+  XLSX_IMPORT.plantillaObj = plantilla || null;
+  prepararHojaExcel();
+  XLSX_IMPORT.paso = 'mapeo';
+  renderXlsxWizard();
+}
 function prepararHojaExcel(){
   const ws = XLSX_IMPORT.wb.Sheets[XLSX_IMPORT.hoja];
   const filas = XLSX.utils.sheet_to_json(ws, { header:1, defval:'', raw:true });
   const encabezados = (filas[0]||[]).map(h=>String(h==null?'':h).trim());
   XLSX_IMPORT.encabezados = encabezados;
   XLSX_IMPORT.datos = filas.slice(1).filter(f=>f.some(c=>String(c==null?'':c).trim()!==''));
-  XLSX_IMPORT.campos = encabezados.map(h=>adivinarColumnaExcel(h));
-  XLSX_IMPORT.modoTipo = XLSX_IMPORT.campos.includes('tipo') ? 'columna' : 'gasto';
-  renderXlsxImport();
+  const destino = XLSX_IMPORT.destino, validos = camposDestinoExcel(destino), plantilla = XLSX_IMPORT.plantillaObj;
+  XLSX_IMPORT.campos = encabezados.map(h=>{
+    const guardado = plantilla && plantilla.mapa[normalizarTexto(h)];
+    return (guardado && validos.includes(guardado)) ? guardado : adivinarColumnaExcel(h, destino);
+  });
+  if(destino==='movimientos'){
+    const preferido = plantilla ? plantilla.modoTipo : null;
+    XLSX_IMPORT.modoTipo = (preferido && (preferido!=='columna' || XLSX_IMPORT.campos.includes('tipo')))
+      ? preferido : (XLSX_IMPORT.campos.includes('tipo') ? 'columna' : 'gasto');
+  }
 }
-function procesarFilasExcel(){
+function procesarFilasMovimientosExcel(){
   const { datos, campos, modoTipo } = XLSX_IMPORT;
   const idxDe = campo => campos.indexOf(campo);
-  const iFecha = idxDe('fecha'), iValor = idxDe('valor'), iDesc = idxDe('desc'),
-        iCat = idxDe('cat'), iTipo = idxDe('tipo'), iCuenta = idxDe('cuenta');
+  const iFecha=idxDe('fecha'), iValor=idxDe('valor'), iDesc=idxDe('desc'), iCat=idxDe('cat'), iTipo=idxDe('tipo'),
+        iCuenta=idxDe('cuenta'), iMoto=idxDe('moto'), iCond=idxDe('conductor'), iDias=idxDe('dias');
   return datos.map(fila=>{
     const crudoValor = iValor>=0 ? fila[iValor] : 0;
     const valorNum = Math.abs(num(crudoValor));
@@ -5915,62 +6013,152 @@ function procesarFilasExcel(){
     }
     let cuentaId = '';
     if(iCuenta>=0){
-      const nombreCta = normalizarTexto(fila[iCuenta]);
-      const match = (S.cuentas||[]).find(c=>normalizarTexto(c.nombre)===nombreCta);
+      const match = (S.cuentas||[]).find(c=>normalizarTexto(c.nombre)===normalizarTexto(fila[iCuenta]));
       if(match) cuentaId = match.id;
     }
+    let motoId = '';
+    if(iMoto>=0){
+      const match = (S.motos||[]).find(m=>normalizarTexto(m.placa)===normalizarTexto(fila[iMoto]));
+      if(match) motoId = match.id;
+    }
+    let condId = '';
+    if(iCond>=0){
+      const match = (S.conductores||[]).find(c=>normalizarTexto(c.nombre)===normalizarTexto(fila[iCond]));
+      if(match) condId = match.id;
+    }
+    const dias = iDias>=0 ? num(fila[iDias]) : 0;
+    // En Alquiler de motos, un pago SIEMPRE necesita un conductor emparejado para
+    // poder guardarse bien — si no se encontró uno, la fila no se marca sola.
+    const sinCondNecesario = esMotos() && !esGasto && !condId;
     return {
       fecha: iFecha>=0 ? fechaDeCeldaExcel(fila[iFecha]) : '',
       desc: iDesc>=0 ? String(fila[iDesc]==null?'':fila[iDesc]).trim() : '',
       cat: iCat>=0 ? (String(fila[iCat]==null?'':fila[iCat]).trim() || '❓ Otro') : '❓ Otro',
-      valor: valorNum, esGasto, cuentaId,
-      incluir: valorNum > 0, // filas sin valor casi siempre son encabezados sueltos o subtotales, no se marcan por defecto
+      valor: valorNum, esGasto, cuentaId, motoId, condId, dias,
+      incluir: valorNum > 0 && !sinCondNecesario, // filas sin valor casi siempre son encabezados sueltos o subtotales
     };
   });
 }
-const OPCIONES_CAMPO_EXCEL = [
-  ['ignorar','Ignorar esta columna'], ['fecha','Fecha'], ['valor','Valor'],
-  ['desc','Descripción'], ['cat','Categoría'], ['tipo','Tipo (ingreso/gasto)'], ['cuenta','Cuenta'],
-];
-function renderXlsxImport(){
-  const box = $('xlsxCuerpo'); if(!box || !XLSX_IMPORT) return;
-  const { wb, hoja, encabezados, datos, campos, modoTipo } = XLSX_IMPORT;
-  const hayTipoCol = campos.includes('tipo');
-  const hayCuentaCol = campos.includes('cuenta');
-
-  const selectorHoja = wb.SheetNames.length > 1 ? `
-    <div class="f" style="max-width:280px"><label for="xlsxHoja">¿Qué hoja del archivo?</label>
-      <select id="xlsxHoja">${wb.SheetNames.map(n=>`<option value="${esc(n)}" ${n===hoja?'selected':''}>${esc(n)}</option>`).join('')}</select>
-    </div>` : '';
-
-  const mapeoHTML = `<div class="ledger-wrap" style="margin:10px 0"><table class="ledger"><thead><tr>
-    ${encabezados.map((h,i)=>`<th style="min-width:150px">
-      <div style="font-weight:700;margin-bottom:4px">${esc(h)||'(sin nombre)'}</div>
-      <select data-col="${i}" class="xlsx-map">${OPCIONES_CAMPO_EXCEL.map(([v,t])=>`<option value="${v}" ${campos[i]===v?'selected':''}>${t}</option>`).join('')}</select>
-    </th>`).join('')}
-    </tr></thead></table></div>`;
+function procesarFilasProductosExcel(){
+  const { datos, campos } = XLSX_IMPORT;
+  const idxDe = campo => campos.indexOf(campo);
+  const iNom=idxDe('nombre'), iCat=idxDe('categoria'), iPrecio=idxDe('precio'), iCosto=idxDe('costo'),
+        iStock=idxDe('stock'), iNotas=idxDe('notas');
+  const texto = (fila,i) => i>=0 ? String(fila[i]==null?'':fila[i]).trim() : '';
+  return datos.map(fila=>{
+    const nombre = texto(fila,iNom);
+    return { nombre, categoria: texto(fila,iCat), precio: iPrecio>=0 ? num(fila[iPrecio]) : 0,
+      costo: iCosto>=0 ? num(fila[iCosto]) : 0, stock: texto(fila,iStock), notas: texto(fila,iNotas),
+      incluir: !!nombre };
+  });
+}
+function procesarFilasClientesExcel(){
+  const { datos, campos } = XLSX_IMPORT;
+  const idxDe = campo => campos.indexOf(campo);
+  const iNom=idxDe('nombre'), iCon=idxDe('contacto'), iNotas=idxDe('notas');
+  const texto = (fila,i) => i>=0 ? String(fila[i]==null?'':fila[i]).trim() : '';
+  return datos.map(fila=>{
+    const nombre = texto(fila,iNom);
+    return { nombre, contacto: texto(fila,iCon), notas: texto(fila,iNotas), incluir: !!nombre };
+  });
+}
+function renderXlsxWizard(){
+  if(!XLSX_IMPORT) return;
+  setHidden('xlsxConfirmar', XLSX_IMPORT.paso !== 'mapeo');
+  if(XLSX_IMPORT.paso === 'destino') return renderPasoDestinoExcel();
+  if(XLSX_IMPORT.paso === 'plantilla') return renderPasoPlantillaExcel();
+  renderPasoMapeoExcel();
+}
+function renderPasoDestinoExcel(){
+  const box = $('xlsxCuerpo'); if(!box) return;
+  const destinos = destinosDisponiblesExcel();
+  box.innerHTML = `
+    <p class="sub">Archivo con <b>${XLSX_IMPORT.wb.SheetNames.length}</b> hoja(s).</p>
+    <p class="sub" style="margin:14px 0 4px"><b>¿Qué trae este archivo?</b> Así sabemos qué preguntarle después.</p>
+    <div class="choice-grid" id="xlsxDestinoCards">
+      ${destinos.map(d=>`<button type="button" class="choice sm" data-destino="${d.id}">
+        <span class="ic icono">${ICONS[d.icono]}</span><b>${esc(d.nombre)}</b><span>${esc(d.desc)}</span>
+      </button>`).join('')}
+    </div>`;
+  document.querySelectorAll('#xlsxDestinoCards [data-destino]').forEach(b=>{
+    b.addEventListener('click', ()=>elegirDestinoExcel(b.dataset.destino));
+  });
+}
+function renderPasoPlantillaExcel(){
+  const box = $('xlsxCuerpo'); if(!box) return;
+  const destinos = destinosDisponiblesExcel();
+  const guardadas = (S.plantillasExcel||[]).filter(p=>p.destino===XLSX_IMPORT.destino);
+  box.innerHTML = `
+    ${destinos.length>1 ? `<button type="button" class="linkbtn" id="xlsxVolverDestino">‹ Cambiar qué trae el archivo</button>` : ''}
+    <p class="sub" style="margin:14px 0 4px"><b>¿Usa alguna de sus plantillas guardadas?</b> Trae las columnas ya emparejadas de la última vez.</p>
+    <div class="choice-grid" id="xlsxPlantillaCards">
+      <button type="button" class="choice sm" data-plantilla-cero>
+        <span class="ic icono">${ICONS.pagos}</span><b>Empezar de cero</b><span>Dejar que la app adivine las columnas por su nombre.</span>
+      </button>
+      ${guardadas.map(p=>`<div class="choice sm" data-plantilla-card="${p.id}" style="position:relative">
+        <span class="ic icono">${ICONS.guardar}</span><b>${esc(p.nombre)}</b><span>${p.creadoEn?('Guardada el '+fmtDate(p.creadoEn)):'Guardada'}${p.creadoPor?(' · '+esc(p.creadoPor)):''}</span>
+        <button type="button" class="rowdel" data-borrar-plantilla-excel="${p.id}" aria-label="Borrar esta plantilla" style="position:absolute;top:8px;right:8px"><span class="icono">${ICONS.trash}</span></button>
+        <div class="hidden" data-confirm-borrar="${p.id}" style="margin-top:8px;font-size:12.5px">
+          ¿Borrar "${esc(p.nombre)}"? <button type="button" class="linkbtn" data-si-borrar="${p.id}">Sí, borrar</button> · <button type="button" class="linkbtn" data-no-borrar="${p.id}">No</button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  const volver = $('xlsxVolverDestino');
+  if(volver) volver.addEventListener('click', ()=>{ XLSX_IMPORT.paso='destino'; renderXlsxWizard(); });
+  document.querySelectorAll('#xlsxPlantillaCards [data-plantilla-cero]').forEach(b=>b.addEventListener('click', ()=>usarPlantillaExcel(null)));
+  document.querySelectorAll('#xlsxPlantillaCards [data-plantilla-card]').forEach(card=>{
+    card.addEventListener('click', e=>{
+      if(e.target.closest('[data-borrar-plantilla-excel],[data-si-borrar],[data-no-borrar]')) return;
+      const p = (S.plantillasExcel||[]).find(x=>x.id===card.dataset.plantillaCard);
+      if(p) usarPlantillaExcel(p);
+    });
+  });
+  document.querySelectorAll('[data-borrar-plantilla-excel]').forEach(b=>b.addEventListener('click', e=>{
+    e.stopPropagation();
+    const aviso = document.querySelector(`[data-confirm-borrar="${b.dataset.borrarPlantillaExcel}"]`);
+    if(aviso) aviso.classList.remove('hidden');
+  }));
+  document.querySelectorAll('[data-no-borrar]').forEach(b=>b.addEventListener('click', e=>{
+    e.stopPropagation();
+    const aviso = document.querySelector(`[data-confirm-borrar="${b.dataset.noBorrar}"]`);
+    if(aviso) aviso.classList.add('hidden');
+  }));
+  document.querySelectorAll('[data-si-borrar]').forEach(b=>b.addEventListener('click', async e=>{
+    e.stopPropagation();
+    S.plantillasExcel = (S.plantillasExcel||[]).filter(x=>x.id!==b.dataset.siBorrar);
+    await save();
+    toast('Plantilla borrada');
+    renderPasoPlantillaExcel();
+  }));
+}
+function previewMovimientosHTML(){
+  const { campos, modoTipo } = XLSX_IMPORT;
+  const hayTipoCol = campos.includes('tipo'), hayCuentaCol = campos.includes('cuenta'), motos = esMotos();
+  const filasProcesadas = procesarFilasMovimientosExcel();
+  const nGasto = filasProcesadas.filter(f=>f.incluir && f.esGasto).length;
+  const nIngreso = filasProcesadas.filter(f=>f.incluir && !f.esGasto).length;
+  const nSinFecha = filasProcesadas.filter(f=>f.incluir && !f.fecha).length;
+  const nSinCond = motos ? filasProcesadas.filter(f=>!f.esGasto && !f.condId && f.valor>0).length : 0;
+  const mostrarTipoPorFila = modoTipo!=='gasto' && modoTipo!=='ingreso';
 
   const tipoHTML = `<div class="fgrid" style="margin:14px 0"><div class="f"><label>¿Qué trae este archivo?</label>
     <select id="xlsxModoTipo">
       ${hayTipoCol ? `<option value="columna" ${modoTipo==='columna'?'selected':''}>Uso la columna que marqué como "Tipo"</option>` : ''}
-      <option value="gasto" ${modoTipo==='gasto'?'selected':''}>Todo son gastos (Lo que sale)</option>
-      <option value="ingreso" ${modoTipo==='ingreso'?'selected':''}>Todo son ingresos (Lo que entra)</option>
+      <option value="gasto" ${modoTipo==='gasto'?'selected':''}>Todo son gastos (${motos?'Gastos':'Lo que sale'})</option>
+      <option value="ingreso" ${modoTipo==='ingreso'?'selected':''}>Todo son ingresos (${motos?'Pagos':'Lo que entra'})</option>
       <option value="signo" ${modoTipo==='signo'?'selected':''}>Según el signo del valor (negativo = gasto, positivo = ingreso)</option>
     </select>
   </div></div>`;
 
-  const filasProcesadas = procesarFilasExcel();
-  const nGasto = filasProcesadas.filter(f=>f.incluir && f.esGasto).length;
-  const nIngreso = filasProcesadas.filter(f=>f.incluir && !f.esGasto).length;
-  const nSinFecha = filasProcesadas.filter(f=>f.incluir && !f.fecha).length;
-  const mostrarTipoPorFila = modoTipo!=='gasto' && modoTipo!=='ingreso';
-
-  const previewHTML = `
+  return `
+    ${tipoHTML}
     <p class="sub" style="margin:14px 0 6px"><b>Vista previa</b> — revise y corrija lo que haga falta antes de confirmar. Destilde las filas que no quiera importar (totales, subtotales, encabezados repetidos, etc.).</p>
     ${nSinFecha ? `<div class="gate-error" style="margin-bottom:10px"><span class="icono">${ICONS.alerta}</span><span>${nSinFecha} fila(s) quedaron sin una fecha que se pudiera entender — complétela a mano abajo, o esa fila se va a saltar sola al confirmar.</span></div>` : ''}
+    ${nSinCond ? `<div class="gate-error" style="margin-bottom:10px"><span class="icono">${ICONS.alerta}</span><span>${nSinCond} pago(s) quedaron sin un conductor emparejado — elíjalo abajo, o esa fila se va a saltar sola al confirmar.</span></div>` : ''}
     <div class="ledger-wrap" style="max-height:360px;overflow-y:auto"><table class="ledger">
       <thead><tr><th></th><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="num">Valor</th>
         ${mostrarTipoPorFila ? '<th>Tipo</th>' : ''}${hayCuentaCol ? '<th>Cuenta</th>' : ''}
+        ${motos ? '<th>Moto</th><th>Conductor</th><th>Días</th>' : ''}
       </tr></thead>
       <tbody>${filasProcesadas.map((f,i)=>`<tr style="${f.incluir?'':'opacity:.45'}">
         <td><input type="checkbox" data-fila="${i}" class="xlsx-incluir" ${f.incluir?'checked':''}></td>
@@ -5980,31 +6168,110 @@ function renderXlsxImport(){
         <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="valor" class="xlsx-celda" value="${f.valor}" style="min-width:100px;text-align:right"></td>
         ${mostrarTipoPorFila ? `<td><select data-fila="${i}" data-campo="esGasto" class="xlsx-celda"><option value="1" ${f.esGasto?'selected':''}>Gasto</option><option value="0" ${!f.esGasto?'selected':''}>Ingreso</option></select></td>` : ''}
         ${hayCuentaCol ? `<td><select data-fila="${i}" data-campo="cuentaId" class="xlsx-celda"><option value="">Sin especificar</option>${(S.cuentas||[]).map(c=>`<option value="${c.id}" ${f.cuentaId===c.id?'selected':''}>${esc(c.nombre)}</option>`).join('')}</select></td>` : ''}
+        ${motos ? `
+        <td><select data-fila="${i}" data-campo="motoId" class="xlsx-celda"><option value="">Sin especificar</option>${(S.motos||[]).map(m=>`<option value="${m.id}" ${f.motoId===m.id?'selected':''}>${esc(m.placa)}</option>`).join('')}</select></td>
+        <td><select data-fila="${i}" data-campo="condId" class="xlsx-celda"><option value="">${f.esGasto?'Sin especificar':'— Elegir —'}</option>${(S.conductores||[]).map(c=>`<option value="${c.id}" ${f.condId===c.id?'selected':''}>${esc(c.nombre)}</option>`).join('')}</select></td>
+        <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="dias" class="xlsx-celda" value="${f.dias||0}" style="min-width:60px;text-align:right"></td>` : ''}
       </tr>`).join('')}</tbody>
     </table></div>
-    <p class="sub" style="margin-top:10px">Se van a agregar <b>${filasProcesadas.filter(f=>f.incluir).length}</b> movimiento(s): <b>${nGasto}</b> a "Lo que sale" y <b>${nIngreso}</b> a "Lo que entra".</p>
+    <p class="sub" style="margin-top:10px">Se van a agregar <b>${filasProcesadas.filter(f=>f.incluir).length}</b> movimiento(s): <b>${nGasto}</b> a "${motos?'Gastos':'Lo que sale'}" y <b>${nIngreso}</b> a "${motos?'Pagos':'Lo que entra'}".</p>
   `;
+}
+function previewProductosHTML(){
+  const filasProcesadas = procesarFilasProductosExcel();
+  return `
+    <p class="sub" style="margin:14px 0 6px"><b>Vista previa</b> — revise y corrija lo que haga falta antes de confirmar. Destilde las filas que no quiera importar.</p>
+    <div class="ledger-wrap" style="max-height:360px;overflow-y:auto"><table class="ledger">
+      <thead><tr><th></th><th>Nombre</th><th>Categoría</th><th class="num">Precio</th><th class="num">Costo</th><th class="num">Stock</th><th>Notas</th></tr></thead>
+      <tbody>${filasProcesadas.map((f,i)=>`<tr style="${f.incluir?'':'opacity:.45'}">
+        <td><input type="checkbox" data-fila="${i}" class="xlsx-incluir" ${f.incluir?'checked':''}></td>
+        <td><input type="text" data-fila="${i}" data-campo="nombre" class="xlsx-celda" value="${esc(f.nombre)}" style="min-width:160px"></td>
+        <td><input type="text" data-fila="${i}" data-campo="categoria" class="xlsx-celda" value="${esc(f.categoria)}" style="min-width:120px"></td>
+        <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="precio" class="xlsx-celda" value="${f.precio}" style="min-width:100px;text-align:right"></td>
+        <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="costo" class="xlsx-celda" value="${f.costo}" style="min-width:100px;text-align:right"></td>
+        <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="stock" class="xlsx-celda" value="${esc(f.stock)}" style="min-width:70px;text-align:right"></td>
+        <td><input type="text" data-fila="${i}" data-campo="notas" class="xlsx-celda" value="${esc(f.notas)}" style="min-width:140px"></td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    <p class="sub" style="margin-top:10px">Se van a agregar <b>${filasProcesadas.filter(f=>f.incluir).length}</b> producto(s) al catálogo.</p>
+  `;
+}
+function previewClientesHTML(){
+  const filasProcesadas = procesarFilasClientesExcel();
+  return `
+    <p class="sub" style="margin:14px 0 6px"><b>Vista previa</b> — revise y corrija lo que haga falta antes de confirmar. Destilde las filas que no quiera importar.</p>
+    <div class="ledger-wrap" style="max-height:360px;overflow-y:auto"><table class="ledger">
+      <thead><tr><th></th><th>Nombre</th><th>Contacto</th><th>Notas</th></tr></thead>
+      <tbody>${filasProcesadas.map((f,i)=>`<tr style="${f.incluir?'':'opacity:.45'}">
+        <td><input type="checkbox" data-fila="${i}" class="xlsx-incluir" ${f.incluir?'checked':''}></td>
+        <td><input type="text" data-fila="${i}" data-campo="nombre" class="xlsx-celda" value="${esc(f.nombre)}" style="min-width:160px"></td>
+        <td><input type="text" data-fila="${i}" data-campo="contacto" class="xlsx-celda" value="${esc(f.contacto)}" style="min-width:140px"></td>
+        <td><input type="text" data-fila="${i}" data-campo="notas" class="xlsx-celda" value="${esc(f.notas)}" style="min-width:140px"></td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    <p class="sub" style="margin-top:10px">Se van a agregar <b>${filasProcesadas.filter(f=>f.incluir).length}</b> cliente(s).</p>
+  `;
+}
+function renderPasoMapeoExcel(){
+  const box = $('xlsxCuerpo'); if(!box) return;
+  const { wb, hoja, encabezados, datos, campos, destino } = XLSX_IMPORT;
+  const opciones = opcionesCampoExcel(destino);
+  const destinos = destinosDisponiblesExcel();
+  const nombreDestino = (destinos.find(d=>d.id===destino)||{}).nombre || '';
+  const mostrarCambiar = destinos.length>1 || (S.plantillasExcel||[]).some(p=>p.destino===destino);
+
+  const selectorHoja = wb.SheetNames.length > 1 ? `
+    <div class="f" style="max-width:280px"><label for="xlsxHoja">¿Qué hoja del archivo?</label>
+      <select id="xlsxHoja">${wb.SheetNames.map(n=>`<option value="${esc(n)}" ${n===hoja?'selected':''}>${esc(n)}</option>`).join('')}</select>
+    </div>` : '';
+
+  const mapeoHTML = `<div class="ledger-wrap" style="margin:10px 0"><table class="ledger"><thead><tr>
+    ${encabezados.map((h,i)=>`<th style="min-width:150px">
+      <div style="font-weight:700;margin-bottom:4px">${esc(h)||'(sin nombre)'}</div>
+      <select data-col="${i}" class="xlsx-map">${opciones.map(([v,t])=>`<option value="${v}" ${campos[i]===v?'selected':''}>${t}</option>`).join('')}</select>
+    </th>`).join('')}
+    </tr></thead></table></div>`;
+
+  const cuerpoEspecifico = destino==='productos' ? previewProductosHTML()
+    : destino==='clientes' ? previewClientesHTML() : previewMovimientosHTML();
 
   box.innerHTML = `
-    <p class="sub">Archivo con <b>${wb.SheetNames.length}</b> hoja(s) · <b>${datos.length}</b> fila(s) de datos encontradas en "${esc(hoja)}".</p>
+    ${mostrarCambiar ? `<button type="button" class="linkbtn" id="xlsxVolverPlantilla">‹ Importando: ${esc(nombreDestino)} — cambiar</button>` : ''}
+    <p class="sub" style="margin-top:8px">Archivo con <b>${wb.SheetNames.length}</b> hoja(s) · <b>${datos.length}</b> fila(s) de datos encontradas en "${esc(hoja)}".</p>
     ${selectorHoja}
     <p class="sub" style="margin:14px 0 4px"><b>¿Qué es cada columna?</b> La app ya adivinó lo que pudo por el nombre — cambie lo que haga falta.</p>
     ${mapeoHTML}
-    ${tipoHTML}
-    ${previewHTML}
+    ${cuerpoEspecifico}
+    <div class="f" style="margin-top:16px;max-width:440px">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer">
+        <input type="checkbox" id="xlsxGuardarComo"> Guardar esta configuración de columnas para la próxima vez
+      </label>
+      <input type="text" id="xlsxNombrePlantilla" placeholder='p. ej. &quot;Venta de objetos por marketplace&quot;' class="hidden" style="margin-top:8px">
+    </div>
   `;
 
   const selHoja = $('xlsxHoja');
-  if(selHoja) selHoja.addEventListener('change', ()=>{ XLSX_IMPORT.hoja = selHoja.value; prepararHojaExcel(); });
+  if(selHoja) selHoja.addEventListener('change', ()=>{ XLSX_IMPORT.hoja = selHoja.value; prepararHojaExcel(); renderPasoMapeoExcel(); });
   document.querySelectorAll('.xlsx-map').forEach(sel=>sel.addEventListener('change', ()=>{
     XLSX_IMPORT.campos[+sel.dataset.col] = sel.value;
-    renderXlsxImport();
+    renderPasoMapeoExcel();
   }));
   const selModo = $('xlsxModoTipo');
-  if(selModo) selModo.addEventListener('change', ()=>{ XLSX_IMPORT.modoTipo = selModo.value; renderXlsxImport(); });
+  if(selModo) selModo.addEventListener('change', ()=>{ XLSX_IMPORT.modoTipo = selModo.value; renderPasoMapeoExcel(); });
+  document.querySelectorAll('[data-campo="condId"]').forEach(sel=>sel.addEventListener('change', ()=>{
+    if(!sel.value) return;
+    const chk = document.querySelector(`.xlsx-incluir[data-fila="${sel.dataset.fila}"]`);
+    if(chk && !chk.checked) chk.checked = true;
+  }));
+  const chkGuardar = $('xlsxGuardarComo');
+  if(chkGuardar) chkGuardar.addEventListener('change', ()=> setHidden('xlsxNombrePlantilla', !chkGuardar.checked));
+  const volver = $('xlsxVolverPlantilla');
+  if(volver) volver.addEventListener('click', ()=>{
+    XLSX_IMPORT.paso = destinos.length>1 ? 'destino' : 'plantilla';
+    renderXlsxWizard();
+  });
 }
-$('xlsxConfirmar').addEventListener('click', async ()=>{
-  if(!XLSX_IMPORT) return;
+function confirmarMovimientosExcel(){
   const filas = [];
   document.querySelectorAll('.xlsx-incluir').forEach(chk=>{
     if(!chk.checked) return;
@@ -6017,23 +6284,81 @@ $('xlsxConfirmar').addEventListener('click', async ()=>{
     if(XLSX_IMPORT.modoTipo==='gasto') esGasto = true;
     else if(XLSX_IMPORT.modoTipo==='ingreso') esGasto = false;
     else { const v = get('esGasto'); esGasto = v !== '0'; }
-    const cuentaId = get('cuentaId') || null;
-    filas.push({ fecha, desc: get('desc'), cat: get('cat')||'❓ Otro', valor, esGasto, cuentaId });
+    const condId = get('condId') || '';
+    if(esMotos() && !esGasto && !condId) return; // un pago de motos siempre necesita conductor
+    filas.push({ fecha, desc: get('desc'), cat: get('cat')||'❓ Otro', valor, esGasto,
+      cuentaId: get('cuentaId')||null, motoId: get('motoId')||null, condId, dias: num(get('dias')) });
   });
-  if(!filas.length) return toast('No hay ninguna fila lista para importar (revise que tengan fecha y valor).', true);
+  if(!filas.length){ toast('No hay ninguna fila lista para importar (revise que tengan fecha y valor).', true); return null; }
   filas.forEach(f=>{
     if(f.esGasto){
-      S.gastos.push({ id:uid(), fecha:f.fecha, motoId:null, cat:f.cat, desc:f.desc, valor:f.valor,
-        cargo:'Empresa', cuentaId:f.cuentaId, pagadoPor:'', reparto:'', recuperado:false,
-        creadoPor:quien(), origen:'excel' });
+      S.gastos.push({ id:uid(), fecha:f.fecha, motoId: esMotos() ? f.motoId : null, cat:f.cat, desc:f.desc,
+        valor:f.valor, cargo:'Empresa', cuentaId: esPersonal() ? f.cuentaId : null,
+        pagadoPor:'', reparto:'', recuperado:false, creadoPor:quien(), origen:'excel' });
+    } else if(esMotos()){
+      S.pagos.push({ id:uid(), condId:f.condId, dias:f.dias||0, valor:f.valor, fecha:f.fecha,
+        medio:'', referencia:'', nota:f.desc||'', creadoPor:quien(), origen:'excel' });
     } else {
       S.pagos.push({ id:uid(), valor:f.valor, fecha:f.fecha, medio:'', concepto:f.desc||f.cat,
         cuentaId:f.cuentaId, tipoIngreso:'', nota:'', creadoPor:quien(), origen:'excel' });
     }
   });
-  await save(); renderAll();
   const nGasto = filas.filter(f=>f.esGasto).length, nIngreso = filas.length - nGasto;
   toast(`Se importaron ${filas.length} movimiento(s): ${nGasto} gasto(s), ${nIngreso} ingreso(s)`);
+  return filas;
+}
+function confirmarProductosExcel(){
+  const filas = [];
+  document.querySelectorAll('.xlsx-incluir').forEach(chk=>{
+    if(!chk.checked) return;
+    const i = chk.dataset.fila;
+    const get = campo => { const el = document.querySelector(`.xlsx-celda[data-fila="${i}"][data-campo="${campo}"]`); return el ? el.value : ''; };
+    const nombre = get('nombre').trim();
+    if(!nombre) return;
+    const stockTxt = get('stock').trim();
+    filas.push({ nombre, categoria:get('categoria').trim(), precio:num(get('precio')), costo:num(get('costo')),
+      stock: stockTxt==='' ? null : num(stockTxt), notas:get('notas').trim() });
+  });
+  if(!filas.length){ toast('No hay ningún producto listo para importar (revise que tengan nombre).', true); return null; }
+  filas.forEach(f=>S.productos.push({ id:uid(), ...f, creadoPor:quien(), origen:'excel' }));
+  toast(`Se importaron ${filas.length} producto(s)`);
+  return filas;
+}
+function confirmarClientesExcel(){
+  const filas = [];
+  document.querySelectorAll('.xlsx-incluir').forEach(chk=>{
+    if(!chk.checked) return;
+    const i = chk.dataset.fila;
+    const get = campo => { const el = document.querySelector(`.xlsx-celda[data-fila="${i}"][data-campo="${campo}"]`); return el ? el.value : ''; };
+    const nombre = get('nombre').trim();
+    if(!nombre) return;
+    filas.push({ nombre, contacto:get('contacto').trim(), notas:get('notas').trim() });
+  });
+  if(!filas.length){ toast('No hay ningún cliente listo para importar (revise que tengan nombre).', true); return null; }
+  filas.forEach(f=>S.clientes.push({ id:uid(), ...f, creadoPor:quien(), origen:'excel' }));
+  toast(`Se importaron ${filas.length} cliente(s)`);
+  return filas;
+}
+$('xlsxConfirmar').addEventListener('click', async ()=>{
+  if(!XLSX_IMPORT || XLSX_IMPORT.paso!=='mapeo') return;
+  const destino = XLSX_IMPORT.destino;
+  const resultado = destino==='productos' ? confirmarProductosExcel()
+    : destino==='clientes' ? confirmarClientesExcel() : confirmarMovimientosExcel();
+  if(!resultado) return; // ya se avisó con un toast por qué no hay nada que importar
+
+  const chkGuardar = $('xlsxGuardarComo');
+  if(chkGuardar && chkGuardar.checked){
+    const nombre = ($('xlsxNombrePlantilla').value||'').trim();
+    if(nombre){
+      const mapa = {};
+      XLSX_IMPORT.encabezados.forEach((h,i)=>{ if(XLSX_IMPORT.campos[i] && XLSX_IMPORT.campos[i]!=='ignorar') mapa[normalizarTexto(h)] = XLSX_IMPORT.campos[i]; });
+      if(!S.plantillasExcel) S.plantillasExcel = [];
+      S.plantillasExcel.push({ id:uid(), nombre, destino,
+        modoTipo: destino==='movimientos' ? XLSX_IMPORT.modoTipo : null,
+        mapa, creadoPor:quien(), creadoEn: todayISO() });
+    }
+  }
+  await save(); renderAll();
   cerrarXlsxImport();
 });
 $('xlsxCancelar').addEventListener('click', cerrarXlsxImport);
