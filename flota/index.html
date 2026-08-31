@@ -897,6 +897,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       <button class="rail-btn" id="proyectosBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5l8-4 8 4-8 4-8-4Z"/><path d="M4 7.5V16l8 4 8-4V7.5"/><path d="M12 11.5V20"/></svg></span><span>Proyectos</span></button>
       <button class="rail-btn" id="ajustesBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span><span>Ajustes</span></button>
       <button class="rail-btn" id="exportBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11.5M8 12l4 4 4-4"/><path d="M4.5 17.5v2A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg></span><span>Exportar a Excel</span></button>
+      <button class="rail-btn" id="importarBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.5V4M8 7.5l4-4 4 4"/><path d="M4.5 17.5v2A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg></span><span>Importar desde Excel</span></button>
       <button class="rail-btn warn" id="salirBtn"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4.5H7A1.5 1.5 0 0 0 5.5 6v12A1.5 1.5 0 0 0 7 19.5h6"/><path d="M11 12h9M17 8.3l3.3 3.7-3.3 3.7"/></svg></span><span>Cerrar sesión</span></button>
       <div class="rail-brandmark mini-brand"><span class="mini-seal">M<i>|</i>G</span><span>MA<i>|</i>OG</span></div>
     </div>
@@ -915,6 +916,7 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
       <button class="icon-btn" id="proyectosBtnM" title="Proyectos"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5l8-4 8 4-8 4-8-4Z"/><path d="M4 7.5V16l8 4 8-4V7.5"/><path d="M12 11.5V20"/></svg></span></button>
       <button class="icon-btn" id="ajustesBtnM" title="Ajustes"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></span></button>
       <button class="icon-btn" id="exportBtnM" title="Exportar a Excel"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11.5M8 12l4 4 4-4"/><path d="M4.5 17.5v2A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg></span></button>
+      <button class="icon-btn" id="importarBtnM" title="Importar desde Excel"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.5V4M8 7.5l4-4 4 4"/><path d="M4.5 17.5v2A1.5 1.5 0 0 0 6 21h12a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg></span></button>
     </span>
   </header>
 
@@ -5943,6 +5945,10 @@ let XLSX_IMPORT = null; // { wb, hoja, encabezados, datos, destino, plantillaObj
 function cerrarXlsxImport(){ $('xlsxScrim').classList.remove('on'); XLSX_IMPORT = null; }
 $('xlsxScrim').addEventListener('click', e=>{ if(e.target===$('xlsxScrim')) cerrarXlsxImport(); });
 $('xlsxElegir').addEventListener('click', ()=>$('xlsxInput').click());
+// Mismo importador, accesible de un clic desde el riel/topbar — junto a
+// "Exportar a Excel", no escondido adentro de Ajustes.
+$('importarBtn').addEventListener('click', ()=>$('xlsxInput').click());
+$('importarBtnM').addEventListener('click', ()=>$('xlsxInput').click());
 $('xlsxInput').addEventListener('change', e=>{
   const file = e.target.files[0];
   e.target.value = '';
