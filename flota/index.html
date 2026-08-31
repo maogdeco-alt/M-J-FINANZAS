@@ -1616,6 +1616,13 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
   </div>
 </div>
 
+<div class="scrim" id="motoScrim">
+  <div class="dialog mega" id="motoDialogEl">
+    <div id="motoCuerpo"></div>
+    <div class="acts"><button class="btn ghost" id="motoCerrar">Cerrar</button></div>
+  </div>
+</div>
+
 <script>
 /* =========================================================
    Utilidades
@@ -2383,6 +2390,28 @@ const aplicadoDeuda = () => S.gastos.filter(g=>g.cat===CAT_DEUDA).reduce((x,g)=>
 const inversionTotal = () => S.motos.reduce((a,m)=>a+(m.valorCompra||0),0)
                            + ((S.config && S.config.inversionExtra) || 0);
 const utilidadAcum = () => ingresos() - gastosOper();
+/* Financiación de UNA moto en particular — mismo modelo que "Créditos"
+   en Cuentas personales (saldo/cuotaMensual/cuotasTotal/cuotasPagadas),
+   pero viviendo dentro del registro de la moto en vez de en una lista
+   aparte, porque es prenda de esa moto específica, no de otra. */
+function motoDeudaSaldada(m){
+  const total = m.cuotasTotal||0;
+  return (m.saldo||0) <= 0 || (total > 0 && (m.cuotasPagadas||0) >= total);
+}
+/* Cuánto ha dado de sí una moto en particular: lo que pagaron sus
+   conductores, menos lo que costó mantenerla (gastos con cargo
+   "Empresa"), menos lo que se ha abonado a su propio crédito si la
+   financiaron — así "% de inversión recuperada" es una cifra real y
+   no solo lo recaudado en bruto contra lo que costó. */
+function motoResumen(m){
+  const condIds = S.conductores.filter(c=>c.motoId===m.id).map(c=>c.id);
+  const recaudado = S.pagos.filter(p=>condIds.includes(p.condId)).reduce((a,p)=>a+p.valor,0);
+  const gastosOperativos = S.gastos.filter(g=>g.motoId===m.id && g.cargo==='Empresa' && g.cat!==CAT_DEUDA).reduce((a,g)=>a+g.valor,0);
+  const abonosDeuda = S.gastos.filter(g=>g.motoId===m.id && g.cat===CAT_DEUDA).reduce((a,g)=>a+g.valor,0);
+  const utilidadNeta = recaudado - gastosOperativos - abonosDeuda;
+  const pctInversion = m.valorCompra ? Math.max(0, Math.min(1, utilidadNeta / m.valorCompra)) : 0;
+  return { recaudado, gastosOperativos, abonosDeuda, utilidadNeta, pctInversion };
+}
 
 function ritmo(){
   const fechas = S.pagos.map(p=>p.fecha).filter(Boolean).sort();
@@ -2594,6 +2623,10 @@ function renderIdentidad(){
   document.querySelectorAll('.cuenta-label').forEach(e=>{ e.textContent = cuentaTxt; });
   document.querySelectorAll('.avatar-slot').forEach(e=>{ e.innerHTML = avatarHTML(SESION.avatar); });
 }
+// Cuánto se debe en total entre todas las motos que se financiaron —
+// suma los saldos de crédito de cada una, no de una lista aparte,
+// porque cada crédito es de una moto en particular.
+const deudaFlotaTotal = () => S.motos.filter(m=>m.financiada && !motoDeudaSaldada(m)).reduce((a,m)=>a+(m.saldo||0),0);
 function renderKPIs(){
   const k = kpis();
   const r = recuperacion();
@@ -2603,6 +2636,7 @@ function renderKPIs(){
     ['Gastos', money(k.gastosEmp), ''],
     ['Falta para librar', k.inversion ? (r.libre ? 'Libre 🎉' : money(Math.max(k.inversion-k.utilidad,0))) : '—', ''],
     ['Por cobrar', money(k.porCobrar), '', k.porCobrar>0],
+    ['Debe en créditos de motos', money(deudaFlotaTotal()), '', deudaFlotaTotal()>0],
     ['Motos', String(S.motos.length), ''],
     ['Conductores activos', String(S.conductores.filter(esActivo).length), candidatos?candidatos+' en proceso':''],
   ];
@@ -2926,25 +2960,287 @@ function renderMotos(){
       Empiece por aquí: agregue la placa y el canon diario.</div>`; return;
   }
   $('motosList').innerHTML = S.motos.map(m=>{
-    const rec = S.pagos.filter(p=>{const c=condById(p.condId);return c&&c.motoId===m.id;})
-                       .reduce((a,p)=>a+p.valor,0);
-    const gas = S.gastos.filter(g=>g.motoId===m.id&&g.cargo==='Empresa').reduce((a,g)=>a+g.valor,0);
-    const pct = m.valorCompra ? (rec/m.valorCompra*100).toFixed(1)+'%' : '—';
-    return `<div class="card">
+    const r = motoResumen(m);
+    const financiada = !!m.financiada;
+    const deudaTag = !financiada ? ''
+      : motoDeudaSaldada(m) ? '<span class="tag ok">Crédito saldado</span>'
+      : '<span class="tag due">Debe ' + money(m.saldo) + ' del crédito</span>';
+    return `<div class="card" data-ver-moto-card="${m.id}" style="cursor:pointer">
       <h3><span class="icono">${ICONS.vehiculos}</span> ${esc(m.placa)}</h3>
       <div class="meta">${esc(m.ref||'—')} · ${money(m.canon)}/día</div>
       <div class="meta" style="margin-top:8px;display:flex;gap:7px;flex-wrap:wrap">
-        ${chip('SOAT', m.soat)} ${chip('Tecnomecánica', m.tecno)}
+        ${chip('SOAT', m.soat)} ${chip('Tecnomecánica', m.tecno)} ${deudaTag}
       </div>
       <div class="meta" style="margin-top:6px;color:var(--negro);font-weight:600">Dueño: ${esc(m.propietario||'Sin asignar')}</div>
       <div class="figs">
-        <div class="fig"><div class="k">Recaudado</div><div class="v">${money(rec)}</div></div>
-        <div class="fig"><div class="k">Gastos</div><div class="v">${money(gas)}</div></div>
-        <div class="fig"><div class="k">Inversión</div><div class="v">${pct}</div></div>
+        <div class="fig"><div class="k">Recaudado</div><div class="v">${money(r.recaudado)}</div></div>
+        <div class="fig"><div class="k">Gastos</div><div class="v">${money(r.gastosOperativos)}</div></div>
+        <div class="fig"><div class="k">Inversión</div><div class="v">${m.valorCompra ? Math.round(r.pctInversion*100)+'%' : '—'}</div></div>
       </div>
-      <div class="acts"><button class="btn ghost sm" data-del-moto="${m.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button></div>
+      <div class="acts">
+        <button class="btn ghost sm" data-ver-moto="${m.id}"><span class="icono">${ICONS.vehiculos}</span> Ver esta moto</button>
+        <button class="btn ghost sm" data-del-moto="${m.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button>
+      </div>
     </div>`;
   }).join('');
+  document.querySelectorAll('#motosList [data-ver-moto-card]').forEach(card=>card.addEventListener('click', e=>{
+    if(e.target.closest('[data-del-moto],[data-ver-moto]')) return; // el botón ya abre solo; Eliminar no debe abrir nada
+    abrirMotoDetalle(card.dataset.verMotoCard);
+  }));
+  document.querySelectorAll('#motosList [data-ver-moto]').forEach(b=>b.addEventListener('click', e=>{
+    e.stopPropagation();
+    abrirMotoDetalle(b.dataset.verMoto);
+  }));
+}
+/* =========================================================
+   Ventana individual de una moto — sus propios datos, su propia
+   financiación (si la tiene) y sus propios movimientos, todo en un
+   solo lugar en vez de mezclado con el resto de la flota.
+   ========================================================= */
+let MOTO_ABIERTA = null; // id de la moto abierta en su ventana individual
+function abrirMotoDetalle(id){
+  MOTO_ABIERTA = id;
+  renderMotoDetalle();
+  $('motoScrim').classList.add('on');
+}
+function cerrarMotoDetalle(){
+  $('motoScrim').classList.remove('on');
+  MOTO_ABIERTA = null;
+}
+$('motoCerrar').addEventListener('click', cerrarMotoDetalle);
+$('motoScrim').addEventListener('click', e=>{ if(e.target===$('motoScrim')) cerrarMotoDetalle(); });
+
+function renderMotoDetalle(){
+  const box = $('motoCuerpo'); if(!box || !MOTO_ABIERTA) return;
+  const m = S.motos.find(x=>x.id===MOTO_ABIERTA);
+  if(!m){ cerrarMotoDetalle(); return; } // se borró mientras estaba abierta
+
+  const r = motoResumen(m);
+  const financiada = !!m.financiada;
+  const saldada = financiada && motoDeudaSaldada(m);
+  const mesActual = todayISO().slice(0,7), hoy = todayISO();
+  const abonadoEsteMes = m.abonadoMes === mesActual;
+  const pospuesta = financiada && !saldada && !!m.posponerHasta && m.posponerHasta >= hoy;
+
+  const resumenHTML = `<div class="resumen" style="margin-bottom:14px">
+    <div class="hero">
+      <div class="num">${money(r.utilidadNeta)}</div>
+      <div class="tx"><b>Utilidad neta de esta moto</b><span>Lo recaudado, menos sus gastos, menos lo abonado a su crédito (si tiene)</span></div>
+    </div>
+    <div class="fila">
+      <div class="item"><div class="lbl">Recaudado</div><div class="val">${money(r.recaudado)}</div></div>
+      <div class="item"><div class="lbl">Gastos</div><div class="val">${money(r.gastosOperativos)}</div></div>
+      ${financiada ? `<div class="item"><div class="lbl">Abonado al crédito</div><div class="val">${money(r.abonosDeuda)}</div></div>` : ''}
+      <div class="item"><div class="lbl">Inversión recuperada</div><div class="val">${m.valorCompra ? Math.round(r.pctInversion*100)+'%' : '—'}</div></div>
+    </div>
+  </div>`;
+
+  const financiacionHTML = !financiada ? `
+    <div class="section form" id="motoFinanciarBox">
+      <h2 style="margin-bottom:8px">¿Esta moto se compró a crédito?</h2>
+      <p class="sub">Si la financió — banco, la moto anterior que sirvió de inicial, un fiado con alguien — regístrelo aquí para llevarle el saldo y las cuotas por separado, igual que un crédito personal pero de esta moto en particular.</p>
+      <div class="fgrid">
+        <div class="f"><label for="mfEntidad">¿Con quién quedó el crédito?</label><input id="mfEntidad" placeholder="Banco, dealer, persona…"></div>
+        <div class="f"><label for="mfSaldo">Saldo que falta por pagar</label><input id="mfSaldo" inputmode="numeric" placeholder="$0"></div>
+        <div class="f"><label for="mfCuota">Cuota mensual</label><input id="mfCuota" inputmode="numeric" placeholder="$0"></div>
+        <div class="f"><label for="mfCuotasTotal">Total de cuotas pactadas</label><input id="mfCuotasTotal" inputmode="numeric" placeholder="Ej: 24"></div>
+        <div class="f"><label for="mfCuotasPagadas">Cuotas que ya pagó</label><input id="mfCuotasPagadas" inputmode="numeric" placeholder="0"></div>
+        <div class="f"><label for="mfDia">Día de pago (opcional)</label><input id="mfDia" inputmode="numeric" placeholder="Ej: 15"></div>
+      </div>
+      <div class="acts"><button class="btn" id="motoFinanciarSave"><span class="icono">${ICONS.check}</span> Guardar financiación</button></div>
+    </div>` : `
+    <div class="card" style="margin-bottom:14px">
+      <h3><span class="icono">${ICONS.fijos}</span> Crédito de esta moto</h3>
+      <div class="meta">${esc(m.entidad||'')}${m.entidad?' · ':''}${Math.min(m.cuotasPagadas||0,m.cuotasTotal||0)} de ${m.cuotasTotal||'—'} cuotas</div>
+      ${m.diaPago ? `<div class="meta" style="margin-top:4px">Pago el día ${m.diaPago}</div>` : ''}
+      <div class="figs">
+        <div class="fig"><div class="k">Saldo</div><div class="v">${money(m.saldo)}</div></div>
+        <div class="fig"><div class="k">Cuota</div><div class="v">${money(m.cuotaMensual)}</div></div>
+      </div>
+      <div style="margin:10px 0 2px">${saldada ? '<span class="tag ok">✅ Crédito saldado</span>'
+        : pospuesta ? `<span class="tag">⏸️ Pospuesto hasta ${fmtDate(m.posponerHasta)}</span>`
+        : (abonadoEsteMes ? '<span class="tag ok">Al día este mes</span>' : '<span class="tag due">Pendiente este mes</span>')}</div>
+      <div class="acts">
+        ${saldada ? '' : `<button class="btn ghost sm" data-abonar-moto-deuda="${m.id}">${abonadoEsteMes?'Desmarcar':'<span class="icono">'+ICONS.check+'</span> Abonar esta cuota'}</button>`}
+        ${saldada ? '' : `<button class="btn ghost sm" data-saldar-moto-deuda="${m.id}">Ya no debo esto</button>`}
+        ${saldada ? '' : (pospuesta ? `<button class="btn ghost sm" data-quitar-posponer-moto="${m.id}">Quitar posponer</button>`
+          : `<button class="btn ghost sm" data-posponer-moto-deuda="${m.id}"><span class="icono">${ICONS.calendario}</span> Posponer</button>`)}
+        <button class="btn ghost sm" data-quitar-financiacion="${m.id}">Quitar financiación</button>
+      </div>
+      <!-- Confirmaciones AQUÍ MISMO, en vez del cuadro compartido de la app —
+           ese queda tapado detrás de esta ventana (misma capa, pero esta es
+           la que abrió después), así que nunca se vería. -->
+      <div class="hidden" data-confirm-saldar-moto="${m.id}" style="margin-top:10px;font-size:12.5px">
+        ¿Ya no debe nada de este crédito? Esto NO agrega ningún gasto nuevo.
+        <button type="button" class="linkbtn" data-si-saldar-moto="${m.id}">Sí, ya no debo</button> · <button type="button" class="linkbtn" data-no-saldar-moto="${m.id}">No</button>
+      </div>
+      <div class="hidden" data-confirm-quitar-fin="${m.id}" style="margin-top:10px;font-size:12.5px">
+        Se pierde el saldo y las cuotas registradas de este crédito (no la deuda real, solo el seguimiento aquí).
+        <button type="button" class="linkbtn" data-si-quitar-fin="${m.id}">Sí, quitar</button> · <button type="button" class="linkbtn" data-no-quitar-fin="${m.id}">No</button>
+      </div>
+      <div class="hidden" data-posponer-box-moto="${m.id}" style="margin-top:10px">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gris)">¿Hasta cuándo posponer?</label>
+        <input type="date" data-posponer-input-moto="${m.id}" value="${sumarDias(hoy,7)}" style="margin:5px 0 6px;display:block">
+        <button type="button" class="linkbtn" data-si-posponer-moto="${m.id}">Posponer</button> · <button type="button" class="linkbtn" data-no-posponer-moto="${m.id}">Cancelar</button>
+      </div>
+    </div>`;
+
+  // Se juntan pagos (lo que le entró por sus conductores) y gastos (lo
+  // que costó mantenerla, incluidas las cuotas de su crédito) en una
+  // sola línea de tiempo — así se ve de un vistazo si esta moto en
+  // particular está dejando plata o no.
+  const movList = [
+    ...S.pagos.filter(p=>{ const c=condById(p.condId); return c && c.motoId===m.id; })
+      .map(p=>({ fecha:p.fecha, tipo:'ingreso', desc:'Pago de '+(condById(p.condId)?.nombre||'—'), valor:p.valor })),
+    ...S.gastos.filter(g=>g.motoId===m.id)
+      .map(g=>({ fecha:g.fecha, tipo: g.cat===CAT_DEUDA ? 'deuda' : 'gasto', desc: g.desc||g.cat, valor:g.valor })),
+  ].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+
+  const movimientosHTML = `
+    <h2 style="margin:20px 0 8px">Movimientos de esta moto</h2>
+    ${!movList.length ? `<p class="sub">Todavía no hay pagos ni gastos registrados para esta moto.</p>` : `
+    <div class="ledger-wrap" style="max-height:320px;overflow-y:auto"><table class="ledger">
+      <thead><tr><th>Fecha</th><th>Movimiento</th><th class="num">Valor</th></tr></thead>
+      <tbody>${movList.map(x=>`<tr>
+        <td>${fmtDate(x.fecha)}</td>
+        <td>${x.tipo==='ingreso' ? '<span class="tag ok">Ingreso</span>' : x.tipo==='deuda' ? '<span class="tag">Crédito</span>' : '<span class="tag due">Gasto</span>'} ${esc(x.desc)}</td>
+        <td class="num money${x.tipo==='ingreso'?'':' neg'}">${x.tipo==='ingreso'?'':'-'}${money(x.valor)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`}
+  `;
+
+  const editarHTML = `
+    <div class="section form" style="margin-top:20px">
+      <h2 style="margin-bottom:8px">Datos del vehículo</h2>
+      <div class="fgrid">
+        <div class="f"><label for="medPlaca">Placa</label><input id="medPlaca" value="${esc(m.placa)}"></div>
+        <div class="f"><label for="medRef">Marca y línea</label><input id="medRef" value="${esc(m.ref||'')}"></div>
+        <div class="f"><label for="medCanon">Canon diario</label><input id="medCanon" inputmode="numeric" value="${m.canon||''}"></div>
+        <div class="f"><label for="medValor">Valor total del vehículo</label><input id="medValor" inputmode="numeric" value="${m.valorCompra||''}"></div>
+        <div class="f"><label for="medSoat">Vence el SOAT</label><input type="date" id="medSoat" value="${esc(m.soat||'')}"></div>
+        <div class="f"><label for="medTecno">Vence la tecnomecánica</label><input type="date" id="medTecno" value="${esc(m.tecno||'')}"></div>
+        <div class="f"><label for="medProp">Dueño</label><select id="medProp"></select></div>
+      </div>
+      <div class="acts"><button class="btn" id="motoEditarSave"><span class="icono">${ICONS.check}</span> Guardar cambios</button></div>
+    </div>`;
+
+  box.innerHTML = `
+    <h4>${esc(m.placa)}${m.ref?' · '+esc(m.ref):''}</h4>
+    <p class="sub" style="margin:2px 0 14px">Dueño: ${esc(m.propietario||'Sin asignar')} · ${money(m.canon)}/día</p>
+    ${resumenHTML}
+    ${financiacionHTML}
+    ${movimientosHTML}
+    ${editarHTML}
+  `;
+
+  const dd = duenos();
+  const selProp = $('medProp');
+  if(selProp){ fillSelect(selProp, [{v:dd[0],t:dd[0]},{v:dd[1],t:dd[1]}], 'defina los dueños'); selProp.value = m.propietario || dd[0]; }
+
+  const btnFinanciar = $('motoFinanciarSave');
+  if(btnFinanciar) btnFinanciar.addEventListener('click', async ()=>{
+    const saldo = num($('mfSaldo').value);
+    if(!saldo) return toast('Escriba cuánto falta por pagar.', true);
+    m.financiada = true;
+    m.entidad = $('mfEntidad').value.trim();
+    m.saldo = saldo;
+    m.cuotaMensual = num($('mfCuota').value);
+    m.cuotasTotal = num($('mfCuotasTotal').value);
+    m.cuotasPagadas = num($('mfCuotasPagadas').value);
+    m.diaPago = $('mfDia').value ? num($('mfDia').value) : null;
+    await save(); renderAll(); renderMotoDetalle();
+    toast('Financiación guardada');
+  });
+  document.querySelectorAll('[data-quitar-financiacion]').forEach(b=>b.addEventListener('click', ()=>{
+    const aviso = document.querySelector(`[data-confirm-quitar-fin="${b.dataset.quitarFinanciacion}"]`);
+    if(aviso) aviso.classList.remove('hidden');
+  }));
+  document.querySelectorAll('[data-no-quitar-fin]').forEach(b=>b.addEventListener('click', ()=>{
+    document.querySelector(`[data-confirm-quitar-fin="${b.dataset.noQuitarFin}"]`)?.classList.add('hidden');
+  }));
+  document.querySelectorAll('[data-si-quitar-fin]').forEach(b=>b.addEventListener('click', async ()=>{
+    m.financiada = false; m.entidad = ''; m.saldo = 0; m.cuotaMensual = 0; m.cuotasTotal = 0;
+    m.cuotasPagadas = 0; m.diaPago = null; m.abonadoMes = ''; m.gastoId = ''; m.posponerHasta = '';
+    await save(); renderAll(); renderMotoDetalle();
+    toast('Se quitó la financiación de esta moto');
+  }));
+  document.querySelectorAll('[data-abonar-moto-deuda]').forEach(b=>b.addEventListener('click', async ()=>{
+    if(motoDeudaSaldada(m)) return;
+    const mA = todayISO().slice(0,7);
+    if(m.abonadoMes === mA){
+      if(m.gastoId){ S.gastos = S.gastos.filter(g=>g.id!==m.gastoId); }
+      m.saldo = (m.saldo||0) + (m.cuotaMensual||0);
+      m.cuotasPagadas = Math.max(0, (m.cuotasPagadas||0) - 1);
+      m.abonadoMes = ''; m.gastoId = '';
+      await save(); renderAll(); renderMotoDetalle();
+      toast('Se quitó el abono de este mes');
+      return;
+    }
+    const cuota = m.cuotaMensual || 0;
+    m.saldo = Math.max(0, (m.saldo||0) - cuota);
+    m.cuotasPagadas = (m.cuotasPagadas||0) + 1;
+    m.abonadoMes = mA; m.gastoId = ''; m.posponerHasta = '';
+    if(cuota > 0){
+      const gasto = { id:uid(), fecha:todayISO(), motoId:m.id, cat:CAT_DEUDA, desc:`Cuota de ${esc(m.placa)}`, valor:cuota,
+        cargo:'Empresa', cuentaId:null, pagadoPor:'', reparto:'', recuperado:false, creadoPor:quien(), origen:'moto-deuda', origenId:m.id };
+      S.gastos.push(gasto);
+      m.gastoId = gasto.id;
+    }
+    await save(); renderAll(); renderMotoDetalle();
+    toast(cuota > 0 ? `Cuota abonada — se agregó a Gastos` : 'Cuota abonada');
+  }));
+  document.querySelectorAll('[data-saldar-moto-deuda]').forEach(b=>b.addEventListener('click', ()=>{
+    if(motoDeudaSaldada(m)) return;
+    const aviso = document.querySelector(`[data-confirm-saldar-moto="${b.dataset.saldarMotoDeuda}"]`);
+    if(aviso) aviso.classList.remove('hidden');
+  }));
+  document.querySelectorAll('[data-no-saldar-moto]').forEach(b=>b.addEventListener('click', ()=>{
+    document.querySelector(`[data-confirm-saldar-moto="${b.dataset.noSaldarMoto}"]`)?.classList.add('hidden');
+  }));
+  document.querySelectorAll('[data-si-saldar-moto]').forEach(b=>b.addEventListener('click', async ()=>{
+    if(motoDeudaSaldada(m)) return;
+    m.saldo = 0;
+    if(m.cuotasTotal) m.cuotasPagadas = m.cuotasTotal;
+    m.posponerHasta = '';
+    await save(); renderAll(); renderMotoDetalle();
+    toast(`El crédito de "${m.placa}" quedó marcado como saldado`);
+  }));
+  document.querySelectorAll('[data-posponer-moto-deuda]').forEach(b=>b.addEventListener('click', ()=>{
+    if(motoDeudaSaldada(m)) return;
+    const caja = document.querySelector(`[data-posponer-box-moto="${b.dataset.posponerMotoDeuda}"]`);
+    if(caja) caja.classList.remove('hidden');
+  }));
+  document.querySelectorAll('[data-no-posponer-moto]').forEach(b=>b.addEventListener('click', ()=>{
+    document.querySelector(`[data-posponer-box-moto="${b.dataset.noPosponerMoto}"]`)?.classList.add('hidden');
+  }));
+  document.querySelectorAll('[data-si-posponer-moto]').forEach(b=>b.addEventListener('click', async ()=>{
+    if(motoDeudaSaldada(m)) return;
+    const id = b.dataset.siPosponerMoto;
+    const input = document.querySelector(`[data-posponer-input-moto="${id}"]`);
+    const fecha = input && input.value;
+    if(!fecha) return toast('Elija una fecha.', true);
+    m.posponerHasta = fecha;
+    await save(); renderAll(); renderMotoDetalle();
+    toast(`No va a avisar hasta el ${fmtDate(fecha)}`);
+  }));
+  document.querySelectorAll('[data-quitar-posponer-moto]').forEach(b=>b.addEventListener('click', async ()=>{
+    m.posponerHasta = '';
+    await save(); renderAll(); renderMotoDetalle();
+    toast('Se quitó el posponer — vuelve a avisar normal');
+  }));
+  const btnEditar = $('motoEditarSave');
+  if(btnEditar) btnEditar.addEventListener('click', async ()=>{
+    const placa = $('medPlaca').value.trim().toUpperCase();
+    const canon = num($('medCanon').value);
+    if(!placa) return toast('Escriba la placa.', true);
+    if(!canon) return toast('Escriba el canon diario.', true);
+    m.placa = placa; m.ref = $('medRef').value.trim(); m.canon = canon;
+    m.valorCompra = num($('medValor').value);
+    m.soat = $('medSoat').value; m.tecno = $('medTecno').value;
+    m.propietario = $('medProp').value || 'Sin asignar';
+    await save(); renderAll(); renderMotoDetalle();
+    toast('Datos del vehículo actualizados');
+  });
 }
 function renderCond(){
   if(!S.conductores.length){ $('condList').innerHTML=''; return; }
@@ -3954,6 +4250,11 @@ $('mSave').addEventListener('click', async ()=>{
     canon, valorCompra:num($('mValor').value),
     soat:$('mSoat').value, tecno:$('mTecno').value,
     propietario:$('mProp').value || 'Sin asignar', creadoPor:quien(),
+    // Financiación de esta moto en particular (si se compró a crédito) —
+    // se activa después, desde su ventana individual, no hace falta
+    // llenarla para registrar la moto.
+    financiada:false, entidad:'', saldo:0, cuotaMensual:0, cuotasTotal:0,
+    cuotasPagadas:0, diaPago:null, recordatorio:false, abonadoMes:'', gastoId:'', posponerHasta:'',
     contrato:{ marca:$('vMarca').value.trim(), linea:$('vLinea').value.trim(),
       cc:$('vCC').value.trim(), color:$('vColor').value.trim(), motor:$('vMotor').value.trim(),
       chasis:$('vChasis').value.trim(), tarjeta:$('vTarjeta').value.trim(), km:$('vKm').value.trim(),
@@ -4077,6 +4378,10 @@ document.addEventListener('click', async e=>{
   if(t.dataset.delMoto){
     const n = S.conductores.filter(c=>c.motoId===t.dataset.delMoto).length;
     if(n && !(await confirmar('Eliminar moto', `Hay ${n} conductor(es) con esta moto asignada. ¿Eliminarla de todos modos?`))) return;
+    const mDel = S.motos.find(x=>x.id===t.dataset.delMoto);
+    if(mDel && mDel.financiada && !motoDeudaSaldada(mDel) && !(await confirmar('Eliminar moto',
+      `Esta moto todavía debe ${money(mDel.saldo)} de su crédito — se pierde ese registro (no la deuda real con el banco, solo el seguimiento aquí en la app). ¿Eliminarla de todos modos?`))) return;
+    if(MOTO_ABIERTA === t.dataset.delMoto) cerrarMotoDetalle();
     return rm('motos', t.dataset.delMoto, 'Moto eliminada');
   }
   if(t.dataset.delPago){
