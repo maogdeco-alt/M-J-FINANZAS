@@ -461,6 +461,10 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .dialog .acts{display:flex;gap:9px}
 .dialog.ancho{max-width:440px}
 .dialog.ancho .acts{margin-top:20px}
+/* Para el importador de Excel: necesita espacio real para mostrar
+   columnas y filas, no un cuadro angosto de confirmación. */
+.dialog.mega{max-width:980px;max-height:88vh;overflow-y:auto;text-align:left}
+.dialog.mega .acts{margin-top:18px;position:sticky;bottom:-26px;background:var(--hueso);padding:14px 0 4px}
 
 /* Botón flotante "Gasto rápido" — solo vive en el Tablero (es hijo de
    esa vista, así que desaparece con ella) para que anotar un gasto en
@@ -1518,6 +1522,13 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         </p>
       </div>
 
+      <div class="section form" id="importarExcelBox">
+        <h2 style="margin-bottom:8px">Importar desde Excel</h2>
+        <p class="sub">¿Ya llevaba sus cuentas en un Excel? Cárguelo aquí. La app trata de entender sus columnas sola, usted revisa y corrige lo que haga falta, y solo se guarda lo que confirme al final — nunca se borra ni se reemplaza nada de lo que ya tiene, esto solo agrega.</p>
+        <input type="file" id="xlsxInput" accept=".xlsx,.xls" class="hidden">
+        <button class="btn block" id="xlsxElegir"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Elegir archivo de Excel</button>
+      </div>
+
       <div class="section form" id="instalarBox">
         <h2 style="margin-bottom:8px">Instalar la app</h2>
         <p class="sub">Ponga un ícono de MA|OG en la pantalla de inicio de su celular, como cualquier otra app — abre más rápido y no tiene que buscar el navegador cada vez.</p>
@@ -1578,6 +1589,17 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
     <div class="acts">
       <button class="btn" id="grGuardar"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span> Guardar gasto</button>
       <button class="btn ghost" id="grCancelar">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="xlsxScrim">
+  <div class="dialog mega" id="xlsxDialog">
+    <h4>Importar desde Excel</h4>
+    <div id="xlsxCuerpo"></div>
+    <div class="acts">
+      <button class="btn" id="xlsxConfirmar"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span> Confirmar e importar</button>
+      <button class="btn ghost" id="xlsxCancelar">Cancelar</button>
     </div>
   </div>
 </div>
@@ -2482,6 +2504,7 @@ function aplicarPlantillaUI(){
   setHidden('gCuentaBox', !personal);
   setHidden('pfTipoBox', !personal);
   setHidden('compromisosBox', !personal);
+  setHidden('importarExcelBox', !personal);
   const familia = esFamilia();
   setHidden('integrantesBox', !familia);
   setHidden('gRepartoBox', !familia);
@@ -5782,6 +5805,238 @@ function renderInstalarApp(){
   if(btnCerrar) btnCerrar.onclick = ocultarInstalarBanner;
 }
 renderInstalarApp();
+
+/* =========================================================
+   Importar desde Excel — para quien ya llevaba sus cuentas en un
+   Excel propio, armado como sea. La app NO adivina a ciegas: sugiere
+   qué es cada columna por el nombre del encabezado, arma una vista
+   previa editable en el idioma de la app (Fecha, Descripción,
+   Categoría, Valor...), la persona revisa y corrige lo que haga
+   falta con sus propios controles, y solo se guarda lo que confirme
+   al final. Nunca borra ni reemplaza nada existente — solo agrega
+   gastos/ingresos nuevos, igual que si los hubiera escrito a mano.
+   ========================================================= */
+const SINONIMOS_EXCEL = {
+  fecha: ['fecha','date','dia','día'],
+  valor: ['valor','monto','total','precio','importe','cantidad','plata','amount','price','value','sum'],
+  desc:  ['descripcion','descripción','concepto','detalle','item','ítem','articulo','artículo','nota','notas','description','detail','note','notes'],
+  tipo:  ['tipo de movimiento','ingreso/gasto','ingreso o gasto','entrada/salida','entrada o salida','movimiento','tipo','type','income/expense','in/out'],
+  cat:   ['categoria','categoría','rubro','clase','tipo de gasto','category'],
+  cuenta:['cuenta','banco','medio de pago','metodo de pago','método de pago','medio','metodo','método','account','bank','payment method'],
+};
+function normalizarTexto(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+}
+function adivinarColumnaExcel(header){
+  const h = normalizarTexto(header);
+  if(!h) return 'ignorar';
+  let mejor = null;
+  for(const campo in SINONIMOS_EXCEL){
+    for(const s of SINONIMOS_EXCEL[campo]){
+      if(h === s) return campo;
+      if(h.includes(s) && (!mejor || s.length > mejor.largo)) mejor = { campo, largo: s.length };
+    }
+  }
+  return mejor ? mejor.campo : 'ignorar';
+}
+/* Fechas: Excel las trae como objeto Date (si la celda tenía formato
+   de fecha), como número de serie, o como texto suelto. Si no se
+   puede entender, se deja vacía — la persona la completa a mano en
+   la vista previa; nunca se inventa una fecha. */
+function fechaDeCeldaExcel(v){
+  if(v instanceof Date && !isNaN(v)){
+    const y=v.getFullYear(), m=String(v.getMonth()+1).padStart(2,'0'), d=String(v.getDate()).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+  if(typeof v === 'number' && v > 0){
+    const ms = Math.round((v - 25569) * 86400 * 1000); // días desde 1899-12-30 (época de Excel) a 1970-01-01
+    const dt = new Date(ms);
+    if(!isNaN(dt)) return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth()+1).padStart(2,'0')}-${String(dt.getUTCDate()).padStart(2,'0')}`;
+  }
+  if(typeof v === 'string'){
+    const s = v.trim();
+    let m;
+    if((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+    if((m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/))){
+      let a=+m[1], b=+m[2], y=m[3], dia, mes;
+      if(a>12){ dia=a; mes=b; } else if(b>12){ mes=a; dia=b; } else { dia=a; mes=b; } // por defecto DD/MM (formato colombiano)
+      return `${y}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+    }
+  }
+  return '';
+}
+let XLSX_IMPORT = null; // { wb, hoja, encabezados, datos, campos, modoTipo }
+function cerrarXlsxImport(){ $('xlsxScrim').classList.remove('on'); XLSX_IMPORT = null; }
+$('xlsxScrim').addEventListener('click', e=>{ if(e.target===$('xlsxScrim')) cerrarXlsxImport(); });
+$('xlsxElegir').addEventListener('click', ()=>$('xlsxInput').click());
+$('xlsxInput').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  e.target.value = '';
+  if(!file) return;
+  const lector = new FileReader();
+  lector.onload = ev => {
+    try{
+      const wb = XLSX.read(ev.target.result, { type:'array', cellDates:true });
+      if(!wb.SheetNames.length) throw new Error('sin hojas');
+      XLSX_IMPORT = { wb, hoja: wb.SheetNames[0], modoTipo:'gasto' };
+      prepararHojaExcel();
+      $('xlsxScrim').classList.add('on');
+    }catch(err){
+      toast('No se pudo leer ese archivo. ¿Es un Excel válido (.xlsx)?', true);
+    }
+  };
+  lector.onerror = () => toast('No se pudo leer ese archivo.', true);
+  lector.readAsArrayBuffer(file);
+});
+function prepararHojaExcel(){
+  const ws = XLSX_IMPORT.wb.Sheets[XLSX_IMPORT.hoja];
+  const filas = XLSX.utils.sheet_to_json(ws, { header:1, defval:'', raw:true });
+  const encabezados = (filas[0]||[]).map(h=>String(h==null?'':h).trim());
+  XLSX_IMPORT.encabezados = encabezados;
+  XLSX_IMPORT.datos = filas.slice(1).filter(f=>f.some(c=>String(c==null?'':c).trim()!==''));
+  XLSX_IMPORT.campos = encabezados.map(h=>adivinarColumnaExcel(h));
+  XLSX_IMPORT.modoTipo = XLSX_IMPORT.campos.includes('tipo') ? 'columna' : 'gasto';
+  renderXlsxImport();
+}
+function procesarFilasExcel(){
+  const { datos, campos, modoTipo } = XLSX_IMPORT;
+  const idxDe = campo => campos.indexOf(campo);
+  const iFecha = idxDe('fecha'), iValor = idxDe('valor'), iDesc = idxDe('desc'),
+        iCat = idxDe('cat'), iTipo = idxDe('tipo'), iCuenta = idxDe('cuenta');
+  return datos.map(fila=>{
+    const crudoValor = iValor>=0 ? fila[iValor] : 0;
+    const valorNum = Math.abs(num(crudoValor));
+    let esGasto = true;
+    if(modoTipo==='ingreso') esGasto = false;
+    else if(modoTipo==='signo') esGasto = num(crudoValor) <= 0;
+    else if(modoTipo==='columna' && iTipo>=0){
+      const t = normalizarTexto(fila[iTipo]);
+      esGasto = !(t.includes('ingreso') || t.includes('entrada') || t.includes('income') || t==='in');
+    }
+    let cuentaId = '';
+    if(iCuenta>=0){
+      const nombreCta = normalizarTexto(fila[iCuenta]);
+      const match = (S.cuentas||[]).find(c=>normalizarTexto(c.nombre)===nombreCta);
+      if(match) cuentaId = match.id;
+    }
+    return {
+      fecha: iFecha>=0 ? fechaDeCeldaExcel(fila[iFecha]) : '',
+      desc: iDesc>=0 ? String(fila[iDesc]==null?'':fila[iDesc]).trim() : '',
+      cat: iCat>=0 ? (String(fila[iCat]==null?'':fila[iCat]).trim() || '❓ Otro') : '❓ Otro',
+      valor: valorNum, esGasto, cuentaId,
+      incluir: valorNum > 0, // filas sin valor casi siempre son encabezados sueltos o subtotales, no se marcan por defecto
+    };
+  });
+}
+const OPCIONES_CAMPO_EXCEL = [
+  ['ignorar','Ignorar esta columna'], ['fecha','Fecha'], ['valor','Valor'],
+  ['desc','Descripción'], ['cat','Categoría'], ['tipo','Tipo (ingreso/gasto)'], ['cuenta','Cuenta'],
+];
+function renderXlsxImport(){
+  const box = $('xlsxCuerpo'); if(!box || !XLSX_IMPORT) return;
+  const { wb, hoja, encabezados, datos, campos, modoTipo } = XLSX_IMPORT;
+  const hayTipoCol = campos.includes('tipo');
+  const hayCuentaCol = campos.includes('cuenta');
+
+  const selectorHoja = wb.SheetNames.length > 1 ? `
+    <div class="f" style="max-width:280px"><label for="xlsxHoja">¿Qué hoja del archivo?</label>
+      <select id="xlsxHoja">${wb.SheetNames.map(n=>`<option value="${esc(n)}" ${n===hoja?'selected':''}>${esc(n)}</option>`).join('')}</select>
+    </div>` : '';
+
+  const mapeoHTML = `<div class="ledger-wrap" style="margin:10px 0"><table class="ledger"><thead><tr>
+    ${encabezados.map((h,i)=>`<th style="min-width:150px">
+      <div style="font-weight:700;margin-bottom:4px">${esc(h)||'(sin nombre)'}</div>
+      <select data-col="${i}" class="xlsx-map">${OPCIONES_CAMPO_EXCEL.map(([v,t])=>`<option value="${v}" ${campos[i]===v?'selected':''}>${t}</option>`).join('')}</select>
+    </th>`).join('')}
+    </tr></thead></table></div>`;
+
+  const tipoHTML = `<div class="fgrid" style="margin:14px 0"><div class="f"><label>¿Qué trae este archivo?</label>
+    <select id="xlsxModoTipo">
+      ${hayTipoCol ? `<option value="columna" ${modoTipo==='columna'?'selected':''}>Uso la columna que marqué como "Tipo"</option>` : ''}
+      <option value="gasto" ${modoTipo==='gasto'?'selected':''}>Todo son gastos (Lo que sale)</option>
+      <option value="ingreso" ${modoTipo==='ingreso'?'selected':''}>Todo son ingresos (Lo que entra)</option>
+      <option value="signo" ${modoTipo==='signo'?'selected':''}>Según el signo del valor (negativo = gasto, positivo = ingreso)</option>
+    </select>
+  </div></div>`;
+
+  const filasProcesadas = procesarFilasExcel();
+  const nGasto = filasProcesadas.filter(f=>f.incluir && f.esGasto).length;
+  const nIngreso = filasProcesadas.filter(f=>f.incluir && !f.esGasto).length;
+  const nSinFecha = filasProcesadas.filter(f=>f.incluir && !f.fecha).length;
+  const mostrarTipoPorFila = modoTipo!=='gasto' && modoTipo!=='ingreso';
+
+  const previewHTML = `
+    <p class="sub" style="margin:14px 0 6px"><b>Vista previa</b> — revise y corrija lo que haga falta antes de confirmar. Destilde las filas que no quiera importar (totales, subtotales, encabezados repetidos, etc.).</p>
+    ${nSinFecha ? `<div class="gate-error" style="margin-bottom:10px"><span class="icono">${ICONS.alerta}</span><span>${nSinFecha} fila(s) quedaron sin una fecha que se pudiera entender — complétela a mano abajo, o esa fila se va a saltar sola al confirmar.</span></div>` : ''}
+    <div class="ledger-wrap" style="max-height:360px;overflow-y:auto"><table class="ledger">
+      <thead><tr><th></th><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="num">Valor</th>
+        ${mostrarTipoPorFila ? '<th>Tipo</th>' : ''}${hayCuentaCol ? '<th>Cuenta</th>' : ''}
+      </tr></thead>
+      <tbody>${filasProcesadas.map((f,i)=>`<tr style="${f.incluir?'':'opacity:.45'}">
+        <td><input type="checkbox" data-fila="${i}" class="xlsx-incluir" ${f.incluir?'checked':''}></td>
+        <td><input type="date" data-fila="${i}" data-campo="fecha" class="xlsx-celda" value="${esc(f.fecha)}" style="min-width:135px"></td>
+        <td><input type="text" data-fila="${i}" data-campo="desc" class="xlsx-celda" value="${esc(f.desc)}" style="min-width:160px"></td>
+        <td><input type="text" data-fila="${i}" data-campo="cat" class="xlsx-celda" value="${esc(f.cat)}" style="min-width:120px"></td>
+        <td class="num"><input type="text" inputmode="numeric" data-fila="${i}" data-campo="valor" class="xlsx-celda" value="${f.valor}" style="min-width:100px;text-align:right"></td>
+        ${mostrarTipoPorFila ? `<td><select data-fila="${i}" data-campo="esGasto" class="xlsx-celda"><option value="1" ${f.esGasto?'selected':''}>Gasto</option><option value="0" ${!f.esGasto?'selected':''}>Ingreso</option></select></td>` : ''}
+        ${hayCuentaCol ? `<td><select data-fila="${i}" data-campo="cuentaId" class="xlsx-celda"><option value="">Sin especificar</option>${(S.cuentas||[]).map(c=>`<option value="${c.id}" ${f.cuentaId===c.id?'selected':''}>${esc(c.nombre)}</option>`).join('')}</select></td>` : ''}
+      </tr>`).join('')}</tbody>
+    </table></div>
+    <p class="sub" style="margin-top:10px">Se van a agregar <b>${filasProcesadas.filter(f=>f.incluir).length}</b> movimiento(s): <b>${nGasto}</b> a "Lo que sale" y <b>${nIngreso}</b> a "Lo que entra".</p>
+  `;
+
+  box.innerHTML = `
+    <p class="sub">Archivo con <b>${wb.SheetNames.length}</b> hoja(s) · <b>${datos.length}</b> fila(s) de datos encontradas en "${esc(hoja)}".</p>
+    ${selectorHoja}
+    <p class="sub" style="margin:14px 0 4px"><b>¿Qué es cada columna?</b> La app ya adivinó lo que pudo por el nombre — cambie lo que haga falta.</p>
+    ${mapeoHTML}
+    ${tipoHTML}
+    ${previewHTML}
+  `;
+
+  const selHoja = $('xlsxHoja');
+  if(selHoja) selHoja.addEventListener('change', ()=>{ XLSX_IMPORT.hoja = selHoja.value; prepararHojaExcel(); });
+  document.querySelectorAll('.xlsx-map').forEach(sel=>sel.addEventListener('change', ()=>{
+    XLSX_IMPORT.campos[+sel.dataset.col] = sel.value;
+    renderXlsxImport();
+  }));
+  const selModo = $('xlsxModoTipo');
+  if(selModo) selModo.addEventListener('change', ()=>{ XLSX_IMPORT.modoTipo = selModo.value; renderXlsxImport(); });
+}
+$('xlsxConfirmar').addEventListener('click', async ()=>{
+  if(!XLSX_IMPORT) return;
+  const filas = [];
+  document.querySelectorAll('.xlsx-incluir').forEach(chk=>{
+    if(!chk.checked) return;
+    const i = chk.dataset.fila;
+    const get = campo => { const el = document.querySelector(`.xlsx-celda[data-fila="${i}"][data-campo="${campo}"]`); return el ? el.value : ''; };
+    const fecha = get('fecha');
+    const valor = num(get('valor'));
+    if(!fecha || !valor) return; // fila incompleta — se salta silenciosamente, ya se avisó arriba si faltan fechas
+    let esGasto;
+    if(XLSX_IMPORT.modoTipo==='gasto') esGasto = true;
+    else if(XLSX_IMPORT.modoTipo==='ingreso') esGasto = false;
+    else { const v = get('esGasto'); esGasto = v !== '0'; }
+    const cuentaId = get('cuentaId') || null;
+    filas.push({ fecha, desc: get('desc'), cat: get('cat')||'❓ Otro', valor, esGasto, cuentaId });
+  });
+  if(!filas.length) return toast('No hay ninguna fila lista para importar (revise que tengan fecha y valor).', true);
+  filas.forEach(f=>{
+    if(f.esGasto){
+      S.gastos.push({ id:uid(), fecha:f.fecha, motoId:null, cat:f.cat, desc:f.desc, valor:f.valor,
+        cargo:'Empresa', cuentaId:f.cuentaId, pagadoPor:'', reparto:'', recuperado:false,
+        creadoPor:quien(), origen:'excel' });
+    } else {
+      S.pagos.push({ id:uid(), valor:f.valor, fecha:f.fecha, medio:'', concepto:f.desc||f.cat,
+        cuentaId:f.cuentaId, tipoIngreso:'', nota:'', creadoPor:quien(), origen:'excel' });
+    }
+  });
+  await save(); renderAll();
+  const nGasto = filas.filter(f=>f.esGasto).length, nIngreso = filas.length - nGasto;
+  toast(`Se importaron ${filas.length} movimiento(s): ${nGasto} gasto(s), ${nIngreso} ingreso(s)`);
+  cerrarXlsxImport();
+});
+$('xlsxCancelar').addEventListener('click', cerrarXlsxImport);
 </script>
 </body>
 </html>
