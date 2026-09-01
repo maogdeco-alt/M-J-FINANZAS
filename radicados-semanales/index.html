@@ -434,6 +434,17 @@
      de esa ventana emergente nativa del navegador -- se ve igual de bien en la pestaña principal, en
      un iframe, o dentro de Picture-in-Picture.
   */
+  /* Listado de la revisión previa (ver #preflightDialog): una tarjeta por radicado con problemas,
+     con el detalle exacto de qué le falta o qué se ve mal, para poder corregirlo antes de entregar. */
+  .preflight-list{max-height:52vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+  .preflight-item{border:1px solid var(--border);border-left:4px solid var(--warn);border-radius:8px;padding:9px 12px;background:var(--surface-2);}
+  .preflight-item.grave{border-left-color:var(--stamp);}
+  .preflight-item .pf-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap;}
+  .preflight-item .pf-rad{font-weight:700;font-variant-numeric:tabular-nums;}
+  .preflight-item .pf-nombre{color:var(--muted);font-size:0.84rem;}
+  .preflight-item ul{margin:6px 0 0;padding-left:20px;font-size:0.86rem;line-height:1.55;}
+  .preflight-item .pf-grave{color:var(--stamp);font-weight:700;}
+  .preflight-ok{padding:14px;border-radius:8px;background:var(--ok-soft);border:1px solid var(--ok);font-weight:600;}
   .formato-field{position:relative;}
   .formato-dropdown{position:absolute;top:100%;left:0;right:0;z-index:40;margin-top:2px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);max-height:180px;overflow-y:auto;}
   .formato-dropdown[hidden]{display:none;}
@@ -1010,6 +1021,28 @@
   </div>
 </dialog>
 
+<!-- Dialog: REVISIÓN PREVIA obligatoria antes de generar el documento final (masiva).
+     Existe por un caso real: se entregó una base con una fila prácticamente vacía (solo radicado y
+     destinatario) y con un número de comparendo en la casilla del correo. La app guardaba y exportaba
+     eso sin decir nada, porque las reglas de captura NUNCA bloquean el guardado (es correcto: perder
+     avance por una regla sería peor). El control tiene que estar aquí, en la SALIDA: antes de generar
+     el archivo que se entrega, se revisa fila por fila y se muestra exactamente qué está incompleto o
+     es inconsistente, para poder corregirlo ANTES de enviarlo. -->
+<dialog id="preflightDialog" class="wide-settings" aria-labelledby="preflightTitle">
+  <div class="panel-head">
+    <div><span class="step">Revisión previa</span><h2 id="preflightTitle">Antes de generar el documento final</h2></div>
+  </div>
+  <div class="panel-body">
+    <p class="panel-desc" id="preflightResumen"></p>
+    <div id="preflightLista" class="preflight-list"></div>
+  </div>
+  <div class="form-actions" style="flex-wrap:wrap;gap:8px;">
+    <button class="btn ghost" id="preflightCancel" type="button">Cancelar y corregir</button>
+    <button class="btn" id="preflightCopiarReporte" type="button">Copiar esta lista</button>
+    <button class="btn danger" id="preflightProceed" type="button">Entiendo los avisos, generar de todas formas</button>
+  </div>
+</dialog>
+
 <!-- Dialog: inicio de sesión -->
 <!-- Ya no hay pantalla de "conectar con el servidor": la app queda fija a un único proyecto de
      Supabase (el de la entidad), embebido en el código -- no depende de que cada persona/computador
@@ -1068,6 +1101,7 @@
     <button data-stab="general" class="active" type="button">General</button>
     <button data-stab="clasificacion" type="button">Clasificación</button>
     <button data-stab="informes" type="button">Informes</button>
+    <button data-stab="papelera" type="button">Papelera</button>
   </div>
   <div class="panel-body">
 
@@ -1201,6 +1235,18 @@
           </table>
         </div>
         <p class="hint" id="historyEmpty" style="margin-top:10px;">Todavía no has cerrado ninguna semana — el historial aparecerá aquí la primera vez que uses "Nueva semana (borrar todo)".</p>
+      </div>
+    </div>
+
+    <div id="stab-papelera" style="display:none;">
+      <div class="settings-section">
+        <h3>Papelera de radicados</h3>
+        <p class="hint">Aquí queda una copia completa de <b>todo radicado que salga de tu lista</b>: los que borras a propósito, y también cualquiera que desaparezca por su cuenta (si eso llegara a pasar, la app además te avisa en grande en el momento). Se guarda en este navegador, sin depender de la nube — justo para los casos en que la sincronización sea el problema. Puedes restaurar cualquiera con un clic, incluso días después. Se conservan las últimas 300 entradas.</p>
+        <div class="toolbar" style="margin:12px 0;">
+          <button class="btn ghost small" id="papeleraRefrescar" type="button">Actualizar lista</button>
+          <button class="btn ghost small" id="papeleraDescargar" type="button">Descargar papelera (.json)</button>
+        </div>
+        <div id="papeleraLista" class="preflight-list"></div>
       </div>
     </div>
   </div>
@@ -1914,6 +1960,72 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }catch(e){}
   }
 
+  // ---------- PAPELERA: nada desaparece sin dejar rastro recuperable ----------
+  // Nace de un caso real: "se me perdieron 2 radicados y no sé cómo ocurrió". Antes, la única
+  // segunda oportunidad era el botón "Deshacer" del aviso, que dura unos segundos y desaparece; si
+  // no se alcanzaba a ver, el radicado se iba sin rastro. Ahora TODO lo que sale de la lista (por
+  // borrado manual, o por una fusión que descarte una versión) queda guardado aparte, en este mismo
+  // navegador, con su contenido completo, la fecha y el motivo -- se puede consultar y restaurar
+  // días después desde Ajustes. Es una copia local a propósito: nunca depende de la nube ni de que
+  // la sincronización haya funcionado, que es justo cuando más falta hace.
+  var PAPELERA_KEY = "radicados_papelera_v1";
+  function papeleraKeyFor(emailId){ return PAPELERA_KEY + "::" + emailId; }
+  function leerPapelera(){
+    if(!state.profile.activeUser) return [];
+    try{
+      var raw = localStorage.getItem(papeleraKeyFor(state.profile.activeUser));
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){ return []; }
+  }
+  function guardarEnPapelera(rec, motivo){
+    if(!rec || !state.profile.activeUser) return;
+    try{
+      var papelera = leerPapelera();
+      // Nunca se guarda dos veces el mismo id con el mismo contenido -- evita llenar la papelera de
+      // copias idénticas si algo se reintenta.
+      papelera.unshift({
+        borradoEn: new Date().toISOString(),
+        motivo: motivo || "sin especificar",
+        desde: isFlotanteInstance ? "ventana flotante" : "pestaña principal",
+        radicado: rec.radicado,
+        nombre: rec.nombreF || rec.nombre || "",
+        registro: rec
+      });
+      // Se conservan las últimas 300 entradas: suficiente para semanas de trabajo, sin llenar el
+      // almacenamiento del navegador (que también guarda los radicados activos).
+      if(papelera.length > 300) papelera = papelera.slice(0, 300);
+      localStorage.setItem(papeleraKeyFor(state.profile.activeUser), JSON.stringify(papelera));
+    }catch(e){ /* si el navegador no deja escribir, el borrado sigue su curso: nunca se bloquea por esto */ }
+  }
+
+  // Ver la llamada dentro de save(): compara lo que ya estaba guardado en este navegador contra lo
+  // que se está a punto de guardar. Todo radicado que estaba y ya no está se archiva en la papelera
+  // (con su contenido íntegro) y se avisa. Los borrados hechos a propósito por la persona ya se
+  // archivaron antes con su propio motivo, así que aquí no se duplican ni se avisa por ellos.
+  var idsBorradosAdrede = {};
+  function revisarDesaparecidosAntesDeGuardar(){
+    if(!state.profile.activeUser) return;
+    var previos;
+    try{
+      var raw = localStorage.getItem(storageKeyFor(state.profile.activeUser));
+      previos = raw ? JSON.parse(raw) : null;
+    }catch(e){ return; }
+    if(!Array.isArray(previos) || !previos.length) return;
+    var ahora = {};
+    state.records.forEach(function(r){ ahora[r.id] = true; });
+    var desaparecidos = previos.filter(function(r){ return r && r.id && !ahora[r.id] && !idsBorradosAdrede[r.id]; });
+    if(!desaparecidos.length) return;
+    desaparecidos.forEach(function(r){
+      guardarEnPapelera(r, "desapareció de la lista sin haberse borrado a mano");
+    });
+    var lista = desaparecidos.map(function(r){ return r.radicado; }).join(", ");
+    showDataSafetyBanner(
+      desaparecidos.length + " radicado(s) desaparecieron de la lista sin que se hubieran borrado a mano: " + lista +
+      ". Se guardó una copia completa de cada uno en la Papelera (Ajustes → Papelera) — desde ahí puedes restaurarlos. " +
+      "Avísame si no reconoces por qué pasó.", "warn");
+  }
+
   function storageKeyFor(emailId){ return STORAGE_PREFIX + "::" + emailId; }
   function historyKeyFor(emailId){ return HISTORY_PREFIX + "::" + emailId; }
   function settingsKeyFor(emailId){ return SETTINGS_KEY + "::" + emailId; }
@@ -2341,10 +2453,64 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     Array.prototype.forEach.call(document.querySelectorAll("#settingsTabs button"), function(b){
       b.classList.toggle("active", b.getAttribute("data-stab")===tab);
     });
-    ["general","clasificacion","informes"].forEach(function(t){
+    ["general","clasificacion","informes","papelera"].forEach(function(t){
       document.getElementById("stab-"+t).style.display = (t===tab) ? "block" : "none";
     });
+    if(tab === "papelera") renderPapelera();
   }
+  // ---------- Ajustes → Papelera: consultar y restaurar lo que salió de la lista ----------
+  function renderPapelera(){
+    var cont = document.getElementById("papeleraLista");
+    var papelera = leerPapelera();
+    if(!papelera.length){
+      cont.innerHTML = '<div class="preflight-ok">La papelera está vacía: no ha salido ningún radicado de tu lista en este navegador.</div>';
+      return;
+    }
+    cont.innerHTML = papelera.map(function(entrada, i){
+      var yaEsta = state.records.some(function(r){ return r.id === (entrada.registro && entrada.registro.id); });
+      var cuando = "";
+      try{ cuando = new Date(entrada.borradoEn).toLocaleString("es-CO"); }catch(e){ cuando = entrada.borradoEn || ""; }
+      var esAlarma = (entrada.motivo||"").indexOf("desapareció") !== -1;
+      return '<div class="preflight-item' + (esAlarma ? ' grave' : '') + '">' +
+        '<div class="pf-head"><span class="pf-rad">' + escapeHtml(entrada.radicado||"(sin radicado)") + '</span>' +
+        '<span class="pf-nombre">' + escapeHtml(entrada.nombre||"") + '</span></div>' +
+        '<ul><li>' + escapeHtml(cuando) + ' · ' + escapeHtml(entrada.motivo||"") + ' · desde ' + escapeHtml(entrada.desde||"") + '</li>' +
+        '<li>Formato: <b>' + escapeHtml((entrada.registro && entrada.registro.formato) || "(sin clasificar)") + '</b>' +
+        ' · Comparendo: ' + escapeHtml((entrada.registro && entrada.registro.comparendoCompleto) || "—") + '</li></ul>' +
+        '<div class="toolbar" style="margin-top:8px;">' +
+        (yaEsta
+          ? '<span class="hint">Ya está de vuelta en tu lista.</span>'
+          : '<button class="btn small" data-papelera-restaurar="' + i + '" type="button">Restaurar a mi lista</button>') +
+        '</div></div>';
+    }).join("");
+  }
+  document.getElementById("papeleraLista").addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-papelera-restaurar]");
+    if(!btn) return;
+    var idx = parseInt(btn.getAttribute("data-papelera-restaurar"), 10);
+    var papelera = leerPapelera();
+    var entrada = papelera[idx];
+    if(!entrada || !entrada.registro) return;
+    if(state.records.some(function(r){ return r.id === entrada.registro.id; })){ toast("Ese radicado ya está en tu lista"); renderPapelera(); return; }
+    var rec = Object.assign({}, entrada.registro);
+    rec.order = state.records.length;
+    delete idsBorradosAdrede[rec.id]; // vuelve a estar vigilado por el guardián de desaparecidos
+    state.records.push(rec);
+    save(); renderAll(); renderPapelera();
+    toast("Radicado " + rec.radicado + " restaurado a tu lista");
+  });
+  document.getElementById("papeleraRefrescar").addEventListener("click", renderPapelera);
+  document.getElementById("papeleraDescargar").addEventListener("click", function(){
+    var papelera = leerPapelera();
+    if(!papelera.length){ toast("La papelera está vacía"); return; }
+    var blob = new Blob([JSON.stringify(papelera, null, 2)], {type:"application/json"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "papelera_" + userSlug() + "_" + new Date().toISOString().slice(0,10) + ".json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1500);
+    toast("Papelera descargada (" + papelera.length + " entradas)");
+  });
   document.getElementById("settingsTabs").addEventListener("click", function(e){
     var btn = e.target.closest("button[data-stab]");
     if(btn) setSettingsTab(btn.getAttribute("data-stab"));
@@ -2745,6 +2911,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return false; // ya se explicó en el aviso inicial; seguimos trabajando solo en memoria de esta pestaña
     }
     try{
+      // GUARDIÁN CONTRA PÉRDIDAS SILENCIOSAS. Este es el punto exacto por donde tendría que pasar
+      // cualquier radicado que "desaparezca": justo antes de sobrescribir la copia de este navegador
+      // se compara contra la que ya estaba, y si algún radicado que existía ANTES ya no está en lo
+      // que se va a guardar, se archiva en la papelera y se avisa en grande. Cubre TODAS las causas
+      // (una fusión que descarte algo, un estado en memoria incompleto, un error nuevo que aparezca
+      // mañana), no solo el borrado manual, que ya se archivaba aparte. Nunca bloquea el guardado:
+      // avisar y conservar una copia es más útil que impedir trabajar.
+      revisarDesaparecidosAntesDeGuardar();
       var json = JSON.stringify(state.records);
       localStorage.setItem(storageKeyFor(state.profile.activeUser), json);
       // Ver "inConflictState" arriba: si hay un conflicto de sincronización sin resolver, este
@@ -3749,6 +3923,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
 
   function selectRecord(id, focusField){
+    // Se cancela cualquier autoguardado pendiente ANTES de cambiar de radicado: quien navega ya
+    // llamó a commitCurrentEdits(), así que ese temporizador viejo no tiene nada que aportar y solo
+    // podría escribir tarde (ver la nota junto a autosaveTimer sobre contaminación cruzada).
+    cancelAutosavePendiente();
     state.activeId = id;
     renderQueue();
     renderCapture();
@@ -4107,6 +4285,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var idx = state.records.findIndex(function(r){ return r.id===pendingDeleteId; });
     if(idx === -1){ pendingDeleteId = null; return; }
     var rec = state.records[idx];
+    guardarEnPapelera(rec, "borrado manual desde la app");
+    idsBorradosAdrede[rec.id] = true; // deliberado: no debe disparar la alarma de desaparecidos
     state.records = state.records.filter(function(r){ return r.id!==pendingDeleteId; });
     // Solo se limpia el radicado activo si es justo el que se borró -- borrar desde la "✕" de la
     // cola puede ser sobre uno DISTINTO al que se está editando en ese momento, y ese no se debe
@@ -4224,10 +4404,30 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   });
   // Autoguardado mientras escribes: si cierras la pestaña o se va la luz sin haber
   // navegado a otro caso, lo escrito en los últimos ~1.2s como máximo queda guardado igual.
+  // ---------- autoguardado mientras escribes ----------
+  // PROTECCIÓN CRÍTICA (contaminación cruzada entre radicados): este temporizador se dispara 1,2 s
+  // DESPUÉS de la última tecla, y readCaptureIntoRecord() escribe lo que haya en pantalla dentro del
+  // radicado que esté activo EN ESE INSTANTE -- no en el que estaba activo cuando se escribió. Si en
+  // ese intervalo se cambia de radicado (clic en la lista, "Siguiente", un atajo de teclado, o
+  // cualquier refresco), el guardado tardío podía escribir en el radicado EQUIVOCADO. Ahora el
+  // temporizador recuerda para CUÁL radicado se armó y, si al dispararse el activo ya es otro, no
+  // escribe nada: ese cambio ya lo guardó quien haya hecho la navegación (todas las rutas de cambio
+  // de radicado llaman antes a commitCurrentEdits()). Nunca se escribe a ciegas en otro expediente.
   var autosaveTimer = null;
+  var autosaveArmedForId = null;
+  function cancelAutosavePendiente(){
+    clearTimeout(autosaveTimer);
+    autosaveTimer = null;
+    autosaveArmedForId = null;
+  }
   document.getElementById("captureForm").addEventListener("input", function(){
     clearTimeout(autosaveTimer);
+    autosaveArmedForId = state.activeId;
+    var idEsperado = state.activeId;
     autosaveTimer = setTimeout(function(){
+      autosaveTimer = null;
+      autosaveArmedForId = null;
+      if(state.activeId !== idEsperado) return; // cambió de radicado: NO escribir en el que no era
       var rec = readCaptureIntoRecord();
       if(rec) save();
     }, 1200);
@@ -4436,6 +4636,129 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       .sort(function(a,b){ return (a.order||0)-(b.order||0); });
   }
 
+  // ---------- REVISIÓN PREVIA del documento final (ver #preflightDialog) ----------
+  // Nace de un caso real reportado por la jefatura: en la base entregada venía una fila prácticamente
+  // vacía (solo radicado y destinatario, con Formato lleno) y, en otra, un número de comparendo
+  // escrito dentro de la casilla del correo. Ninguna regla de captura impide eso -- y está bien que
+  // no lo impida, porque bloquear el guardado haría perder avance. El control correcto va aquí: en la
+  // SALIDA, revisando fila por fila justo antes de generar lo que se entrega.
+  //
+  // Cada hallazgo se clasifica en dos niveles:
+  //   grave = la fila saldría inservible o con un dato que corresponde a OTRO expediente
+  //   aviso = falta algo que casi siempre debería estar, pero puede ser legítimo según el caso
+  function correoParece(valor){
+    var s = String(valor||"").trim();
+    return !s || s.indexOf("@") !== -1;
+  }
+  function pareceNumeroDeComparendo(valor){
+    var s = String(valor||"").trim();
+    return /^\d{10,}$/.test(s.replace(/\s+/g,""));
+  }
+  function auditarDocumentoFinal(){
+    var elegibles = finalDocEligible();
+    var problemas = [];
+    // Índice de comparendos por radicado, para detectar el mismo comparendo repetido en dos
+    // expedientes distintos (señal típica de un dato copiado al expediente equivocado).
+    var porComparendo = {};
+    state.records.forEach(function(r){
+      var c = String(r.comparendoCompleto||"").trim();
+      if(!c) return;
+      (porComparendo[c] = porComparendo[c] || []).push(r);
+    });
+
+    elegibles.forEach(function(r){
+      var hallazgos = [];
+      var formato = (r.formato||"").trim().toUpperCase();
+
+      if(!String(r.comparendoCompleto||"").trim()){
+        hallazgos.push({grave:true, texto:"No tiene número de comparendo: la fila saldría prácticamente vacía (solo radicado y destinatario)."});
+      }
+      if(!String(r.nombreF||r.nombre||"").trim()){
+        hallazgos.push({grave:true, texto:"No tiene nombre de destinatario."});
+      }
+      // La casilla del correo con un número largo adentro = casi seguro un comparendo pegado en el
+      // campo equivocado (el error exacto que se reportó desde la jefatura).
+      if(pareceNumeroDeComparendo(r.direccion)){
+        hallazgos.push({grave:true, texto:"En la casilla de correo/dirección hay un número largo (\"" + String(r.direccion).trim() + "\") — parece un número de comparendo pegado en el campo equivocado."});
+      } else if(String(r.direccion||"").indexOf("\t") !== -1){
+        hallazgos.push({grave:true, texto:"En la casilla de correo/dirección quedó pegada una línea completa con tabulaciones — parece contenido de otro campo."});
+      } else if(!correoParece(r.direccion)){
+        hallazgos.push({grave:false, texto:"La casilla de correo/dirección no parece un correo (\"" + String(r.direccion).trim() + "\") — verifica que sea el dato correcto."});
+      }
+      if(!String(r.direccion||"").trim()){
+        hallazgos.push({grave:false, texto:"No tiene correo ni dirección de notificación."});
+      }
+      // Resolución: los formatos T casi siempre la llevan. Se avisa, nunca se bloquea.
+      if(/^T\d+$/.test(formato) && !String(r.res||"").trim()){
+        hallazgos.push({grave:false, texto:"Formato " + formato + " sin número de resolución."});
+      }
+      if(String(r.res||"").trim() && !String(r.fechaRes||"").trim()){
+        hallazgos.push({grave:false, texto:"Tiene resolución (" + String(r.res).trim() + ") pero le falta la fecha de la resolución."});
+      }
+      // Mismo comparendo en otro expediente distinto.
+      var c = String(r.comparendoCompleto||"").trim();
+      if(c && porComparendo[c] && porComparendo[c].length > 1){
+        var otros = porComparendo[c].filter(function(o){ return o.id !== r.id; })
+          .map(function(o){ return o.radicado; }).join(", ");
+        if(otros){
+          hallazgos.push({grave:true, texto:"El comparendo " + c + " también está en el/los radicado(s) " + otros + " — revisa que no se haya copiado al expediente equivocado."});
+        }
+      }
+
+      if(hallazgos.length){
+        problemas.push({rec:r, hallazgos:hallazgos, grave: hallazgos.some(function(h){ return h.grave; })});
+      }
+    });
+    return {total: elegibles.length, problemas: problemas};
+  }
+
+  // Muestra la revisión y solo continúa (onProceed) si la persona lo confirma. Si no hay ningún
+  // hallazgo, no estorba: sigue de largo sin pedir nada.
+  var pendingPreflightProceed = null;
+  function conRevisionPrevia(onProceed){
+    var informe = auditarDocumentoFinal();
+    if(!informe.problemas.length){ onProceed(); return; }
+    var graves = informe.problemas.filter(function(p){ return p.grave; }).length;
+    document.getElementById("preflightResumen").textContent =
+      "De " + informe.total + " radicado(s) que entrarían al documento final, " + informe.problemas.length +
+      " tiene(n) algo por revisar" + (graves ? " — " + graves + " con un problema GRAVE que saldría mal en la base que entregas." : ".") +
+      " Revísalos antes de enviar; puedes cancelar, corregirlos en el Paso 2, y volver a generar.";
+    document.getElementById("preflightLista").innerHTML = informe.problemas.map(function(p){
+      return '<div class="preflight-item' + (p.grave ? ' grave' : '') + '">' +
+        '<div class="pf-head"><span class="pf-rad">' + escapeHtml(p.rec.radicado) + '</span>' +
+        '<span class="pf-nombre">' + escapeHtml(p.rec.nombreF || p.rec.nombre || "(sin nombre)") + ' · ' + escapeHtml(p.rec.formato||"") + '</span></div>' +
+        '<ul>' + p.hallazgos.map(function(h){
+          return '<li' + (h.grave ? ' class="pf-grave"' : '') + '>' + escapeHtml(h.texto) + '</li>';
+        }).join("") + '</ul></div>';
+    }).join("");
+    pendingPreflightProceed = onProceed;
+    document.getElementById("preflightDialog").showModal();
+  }
+  function informePreflightComoTexto(){
+    var informe = auditarDocumentoFinal();
+    var lineas = ["REVISIÓN PREVIA DEL DOCUMENTO FINAL — " + new Date().toLocaleString("es-CO"),
+      "Radicados que entrarían: " + informe.total + " · con hallazgos: " + informe.problemas.length, ""];
+    informe.problemas.forEach(function(p){
+      lineas.push((p.grave ? "[GRAVE] " : "[AVISO] ") + p.rec.radicado + " — " + (p.rec.nombreF || p.rec.nombre || "(sin nombre)") + " — " + (p.rec.formato||""));
+      p.hallazgos.forEach(function(h){ lineas.push("    " + (h.grave ? "• GRAVE: " : "• ") + h.texto); });
+      lineas.push("");
+    });
+    return lineas.join("\n");
+  }
+  document.getElementById("preflightCancel").addEventListener("click", function(){
+    pendingPreflightProceed = null;
+    document.getElementById("preflightDialog").close();
+  });
+  document.getElementById("preflightProceed").addEventListener("click", function(){
+    var fn = pendingPreflightProceed;
+    pendingPreflightProceed = null;
+    document.getElementById("preflightDialog").close();
+    if(fn) fn();
+  });
+  document.getElementById("preflightCopiarReporte").addEventListener("click", function(){
+    copyOrShowManually(informePreflightComoTexto(), "Lista de revisión copiada", "Revisión previa del documento final");
+  });
+
   function recordToMasivaRow(rec){
     var dict = (state.settings && state.settings.formatToPlantilla) || DEFAULT_SETTINGS.formatToPlantilla;
     var plantilla = dict[(rec.formato||"").trim().toUpperCase()] || "Sin definir";
@@ -4516,17 +4839,23 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       : "Aún no hay radicados clasificados (Formato lleno) para generar el documento final";
   }
 
+  // Los dos caminos que producen el documento que se ENTREGA pasan primero por la revisión previa
+  // (ver conRevisionPrevia / #preflightDialog). Si no hay hallazgos, no estorba: sigue de largo.
   document.getElementById("downloadFinalBtn").addEventListener("click", function(){
     var eligible = finalDocEligible();
     if(!eligible.length){ toast("Aún no hay radicados clasificados (con Formato) para el documento final"); return; }
-    var filename = "MASIVA_" + userSlug() + "_" + new Date().toISOString().slice(0,10);
-    downloadExcel(filename, MASIVA_HEADERS, eligible.map(recordToMasivaRow), "Documento final descargado — " + eligible.length + " radicados");
+    conRevisionPrevia(function(){
+      var filename = "MASIVA_" + userSlug() + "_" + new Date().toISOString().slice(0,10);
+      downloadExcel(filename, MASIVA_HEADERS, eligible.map(recordToMasivaRow), "Documento final descargado — " + eligible.length + " radicados");
+    });
   });
   document.getElementById("copyFinalBtn").addEventListener("click", function(){
     var eligible = finalDocEligible();
     if(!eligible.length){ toast("Aún no hay radicados clasificados (con Formato) para el documento final"); return; }
-    var text = rowsToTSV(MASIVA_HEADERS, eligible.map(recordToMasivaRow));
-    copyOrShowManually(text, eligible.length + " filas copiadas — pégalas en una hoja nueva de Excel", "Documento final (" + eligible.length + " radicados)");
+    conRevisionPrevia(function(){
+      var text = rowsToTSV(MASIVA_HEADERS, eligible.map(recordToMasivaRow));
+      copyOrShowManually(text, eligible.length + " filas copiadas — pégalas en una hoja nueva de Excel", "Documento final (" + eligible.length + " radicados)");
+    });
   });
 
   var confirmDialog = document.getElementById("confirmDialog");
@@ -4568,6 +4897,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     });
     if(state.history.length > 104) state.history = state.history.slice(state.history.length - 104); // ~2 años, no crece sin límite
     saveHistory();
+    // Cierre deliberado de semana: estos radicados SÍ deben salir de la lista activa (su detalle
+    // completo acaba de quedar en el Historial, arriba), así que no deben disparar la alarma de
+    // "desaparecieron sin borrarse a mano" -- ver revisarDesaparecidosAntesDeGuardar().
+    toClose.forEach(function(r){ idsBorradosAdrede[r.id] = true; });
     state.records = toKeep;
     state.records.forEach(function(r,i){ r.order = i; });
     state.activeId = null;
