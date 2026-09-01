@@ -3243,6 +3243,37 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Mirrors the workbook's own metric exactly: REVISION MANUAL!B3 = COUNTBLANK(REVISION_MANUAL[FORMATO]).
   // A row counts as "pendiente por revisar" there if and only if FORMATO is empty — matched here on purpose.
   function isDone(r){ return !!r.formato; }
+
+  // ---------- REGLAS DE NEGOCIO POR FORMATO, EN UN SOLO SITIO ----------
+  // Estas dos funciones existen porque la regla estaba escrita DOS VECES: una en la validación del
+  // Paso 2 (que sí sabía que una "Petición oscura" T10 puede no tener comparendo) y otra, distinta,
+  // dentro de la revisión previa (que no lo sabía, y marcaba como GRAVE cada T10 legítimo -- 9 de
+  // los 9 avisos graves sobre la base real eran exactamente eso). Reglas duplicadas se separan;
+  // desde aquí, las dos partes preguntan lo mismo al mismo sitio.
+
+  // ¿Este formato exige número de comparendo?
+  // - T10 / "Petición oscura": NO. Puede no tener un comparendo real; es válido entregarlo así.
+  // - El formato marcado como "Excepción por formato" en Ajustes (T6 por defecto): NO.
+  // - DEVUELTO y AGENDAMIENTO: no aplican, no entran al documento final.
+  function comparendoEsObligatorio(formato){
+    var f = String(formato||"").trim().toUpperCase();
+    if(f === "T10") return false;
+    var exento = ((state.settings && state.settings.exemptFormato) || "").trim().toUpperCase();
+    if(exento && f === exento) return false;
+    if(f === "DEVUELTO" || f === "AGENDAMIENTO") return false;
+    return true;
+  }
+  // ¿Este formato exige número de resolución? Se deduce de la PLANTILLA que le corresponde en
+  // Ajustes, no de una lista fija: si la plantilla dice "SIN RES." (como "FOTO EXTEMPO SIN RES."
+  // para T6), pedir la resolución es pedir justo lo que ese formato no lleva.
+  function resolucionEsEsperada(formato){
+    var f = String(formato||"").trim().toUpperCase();
+    if(!/^T\d+$/.test(f)) return false;
+    var dict = (state.settings && state.settings.formatToPlantilla) || DEFAULT_SETTINGS.formatToPlantilla;
+    var plantilla = String(dict[f] || "").toUpperCase();
+    if(plantilla.indexOf("SIN RES") !== -1) return false;
+    return true;
+  }
   function hasComparendo(r){ return !!r.comparendoCompleto; }
 
   // Fusiona los radicados de la nube con los que quedaron guardados en ESTE navegador, en vez de
@@ -4378,8 +4409,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var exempted = !!(exempt && formatoVal === exempt) || FIXED_FULL_EXEMPT.indexOf(formatoVal) !== -1;
     if(!exempted){
       REQUIRED_FIELD_META.forEach(function(f){
-        // "Petición oscura" (T10) nunca exige pegar la línea del comparendo -- puede no tener uno real.
-        if(f.key === "comparendo" && formatoVal === "T10") return;
+        if(f.key === "comparendo" && !comparendoEsObligatorio(formatoVal)) return;
         if(settings.required[f.key] && !String(fieldValueFor(rec,f.key)||"").trim()){
           problems.push({wraps:[f.wrapId], message:"Falta completar " + f.label + ".", isImperative:false});
         }
@@ -4919,8 +4949,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var hallazgos = [];
       var formato = (r.formato||"").trim().toUpperCase();
 
-      if(!String(r.comparendoCompleto||"").trim()){
-        hallazgos.push({grave:true, texto:"No tiene número de comparendo: la fila saldría prácticamente vacía (solo radicado y destinatario)."});
+      // Falta el comparendo. Solo es grave en los formatos que SÍ lo exigen: una "Petición oscura"
+      // (T10) puede ir legítimamente sin comparendo, y marcarla en rojo cada semana no protege de
+      // nada -- solo entrena a saltarse la revisión, que es peor que no tenerla.
+      if(!String(r.comparendoCompleto||"").trim() && comparendoEsObligatorio(formato)){
+        hallazgos.push({grave:true, texto:"No tiene número de comparendo, y el formato " + formato + " sí lo exige: la fila saldría prácticamente vacía (solo radicado y destinatario)."});
       }
       // El destinatario. Que NO esté vacío no basta: el corrimiento de columnas de la importación
       // dejaba aquí una FECHA, y esa fila pasaba la revisión sin una sola objeción -- exactamente
@@ -4959,7 +4992,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         hallazgos.push({grave:false, texto:"No tiene correo ni dirección de notificación."});
       }
       // Resolución: los formatos T casi siempre la llevan. Se avisa, nunca se bloquea.
-      if(/^T\d+$/.test(formato) && !String(r.res||"").trim()){
+      if(resolucionEsEsperada(formato) && !String(r.res||"").trim()){
         hallazgos.push({grave:false, texto:"Formato " + formato + " sin número de resolución."});
       }
       if(String(r.res||"").trim() && !String(r.fechaRes||"").trim()){
