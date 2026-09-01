@@ -808,6 +808,7 @@
               <div id="wrap_direccion">
                 <label for="cc_direccion">Dirección<span class="required-mark" id="req_direccion" hidden>*</span></label>
                 <input id="cc_direccion" placeholder="correo o dirección de notificación">
+                <div class="field-hint" id="avisoDireccion" hidden style="color:var(--danger);font-weight:600;"></div>
               </div>
 
               <div class="full" id="wrap_comparendo">
@@ -1028,6 +1029,24 @@
      avance por una regla sería peor). El control tiene que estar aquí, en la SALIDA: antes de generar
      el archivo que se entrega, se revisa fila por fila y se muestra exactamente qué está incompleto o
      es inconsistente, para poder corregirlo ANTES de enviarlo. -->
+<!-- Informe de importación: reemplaza el aviso pasajero que antes resumía el resultado del Paso 1.
+     Se queda en pantalla hasta que la persona lo cierre, dice con qué forma de columnas se leyó el
+     bloque, y nombra fila por fila (con su número de línea) todo lo que no cuadró. -->
+<dialog id="importReportDialog" class="wide-settings" aria-labelledby="importReportTitle">
+  <div class="panel-head">
+    <div><span class="step">Importación</span><h2 id="importReportTitle">Resultado de la importación</h2></div>
+  </div>
+  <div class="panel-body">
+    <p class="panel-desc" id="importReportResumen"></p>
+    <p class="panel-desc" id="importReportForma" style="font-weight:600;"></p>
+    <div id="importReportLista" class="preflight-list"></div>
+  </div>
+  <div class="form-actions" style="flex-wrap:wrap;gap:8px;">
+    <button class="btn" id="importReportCopiar" type="button">Copiar esta lista</button>
+    <button class="btn primary" id="importReportCerrar" type="button">Entendido</button>
+  </div>
+</dialog>
+
 <dialog id="preflightDialog" class="wide-settings" aria-labelledby="preflightTitle">
   <div class="panel-head">
     <div><span class="step">Revisión previa</span><h2 id="preflightTitle">Antes de generar el documento final</h2></div>
@@ -1247,6 +1266,16 @@
           <button class="btn ghost small" id="papeleraDescargar" type="button">Descargar papelera (.json)</button>
         </div>
         <div id="papeleraLista" class="preflight-list"></div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Constancia de entregas</h3>
+        <p class="hint">Cada vez que generas el documento final, queda anotado aquí <b>qué día fue, cuántas filas llevaba y en qué estado estaba</b> — incluido si decidiste continuar a pesar de un aviso grave, y cuál era. Sirve para poder responder con fecha y detalle qué se entregó, en vez de reconstruirlo de memoria. Se guarda en este navegador; se conservan las últimas 200.</p>
+        <div class="toolbar" style="margin:12px 0;">
+          <button class="btn ghost small" id="entregasRefrescar" type="button">Actualizar lista</button>
+          <button class="btn ghost small" id="entregasDescargar" type="button">Descargar constancias (.json)</button>
+        </div>
+        <div id="entregasLista" class="preflight-list"></div>
       </div>
     </div>
   </div>
@@ -2456,8 +2485,50 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     ["general","clasificacion","informes","papelera"].forEach(function(t){
       document.getElementById("stab-"+t).style.display = (t===tab) ? "block" : "none";
     });
-    if(tab === "papelera") renderPapelera();
+    if(tab === "papelera"){ renderPapelera(); renderEntregas(); }
   }
+  // ---------- Ajustes → Constancia de entregas ----------
+  function renderEntregas(){
+    var cont = document.getElementById("entregasLista");
+    if(!cont) return;
+    var entregas = leerEntregas();
+    if(!entregas.length){
+      cont.innerHTML = '<div class="preflight-ok">Todavía no has generado ningún documento final desde este navegador.</div>';
+      return;
+    }
+    cont.innerHTML = entregas.map(function(en){
+      var cuando = "";
+      try{ cuando = new Date(en.fecha).toLocaleString("es-CO"); }catch(e){ cuando = en.fecha || ""; }
+      var detalle = "";
+      if(en.detalleGraves && en.detalleGraves.length){
+        detalle = '<ul>' + en.detalleGraves.map(function(d){
+          return '<li><b>' + escapeHtml(d.radicado) + '</b> — ' + escapeHtml(d.nombre||"") + ': ' +
+                 escapeHtml((d.motivos||[]).join(" · ")) + '</li>';
+        }).join("") + '</ul>';
+      }
+      return '<div class="preflight-item' + (en.seContinuoConGraves ? ' grave' : '') + '">' +
+        '<div class="pf-head"><span class="pf-rad">' + escapeHtml(cuando) + '</span>' +
+        '<span class="pf-nombre">' + en.filas + ' fila(s)</span></div>' +
+        '<ul><li>' + (en.graves
+            ? (en.seContinuoConGraves
+                ? 'Se generó <b>a pesar de ' + en.graves + ' problema(s) grave(s)</b>.'
+                : en.graves + ' problema(s) grave(s) detectados.')
+            : 'Sin problemas graves.') +
+          (en.conHallazgos ? ' ' + en.conHallazgos + ' radicado(s) con algo por revisar.' : '') +
+        '</li></ul>' + detalle + '</div>';
+    }).join("");
+  }
+  document.getElementById("entregasRefrescar").addEventListener("click", renderEntregas);
+  document.getElementById("entregasDescargar").addEventListener("click", function(){
+    var datos = JSON.stringify(leerEntregas(), null, 2);
+    var blob = new Blob([datos], {type:"application/json"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "constancias-entregas-" + new Date().toISOString().slice(0,10) + ".json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    toast("Constancias descargadas");
+  });
   // ---------- Ajustes → Papelera: consultar y restaurar lo que salió de la lista ----------
   function renderPapelera(){
     var cont = document.getElementById("papeleraLista");
@@ -3531,42 +3602,180 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
 
   // ---------- Paso 1: bulk import ----------
+  // ---------- IMPORTACIÓN (Paso 1) ----------
+  // Esta función se reescribió por completo después de reproducir, con datos reales, el defecto que
+  // provocó la devolución de la base desde la jefatura. Lo que hacía antes: decidía la forma de las
+  // columnas LÍNEA POR LÍNEA, mirando si la columna B de ESA línea venía vacía. Como la fuente trae
+  // una columna de correo que está llena en unas filas y vacía en otras, un mismo pegado se leía con
+  // DOS mapeos distintos a la vez: las filas con correo se corrían una columna y el nombre real se
+  // perdía sin dejar rastro (el destinatario terminaba siendo una fecha). Ahora la forma se decide
+  // UNA SOLA VEZ para todo el bloque, y además cada fila se revisa antes de entrar.
+  //
+  // ¿Es una fecha reconocible? Se usa para decidir la forma del bloque y para avisar fila por fila.
+  function pareceFecha(v){
+    var s = cleanSpaces(v || "");
+    if(!s) return false;
+    return parseDMY(normalizeDate(s)) !== null;
+  }
+  // ¿Esto parece el nombre de una persona? Sirve para no dejar pasar un destinatario que en realidad
+  // es una fecha o un número (exactamente el daño que producía el corrimiento de columnas).
+  function pareceNombrePersona(v){
+    var s = cleanSpaces(v || "");
+    if(!s) return false;
+    if(pareceFecha(s)) return false;
+    if(/^[\d\s.,\/-]+$/.test(s)) return false; // solo dígitos y signos: no es un nombre
+    return /[A-Za-zÁÉÍÓÚÑáéíóúñ]{2,}/.test(s);
+  }
+  // Decide, para TODO el bloque a la vez, en qué columnas vienen las fechas y el nombre. Se prueban
+  // los dos desplazamientos conocidos (con y sin la columna de correo delante de las fechas) y gana
+  // el que deje más filas coherentes: dos fechas de verdad y un nombre que parezca un nombre.
+  function detectarFormaDelBloque(filas){
+    var candidatos = [
+      {desp:0, fRad:1, fAsig:2, nombre:3, etiqueta:"RADICADO · FECHA RADICACIÓN · FECHA ASIGNACIÓN · NOMBRE"},
+      {desp:1, fRad:2, fAsig:3, nombre:4, etiqueta:"RADICADO · CORREO/DIRECCIÓN · FECHA RADICACIÓN · FECHA ASIGNACIÓN · NOMBRE"}
+    ];
+    var mejor = null;
+    candidatos.forEach(function(c){
+      var puntos = 0, aplicables = 0;
+      filas.forEach(function(cells){
+        if(cells.length <= c.nombre) return;
+        aplicables++;
+        if(pareceFecha(cells[c.fRad])) puntos += 2;
+        if(pareceFecha(cells[c.fAsig])) puntos += 2;
+        if(pareceNombrePersona(cells[c.nombre])) puntos += 3;
+      });
+      c.puntos = puntos; c.aplicables = aplicables;
+      if(!mejor || puntos > mejor.puntos) mejor = c;
+    });
+    return mejor || candidatos[0];
+  }
   function parseBulkImport(text){
     var lines = text.split(/\r\n|\r|\n/).map(function(l){return l.trim();}).filter(function(l){return l.length>0;});
     var existing = {}; state.records.forEach(function(r){ existing[r.radicado] = true; });
-    var added = 0, dup = 0, headerSkipped = 0, tooShort = 0, extraCols = 0;
+    var added = 0, dup = 0, headerSkipped = 0, tooShort = 0;
     var nextOrder = state.records.length;
     var firstNewId = null;
-    lines.forEach(function(line){
+    var avisos = [];       // fila por fila: qué entró raro y por qué
+    var omitidas = [];     // fila por fila: qué NO entró y por qué
+    var duplicadas = [];
+
+    // Primera pasada: separar en celdas y descartar encabezado/vacías, SIN interpretar todavía.
+    var filas = [];
+    lines.forEach(function(line, i){
       var cells = line.split("\t");
-      if(cells.length < 4) cells = line.split(/\s{2,}/);
-      if(cells.length < 4){ tooShort++; return; }
+      var separadoPorEspacios = false;
+      if(cells.length < 4){ cells = line.split(/\s{2,}/); separadoPorEspacios = true; }
       var radicado = cleanSpaces(cells[0]||"");
       if(/^radicado$/i.test(radicado)){ headerSkipped++; return; }
       if(!radicado) return;
-      if(existing[radicado]){ dup++; return; }
-      // Two known shapes: 4 contiguous columns (radicado, f.radicación, f.asignación, nombre),
-      // or the 5-column export format used in tu fuente (radicado, columna B vacía, f.radicación, f.asignación, nombre/remitente).
-      var fRad, fAsig, nombre;
-      if(cells.length >= 5 && !String(cells[1]||"").trim()){
-        fRad = cells[2]; fAsig = cells[3]; nombre = cells[4];
-      } else {
-        fRad = cells[1]; fAsig = cells[2]; nombre = cells[3];
-        if(cells.length > 4) extraCols++;
+      if(cells.length < 4){
+        tooShort++;
+        omitidas.push({linea:i+1, radicado:radicado, motivo:"la línea trae menos de 4 columnas — no se pudo saber dónde están las fechas ni el nombre"});
+        return;
       }
+      filas.push({cells:cells, radicado:radicado, linea:i+1, porEspacios:separadoPorEspacios});
+    });
+
+    var forma = detectarFormaDelBloque(filas.map(function(f){ return f.cells; }));
+
+    filas.forEach(function(f){
+      var cells = f.cells;
+      if(existing[f.radicado]){
+        dup++;
+        duplicadas.push({linea:f.linea, radicado:f.radicado});
+        return;
+      }
+      var fRad = cells[forma.fRad], fAsig = cells[forma.fAsig], nombre = cells[forma.nombre];
+
+      // Revisión fila por fila ANTES de aceptarla. Nada se descarta por esto -- el avance no se
+      // pierde nunca -- pero todo lo que no cuadre queda dicho por escrito, con su número de línea.
+      if(!pareceFecha(fRad)){
+        avisos.push({linea:f.linea, radicado:f.radicado, texto:"la fecha de radicación quedó como \"" + cleanSpaces(fRad||"(vacío)") + "\", que no es una fecha"});
+      }
+      if(!pareceFecha(fAsig)){
+        avisos.push({linea:f.linea, radicado:f.radicado, texto:"la fecha de asignación quedó como \"" + cleanSpaces(fAsig||"(vacío)") + "\", que no es una fecha"});
+      }
+      if(!pareceNombrePersona(nombre)){
+        avisos.push({linea:f.linea, radicado:f.radicado, texto:"el destinatario quedó como \"" + cleanSpaces(nombre||"(vacío)") + "\", que no parece el nombre de una persona"});
+      }
+      if(f.porEspacios){
+        avisos.push({linea:f.linea, radicado:f.radicado, texto:"esta línea no traía tabulaciones, se separó por espacios — si el nombre venía con dobles espacios pudo quedar cortado"});
+      }
+      if(cells.length > forma.nombre + 1){
+        avisos.push({linea:f.linea, radicado:f.radicado, texto:"la línea traía " + cells.length + " columnas, más de las esperadas — se tomaron solo las 4 necesarias"});
+      }
+
       var rec = blankRecord();
       rec.order = nextOrder++;
-      rec.radicado = radicado;
+      rec.radicado = f.radicado;
       rec.fechaRadicacion = normalizeDate(fRad);
       rec.fechaAsignacion = normalizeDate(fAsig);
       rec.nombre = cleanSpaces(nombre||"");
       state.records.push(rec);
-      existing[radicado] = true;
+      existing[f.radicado] = true;
       if(!firstNewId) firstNewId = rec.id;
       added++;
     });
-    return { added: added, dup: dup, headerSkipped: headerSkipped, tooShort: tooShort, extraCols: extraCols, firstNewId: firstNewId };
+    return {
+      added: added, dup: dup, headerSkipped: headerSkipped, tooShort: tooShort,
+      firstNewId: firstNewId, forma: forma, avisos: avisos, omitidas: omitidas, duplicadas: duplicadas
+    };
   }
+
+  // Arma y muestra el informe de la importación. Si no hubo absolutamente nada que señalar, no
+  // estorba: se limita al aviso corto de siempre.
+  var ultimoInformeImportacion = "";
+  function mostrarInformeImportacion(res){
+    var hayQueDecir = res.avisos.length || res.omitidas.length || res.tooShort || res.dup;
+    if(!hayQueDecir){
+      toast(res.added + " radicados importados, todos correctos.");
+      return;
+    }
+    var resumen = res.added + " radicado(s) importados.";
+    if(res.dup) resumen += " " + res.dup + " ya estaban en la lista y se omitieron.";
+    if(res.omitidas.length) resumen += " " + res.omitidas.length + " línea(s) NO se pudieron importar.";
+    if(res.avisos.length) resumen += " " + res.avisos.length + " dato(s) entraron pero no cuadran — revísalos antes de trabajarlos.";
+    document.getElementById("importReportResumen").textContent = resumen;
+    document.getElementById("importReportForma").textContent =
+      "El bloque se leyó con esta forma de columnas: " + res.forma.etiqueta +
+      ". Si eso no corresponde a lo que pegaste, no sigas: corrige el bloque en tu fuente y vuelve a importar.";
+
+    var texto = [resumen, res.forma.etiqueta, ""];
+    var html = "";
+    if(res.omitidas.length){
+      html += '<div class="preflight-card grave"><div class="pf-head"><b>No entraron a la lista</b></div><ul>';
+      res.omitidas.forEach(function(o){
+        var l = "Línea " + o.linea + " (" + o.radicado + "): " + o.motivo;
+        html += "<li>" + escapeHtml(l) + "</li>"; texto.push("NO ENTRÓ · " + l);
+      });
+      html += "</ul></div>";
+    }
+    if(res.avisos.length){
+      html += '<div class="preflight-card"><div class="pf-head"><b>Entraron, pero hay algo que no cuadra</b></div><ul>';
+      res.avisos.forEach(function(a){
+        var l = "Línea " + a.linea + " (" + a.radicado + "): " + a.texto;
+        html += "<li>" + escapeHtml(l) + "</li>"; texto.push("REVISAR · " + l);
+      });
+      html += "</ul></div>";
+    }
+    if(res.duplicadas.length){
+      html += '<div class="preflight-card"><div class="pf-head"><b>Ya estaban en la lista (se omitieron, no se duplicaron)</b></div><ul>';
+      res.duplicadas.forEach(function(d){
+        var l = "Línea " + d.linea + ": " + d.radicado;
+        html += "<li>" + escapeHtml(l) + "</li>"; texto.push("YA ESTABA · " + l);
+      });
+      html += "</ul></div>";
+    }
+    document.getElementById("importReportLista").innerHTML = html;
+    ultimoInformeImportacion = texto.join("\n");
+    document.getElementById("importReportDialog").showModal();
+  }
+  document.getElementById("importReportCerrar").addEventListener("click", function(){
+    document.getElementById("importReportDialog").close();
+  });
+  document.getElementById("importReportCopiar").addEventListener("click", function(){
+    copyOrShowManually(ultimoInformeImportacion, "Informe de importación copiado", "Resultado de la importación");
+  });
 
   document.getElementById("importBtn").addEventListener("click", function(){
     var ta = document.getElementById("bulkPaste");
@@ -3578,10 +3787,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // radicado más urgente, no simplemente el primero de la lista pegada.
     save(); renderAll();
     ta.value = "";
-    var msg = res.added + " radicados importados.";
-    if(res.dup) msg += " " + res.dup + " ya existían y se omitieron.";
-    if(res.tooShort) msg += " " + res.tooShort + " líneas no se reconocieron.";
-    toast(msg);
+    // El resultado de una importación NO puede seguir siendo un aviso pasajero: "3 líneas no se
+    // reconocieron" desaparecía en segundos y no quedaba constancia de CUÁLES ni por qué -- una vía
+    // perfectamente plausible de "se me perdieron 2 radicados sin saber cómo". Ahora, si hay algo
+    // que decir, queda en pantalla hasta que la persona lo cierre, con el número de línea de cada
+    // caso y la posibilidad de copiarlo.
+    mostrarInformeImportacion(res);
     // El recordatorio de respaldo también se revisa aquí (no solo al iniciar sesión): es muy común
     // pegar la masiva de la semana recién se entra, así que a esa altura, en el login, todavía no
     // había nada que respaldar.
@@ -3673,6 +3884,31 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     renderInsights();
   });
   document.getElementById("cc_formato").addEventListener("input", renderInsights);
+
+  // GUARDIA EN LA CASILLA DEL CORREO. El segundo defecto que devolvió la jefatura fue "en el espacio
+  // de correo electrónico venía el número de comparendo". Ninguna regla lo impedía: este campo
+  // aceptaba cualquier cosa sin una sola objeción, y el error solo se veía -- si se veía -- cuando ya
+  // estaba entregado. Se avisa AQUÍ, en el momento exacto de pegarlo, que es cuando cuesta cinco
+  // segundos arreglarlo. Nunca bloquea ni borra lo escrito: solo lo dice.
+  (function(){
+    var input = document.getElementById("cc_direccion");
+    var aviso = document.getElementById("avisoDireccion");
+    function revisar(){
+      var v = input.value;
+      var texto = "";
+      if(pareceNumeroDeComparendo(v)){
+        texto = "Ojo: esto parece un número de comparendo, no un correo. Revisa que no lo hayas pegado en la casilla equivocada.";
+      } else if(pareceLineaDeOtroCampo(v)){
+        texto = "Ojo: aquí quedó pegada una línea completa de otro campo (parece la línea de Fénix). Debería ir en “Pegar línea completa del comparendo”.";
+      }
+      aviso.textContent = texto;
+      aviso.hidden = !texto;
+    }
+    input.addEventListener("input", revisar);
+    input.addEventListener("blur", revisar);
+    // También al cambiar de radicado, para que el aviso corresponda siempre al que está en pantalla.
+    document.addEventListener("radicado:seleccionado", revisar);
+  })();
 
   // ---------- desplegable de sugerencias de Formato, construido a mano (ver la nota junto a
   // ".formato-dropdown" en el CSS sobre por qué NO se usa <datalist> nativo) ----------
@@ -3968,6 +4204,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("cc_comparendo").value = rec.comparendoRaw || "";
     renderBreakdown(parseComparendoLine(rec.comparendoRaw || ""));
     renderInsights();
+    // Vuelve a evaluar la guardia de la casilla del correo para el radicado que acaba de abrirse,
+    // para que el aviso corresponda siempre a lo que está en pantalla (y desaparezca si está bien).
+    document.dispatchEvent(new Event("radicado:seleccionado"));
 
     document.getElementById("baseEditFields").classList.remove("open");
     clearFieldErrors();
@@ -4654,6 +4893,16 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var s = String(valor||"").trim();
     return /^\d{10,}$/.test(s.replace(/\s+/g,""));
   }
+  // ¿Esto es la línea de OTRO campo pegada aquí por error? El caso concreto: la línea completa de
+  // Fénix (comparendo, código, fechas, medio, estado, documento, nombre...) pegada en la casilla del
+  // correo. Al guardarse, cleanSpaces() ya convirtió sus tabuladores en espacios, así que hay que
+  // reconocerla por su forma: empieza con un número largo de comparendo y detrás vienen más datos.
+  function pareceLineaDeOtroCampo(valor){
+    var s = String(valor||"").trim();
+    if(!s || s.indexOf("@") !== -1) return false; // si trae un correo, es un correo
+    if(/^\d{10,}\s+\S/.test(s)) return true;       // número largo + algo más detrás
+    return s.split(/\s+/).length >= 6 && /\d{6,}/.test(s); // muchos trozos y un número largo adentro
+  }
   function auditarDocumentoFinal(){
     var elegibles = finalDocEligible();
     var problemas = [];
@@ -4673,15 +4922,36 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(!String(r.comparendoCompleto||"").trim()){
         hallazgos.push({grave:true, texto:"No tiene número de comparendo: la fila saldría prácticamente vacía (solo radicado y destinatario)."});
       }
-      if(!String(r.nombreF||r.nombre||"").trim()){
+      // El destinatario. Que NO esté vacío no basta: el corrimiento de columnas de la importación
+      // dejaba aquí una FECHA, y esa fila pasaba la revisión sin una sola objeción -- exactamente
+      // la fila que devolvió la jefatura. Ahora se exige que parezca el nombre de una persona.
+      var destinatario = String(r.nombreF || r.nombre || "").trim();
+      if(!destinatario){
         hallazgos.push({grave:true, texto:"No tiene nombre de destinatario."});
+      } else if(!pareceNombrePersona(destinatario)){
+        hallazgos.push({grave:true, texto:"El destinatario es \"" + destinatario + "\", que no parece el nombre de una persona — casi seguro las columnas se corrieron al importar y el nombre real se perdió. Verifícalo contra tu fuente antes de entregar."});
       }
+      // Las fechas base: si aquí quedó un correo o cualquier cosa que no sea una fecha, es la misma
+      // señal de corrimiento, vista desde el otro lado.
+      ["fechaRadicacion","fechaAsignacion"].forEach(function(campo){
+        var v = String(r[campo]||"").trim();
+        var etiqueta = campo === "fechaRadicacion" ? "La fecha de radicación" : "La fecha de asignación";
+        if(v && !pareceFecha(v)){
+          hallazgos.push({grave:true, texto:etiqueta + " es \"" + v + "\", que no es una fecha — señal de que las columnas se corrieron al importar este radicado."});
+        }
+      });
       // La casilla del correo con un número largo adentro = casi seguro un comparendo pegado en el
       // campo equivocado (el error exacto que se reportó desde la jefatura).
       if(pareceNumeroDeComparendo(r.direccion)){
         hallazgos.push({grave:true, texto:"En la casilla de correo/dirección hay un número largo (\"" + String(r.direccion).trim() + "\") — parece un número de comparendo pegado en el campo equivocado."});
-      } else if(String(r.direccion||"").indexOf("\t") !== -1){
-        hallazgos.push({grave:true, texto:"En la casilla de correo/dirección quedó pegada una línea completa con tabulaciones — parece contenido de otro campo."});
+      } else if(pareceLineaDeOtroCampo(r.direccion)){
+        // Antes esto buscaba un tabulador dentro de la dirección -- y era código MUERTO: cleanSpaces()
+        // convierte los tabuladores en espacios ANTES de guardar, así que nunca podía dispararse. El
+        // peor caso posible (la línea completa de Fénix pegada en la casilla del correo) tampoco lo
+        // atrapaba la comprobación del número largo, porque esa línea trae letras y barras y no es
+        // solo dígitos: terminaba degradado a un aviso menor. Ahora se detecta por lo que realmente
+        // es: un número de comparendo largo seguido de más columnas pegadas detrás.
+        hallazgos.push({grave:true, texto:"En la casilla de correo/dirección quedó pegada una línea completa de otro campo (\"" + String(r.direccion).trim().slice(0,60) + "…\") — parece la línea de Fénix pegada en el lugar equivocado."});
       } else if(!correoParece(r.direccion)){
         hallazgos.push({grave:false, texto:"La casilla de correo/dirección no parece un correo (\"" + String(r.direccion).trim() + "\") — verifica que sea el dato correcto."});
       }
@@ -4717,7 +4987,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   var pendingPreflightProceed = null;
   function conRevisionPrevia(onProceed){
     var informe = auditarDocumentoFinal();
-    if(!informe.problemas.length){ onProceed(); return; }
+    if(!informe.problemas.length){ registrarEntrega(false); onProceed(); return; }
     var graves = informe.problemas.filter(function(p){ return p.grave; }).length;
     document.getElementById("preflightResumen").textContent =
       "De " + informe.total + " radicado(s) que entrarían al documento final, " + informe.problemas.length +
@@ -4753,8 +5023,46 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var fn = pendingPreflightProceed;
     pendingPreflightProceed = null;
     document.getElementById("preflightDialog").close();
+    // Queda constancia de haber generado la base a pesar de los hallazgos: qué día, cuántas filas,
+    // cuántos problemas graves y cuáles. No es para vigilar a nadie -- es exactamente lo contrario:
+    // es poder decir con fecha y detalle qué se entregó y en qué estado estaba, en vez de tener que
+    // reconstruirlo de memoria si alguien lo pregunta después.
+    registrarEntrega(true);
     if(fn) fn();
   });
+
+  // ---------- CONSTANCIA DE ENTREGA ----------
+  // Cada vez que se genera el documento final queda anotado, en este navegador, qué se generó y en
+  // qué condiciones. Es local a propósito, igual que la papelera: sirve justo cuando la nube falla.
+  var ENTREGAS_KEY = "radicados_entregas_v1";
+  function entregasKeyFor(emailId){ return ENTREGAS_KEY + "::" + emailId; }
+  function leerEntregas(){
+    if(!state.profile.activeUser) return [];
+    try{ var raw = localStorage.getItem(entregasKeyFor(state.profile.activeUser)); return raw ? JSON.parse(raw) : []; }
+    catch(e){ return []; }
+  }
+  function registrarEntrega(huboHallazgosAceptados){
+    if(!state.profile.activeUser) return;
+    var informe = auditarDocumentoFinal();
+    var graves = informe.problemas.filter(function(p){ return p.grave; });
+    var entrada = {
+      fecha: new Date().toISOString(),
+      filas: informe.total,
+      conHallazgos: informe.problemas.length,
+      graves: graves.length,
+      seContinuoConGraves: !!huboHallazgosAceptados && graves.length > 0,
+      detalleGraves: graves.map(function(p){
+        return { radicado: p.rec.radicado, nombre: p.rec.nombreF || p.rec.nombre || "",
+                 motivos: p.hallazgos.filter(function(h){ return h.grave; }).map(function(h){ return h.texto; }) };
+      })
+    };
+    try{
+      var lista = leerEntregas();
+      lista.unshift(entrada);
+      if(lista.length > 200) lista = lista.slice(0, 200);
+      localStorage.setItem(entregasKeyFor(state.profile.activeUser), JSON.stringify(lista));
+    }catch(e){}
+  }
   document.getElementById("preflightCopiarReporte").addEventListener("click", function(){
     copyOrShowManually(informePreflightComoTexto(), "Lista de revisión copiada", "Revisión previa del documento final");
   });
