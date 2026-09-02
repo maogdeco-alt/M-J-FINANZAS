@@ -4,6 +4,13 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
+    # SAMEORIGIN, no DENY. La ventana flotante (Picture-in-Picture) monta un <iframe> que carga
+    # ESTA MISMA página con #flotante=1, y "DENY" prohíbe enmarcarla incluso desde su propio
+    # origen: comprobado sirviendo la app con cada valor, con DENY el navegador responde
+    # "Refused to display ... because it set 'X-Frame-Options' to 'deny'" y la ventana flotante
+    # queda en blanco. SAMEORIGIN sigue impidiendo que CUALQUIER OTRO sitio la enmarque -- que es
+    # de lo que protege este encabezado -- y deja pasar el único caso legítimo, el de la app
+    # consigo misma.
+    X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
