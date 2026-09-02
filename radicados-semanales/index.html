@@ -313,6 +313,7 @@
   html.es-flotante #saveStatus.error{background:var(--stamp-soft);border-color:var(--stamp);}
   html.es-flotante #paso1Accordion,
   html.es-flotante #agendaTriggerSection,
+  html.es-flotante #historialTriggerSection,
   html.es-flotante #paso3Section,
   html.es-flotante .wrap > footer.note{display:none;} /* Paso 3 (exportar/respaldar) y el pie de página explicativo tampoco hacen falta para ir diligenciando -- siguen en la pestaña principal */
   html.es-flotante #paso2Section{border:0;box-shadow:none;border-radius:0;margin-bottom:0;}
@@ -407,6 +408,19 @@
   .agenda-item .ai-dup{margin-top:7px;font-size:0.78rem;color:var(--stamp);font-weight:700;}
   /* Resumen de un vistazo, arriba de la lista de agendamientos: cuántos hay en cada estado. */
   .agenda-resumen{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px;}
+  /* Historial de radicados */
+  .historial-resumen{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;}
+  .hist-item{padding:10px 12px;border-radius:8px;border:1px solid var(--border);margin-bottom:7px;background:var(--surface);}
+  .hist-item.borrado{opacity:.75;border-style:dashed;}
+  .hist-detalle{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);
+    display:grid;grid-template-columns:minmax(220px,1fr) minmax(240px,1.4fr);gap:16px;}
+  @media (max-width:640px){ .hist-detalle{grid-template-columns:1fr;} }
+  .hist-recorrido b{font-size:0.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+  .hist-recorrido ol{margin:6px 0 0;padding-left:18px;font-size:0.82rem;}
+  .hist-recorrido li{margin-bottom:7px;}
+  .hist-ficha{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px;margin:0;font-size:0.8rem;}
+  .hist-ficha dt{color:var(--muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;}
+  .hist-ficha dd{margin:1px 0 0;font-weight:600;overflow-wrap:anywhere;}
   /* Edición dentro de la propia ventana de Agendamientos (ver formularioAgendaInline). */
   .agenda-item .ai-edit{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);}
   .agenda-item .ai-edit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
@@ -879,6 +893,25 @@
     </button>
   </section>
 
+  <!-- HISTORIAL DE RADICADOS: la memoria completa. Reúne en un solo sitio los radicados de la
+       lista de esta semana, los de TODAS las semanas ya cerradas y los que están en la papelera,
+       para poder buscar cualquiera meses después y ver qué pasó con él. -->
+  <section class="panel" id="historialTriggerSection">
+    <button class="agenda-trigger" id="historialTriggerBtn" type="button">
+      <span class="at-left">
+        <span class="at-icon">🗂️</span>
+        <span>
+          <strong>Historial de radicados</strong>
+          <span class="at-sub">Todos los que has trabajado — busca cualquiera y mira qué pasó</span>
+        </span>
+      </span>
+      <span class="at-right">
+        <span class="pill" id="historialTriggerBadge">0 radicados</span>
+        <span class="at-arrow">Abrir →</span>
+      </span>
+    </button>
+  </section>
+
   <!-- PASO 3: entregar y respaldar -->
   <section class="panel" id="paso3Section">
     <div class="panel-head">
@@ -996,6 +1029,46 @@
 <!-- Dialog: Agendamientos -- vive completamente aparte, no ocupa espacio en la pantalla principal
      mientras está cerrado (ver #agendaTriggerBtn). Formato = AGENDAMIENTO nunca entra a la masiva --
      tiene su propio Excel descargable, distinto al de finalDocEligible(). -->
+<!-- HISTORIAL DE RADICADOS. Reúne las TRES fuentes que hasta ahora no se hablaban entre sí: la
+     lista de esta semana, los radicados de cada semana ya cerrada, y la papelera. Un mismo radicado
+     puede aparecer en varias (se reimportó, se cerró, se borró): por eso se agrupa POR RADICADO y se
+     muestra su recorrido completo en orden, que es lo que de verdad responde "¿qué pasó con este?". -->
+<dialog id="historialDialog" class="wide-settings" aria-labelledby="historialDialogTitle">
+  <div class="panel-head">
+    <div><span class="step">Memoria completa</span><h2 id="historialDialogTitle">Historial de radicados</h2></div>
+    <div class="toolbar">
+      <div class="search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="historialSearch" placeholder="Buscar radicado, nombre, comparendo, documento, placa, correo, resolución...">
+      </div>
+    </div>
+  </div>
+  <div class="panel-body">
+    <p class="panel-desc" style="margin-top:0;">Aquí está <b>todo radicado que hayas trabajado</b>, sin importar cómo lo clasificaste: los de la lista de esta semana, los de todas las semanas ya cerradas y los que borraste. Busca cualquiera y verás su recorrido completo — cómo quedó clasificado, si salió en la base que entregaste, y en qué semana se cerró.</p>
+    <div class="historial-resumen" id="historialResumen"></div>
+    <div class="filter-tabs" id="historialFilterTabs" style="margin-bottom:10px;flex-wrap:wrap;">
+      <button data-histfilter="all" class="active">Todos</button>
+      <button data-histfilter="masiva">Entregados en la masiva</button>
+      <button data-histfilter="agenda">Agendamientos</button>
+      <button data-histfilter="devuelto">Devueltos</button>
+      <button data-histfilter="sinclasificar">Sin clasificar</button>
+      <button data-histfilter="papelera">Borrados</button>
+    </div>
+    <div class="queue-count" id="historialCount">0 radicados</div>
+    <div class="queue-panel" id="historialPanel" style="max-height:440px;"></div>
+    <div class="import-actions" style="margin-top:14px;flex-wrap:wrap;justify-content:space-between;align-items:center;">
+      <span class="hint" id="historialNota"></span>
+      <span style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn" id="historialCopiar" type="button">Copiar lo que estoy viendo</button>
+        <button class="btn primary" id="historialDescargar" type="button">Descargar Excel (.xlsx)</button>
+      </span>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn ghost" id="historialDialogClose" type="button">Cerrar</button>
+  </div>
+</dialog>
+
 <dialog id="agendaDialog" class="wide-settings" aria-labelledby="agendaDialogTitle">
   <div class="panel-head">
     <div><span class="step">Ventana aparte</span><h2 id="agendaDialogTitle">Agendamientos</h2></div>
@@ -3695,11 +3768,200 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         '<button class="btn ghost small" data-agendacancelar="1" type="button">Cancelar</button>' +
       '</div></div>';
   }
+  // ============================================================
+  // HISTORIAL DE RADICADOS — la memoria completa
+  // ------------------------------------------------------------
+  // Hasta ahora, lo que le pasó a un radicado estaba repartido en tres sitios que no se hablaban:
+  // la lista viva, los registros de cada semana cerrada, y la papelera. Para responder "¿qué pasó
+  // con este radicado?" meses después había que abrir los tres y comparar a mano. Esto los une.
+  //
+  // Traduce la clasificación de un radicado a lo que REALMENTE le ocurrió, en palabras.
+  function queLePaso(rec){
+    var f = (rec.formato||"").trim().toUpperCase();
+    if(!f) return {clave:"sinclasificar", texto:"Quedó sin clasificar", tono:"warn"};
+    if(f === "DEVUELTO") return {clave:"devuelto", texto:"Se devolvió al sistema sin trabajarlo", tono:"warn"};
+    if(f === "AGENDAMIENTO"){
+      var info = agendamientoInfo(rec);
+      var det = rec.agendado ? "audiencia ya agendada"
+        : (info.dias === null ? "sin fechas para calcular el término"
+        : (info.vencido ? "quedó FUERA de término" : "estaba dentro de término"));
+      return {clave:"agenda", texto:"Agendamiento — " + det, tono: (!rec.agendado && info.vencido) ? "danger" : "ok"};
+    }
+    var dict = (state.settings && state.settings.formatToPlantilla) || DEFAULT_SETTINGS.formatToPlantilla;
+    var plantilla = dict[f] || "";
+    return {clave:"masiva", texto:"Entregado en la base como " + f + (plantilla ? " (" + plantilla + ")" : ""), tono:"ok"};
+  }
+  // Recorre las tres fuentes y agrupa POR NÚMERO DE RADICADO. Cada aparición conserva de dónde
+  // salió y cuándo, para poder reconstruir el recorrido en orden.
+  function historialUnificado(){
+    var porRadicado = {};
+    function agregar(rec, origen, cuando, extra){
+      var num = String(rec && rec.radicado || "").trim();
+      if(!num) return;
+      var g = porRadicado[num] || (porRadicado[num] = {radicado:num, apariciones:[]});
+      g.apariciones.push(Object.assign({rec:rec, origen:origen, cuando:cuando||""}, extra||{}));
+    }
+    state.records.forEach(function(r){
+      agregar(r, "activa", r.modificadoEn ? new Date(r.modificadoEn).toISOString() : "");
+    });
+    (state.history||[]).forEach(function(h){
+      (h.records||[]).forEach(function(r){
+        agregar(r, "semana", h.closedAt, {semana:h.closedAtDisplay || "", weekLabel:h.weekLabel || ""});
+      });
+    });
+    leerPapelera().forEach(function(e){
+      if(e && e.registro) agregar(e.registro, "papelera", e.borradoEn, {motivo:e.motivo||"", desde:e.desde||""});
+    });
+    return Object.keys(porRadicado).map(function(num){
+      var g = porRadicado[num];
+      // Más reciente primero dentro de cada radicado; la aparición viva siempre encabeza.
+      g.apariciones.sort(function(a,b){
+        if(a.origen === "activa" && b.origen !== "activa") return -1;
+        if(b.origen === "activa" && a.origen !== "activa") return 1;
+        return String(b.cuando||"").localeCompare(String(a.cuando||""));
+      });
+      g.principal = g.apariciones[0];
+      g.estado = queLePaso(g.principal.rec);
+      g.enPapelera = g.apariciones.some(function(a){ return a.origen === "papelera"; });
+      g.enLista = g.apariciones.some(function(a){ return a.origen === "activa"; });
+      return g;
+    }).sort(function(a,b){
+      // Lo más reciente arriba: es lo que casi siempre se está buscando.
+      return String(b.principal.cuando||"").localeCompare(String(a.principal.cuando||""));
+    });
+  }
+  function historialFiltrado(){
+    var busq = (state.historialSearch || "").trim().toUpperCase();
+    var filtro = state.historialFilter || "all";
+    return historialUnificado().filter(function(g){
+      if(filtro === "papelera"){ if(!g.enPapelera) return false; }
+      else if(filtro !== "all" && g.estado.clave !== filtro) return false;
+      if(busq){
+        var r = g.principal.rec;
+        var heno = [g.radicado, r.nombre, r.nombreF, r.comparendoCompleto, r.idNum, r.placa,
+                    r.direccion, r.res, r.formato, r.comentario]
+          .map(function(v){ return String(v||"").toUpperCase(); }).join(" ");
+        if(heno.indexOf(busq) === -1) return false;
+      }
+      return true;
+    });
+  }
+  var HISTORIAL_TOPE = 150; // no se pintan miles de tarjetas de golpe; se busca para acotar
+  function renderHistorial(){
+    var panel = document.getElementById("historialPanel");
+    if(!panel) return;
+    var todos = historialUnificado();
+    var lista = historialFiltrado();
+    var badge = document.getElementById("historialTriggerBadge");
+    if(badge) badge.textContent = todos.length + (todos.length===1 ? " radicado" : " radicados");
+
+    var porEstado = {masiva:0, agenda:0, devuelto:0, sinclasificar:0};
+    var enPapelera = 0;
+    todos.forEach(function(g){
+      if(porEstado[g.estado.clave] !== undefined) porEstado[g.estado.clave]++;
+      if(g.enPapelera) enPapelera++;
+    });
+    var resumen = document.getElementById("historialResumen");
+    if(resumen){
+      resumen.innerHTML =
+        '<span class="pill set">' + todos.length + ' en total</span>' +
+        '<span class="pill ok">' + porEstado.masiva + ' entregados</span>' +
+        '<span class="pill">' + porEstado.agenda + ' agendamientos</span>' +
+        '<span class="pill">' + porEstado.devuelto + ' devueltos</span>' +
+        (porEstado.sinclasificar ? '<span class="pill pend">' + porEstado.sinclasificar + ' sin clasificar</span>' : '') +
+        (enPapelera ? '<span class="pill danger">' + enPapelera + ' borrados</span>' : '') +
+        '<span class="pill">' + (state.history||[]).length + ' semanas cerradas</span>';
+    }
+
+    var mostrados = lista.slice(0, HISTORIAL_TOPE);
+    document.getElementById("historialCount").textContent =
+      lista.length + (lista.length===1 ? " radicado" : " radicados") +
+      (lista.length > mostrados.length ? " — se muestran los " + mostrados.length + " más recientes, busca para acotar" : "");
+    document.getElementById("historialNota").textContent =
+      lista.length ? "Se descarga/copia todo lo filtrado (" + lista.length + "), no solo lo que se ve." : "";
+
+    if(!lista.length){
+      panel.innerHTML = '<div class="queue-empty">' +
+        (todos.length ? "Ningún radicado coincide con lo que buscas." :
+         "Todavía no hay nada. Aquí irán apareciendo todos los radicados que trabajes, semana tras semana.") + '</div>';
+      return;
+    }
+    panel.innerHTML = mostrados.map(function(g){
+      var r = g.principal.rec;
+      var abierto = state.historialAbierto === g.radicado;
+      var donde = g.enLista ? "En tu lista de esta semana"
+        : (g.principal.origen === "semana" ? ("Semana cerrada el " + (g.principal.semana || "—"))
+        : ("Borrado el " + fechaCorta(g.principal.cuando)));
+      return '<div class="hist-item' + (g.enPapelera && !g.enLista ? " borrado" : "") + '">' +
+        '<div class="ai-top"><div>' +
+          '<div class="ai-radicado">' + escapeHtml(g.radicado) + '</div>' +
+          '<div class="ai-name">' + escapeHtml(r.nombreF || r.nombre || "(sin nombre)") + '</div>' +
+        '</div>' +
+        '<span class="pill ' + (g.estado.tono === "danger" ? "danger" : (g.estado.tono === "warn" ? "pend" : "ok")) + '">' +
+          escapeHtml(g.estado.texto) + '</span>' +
+        '</div>' +
+        '<div class="ai-meta">' +
+          '<span>' + escapeHtml(donde) + '</span>' +
+          '<span>Comparendo <b>' + escapeHtml(r.comparendoCompleto || "—") + '</b></span>' +
+          (r.res ? '<span>Resolución <b>' + escapeHtml(r.res) + '</b></span>' : '') +
+          '<span>Radicado el <b>' + escapeHtml(r.fechaRadicacion || "—") + '</b></span>' +
+        '</div>' +
+        '<div class="ai-actions">' +
+          '<button class="btn ghost small" data-histver="' + escapeHtml(g.radicado) + '" type="button">' +
+            (abierto ? "Ocultar detalle" : "Ver todo lo que pasó") + '</button>' +
+        '</div>' +
+        (abierto ? detalleHistorial(g) : '') +
+      '</div>';
+    }).join("");
+  }
+  function fechaCorta(iso){
+    if(!iso) return "—";
+    try{ return new Date(iso).toLocaleDateString("es-CO"); }catch(e){ return String(iso).slice(0,10); }
+  }
+  // El detalle: el recorrido completo del radicado (cada aparición, en orden) y su ficha de datos.
+  function detalleHistorial(g){
+    var r = g.principal.rec;
+    var recorrido = g.apariciones.map(function(a){
+      var titulo = a.origen === "activa" ? "Está en tu lista de trabajo ahora mismo"
+        : (a.origen === "semana" ? ("Se cerró con la semana del " + (a.semana || "—") + (a.weekLabel ? " (" + a.weekLabel + ")" : ""))
+        : ("Se borró de la lista el " + fechaCorta(a.cuando)));
+      var sub = a.origen === "papelera"
+        ? ("Motivo: " + (a.motivo || "sin especificar") + " · desde " + (a.desde || "—"))
+        : ("Clasificado como " + ((a.rec.formato||"").trim() || "(sin clasificar)"));
+      return '<li><b>' + escapeHtml(titulo) + '</b><br><span class="hint">' + escapeHtml(sub) + '</span></li>';
+    }).join("");
+    function fila(etiqueta, valor){
+      if(!String(valor||"").trim()) return "";
+      return '<div><dt>' + escapeHtml(etiqueta) + '</dt><dd>' + escapeHtml(String(valor)) + '</dd></div>';
+    }
+    return '<div class="hist-detalle">' +
+      '<div class="hist-recorrido"><b>Recorrido</b><ol>' + recorrido + '</ol></div>' +
+      '<dl class="hist-ficha">' +
+        fila("Solicitante", r.nombre) +
+        fila("Infractor (Fénix)", r.nombreF) +
+        fila("Documento", ((r.tipoId||"") + " " + (r.idNum||"")).trim()) +
+        fila("Correo o dirección", r.direccion) +
+        fila("Fecha de radicación", r.fechaRadicacion) +
+        fila("Fecha de asignación", r.fechaAsignacion) +
+        fila("Formato", r.formato) +
+        fila("Comparendo", r.comparendoCompleto) +
+        fila("Código de infracción", r.cod) +
+        fila("Medio", r.medio) +
+        fila("Estado del comparendo", r.estado) +
+        fila("Fecha de imposición", r.imposicion) +
+        fila("Fecha de notificación", r.notificacion) +
+        fila("Placa", r.placa) +
+        fila("Resolución", r.res) +
+        fila("Fecha de resolución", r.fechaRes) +
+        fila("Comentario", r.comentario) +
+      '</dl></div>';
+  }
   function renderAgendamientos(){
     var panel = document.getElementById("agendaPanel");
     var filter = state.agendaFilter || "pend";
     var all = agendamientoList();
     refreshAgendaTriggerBadge(); // el botón que abre el dialog siempre debe reflejar el conteo actual
+    refreshHistorialBadge();
     var dup = agendamientoDuplicados();
     var busqueda = (state.agendaSearch || "").trim().toUpperCase();
     var list = all.filter(function(r){
@@ -3791,6 +4053,71 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       '</div>';
     }).join("");
   }
+  // ---------- Historial de radicados: interacción ----------
+  document.getElementById("historialTriggerBtn").addEventListener("click", function(){
+    renderHistorial();
+    document.getElementById("historialDialog").showModal();
+  });
+  document.getElementById("historialDialogClose").addEventListener("click", function(){
+    document.getElementById("historialDialog").close();
+  });
+  document.getElementById("historialSearch").addEventListener("input", function(){
+    state.historialSearch = this.value;
+    state.historialAbierto = null;
+    renderHistorial();
+  });
+  document.getElementById("historialFilterTabs").addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-histfilter]");
+    if(!btn) return;
+    state.historialFilter = btn.getAttribute("data-histfilter");
+    state.historialAbierto = null;
+    Array.prototype.forEach.call(document.querySelectorAll("#historialFilterTabs button"), function(b){
+      b.classList.toggle("active", b===btn);
+    });
+    renderHistorial();
+  });
+  document.getElementById("historialPanel").addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-histver]");
+    if(!btn) return;
+    var num = btn.getAttribute("data-histver");
+    state.historialAbierto = (state.historialAbierto === num) ? null : num;
+    renderHistorial();
+  });
+
+  // Exportación del historial. Sale SIEMPRE lo filtrado completo, no solo las tarjetas visibles.
+  var HISTORIAL_HEADERS = ["RADICADO","NOMBRE (SOLICITANTE)","NOMBRE (INFRACTOR)","TIPO DE DOCUMENTO",
+    "NUMERO DE DOCUMENTO","CORREO O DIRECCION","FORMATO","QUE PASO","DONDE ESTA","SEMANA DE CIERRE",
+    "COMPARENDO","CODIGO DE INFRACCION","MEDIO","ESTADO DEL COMPARENDO","FECHA DE IMPOSICION",
+    "FECHA DE NOTIFICACION","PLACA","RESOLUCION","FECHA DE RESOLUCION","FECHA DE RADICACION",
+    "FECHA DE ASIGNACION","COMENTARIO"];
+  function historialToRow(g){
+    var r = g.principal.rec;
+    var donde = g.enLista ? "En la lista de la semana actual"
+      : (g.principal.origen === "semana" ? "Semana cerrada" : "Borrado (papelera)");
+    var semana = g.principal.origen === "semana" ? (g.principal.semana || "") : "";
+    return [
+      g.radicado, r.nombre, r.nombreF, r.tipoId, r.idNum, r.direccion,
+      r.formato, g.estado.texto, donde, semana,
+      r.comparendoCompleto, r.cod, r.medio, r.estado,
+      formatDateEs(r.imposicion), formatDateEs(r.notificacion), r.placa,
+      r.res, formatDateEs(r.fechaRes), formatDateEs(r.fechaRadicacion), formatDateEs(r.fechaAsignacion),
+      r.comentario
+    ].map(cleanSpaces);
+  }
+  document.getElementById("historialDescargar").addEventListener("click", function(){
+    var lista = historialFiltrado();
+    if(!lista.length){ toast("No hay radicados que descargar con este filtro"); return; }
+    downloadExcel("HISTORIAL_RADICADOS_" + userSlug() + "_" + new Date().toISOString().slice(0,10),
+      HISTORIAL_HEADERS, lista.map(historialToRow),
+      "Historial descargado — " + lista.length + " radicados");
+  });
+  document.getElementById("historialCopiar").addEventListener("click", function(){
+    var lista = historialFiltrado();
+    if(!lista.length){ toast("No hay radicados que copiar con este filtro"); return; }
+    copyOrShowManually(rowsToTSV(HISTORIAL_HEADERS, lista.map(historialToRow)),
+      "Historial copiado — " + lista.length + " radicados", "Historial de radicados");
+  });
+
   document.getElementById("agendaSearch").addEventListener("input", function(){
     state.agendaSearch = this.value;
     state.agendaEditId = null; // al filtrar, se cierra cualquier edición abierta para no perderla de vista
@@ -5494,6 +5821,20 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var text = rowsToTSV(AGENDA_HEADERS, list.map(recordToAgendaRow));
     copyOrShowManually(text, list.length + " filas copiadas — pégalas en una hoja nueva de Excel", "Agendamientos (" + list.length + " radicados)");
   });
+  // Contador del acceso al Historial. Cuenta radicados ÚNICOS entre las tres fuentes sin construir
+  // todo el historial (que en dos años puede ser mucho): solo necesita los números.
+  function refreshHistorialBadge(){
+    var badge = document.getElementById("historialTriggerBadge");
+    if(!badge) return;
+    var vistos = {};
+    state.records.forEach(function(r){ if(r.radicado) vistos[r.radicado] = 1; });
+    (state.history||[]).forEach(function(h){
+      (h.records||[]).forEach(function(r){ if(r && r.radicado) vistos[r.radicado] = 1; });
+    });
+    leerPapelera().forEach(function(e){ if(e && e.radicado) vistos[e.radicado] = 1; });
+    var n = Object.keys(vistos).length;
+    badge.textContent = n + (n===1 ? " radicado" : " radicados");
+  }
   function refreshAgendaTriggerBadge(){
     var pendientes = agendamientoList().filter(function(r){ return !r.agendado; });
     var vencidos = pendientes.filter(function(r){ return agendamientoInfo(r).vencido; }).length;
