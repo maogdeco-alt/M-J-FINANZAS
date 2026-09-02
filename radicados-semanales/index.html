@@ -405,6 +405,13 @@
   .agenda-item .ai-meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:7px;font-size:0.78rem;color:var(--muted);}
   .agenda-item .ai-meta b{color:var(--ink);font-weight:600;}
   .agenda-item .ai-dup{margin-top:7px;font-size:0.78rem;color:var(--stamp);font-weight:700;}
+  /* Resumen de un vistazo, arriba de la lista de agendamientos: cuántos hay en cada estado. */
+  .agenda-resumen{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px;}
+  /* Edición dentro de la propia ventana de Agendamientos (ver formularioAgendaInline). */
+  .agenda-item .ai-edit{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);}
+  .agenda-item .ai-edit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+  .agenda-item .ai-edit label{display:block;font-size:0.74rem;color:var(--muted);margin-bottom:3px;}
+  .agenda-item .ai-edit input,.agenda-item .ai-edit textarea{width:100%;}
   .agenda-item .ai-actions{margin-top:9px;display:flex;gap:8px;}
 
   .capture-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 18px;position:sticky;top:12px;}
@@ -808,7 +815,7 @@
               <div id="wrap_direccion">
                 <label for="cc_direccion">Dirección<span class="required-mark" id="req_direccion" hidden>*</span></label>
                 <input id="cc_direccion" placeholder="correo o dirección de notificación">
-                <div class="field-hint" id="avisoDireccion" hidden style="color:var(--danger);font-weight:600;"></div>
+                <div class="field-hint" id="avisoDireccion" hidden style="color:var(--stamp);font-weight:600;"></div>
               </div>
 
               <div class="full" id="wrap_comparendo">
@@ -993,8 +1000,14 @@
   <div class="panel-head">
     <div><span class="step">Ventana aparte</span><h2 id="agendaDialogTitle">Agendamientos</h2></div>
     <div class="toolbar">
+      <div class="search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="agendaSearch" placeholder="Buscar radicado, nombre, comparendo, placa...">
+      </div>
       <div class="filter-tabs" id="agendaFilterTabs">
         <button data-agendafilter="pend" class="active">Pendientes</button>
+        <button data-agendafilter="vencidos">Fuera de término</button>
+        <button data-agendafilter="sinfechas">Sin fechas</button>
         <button data-agendafilter="done">Ya agendados</button>
         <button data-agendafilter="all">Todos</button>
       </div>
@@ -1007,6 +1020,7 @@
     El término se cuenta <b>solo con las fechas de la línea de Fénix</b> (notificación o, si no hay, imposición) contra
     tu fecha de radicación — nunca con la fecha de asignación. Por eso aquí necesitas pegar esa línea completa
     <b>hasta la Placa</b> (a diferencia de la masiva, que solo llega hasta el nombre del infractor).</p>
+    <div class="agenda-resumen" id="agendaResumen"></div>
     <div class="queue-count" id="agendaCount">0 en la lista</div>
     <div class="queue-panel" id="agendaPanel" style="max-height:400px;"></div>
     <div class="import-actions" style="margin-top:14px;flex-wrap:wrap;justify-content:space-between;align-items:center;">
@@ -1029,6 +1043,25 @@
      avance por una regla sería peor). El control tiene que estar aquí, en la SALIDA: antes de generar
      el archivo que se entrega, se revisa fila por fila y se muestra exactamente qué está incompleto o
      es inconsistente, para poder corregirlo ANTES de enviarlo. -->
+<!-- Alarma de datos repetidos. Se dispara en el momento de escribir un radicado, comparendo o
+     resolución que ya está en otro expediente. Nunca borra ni bloquea: pregunta, porque puede haber
+     una excepción legítima, y recuerda la respuesta para no volver a preguntar por lo mismo. -->
+<dialog id="repetidoDialog" class="small" aria-labelledby="repetidoTitle">
+  <div class="panel-head">
+    <div><span class="step" style="background:var(--stamp-soft);color:var(--stamp);">Dato repetido</span>
+      <h2 id="repetidoTitle">Este dato ya está en otro expediente</h2></div>
+  </div>
+  <div class="panel-body">
+    <p class="panel-desc" id="repetidoResumen" style="margin-top:0;"></p>
+    <div id="repetidoLista" class="preflight-list"></div>
+    <p class="hint" style="margin-top:10px;">Si de verdad corresponde que se repita, confírmalo y no se vuelve a preguntar por este dato. Si fue un error, cancela y corrígelo — no se borra nada de lo que escribiste.</p>
+  </div>
+  <div class="form-actions" style="flex-wrap:wrap;gap:8px;">
+    <button class="btn ghost" id="repetidoCorregir" type="button">Voy a corregirlo</button>
+    <button class="btn danger" id="repetidoConfirmar" type="button">Es correcto, no volver a preguntar</button>
+  </div>
+</dialog>
+
 <!-- Informe de importación: reemplaza el aviso pasajero que antes resumía el resultado del Paso 1.
      Se queda en pantalla hasta que la persona lo cierre, dice con qué forma de columnas se leyó el
      bloque, y nombra fila por fila (con su número de línea) todo lo que no cuadró. -->
@@ -1231,7 +1264,7 @@
     <div id="stab-informes" style="display:none;">
       <div class="settings-section">
         <h3>Informe de asignaciones</h3>
-        <p class="hint">Cada vez que cierras la semana con "Nueva semana (borrar todo)", se guarda aquí un resumen (fecha, total, % completado, % devuelto) y también el <b>detalle completo</b> de cada radicado de esa semana — descargable con el botón "Descargar" de cada fila, por si más adelante necesitas revisar uno puntual. Los radicados de <b>AGENDAMIENTO todavía pendientes</b> (sin marcar "ya agendado") nunca se cierran ni se borran con esto — siguen en su propia ventana, porque su plazo no depende de la semana de trabajo. Es tuyo: cada cuenta ve solo su propio historial, en este computador.</p>
+        <p class="hint">Cada vez que cierras la semana con "Nueva semana (borrar todo)", se guarda aquí un resumen (fecha, total, % completado, % devuelto) y también el <b>detalle completo</b> de cada radicado de esa semana — descargable con el botón "Descargar" de cada fila, por si más adelante necesitas revisar uno puntual. Se cierra <b>todo</b>, incluidos los AGENDAMIENTOS: la ventana de Agendamientos queda limpia para la semana nueva. Nada se pierde — el detalle íntegro de cada uno queda archivado aquí y se puede descargar. Antes de cerrar, la app te avisa cuántos agendamientos siguen dentro de término y sin marcar "ya agendado", por si quieres revisarlos primero. Es tuyo: cada cuenta ve solo su propio historial, en este computador.</p>
 
         <div class="report-kpis" id="reportKpis"></div>
 
@@ -1266,6 +1299,16 @@
           <button class="btn ghost small" id="papeleraDescargar" type="button">Descargar papelera (.json)</button>
         </div>
         <div id="papeleraLista" class="preflight-list"></div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Datos repetidos</h3>
+        <p class="hint">Cada expediente es único: un mismo número de <b>radicado</b>, <b>comparendo</b> o <b>resolución</b> no debería aparecer en dos filas. Aquí está, en todo momento, la lista completa de los que sí se repiten — mirando toda tu lista, agendamientos incluidos. La app además te avisa en el momento de escribir uno repetido, y otra vez antes de entregar. Si alguna repetición es legítima, la confirmas y deja de preguntar por ese dato.</p>
+        <div class="toolbar" style="margin:12px 0;">
+          <button class="btn ghost small" id="repetidosRefrescar" type="button">Actualizar lista</button>
+          <button class="btn ghost small" id="repetidosOlvidar" type="button">Volver a preguntar por los confirmados</button>
+        </div>
+        <div id="repetidosPanel" class="preflight-list"></div>
       </div>
 
       <div class="settings-section">
@@ -2485,8 +2528,35 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     ["general","clasificacion","informes","papelera"].forEach(function(t){
       document.getElementById("stab-"+t).style.display = (t===tab) ? "block" : "none";
     });
-    if(tab === "papelera"){ renderPapelera(); renderEntregas(); }
+    if(tab === "papelera"){ renderPapelera(); renderEntregas(); renderRepetidosPanel(); }
   }
+  // ---------- Ajustes → Datos repetidos: la vista permanente ----------
+  function renderRepetidosPanel(){
+    var cont = document.getElementById("repetidosPanel");
+    if(!cont) return;
+    var grupos = buscarRepetidos(true); // incluye los ya confirmados, para que quede constancia
+    if(!grupos.length){
+      cont.innerHTML = '<div class="preflight-ok">Ningún radicado, comparendo ni resolución se repite en tu lista.</div>';
+      return;
+    }
+    cont.innerHTML = grupos.map(function(g){
+      return '<div class="preflight-item' + (g.aceptado ? '' : ' grave') + '">' +
+        '<div class="pf-head"><span class="pf-rad">' + escapeHtml(g.etiqueta.toUpperCase()) + ' ' + escapeHtml(g.valor) + '</span>' +
+        '<span class="pf-nombre">' + (g.aceptado ? "confirmado como correcto" : g.registros.length + " expedientes") + '</span></div>' +
+        '<ul>' + g.registros.map(function(r){
+          return '<li>Radicado <b>' + escapeHtml(r.radicado||"(sin radicado)") + '</b> — ' +
+                 escapeHtml(r.nombreF || r.nombre || "(sin nombre)") +
+                 (r.formato ? " · " + escapeHtml(r.formato) : "") + '</li>';
+        }).join("") + '</ul></div>';
+    }).join("");
+  }
+  document.getElementById("repetidosRefrescar").addEventListener("click", renderRepetidosPanel);
+  document.getElementById("repetidosOlvidar").addEventListener("click", function(){
+    if(!state.profile.activeUser) return;
+    try{ localStorage.removeItem(repetidosOkKeyFor(state.profile.activeUser)); }catch(e){}
+    renderRepetidosPanel();
+    toast("Se volverán a revisar todas las repeticiones, incluidas las que habías confirmado.");
+  });
   // ---------- Ajustes → Constancia de entregas ----------
   function renderEntregas(){
     var cont = document.getElementById("entregasLista");
@@ -3284,6 +3354,120 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
   function hasComparendo(r){ return !!r.comparendoCompleto; }
 
+  // ============================================================
+  // ALARMA DE DATOS REPETIDOS (radicado, comparendo, resolución)
+  // ------------------------------------------------------------
+  // Cada expediente es único: un mismo número de radicado, de comparendo o de resolución no debería
+  // aparecer en dos filas distintas. Cuando pasa, casi siempre es un dato copiado al expediente
+  // equivocado -- y ese error no se ve al mirar una fila sola, solo al comparar el lote entero.
+  // Por eso esto NO es una comprobación de última hora: vigila permanentemente (al escribir, al
+  // guardar, en un panel propio y otra vez antes de entregar). Nunca bloquea: la usuaria confirma,
+  // porque puede haber una excepción legítima, y esa confirmación se recuerda para no repreguntar.
+  var CAMPOS_UNICOS = [
+    {clave:"radicado",           etiqueta:"radicado",   norm:function(r){ return String(r.radicado||"").replace(/\s+/g,""); }},
+    {clave:"comparendoCompleto", etiqueta:"comparendo", norm:function(r){ return String(r.comparendoCompleto||"").replace(/\s+/g,""); }},
+    {clave:"res",                etiqueta:"resolución", norm:function(r){ return String(r.res||"").replace(/\s+/g,"").toUpperCase(); }}
+  ];
+  // Confirmaciones aceptadas por la usuaria: "sí, este comparendo repetido es correcto".
+  // Se guardan por valor concreto, no por registro, para que valgan mientras el dato no cambie.
+  var REPETIDOS_OK_KEY = "radicados_repetidos_ok_v1";
+  function repetidosOkKeyFor(emailId){ return REPETIDOS_OK_KEY + "::" + emailId; }
+  function leerRepetidosOk(){
+    if(!state.profile.activeUser) return {};
+    try{ var raw = localStorage.getItem(repetidosOkKeyFor(state.profile.activeUser)); return raw ? JSON.parse(raw) : {}; }
+    catch(e){ return {}; }
+  }
+  function marcarRepetidoOk(clave, valor){
+    if(!state.profile.activeUser) return;
+    try{
+      var ok = leerRepetidosOk();
+      ok[clave + "::" + valor] = new Date().toISOString();
+      localStorage.setItem(repetidosOkKeyFor(state.profile.activeUser), JSON.stringify(ok));
+    }catch(e){}
+  }
+  function repetidoYaAceptado(clave, valor){
+    return Object.prototype.hasOwnProperty.call(leerRepetidosOk(), clave + "::" + valor);
+  }
+  // Devuelve los grupos de radicados que comparten un mismo valor en alguno de los campos únicos.
+  // Mira TODA la lista, agendamientos incluidos -- un comparendo repetido entre un agendamiento y
+  // una fila de la masiva es exactamente el tipo de cruce que hay que ver.
+  function buscarRepetidos(incluirAceptados){
+    var grupos = [];
+    CAMPOS_UNICOS.forEach(function(campo){
+      var porValor = {};
+      state.records.forEach(function(r){
+        var v = campo.norm(r);
+        if(!v) return;
+        (porValor[v] = porValor[v] || []).push(r);
+      });
+      Object.keys(porValor).forEach(function(v){
+        if(porValor[v].length < 2) return;
+        if(!incluirAceptados && repetidoYaAceptado(campo.clave, v)) return;
+        grupos.push({
+          clave: campo.clave, etiqueta: campo.etiqueta, valor: v,
+          registros: porValor[v],
+          aceptado: repetidoYaAceptado(campo.clave, v)
+        });
+      });
+    });
+    return grupos;
+  }
+  // Los grupos que involucran a UN registro concreto -- para avisar en el momento de escribirlo.
+  function repetidosDe(rec){
+    if(!rec) return [];
+    return buscarRepetidos(false).filter(function(g){
+      return g.registros.some(function(r){ return r.id === rec.id; });
+    });
+  }
+  // Pinta un grupo de repetidos como tarjeta, reutilizando el estilo de la revisión previa.
+  function repetidosComoHtml(grupos, idDestacado){
+    return grupos.map(function(g){
+      return '<div class="preflight-item grave">' +
+        '<div class="pf-head"><span class="pf-rad">' + escapeHtml(g.etiqueta.toUpperCase()) + ' ' + escapeHtml(g.valor) + '</span>' +
+        '<span class="pf-nombre">' + g.registros.length + ' expedientes</span></div>' +
+        '<ul>' + g.registros.map(function(r){
+          var yo = (r.id === idDestacado) ? " ← el que estás editando" : "";
+          return '<li>Radicado <b>' + escapeHtml(r.radicado||"(sin radicado)") + '</b> — ' +
+                 escapeHtml(r.nombreF || r.nombre || "(sin nombre)") +
+                 (r.formato ? " · " + escapeHtml(r.formato) : "") + escapeHtml(yo) + '</li>';
+        }).join("") + '</ul></div>';
+    }).join("");
+  }
+  // Muestra la alarma para los grupos dados. onListo() se llama SIEMPRE al cerrar (se corrija o se
+  // confirme): nada de lo escrito se pierde por esto, la alarma solo informa.
+  var repetidosPendientes = null;
+  function alarmaRepetidos(grupos, idDestacado, onListo){
+    if(!grupos.length){ if(onListo) onListo(); return; }
+    var etiquetas = grupos.map(function(g){ return g.etiqueta; });
+    var unicas = etiquetas.filter(function(e,i){ return etiquetas.indexOf(e) === i; });
+    document.getElementById("repetidoResumen").textContent =
+      "El " + unicas.join(" y el ") + " de este expediente ya aparece" + (grupos.length===1?"":"n") +
+      " en otro. Cada caso debería ser único, así que esto casi siempre significa que un dato se copió al expediente equivocado.";
+    document.getElementById("repetidoLista").innerHTML = repetidosComoHtml(grupos, idDestacado);
+    repetidosPendientes = {grupos: grupos, onListo: onListo || null};
+    document.getElementById("repetidoDialog").showModal();
+  }
+  document.getElementById("repetidoCorregir").addEventListener("click", function(){
+    var p = repetidosPendientes; repetidosPendientes = null;
+    document.getElementById("repetidoDialog").close();
+    if(p && p.onListo) p.onListo();
+  });
+  document.getElementById("repetidoConfirmar").addEventListener("click", function(){
+    var p = repetidosPendientes; repetidosPendientes = null;
+    if(p) p.grupos.forEach(function(g){ marcarRepetidoOk(g.clave, g.valor); });
+    document.getElementById("repetidoDialog").close();
+    renderRepetidosPanel();
+    if(p && p.onListo) p.onListo();
+  });
+
+  // Vigilancia permanente: tras cada guardado real de un radicado se revisa si ESE radicado quedó
+  // compartiendo radicado, comparendo o resolución con otro. Se avisa una sola vez por valor.
+  function vigilarRepetidosDe(rec){
+    var grupos = repetidosDe(rec);
+    if(grupos.length) alarmaRepetidos(grupos, rec.id, null);
+    renderRepetidosPanel();
+  }
+
   // Fusiona los radicados de la nube con los que quedaron guardados en ESTE navegador, en vez de
   // simplemente descartar uno de los dos -- ver la nota junto a completeLogin() sobre por qué esto
   // hacía falta: la protección contra choques de sincronización avisa y NO sube el cambio cuando otro
@@ -3486,22 +3670,84 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }).join("");
   }
 
+  // Formulario de edición DENTRO de la ventana de Agendamientos. Antes había que salir al Paso 2,
+  // buscar el radicado y volver -- en una revisión de la mañana con veinte agendamientos, eso es
+  // justo lo que hace que se dejen a medias. Son los campos que de verdad se tocan aquí; para
+  // cualquier otra cosa sigue estando el botón "Abrir en el Paso 2".
+  function formularioAgendaInline(rec){
+    function campo(id, etiqueta, valor, placeholder){
+      return '<div><label for="'+id+'">'+escapeHtml(etiqueta)+'</label>' +
+             '<input id="'+id+'" value="'+escapeHtml(valor||"")+'" placeholder="'+escapeHtml(placeholder||"")+'"></div>';
+    }
+    return '<div class="ai-edit">' +
+      '<div class="ai-edit-grid">' +
+        campo("ae_direccion", "Correo o dirección", rec.direccion, "correo o dirección de notificación") +
+        campo("ae_placa", "Placa", rec.placa, "ej. ABC123") +
+        campo("ae_comentario", "Comentario", rec.comentario, "notas de esta solicitud") +
+      '</div>' +
+      '<div style="margin-top:10px;">' +
+        '<label for="ae_comparendo">Línea completa del comparendo (hasta la Placa)</label>' +
+        '<textarea id="ae_comparendo" rows="2" placeholder="Pega aquí la línea copiada de Fénix">'+escapeHtml(rec.comparendoRaw||"")+'</textarea>' +
+        '<div class="field-hint">Al pegarla se recalculan solos el término, la placa y los datos del infractor.</div>' +
+      '</div>' +
+      '<div class="ai-actions" style="margin-top:10px;">' +
+        '<button class="btn primary small" data-agendaguardar="'+rec.id+'" type="button">Guardar cambios</button>' +
+        '<button class="btn ghost small" data-agendacancelar="1" type="button">Cancelar</button>' +
+      '</div></div>';
+  }
   function renderAgendamientos(){
     var panel = document.getElementById("agendaPanel");
     var filter = state.agendaFilter || "pend";
     var all = agendamientoList();
     refreshAgendaTriggerBadge(); // el botón que abre el dialog siempre debe reflejar el conteo actual
     var dup = agendamientoDuplicados();
+    var busqueda = (state.agendaSearch || "").trim().toUpperCase();
     var list = all.filter(function(r){
-      if(filter === "pend") return !r.agendado;
-      if(filter === "done") return !!r.agendado;
+      if(filter === "pend" && r.agendado) return false;
+      if(filter === "done" && !r.agendado) return false;
+      if(filter === "vencidos" && (r.agendado || !agendamientoInfo(r).vencido)) return false;
+      if(filter === "sinfechas" && agendamientoInfo(r).dias !== null) return false;
+      if(busqueda){
+        var heno = [r.radicado, r.nombreF, r.nombre, r.comparendoCompleto, r.placa, r.idNum, r.direccion]
+          .map(function(v){ return String(v||"").toUpperCase(); }).join(" ");
+        if(heno.indexOf(busqueda) === -1) return false;
+      }
       return true;
-    }).sort(function(a,b){
-      var infoA = agendamientoInfo(a), infoB = agendamientoInfo(b);
-      var da = a.agendado ? -1 : (infoA.dias || 0);
-      var db = b.agendado ? -1 : (infoB.dias || 0);
-      return db - da;
+    }).sort(function(a, b){
+      // ORDEN POR URGENCIA, de lo que necesita atención a lo que ya está resuelto:
+      //   1) pendientes FUERA de término   2) pendientes sin fechas (no se puede saber)
+      //   3) pendientes dentro de término, primero los que pasaron más justos
+      //   4) los ya agendados, al final
+      function rango(r){
+        var i = agendamientoInfo(r);
+        if(r.agendado) return 3;
+        if(i.vencido) return 0;
+        if(i.dias === null) return 1;
+        return 2;
+      }
+      var ra = rango(a), rb = rango(b);
+      if(ra !== rb) return ra - rb;
+      // Dentro del mismo grupo: el margen más ajustado primero (cuántos días le sobraron al ciudadano).
+      var ia = agendamientoInfo(a), ib = agendamientoInfo(b);
+      var ma = (ia.umbral !== null && ia.dias !== null) ? (ia.umbral - ia.dias) : 999;
+      var mb = (ib.umbral !== null && ib.dias !== null) ? (ib.umbral - ib.dias) : 999;
+      if(ma !== mb) return ma - mb;
+      return (a.order||0) - (b.order||0);
     });
+
+    // Resumen permanente arriba: qué hay que mirar hoy, sin tener que contar a mano.
+    var pend = all.filter(function(r){ return !r.agendado; });
+    var nVencidos = pend.filter(function(r){ return agendamientoInfo(r).vencido; }).length;
+    var nSinFechas = pend.filter(function(r){ return agendamientoInfo(r).dias === null; }).length;
+    var nEnTermino = pend.length - nVencidos - nSinFechas;
+    var resumen = document.getElementById("agendaResumen");
+    if(resumen){
+      resumen.innerHTML =
+        '<span class="pill danger">' + nVencidos + ' fuera de término</span>' +
+        '<span class="pill">' + nEnTermino + ' dentro de término</span>' +
+        (nSinFechas ? '<span class="pill">' + nSinFechas + ' sin fechas para calcular</span>' : '') +
+        '<span class="pill ok">' + (all.length - pend.length) + ' ya agendados</span>';
+    }
     document.getElementById("agendaCount").textContent = list.length + (list.length===1?" radicado":" radicados") + " en la lista ("+all.length+" en total)";
     if(!list.length){
       panel.innerHTML = '<div class="queue-empty">'+(all.length ? "Nada con este filtro." : "Aún no tienes radicados con Formato = AGENDAMIENTO.")+'</div>';
@@ -3514,11 +3760,18 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var terminoTxt = info.dias === null ? "faltan fechas de Fénix (notificación/imposición) o de radicación"
         : (info.umbral === null ? (info.dias + " días hábiles (falta el Medio para saber el término)")
         : (info.dias + " / " + info.umbral + " días hábiles (" + (info.tipo === "MANUAL" ? "manual" : "electrónico") + ")"));
+      // Margen: cuántos días hábiles le sobraron (o le faltaron) al ciudadano frente a su término.
+      var margen = (info.umbral !== null && info.dias !== null) ? (info.umbral - info.dias) : null;
+      var margenTxt = margen === null ? ""
+        : (margen < 0 ? ("se pasó por " + Math.abs(margen) + " día" + (Math.abs(margen)===1?"":"s") + " hábil" + (Math.abs(margen)===1?"":"es"))
+        : (margen === 0 ? "justo en el último día" : ("le sobraron " + margen + " día" + (margen===1?"":"s") + " hábil" + (margen===1?"":"es"))));
+      var abierto = state.agendaEditId === r.id;
       return '<div class="agenda-item'+(info.vencido && !r.agendado ? " vencido" : "")+'" data-id="'+r.id+'">'+
         '<div class="ai-top"><div><div class="ai-radicado">'+escapeHtml(r.radicado)+'</div>'+
         '<div class="ai-name">'+escapeHtml(r.nombreF || r.nombre || "(sin nombre)")+'</div></div>'+
         (r.agendado ? '<span class="pill ok">Ya agendado</span>'
-          : (info.vencido ? '<span class="pill danger">FUERA DE TÉRMINO</span>' : ''))+
+          : (info.vencido ? '<span class="pill danger">FUERA DE TÉRMINO</span>'
+          : (info.dias === null ? '<span class="pill">SIN FECHAS</span>' : '<span class="pill ok">DENTRO DE TÉRMINO</span>')))+
         '</div>'+
         '<div class="ai-meta">'+
         '<span>Comparendo <b>'+escapeHtml(corto||"—")+'</b></span>'+
@@ -3526,15 +3779,23 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         '<span>Correo/dirección <b>'+escapeHtml(r.direccion||"—")+'</b></span>'+
         '<span>Placa <b>'+escapeHtml(r.placa||"—")+'</b></span>'+
         '<span>Término <b>'+terminoTxt+'</b></span>'+
+        (margenTxt ? '<span>Margen <b>'+escapeHtml(margenTxt)+'</b></span>' : '')+
         '</div>'+
         (esDup ? '<div class="ai-dup">🔴 Este número de comparendo aparece más de una vez entre tus AGENDAMIENTOS -- revisa que no esté duplicado.</div>' : '')+
         '<div class="ai-actions">'+
         '<button class="btn small" data-toggleagendado="'+r.id+'" type="button">'+(r.agendado ? "Marcar como pendiente" : "Marcar como ya agendado")+'</button>'+
-        '<button class="btn ghost small" data-editagendado="'+r.id+'" type="button">Editar en el Paso 2</button>'+
+        '<button class="btn ghost small" data-agendaedit="'+r.id+'" type="button">'+(abierto ? "Cerrar edición" : "Editar aquí")+'</button>'+
+        '<button class="btn ghost small" data-editagendado="'+r.id+'" type="button">Abrir en el Paso 2</button>'+
         '</div>'+
+        (abierto ? formularioAgendaInline(r) : '')+
       '</div>';
     }).join("");
   }
+  document.getElementById("agendaSearch").addEventListener("input", function(){
+    state.agendaSearch = this.value;
+    state.agendaEditId = null; // al filtrar, se cierra cualquier edición abierta para no perderla de vista
+    renderAgendamientos();
+  });
   document.getElementById("agendaFilterTabs").addEventListener("click", function(e){
     var btn = e.target.closest("button[data-agendafilter]");
     if(!btn) return;
@@ -3557,8 +3818,45 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       }
       return;
     }
+    var abrirBtn = e.target.closest("button[data-agendaedit]");
+    if(abrirBtn){
+      var abrirId = abrirBtn.getAttribute("data-agendaedit");
+      state.agendaEditId = (state.agendaEditId === abrirId) ? null : abrirId;
+      renderAgendamientos();
+      return;
+    }
+    if(e.target.closest("button[data-agendacancelar]")){
+      state.agendaEditId = null; renderAgendamientos(); return;
+    }
+    var guardarBtn = e.target.closest("button[data-agendaguardar]");
+    if(guardarBtn){
+      var gid = guardarBtn.getAttribute("data-agendaguardar");
+      var grec = state.records.find(function(r){ return r.id === gid; });
+      if(grec){
+        grec.direccion  = cleanSpaces(document.getElementById("ae_direccion").value);
+        grec.comentario = cleanSpaces(document.getElementById("ae_comentario").value);
+        var raw = document.getElementById("ae_comparendo").value; // sin limpiar: los tabs son el separador
+        if(raw.trim()){
+          grec.comparendoRaw = raw;
+          var parsed = parseComparendoLine(raw);
+          Object.keys(parsed).forEach(function(k){ grec[k] = parsed[k]; });
+          grec.tipoComparendo = deriveTipoComparendo(grec.medio);
+        }
+        // La placa escrita a mano manda sobre la que venga en la línea: es el campo que más se
+        // corrige aquí, y perder esa corrección al repegar la línea sería exasperante.
+        var placaManual = cleanSpaces(document.getElementById("ae_placa").value);
+        if(placaManual) grec.placa = placaManual;
+        grec.modificadoEn = Date.now();
+        state.agendaEditId = null;
+        save(); renderAll();
+        vigilarRepetidosDe(grec);
+        toast("Agendamiento " + grec.radicado + " guardado");
+      }
+      return;
+    }
     var editBtn = e.target.closest("button[data-editagendado]");
     if(editBtn){
+      document.getElementById("agendaDialog").close();
       selectRecord(editBtn.getAttribute("data-editagendado"));
       document.getElementById("captureCard").scrollIntoView({behavior:"smooth", block:"center"});
     }
@@ -4609,6 +4907,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       } else {
         toast("Radicado " + rec.radicado + " guardado");
       }
+      // Vigilancia permanente de datos repetidos: se revisa DESPUÉS de guardar, nunca antes, para
+      // que la alarma no pueda costarle a nadie el avance que acaba de escribir.
+      vigilarRepetidosDe(rec);
     });
   });
   document.getElementById("cc_saveNext").addEventListener("click", function(){
@@ -4620,6 +4921,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var imperative = checkImperativeRules(rec);
       if(imperative.length){ imperative.forEach(function(v){ v.wraps.forEach(markError); }); }
       save(); renderQueue(); renderStats(); renderAgendamientos();
+      vigilarRepetidosDe(rec);
       var check = validateAdvance(rec);
       if(!check.ok){ warnMissing(check); return; }
       // Siempre busca en toda la base, no solo en la pestaña/filtro activo, para que el botón
@@ -4958,13 +5260,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function auditarDocumentoFinal(){
     var elegibles = finalDocEligible();
     var problemas = [];
-    // Índice de comparendos por radicado, para detectar el mismo comparendo repetido en dos
-    // expedientes distintos (señal típica de un dato copiado al expediente equivocado).
-    var porComparendo = {};
-    state.records.forEach(function(r){
-      var c = String(r.comparendoCompleto||"").trim();
-      if(!c) return;
-      (porComparendo[c] = porComparendo[c] || []).push(r);
+    // Datos que deberían ser únicos y aparecen repetidos (radicado, comparendo, resolución). Se usa
+    // el MISMO motor que vigila permanentemente y que alimenta el panel de Ajustes, para que las
+    // tres vistas no puedan discrepar. Las repeticiones ya confirmadas por la usuaria no se repiten
+    // aquí: si dijo que son legítimas, insistir cada semana es ruido.
+    var repetidosPorId = {};
+    buscarRepetidos(false).forEach(function(g){
+      g.registros.forEach(function(r){
+        (repetidosPorId[r.id] = repetidosPorId[r.id] || []).push(g);
+      });
     });
 
     elegibles.forEach(function(r){
@@ -5020,15 +5324,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(String(r.res||"").trim() && !String(r.fechaRes||"").trim()){
         hallazgos.push({grave:false, texto:"Tiene resolución (" + String(r.res).trim() + ") pero le falta la fecha de la resolución."});
       }
-      // Mismo comparendo en otro expediente distinto.
-      var c = String(r.comparendoCompleto||"").trim();
-      if(c && porComparendo[c] && porComparendo[c].length > 1){
-        var otros = porComparendo[c].filter(function(o){ return o.id !== r.id; })
+      // Radicado, comparendo o resolución repetidos en otro expediente distinto.
+      (repetidosPorId[r.id] || []).forEach(function(g){
+        var otros = g.registros.filter(function(o){ return o.id !== r.id; })
           .map(function(o){ return o.radicado; }).join(", ");
         if(otros){
-          hallazgos.push({grave:true, texto:"El comparendo " + c + " también está en el/los radicado(s) " + otros + " — revisa que no se haya copiado al expediente equivocado."});
+          hallazgos.push({grave:true, texto:"El " + g.etiqueta + " " + g.valor + " también está en el/los radicado(s) " + otros + " — cada caso debería ser único; revisa que no se haya copiado al expediente equivocado."});
         }
-      }
+      });
 
       if(hallazgos.length){
         problemas.push({rec:r, hallazgos:hallazgos, grave: hallazgos.some(function(h){ return h.grave; })});
@@ -5146,16 +5449,29 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
 
   // ---------- documento aparte para Agendamientos (NUNCA se mezcla con la masiva) ----------
-  var AGENDA_HEADERS = ["RADICADO","NOMBRE Y APELLIDO","NUMERO DE DOCUMENTO","CORREO O DIRECCION",
-    "NUMERO DE COMPARENDO","PLACA","CODIGO DE INFRACCION","FECHA DE COMPARENDO","FECHA DE RADICACION",
-    "MEDIO","DIAS HABILES (TERMINO)","DIAS PERMITIDOS","ESTADO DEL TERMINO","YA AGENDADO","COMENTARIO"];
+  // 24 columnas. Se ampliaron a petición de la usuaria para que el Excel de Agendamientos se
+  // explique solo: además de los datos del caso, lleva AMBAS fechas de Fénix, dice CUÁL de las dos
+  // se usó como base del término y cuántos días de margen quedaron. Así, si alguien cuestiona un
+  // "fuera de término", la propia fila enseña de dónde salió el cálculo, sin volver a Fénix.
+  var AGENDA_HEADERS = ["RADICADO","NOMBRE Y APELLIDO","TIPO DE DOCUMENTO","NUMERO DE DOCUMENTO",
+    "CORREO O DIRECCION","NUMERO DE COMPARENDO","COMPARENDO COMPLETO","PLACA","CODIGO DE INFRACCION",
+    "ESTADO DEL COMPARENDO","TIENE CURSO","MEDIO","FECHA DE IMPOSICION","FECHA DE NOTIFICACION",
+    "FECHA BASE DEL TERMINO","ORIGEN DE LA FECHA BASE","FECHA DE RADICACION","FECHA DE ASIGNACION",
+    "DIAS HABILES (TERMINO)","DIAS PERMITIDOS","MARGEN (DIAS)","ESTADO DEL TERMINO","YA AGENDADO","COMENTARIO"];
   function recordToAgendaRow(rec){
     var info = agendamientoInfo(rec);
     var corto = comparendoCorto(rec);
+    var base = rec.notificacion || rec.imposicion;
+    var origenBase = rec.notificacion ? "NOTIFICACION" : (rec.imposicion ? "IMPOSICION" : "");
+    var margen = (info.umbral !== null && info.dias !== null) ? (info.umbral - info.dias) : "";
     return [
-      rec.radicado, rec.nombreF || rec.nombre, ((rec.tipoId||"") + " " + (rec.idNum||"")).trim(), rec.direccion,
-      corto, rec.placa, rec.cod, formatDateEs(rec.imposicion), formatDateEs(rec.fechaRadicacion),
-      info.tipo || "", info.dias === null ? "" : info.dias, info.umbral === null ? "" : info.umbral,
+      rec.radicado, rec.nombreF || rec.nombre, rec.tipoId, rec.idNum,
+      rec.direccion, corto, rec.comparendoCompleto, rec.placa, rec.cod,
+      rec.estado, rec.curso, info.tipo || "",
+      formatDateEs(rec.imposicion), formatDateEs(rec.notificacion),
+      formatDateEs(base), origenBase,
+      formatDateEs(rec.fechaRadicacion), formatDateEs(rec.fechaAsignacion),
+      info.dias === null ? "" : info.dias, info.umbral === null ? "" : info.umbral, margen,
       info.dias === null ? "SIN FECHAS" : (info.vencido ? "FUERA DE TÉRMINO" : "DENTRO DE TÉRMINO"),
       rec.agendado ? "SI" : "NO", rec.comentario
     ].map(cleanSpaces);
@@ -5222,28 +5538,40 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   });
 
   var confirmDialog = document.getElementById("confirmDialog");
-  // "Nueva semana" cierra el lote de la masiva -- pero un AGENDAMIENTO pendiente (todavía no marcado
-  // "ya agendado") no pertenece a ese ciclo semanal: su plazo lo pone el término de 5/11 días de
-  // Fénix, no la semana de trabajo. Si "borrar todo" también se los llevara, se perdería el rastro
-  // de una audiencia por solicitar sin ninguna forma de recuperarla. Por eso NUNCA se incluyen en lo
-  // que se cierra ni se borra aquí -- se quedan tal cual, esperando en su propia ventana.
+  // "Nueva semana" cierra TODO el lote, agendamientos incluidos. Antes los agendamientos pendientes
+  // se conservaban a propósito (su término de 5/11 días no depende de la semana de trabajo), pero
+  // eso dejaba la ventana de Agendamientos arrastrando radicados de semanas viejas indefinidamente.
+  // Se cambió a petición de la usuaria. El riesgo de perder una audiencia todavía en término se
+  // cubre archivando el detalle completo de CADA radicado cerrado -- agendamientos incluidos -- en
+  // el Historial de asignaciones, de donde se puede consultar y descargar después.
   function recordsToCloseThisWeek(){
-    return state.records.filter(function(r){ return !(esAgendamiento(r) && !r.agendado); });
+    return state.records.slice();
   }
   document.getElementById("clearAllBtn").addEventListener("click", function(){
     var toClose = recordsToCloseThisWeek();
-    if(!toClose.length){ toast(state.records.length ? "Solo quedan AGENDAMIENTOS pendientes -- esos no se cierran con \"Nueva semana\", viven en su propia ventana." : "La lista ya está vacía"); return; }
+    if(!toClose.length){ toast("La lista ya está vacía"); return; }
     document.getElementById("confirmCount").textContent = toClose.length;
-    var keptCount = state.records.length - toClose.length;
-    document.getElementById("confirmKeptNote").textContent = keptCount
-      ? keptCount + " radicado" + (keptCount===1?"":"s") + " de AGENDAMIENTO pendiente" + (keptCount===1?"":"s") + " NO se va" + (keptCount===1?"":"n") + " a borrar -- siguen en su ventana aparte."
-      : "";
+    var agendas = toClose.filter(esAgendamiento).length;
+    var enTermino = toClose.filter(function(r){
+      if(!esAgendamiento(r) || r.agendado) return false;
+      var info = agendamientoInfo(r);
+      return !info.vencido;
+    }).length;
+    var nota = "";
+    if(agendas){
+      nota = "Se cierran también " + agendas + " AGENDAMIENTO" + (agendas===1?"":"S") + ".";
+      if(enTermino){
+        nota += " Ojo: " + enTermino + " sigue" + (enTermino===1?"":"n") + " DENTRO de término y sin marcar “ya agendado”.";
+      }
+      nota += " Todos quedan guardados completos en tu Historial de asignaciones.";
+    }
+    document.getElementById("confirmKeptNote").textContent = nota;
     confirmDialog.showModal();
   });
   document.getElementById("confirmCancel").addEventListener("click", function(){ confirmDialog.close(); });
   document.getElementById("confirmOk").addEventListener("click", function(){
     var toClose = recordsToCloseThisWeek();
-    var toKeep = state.records.filter(function(r){ return esAgendamiento(r) && !r.agendado; });
+    var toKeep = [];
     // Antes de borrar, se guarda un resumen de la semana Y el detalle completo de cada radicado
     // cerrado en el historial -- no solo los números agregados. Así, si más adelante hace falta
     // revisar un radicado puntual de una semana ya cerrada (una auditoría, un reclamo), sigue
@@ -5270,8 +5598,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     explicitRemovalPending = state.records.length === 0; // el freno de la nube no debe bloquear un vaciado deliberado
     save(); renderAll();
     confirmDialog.close();
-    toast("Semana cerrada (" + toClose.length + " radicados) — el detalle completo quedó guardado en tu Historial de asignaciones" +
-      (toKeep.length ? ". " + toKeep.length + " de AGENDAMIENTO pendiente" + (toKeep.length===1?"":"s") + " no se tocó." : ""));
+    toast("Semana cerrada (" + toClose.length + " radicados, agendamientos incluidos) — el detalle completo de cada uno quedó guardado en tu Historial de asignaciones.");
   });
 
   document.getElementById("manualCopyClose").addEventListener("click", function(){
