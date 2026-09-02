@@ -4397,7 +4397,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function rowsToTSV(headers, rows2d){
     var lines = [headers.join("\t")];
     rows2d.forEach(function(row){
-      lines.push(row.map(function(v){ return (v==null?"":String(v)).replace(/\t/g," ").replace(/\n/g," "); }).join("\t"));
+      lines.push(row.map(function(v){
+        // Una fecha NUNCA se convierte con String(): eso produce
+        // "Wed Aug 19 2026 00:00:00 GMT-0500 (hora estándar de Colombia)", que es lo que se pegaría
+        // en la casilla. Se escribe dd/mm/aaaa, que Excel en español reconoce como fecha al pegar.
+        if(v instanceof Date && !isNaN(v.getTime())){
+          return pad(v.getDate()) + "/" + pad(v.getMonth()+1) + "/" + v.getFullYear();
+        }
+        return (v==null?"":String(v)).replace(/\t/g," ").replace(/\n/g," ");
+      }).join("\t"));
     });
     return lines.join("\n");
   }
@@ -4546,6 +4554,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       rec.fechaRadicacion = normalizeDate(fRad);
       rec.fechaAsignacion = normalizeDate(fAsig);
       rec.nombre = cleanSpaces(nombre||"");
+      // Cuando el bloque viene en la forma de 5 columnas, la segunda ES la del correo o dirección
+      // de notificación (así se identificó la forma). Antes se leía solo para decidir el
+      // desplazamiento y luego se descartaba, obligando a volver a buscar ese correo en ORFEO uno
+      // por uno -- justo el campo que más problemas ha dado. Ahora se conserva. Si viene vacía, no
+      // se guarda nada; si viniera algo que no corresponde, las guardias de la casilla y la
+      // revisión previa lo señalan igual que a cualquier otro dato escrito a mano.
+      if(forma.desp === 1){
+        rec.direccion = cleanSpaces(cells[1] || "");
+      }
       state.records.push(rec);
       existing[f.radicado] = true;
       if(!firstNewId) firstNewId = rec.id;
