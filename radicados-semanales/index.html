@@ -99,6 +99,83 @@
   .backup-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
   .backup-row input[type="file"]{display:none;}
   .wrap{max-width:1280px;margin:0 auto;padding:28px 20px 90px;}
+
+  /* ============================================================
+     ARMAZÓN DE APLICACIÓN
+     ------------------------------------------------------------
+     La pantalla completa es el puesto de trabajo. Antes la página medía 2.764 px de alto en un
+     monitor de 900: cinco bloques del mismo peso apilados, y lo que se usa a diario en mitad de
+     un scroll de tres pantallas. Ahora la app no hace scroll: cabecera compacta, una barra con
+     las cifras y los accesos, y el resto de la altura para el trabajo. Lo semanal (importar,
+     documentos) vive en su propia ventana, a un clic.
+     ============================================================ */
+  @media (min-width:900px){
+    html:not(.es-flotante), html:not(.es-flotante) body{height:100%;overflow:hidden;}
+    html:not(.es-flotante) body{display:flex;flex-direction:column;}
+    html:not(.es-flotante) .wrap{max-width:none;width:100%;flex:1 1 auto;min-height:0;
+      display:flex;flex-direction:column;padding:0;margin:0;}
+    html:not(.es-flotante) .wrap>header.top{flex:none;padding:14px 22px 10px;}
+    html:not(.es-flotante) .appnav,
+    html:not(.es-flotante) .navsub{flex:none;}
+    html:not(.es-flotante) #paso2Section{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;
+      margin:0;border-radius:0;border-left:0;border-right:0;border-bottom:0;box-shadow:none;}
+    html:not(.es-flotante) #paso2Section>.panel-head{flex:none;}
+    html:not(.es-flotante) #paso2Section>.panel-body{flex:1 1 auto;min-height:0;padding:0;}
+    html:not(.es-flotante) #workbench{height:100%;min-height:0;}
+    html:not(.es-flotante) #queueCol{min-height:0;display:flex;flex-direction:column;}
+    html:not(.es-flotante) #queuePanel{flex:1 1 auto;min-height:0;max-height:none;}
+    html:not(.es-flotante) #captureCard{min-height:0;overflow-y:auto;}
+  }
+
+  /* Barra de trabajo: cifras a la izquierda, accesos a la derecha, todo en una sola línea. */
+  .appnav{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    padding:0 22px 12px;border-bottom:1px solid var(--border);}
+  .nav-stats{display:flex;align-items:stretch;gap:0;border:1px solid var(--border);
+    border-radius:10px;overflow:hidden;background:var(--surface);}
+  .nav-stat{padding:6px 14px;border-right:1px solid var(--border);white-space:nowrap;}
+  .nav-stat:last-child{border-right:none;}
+  .nav-stat b{display:block;font-size:1.05rem;line-height:1.15;font-variant-numeric:tabular-nums;}
+  .nav-stat span{display:block;font-size:0.66rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);}
+  .nav-stat.alerta b{color:var(--stamp);}
+  .nav-stat.bien b{color:var(--accent);}
+  /* Las tarjetas de cifras, dentro de la barra, pasan a ser una sola tira compacta: las mismas
+     cifras, sin seis cajas con sombra ocupando una banda entera de la pantalla. */
+  .nav-stats .stats{display:flex;gap:0;margin:0;}
+  .nav-stats .stat-card{background:none;border:0;border-right:1px solid var(--border);
+    border-radius:0;box-shadow:none;padding:6px 14px;}
+  .nav-stats .stat-card:last-child{border-right:0;}
+  .nav-stats .stat-card .num{font-size:1.05rem;line-height:1.15;}
+  .nav-stats .stat-card .label{font-size:0.66rem;margin-top:1px;}
+  /* Segunda línea: reparto por formato, ritmo e informes. Información de contexto, en gris. */
+  .navsub{display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap;
+    padding:7px 22px 9px;border-bottom:1px solid var(--border);background:var(--surface-2);}
+  /* La barra de progreso decía lo mismo que la cifra "74% AVANCE" de arriba, y suelta a la
+     izquierda sin etiqueta no significaba nada. Se oculta: el dato ya está, mejor dicho. */
+  .navsub .progress-track{display:none;}
+  .navsub .formato-chips{margin:0;padding:0;border:0;flex:1 1 auto;}
+  .navsub .link-btn{margin-left:auto;font-size:0.8rem;}
+  .navsub .pace-estimate{margin:0;}
+  .nav-acciones{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;}
+  .navbtn{display:inline-flex;align-items:center;gap:7px;background:var(--surface);
+    border:1px solid var(--border);border-radius:9px;padding:8px 13px;font:inherit;
+    font-size:0.86rem;font-weight:600;color:var(--ink);cursor:pointer;}
+  .navbtn:hover{background:var(--surface-2);border-color:var(--rule-strong,var(--border));}
+  .navbtn svg{color:var(--muted);flex:none;}
+  .navbtn.primario{background:var(--accent);border-color:var(--accent);color:var(--accent-ink,#fff);}
+  .navbtn.primario svg{color:currentColor;}
+  .navbadge{background:var(--surface-2);border-radius:999px;padding:1px 7px;font-size:0.74rem;
+    font-variant-numeric:tabular-nums;color:var(--muted);}
+  .navbtn.primario .navbadge{background:rgba(255,255,255,.22);color:inherit;}
+
+  /* Ventanas de tareas semanales (importar, documentos): una hoja centrada, sin adornos. */
+  dialog.hoja[open]{display:flex;}
+  dialog.hoja{max-width:900px;width:94vw;max-height:88vh;flex-direction:column;}
+  .hoja-head{display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:16px 22px;border-bottom:1px solid var(--border);flex:none;}
+  .hoja-head h2{margin:0;font-size:1.15rem;}
+  .hoja-body{overflow-y:auto;min-height:0;padding:4px 0 8px;}
+  .hoja-body>.panel,.hoja-body>.accordion-panel{border:0;box-shadow:none;margin:0;border-radius:0;}
+  .hoja-body>footer.note{padding:0 22px 18px;}
   h1,h2,h3{font-family:inherit;font-weight:800;letter-spacing:-0.015em;text-wrap:balance;margin:0;}
 
   header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
@@ -269,11 +346,11 @@
      siguiente pendiente", que es el botón que más se usa en toda la app. Va a la esquina inferior
      IZQUIERDA a propósito: la acción principal del formulario está abajo a la derecha, así que esa
      esquina también estaría ocupada. Encima de la cola, un aviso pasajero no estorba a nadie. */
-  .toast{position:fixed;bottom:20px;left:20px;right:auto;transform:translateY(10px);
-    background:var(--ink);color:var(--bg);padding:13px 18px;border-radius:10px;font-size:0.92rem;
-    font-weight:600;line-height:1.45;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;
+  .toast{position:fixed;bottom:16px;left:16px;right:auto;transform:translateY(8px);
+    background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-size:0.82rem;
+    font-weight:600;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.22);opacity:0;
     pointer-events:none;transition:opacity .18s ease, transform .18s ease;z-index:60;
-    max-width:min(92vw,380px);text-align:left;}
+    max-width:min(90vw,320px);text-align:left;}
   .toast.show{opacity:1;transform:translateY(0);}
   @media (max-width:520px){ .toast{left:12px;right:12px;max-width:none;} }
   /* Los avisos de reglas de negocio (no bloquean, pero conviene corregirlos) usan este color, más
@@ -586,8 +663,9 @@
      de consulta de expedientes, y evita el desplegar/plegar de cada tarjeta, que era el que
      producía el desorden.
      ============================================================ */
+  dialog.workspace[open]{display:flex;}
   dialog.workspace{max-width:1180px;width:96vw;height:90vh;max-height:90vh;
-    display:flex;flex-direction:column;overflow:hidden;}
+    flex-direction:column;overflow:hidden;}
   @supports (height: 90dvh){ dialog.workspace{ height:90dvh; max-height:90dvh; } }
 
   .ws-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;
@@ -797,75 +875,69 @@
     </div>
   </header>
 
-  <!-- Resumen del lote: todo en un solo bloque compacto -->
-  <section class="summary-panel">
-    <div class="stats">
-      <div class="stat-card">
-        <div class="num" id="statTotal">0</div>
-        <div class="label">Importados</div>
-      </div>
-      <div class="stat-card pend" title="Igual que en tu Excel: pendiente = FORMATO vacío">
-        <div class="num" id="statPend">0</div>
-        <div class="label">Pendientes</div>
-      </div>
-      <div class="stat-card ok">
-        <div class="num" id="statDone">0</div>
-        <div class="label">Completados</div>
-      </div>
-      <div class="stat-card">
-        <div class="num" id="statPct">0%</div>
-        <div class="label">Avance</div>
-      </div>
-      <div class="stat-card warn2" title="Radicados con Formato = DEVUELTO, sobre el total importado esta semana">
-        <div class="num" id="statDevuelto">0%</div>
-        <div class="label">% Devuelto</div>
-      </div>
-      <div class="stat-card" id="statPrioritariosCard">
-        <div class="num" id="statPrioritarios">0</div>
-        <div class="label">Prioritarios</div>
+
+  <!-- BARRA DE TRABAJO. Antes esto eran cinco bloques apilados del mismo peso visual (cifras,
+       Paso 1, dos banners y Paso 3) que empujaban la pantalla a 2.764 px de alto: había que
+       recorrer tres pantallas para llegar a lo que se usa todos los días. Ahora todo lo semanal
+       (importar, documentos) y las dos secciones de consulta viven en esta barra, a un clic, y el
+       Paso 2 se queda con la pantalla completa. -->
+  <nav class="appnav">
+    <div class="nav-stats" id="navStats">
+      <div class="stats">
+        <div class="stat-card">
+          <div class="num" id="statTotal">0</div>
+          <div class="label">Importados</div>
+        </div>
+        <div class="stat-card pend" title="Igual que en tu Excel: pendiente = FORMATO vacío">
+          <div class="num" id="statPend">0</div>
+          <div class="label">Pendientes</div>
+        </div>
+        <div class="stat-card ok">
+          <div class="num" id="statDone">0</div>
+          <div class="label">Completados</div>
+        </div>
+        <div class="stat-card">
+          <div class="num" id="statPct">0%</div>
+          <div class="label">Avance</div>
+        </div>
+        <div class="stat-card warn2" title="Radicados con Formato = DEVUELTO, sobre el total importado esta semana">
+          <div class="num" id="statDevuelto">0%</div>
+          <div class="label">% Devuelto</div>
+        </div>
+        <div class="stat-card" id="statPrioritariosCard">
+          <div class="num" id="statPrioritarios">0</div>
+          <div class="label">Prioritarios</div>
+        </div>
       </div>
     </div>
+    <div class="nav-acciones">
+      <button class="navbtn" id="abrirImportarBtn" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12M8 11l4 4 4-4M4 19h16"/></svg>
+        Importar semana</button>
+      <button class="navbtn" id="agendaTriggerBtn" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        Agendamientos <span class="navbadge" id="agendaTriggerBadge">0</span></button>
+      <button class="navbtn" id="historialTriggerBtn" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 11h18"/></svg>
+        Historial <span class="navbadge" id="historialTriggerBadge">0</span></button>
+      <button class="navbtn primario" id="abrirDocumentosBtn" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+        Documentos</button>
+    </div>
+  </nav>
+  <div class="navsub">
     <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
     <div class="formato-chips" id="formatoChips"></div>
     <div class="pace-estimate" id="paceEstimate" style="display:none;"></div>
     <button class="link-btn" id="openInformesLink" type="button">Ver historial e informes completos de tus asignaciones →</button>
   </section>
+  </div>
 
-  <!-- PASO 1: importar -->
-  <!-- Paso 1 se pliega solo (details/summary nativo, sin JS): se usa una vez por lote de radicados,
-       no todo el día como el Paso 2 -- mantenerlo siempre abierto era el mayor "ladrón" de pantalla
-       antes de llegar al trabajo real. Se abre solo si aún no has importado nada (ver initCollapsibles). -->
-  <details class="panel accordion-panel" id="paso1Accordion">
-    <summary class="accordion-summary">
-      <div><span class="step">Paso 1</span><h2>Importar los radicados de la semana</h2></div>
-      <span class="accordion-caret" aria-hidden="true">▾</span>
-    </summary>
-    <div class="panel-body">
-      <div class="panel-head" style="padding:0 0 12px;border:none;">
-        <span></span>
-        <button class="btn ghost small" id="addOneBtn" type="button">+ Agregar uno manualmente</button>
-      </div>
-      <p class="panel-desc">Pega aquí el bloque con los datos fijos que te asignan: <b>RADICADO, FECHA DE RADICACION, FECHA_ASIGNACION, NOMBRE</b> (una fila por radicado, tal como los copias de tu fuente). La app arma la cola de pendientes; tú completas el resto en el Paso 2.</p>
-      <div class="import-grid">
-        <div>
-          <label for="bulkPaste">Pegar bloque de radicados</label>
-          <textarea id="bulkPaste" rows="6" placeholder="202661202962112&#9;06/08/2026&#9;10/08/2026&#9;GLORIA PATRICIA RAMIREZ MENDOZA
-202661202961932&#9;06/08/2026&#9;10/08/2026&#9;ALEXANDER DORONSORO PIZA"></textarea>
-          <div class="import-actions">
-            <button class="btn primary" id="importBtn" type="button">Importar a la lista</button>
-          </div>
-        </div>
-        <details class="import-tips"><summary>¿Cómo pego el bloque?</summary><div>
-          <b>Cómo pegar:</b> selecciona el bloque en tu fuente y pégalo aquí con Ctrl+V, tal como harías en Excel. Funciona tanto si copias solo las 4 columnas (radicado, fecha de radicación, fecha de asignación, nombre) como si copias el formato con la columna en blanco entre el radicado y las fechas — la app la detecta sola. Los radicados ya existentes en la lista se omiten automáticamente para que no se dupliquen.
-        </div></details>
-      </div>
-    </div>
-  </details>
 
   <!-- PASO 2: completar, diseñado para ir rápido -->
   <section class="panel" id="paso2Section">
     <div class="panel-head">
-      <div><span class="step">Paso 2</span><h2>Completar la información — tu trabajo</h2></div>
+      <div><h2>Radicados de la semana</h2></div>
       <div class="toolbar">
         <div class="search-box">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
@@ -973,98 +1045,6 @@
     </div>
   </section>
 
-  <!-- VENTANA APARTE: solo un botón de acceso -- el contenido real vive en #agendaDialog, para que
-       no ocupe espacio permanente en la pantalla (antes era una sección siempre visible, aquí queda
-       reducido a una sola fila, igual de rápido de abrir). -->
-  <section class="panel" id="agendaTriggerSection">
-    <button class="agenda-trigger" id="agendaTriggerBtn" type="button">
-      <span class="at-left">
-        <span class="at-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
-        <span>
-          <strong>Agendamientos</strong>
-          <span class="at-sub">Formato = AGENDAMIENTO — aparte de la masiva</span>
-        </span>
-      </span>
-      <span class="at-right">
-        <span class="pill" id="agendaTriggerBadge">0 pendientes</span>
-        <span class="at-arrow">Abrir →</span>
-      </span>
-    </button>
-  </section>
-
-  <!-- HISTORIAL DE RADICADOS: la memoria completa. Reúne en un solo sitio los radicados de la
-       lista de esta semana, los de TODAS las semanas ya cerradas y los que están en la papelera,
-       para poder buscar cualquiera meses después y ver qué pasó con él. -->
-  <section class="panel" id="historialTriggerSection">
-    <button class="agenda-trigger" id="historialTriggerBtn" type="button">
-      <span class="at-left">
-        <span class="at-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 11h18"/></svg></span>
-        <span>
-          <strong>Historial de radicados</strong>
-          <span class="at-sub">Todos los que has trabajado — busca cualquiera y mira qué pasó</span>
-        </span>
-      </span>
-      <span class="at-right">
-        <span class="pill" id="historialTriggerBadge">0 radicados</span>
-        <span class="at-arrow">Abrir →</span>
-      </span>
-    </button>
-  </section>
-
-  <!-- PASO 3: entregar y respaldar -->
-  <section class="panel" id="paso3Section">
-    <div class="panel-head">
-      <div><span class="step">Paso 3</span><h2>Generar y respaldar tus documentos</h2></div>
-    </div>
-    <div class="panel-body">
-
-      <h4 class="subhead">Documento final (formato MASIVA, 27 columnas)</h4>
-      <p class="panel-desc">Solo los radicados ya clasificados (Formato lleno): comparendo corto, plantilla, anexo, todo calculado igual que tu documento de ejemplo. El archivo se genera como Excel real (.xlsx) — se abre directo con doble clic, con columnas y acentos correctos.</p>
-      <div class="toolbar">
-        <button class="btn primary big" id="downloadFinalBtn" type="button">Descargar Excel (.xlsx)</button>
-        <button class="btn" id="copyFinalBtn" type="button">Copiar</button>
-        <span class="field-hint" id="finalDocCount"></span>
-      </div>
-
-      <div class="hr"></div>
-
-      <h4 class="subhead">Copia de tu tabla de trabajo (25 columnas, orden REVISION_MANUAL)</h4>
-      <div class="toolbar">
-        <button class="btn small" id="downloadBtn" type="button">Descargar Excel (.xlsx)</button>
-        <button class="btn small" id="copyAllBtn" type="button">Copiar</button>
-      </div>
-
-      <div class="hr"></div>
-
-      <h4 class="subhead">Respaldo de trabajo — no depende del navegador</h4>
-      <p class="panel-desc">Guarda <b>todo</b> lo capturado y tu historial de semanas cerradas (no solo el documento final) en un archivo aparte, para recuperarlo si algo falla. Descárgalo de vez en cuando.</p>
-      <div class="backup-row">
-        <button class="btn" id="downloadJsonBtn" type="button">Descargar respaldo (.json)</button>
-        <button class="btn ghost" id="loadJsonBtn" type="button">Cargar respaldo</button>
-        <input type="file" id="jsonFileInput" accept=".json,application/json">
-      </div>
-
-      <div class="hr"></div>
-
-      <div class="toolbar">
-        <button class="btn danger small" id="clearAllBtn" type="button">Nueva semana (borrar todo)</button>
-      </div>
-    </div>
-  </section>
-
-  <footer class="note">
-    <details class="note-plegable"><summary>Cómo funciona esta app, usuarios y privacidad</summary>
-    <div>
-    Esta app no reemplaza ni modifica tu Excel — organiza el trabajo mientras completas cada radicado y genera los documentos de salida. El Paso 1 trae lo fijo
-    (radicado, fechas, nombre); el Paso 2 es tu trabajo real: formato, dirección, resolución y la línea del comparendo, que se separa sola en sus columnas.
-    Copiar/descargar (Paso 3) siempre usa los mismos datos que ya tienes capturados.<br><br>
-    <b>Usuarios:</b> cada persona inicia sesión con su propio correo de Gmail y contraseña — así se separan los datos de cada quien, incluso si comparten computador o navegador. No es un sistema de autenticación de nivel institucional (la contraseña se valida solo en este navegador, sin servidor).
-    En <b>Ajustes</b> configuras campos obligatorios, categorías, el diccionario de plantillas, tus datos para el documento final y ves tus informes históricos.<br><br>
-    <b>Privacidad:</b> esta app no tiene servidor ni base de datos propia — todo lo que capturas se guarda únicamente en el navegador de quien la usa, y nunca se envía a ningún tercero. La dirección web en sí es pública (cualquiera con el enlace puede abrirla), así que compártela solo con tu equipo; lo que la protege es que cada quien necesita su propia cuenta para ver sus datos.<br><br>
-    <b>Si el navegador no logra guardar</b> (aviso arriba): la app sigue funcionando con normalidad mientras la pestaña quede abierta; solo no se guarda para la
-    próxima vez. Descarga el respaldo (.json) seguido y cárgalo al volver a entrar.
-    </div></details>
-  </footer>
 </div>
 
 <!-- Dialog: agregar uno manualmente -->
@@ -1225,6 +1205,103 @@
 <!-- Alarma de datos repetidos. Se dispara en el momento de escribir un radicado, comparendo o
      resolución que ya está en otro expediente. Nunca borra ni bloquea: pregunta, porque puede haber
      una excepción legítima, y recuerda la respuesta para no volver a preguntar por lo mismo. -->
+<dialog id="importDialog" class="hoja" aria-labelledby="importDialogTitle">
+  <div class="hoja-head"><h2 id="importDialogTitle">Importar los radicados de la semana</h2>
+    <button class="btn ghost small" id="importDialogClose" type="button">Cerrar</button></div>
+  <div class="hoja-body">
+  <!-- PASO 1: importar -->
+  <!-- Paso 1 se pliega solo (details/summary nativo, sin JS): se usa una vez por lote de radicados,
+       no todo el día como el Paso 2 -- mantenerlo siempre abierto era el mayor "ladrón" de pantalla
+       antes de llegar al trabajo real. Se abre solo si aún no has importado nada (ver initCollapsibles). -->
+  <details class="panel accordion-panel" id="paso1Accordion">
+    <summary class="accordion-summary">
+      <div><span class="step">Paso 1</span><h2>Importar los radicados de la semana</h2></div>
+      <span class="accordion-caret" aria-hidden="true">▾</span>
+    </summary>
+    <div class="panel-body">
+      <div class="panel-head" style="padding:0 0 12px;border:none;">
+        <span></span>
+        <button class="btn ghost small" id="addOneBtn" type="button">+ Agregar uno manualmente</button>
+      </div>
+      <p class="panel-desc">Pega aquí el bloque con los datos fijos que te asignan: <b>RADICADO, FECHA DE RADICACION, FECHA_ASIGNACION, NOMBRE</b> (una fila por radicado, tal como los copias de tu fuente). La app arma la cola de pendientes; tú completas el resto en el Paso 2.</p>
+      <div class="import-grid">
+        <div>
+          <label for="bulkPaste">Pegar bloque de radicados</label>
+          <textarea id="bulkPaste" rows="6" placeholder="202661202962112&#9;06/08/2026&#9;10/08/2026&#9;GLORIA PATRICIA RAMIREZ MENDOZA
+202661202961932&#9;06/08/2026&#9;10/08/2026&#9;ALEXANDER DORONSORO PIZA"></textarea>
+          <div class="import-actions">
+            <button class="btn primary" id="importBtn" type="button">Importar a la lista</button>
+          </div>
+        </div>
+        <details class="import-tips"><summary>¿Cómo pego el bloque?</summary><div>
+          <b>Cómo pegar:</b> selecciona el bloque en tu fuente y pégalo aquí con Ctrl+V, tal como harías en Excel. Funciona tanto si copias solo las 4 columnas (radicado, fecha de radicación, fecha de asignación, nombre) como si copias el formato con la columna en blanco entre el radicado y las fechas — la app la detecta sola. Los radicados ya existentes en la lista se omiten automáticamente para que no se dupliquen.
+        </div></details>
+      </div>
+    </div>
+  </details>
+  </div>
+</dialog>
+
+<dialog id="documentosDialog" class="hoja" aria-labelledby="documentosDialogTitle">
+  <div class="hoja-head"><h2 id="documentosDialogTitle">Documentos y respaldo</h2>
+    <button class="btn ghost small" id="documentosDialogClose" type="button">Cerrar</button></div>
+  <div class="hoja-body">
+  <!-- PASO 3: entregar y respaldar -->
+  <section class="panel" id="paso3Section">
+    <div class="panel-head">
+      <div><span class="step">Paso 3</span><h2>Generar y respaldar tus documentos</h2></div>
+    </div>
+    <div class="panel-body">
+
+      <h4 class="subhead">Documento final (formato MASIVA, 27 columnas)</h4>
+      <p class="panel-desc">Solo los radicados ya clasificados (Formato lleno): comparendo corto, plantilla, anexo, todo calculado igual que tu documento de ejemplo. El archivo se genera como Excel real (.xlsx) — se abre directo con doble clic, con columnas y acentos correctos.</p>
+      <div class="toolbar">
+        <button class="btn primary big" id="downloadFinalBtn" type="button">Descargar Excel (.xlsx)</button>
+        <button class="btn" id="copyFinalBtn" type="button">Copiar</button>
+        <span class="field-hint" id="finalDocCount"></span>
+      </div>
+
+      <div class="hr"></div>
+
+      <h4 class="subhead">Copia de tu tabla de trabajo (25 columnas, orden REVISION_MANUAL)</h4>
+      <div class="toolbar">
+        <button class="btn small" id="downloadBtn" type="button">Descargar Excel (.xlsx)</button>
+        <button class="btn small" id="copyAllBtn" type="button">Copiar</button>
+      </div>
+
+      <div class="hr"></div>
+
+      <h4 class="subhead">Respaldo de trabajo — no depende del navegador</h4>
+      <p class="panel-desc">Guarda <b>todo</b> lo capturado y tu historial de semanas cerradas (no solo el documento final) en un archivo aparte, para recuperarlo si algo falla. Descárgalo de vez en cuando.</p>
+      <div class="backup-row">
+        <button class="btn" id="downloadJsonBtn" type="button">Descargar respaldo (.json)</button>
+        <button class="btn ghost" id="loadJsonBtn" type="button">Cargar respaldo</button>
+        <input type="file" id="jsonFileInput" accept=".json,application/json">
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="toolbar">
+        <button class="btn danger small" id="clearAllBtn" type="button">Nueva semana (borrar todo)</button>
+      </div>
+    </div>
+  </section>
+  <footer class="note">
+    <details class="note-plegable"><summary>Cómo funciona esta app, usuarios y privacidad</summary>
+    <div>
+    Esta app no reemplaza ni modifica tu Excel — organiza el trabajo mientras completas cada radicado y genera los documentos de salida. El Paso 1 trae lo fijo
+    (radicado, fechas, nombre); el Paso 2 es tu trabajo real: formato, dirección, resolución y la línea del comparendo, que se separa sola en sus columnas.
+    Copiar/descargar (Paso 3) siempre usa los mismos datos que ya tienes capturados.<br><br>
+    <b>Usuarios:</b> cada persona inicia sesión con su propio correo de Gmail y contraseña — así se separan los datos de cada quien, incluso si comparten computador o navegador. No es un sistema de autenticación de nivel institucional (la contraseña se valida solo en este navegador, sin servidor).
+    En <b>Ajustes</b> configuras campos obligatorios, categorías, el diccionario de plantillas, tus datos para el documento final y ves tus informes históricos.<br><br>
+    <b>Privacidad:</b> esta app no tiene servidor ni base de datos propia — todo lo que capturas se guarda únicamente en el navegador de quien la usa, y nunca se envía a ningún tercero. La dirección web en sí es pública (cualquiera con el enlace puede abrirla), así que compártela solo con tu equipo; lo que la protege es que cada quien necesita su propia cuenta para ver sus datos.<br><br>
+    <b>Si el navegador no logra guardar</b> (aviso arriba): la app sigue funcionando con normalidad mientras la pestaña quede abierta; solo no se guarda para la
+    próxima vez. Descarga el respaldo (.json) seguido y cárgalo al volver a entrar.
+    </div></details>
+  </footer>
+  </div>
+</dialog>
+
 <dialog id="repetidoDialog" class="small" aria-labelledby="repetidoTitle">
   <div class="panel-head">
     <div><span class="step" style="background:var(--stamp-soft);color:var(--stamp);">Dato repetido</span>
@@ -4364,6 +4441,23 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     return d[corto] || 0;
   }
   // ---------- Historial de radicados: interacción y exportación ----------
+  // Importar y Documentos son tareas SEMANALES: viven en su propia ventana, no ocupando pantalla
+  // todos los días. Su contenido es el mismo de antes, con los mismos ids y manejadores.
+  document.getElementById("abrirImportarBtn").addEventListener("click", function(){
+    var acc = document.getElementById("paso1Accordion");
+    if(acc) acc.open = true;
+    document.getElementById("importDialog").showModal();
+  });
+  document.getElementById("importDialogClose").addEventListener("click", function(){
+    document.getElementById("importDialog").close();
+  });
+  document.getElementById("abrirDocumentosBtn").addEventListener("click", function(){
+    document.getElementById("documentosDialog").showModal();
+  });
+  document.getElementById("documentosDialogClose").addEventListener("click", function(){
+    document.getElementById("documentosDialog").close();
+  });
+
   document.getElementById("historialTriggerBtn").addEventListener("click", function(){
     renderHistorial();
     document.getElementById("historialDialog").showModal();
@@ -5790,7 +5884,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var catorceDias = 14 * 24 * 60 * 60 * 1000;
     if(!last || (Date.now() - last) > catorceDias){
       setTimeout(function(){
-        toast("Recuerda descargar un respaldo (.json) de vez en cuando -- Ajustes → Respaldo de trabajo. Guárdalo en un lugar aparte de este navegador (correo, disco compartido...).");
+        toast("Conviene descargar un respaldo (.json) — Documentos → Respaldo.");
       }, 2500); // no compite con el aviso de "sesión iniciada"
     }
   }
