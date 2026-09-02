@@ -2140,8 +2140,48 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // Se conservan las últimas 300 entradas: suficiente para semanas de trabajo, sin llenar el
       // almacenamiento del navegador (que también guarda los radicados activos).
       if(papelera.length > 300) papelera = papelera.slice(0, 300);
+      // Espejo en IndexedDB SIEMPRE. Para un radicado borrado, la papelera es su ÚNICO hogar: no
+      // está en la lista, y si se borró antes del cierre tampoco llegó al archivo de la semana. Si
+      // esta escritura falla, ese radicado desaparece de todas partes -- por eso no puede depender
+      // de un solo almacén, ni fallar en silencio como hacía antes.
+      idbSet(papeleraKeyFor(state.profile.activeUser), papelera);
       localStorage.setItem(papeleraKeyFor(state.profile.activeUser), JSON.stringify(papelera));
-    }catch(e){ /* si el navegador no deja escribir, el borrado sigue su curso: nunca se bloquea por esto */ }
+    }catch(e){
+      // El borrado no se bloquea (hay casos, como el guardián de desaparecidos, en los que el
+      // radicado ya no está y bloquear no arreglaría nada), pero NUNCA se calla: se avisa en grande
+      // porque puede ser la única copia de ese radicado.
+      idbSet(papeleraKeyFor(state.profile.activeUser), leerPapelera().concat([{
+        borradoEn: new Date().toISOString(), motivo: motivo || "sin especificar",
+        desde: isFlotanteInstance ? "ventana flotante" : "pestaña principal",
+        radicado: rec.radicado, nombre: rec.nombreF || rec.nombre || "", registro: rec
+      }]));
+      showDataSafetyBanner("No se pudo guardar en la Papelera el radicado " + (rec.radicado||"") +
+        " (el almacenamiento de este navegador está lleno). Se intentó por la vía de respaldo, pero " +
+        "descarga YA el respaldo (.json) del Paso 3 para no depender de eso.", "error");
+    }
+  }
+  // Igual que con el historial: si la papelera de localStorage se perdió o nunca se pudo escribir,
+  // se recupera lo que haya en la copia de IndexedDB. Solo añade, nunca quita.
+  function recuperarPapeleraDeIdb(){
+    if(!state.profile.activeUser) return;
+    var usuario = state.profile.activeUser;
+    idbGet(papeleraKeyFor(usuario)).then(function(guardada){
+      if(state.profile.activeUser !== usuario) return;
+      if(!Array.isArray(guardada) || !guardada.length) return;
+      var actual = leerPapelera();
+      var vistos = {};
+      actual.forEach(function(e){ if(e) vistos[(e.radicado||"") + "|" + (e.borradoEn||"")] = true; });
+      var faltan = guardada.filter(function(e){
+        return e && !vistos[(e.radicado||"") + "|" + (e.borradoEn||"")];
+      });
+      if(!faltan.length) return;
+      var fusionada = actual.concat(faltan).sort(function(a,b){
+        return String(b.borradoEn||"").localeCompare(String(a.borradoEn||""));
+      }).slice(0, 300);
+      try{ localStorage.setItem(papeleraKeyFor(usuario), JSON.stringify(fusionada)); }catch(e){}
+      try{ renderPapelera(); }catch(e){}
+      try{ renderHistorial(); }catch(e){}
+    }).catch(function(){});
   }
 
   // Ver la llamada dentro de save(): compara lo que ya estaba guardado en este navegador contra lo
@@ -3042,14 +3082,117 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var parsed = raw ? JSON.parse(raw) : null;
       state.history = Array.isArray(parsed) ? parsed : [];
     }catch(e){
-      state.history = []; // el historial es un reporte auxiliar, no el trabajo en curso: si se dañó, se reinicia sin bloquear nada
+      state.history = []; // dañado o ilegible aquí: la copia de IndexedDB, más abajo, es la que manda
     }
+    // El historial YA NO es un reporte auxiliar: es el archivo de todo lo trabajado, y de él depende
+    // poder responder qué pasó con un radicado meses después. Por eso no basta con leer localStorage:
+    // en cuanto ese almacén se llena (cosa que pasará al acumularse las semanas), el archivo pasa a
+    // vivir SOLO en IndexedDB, y leer únicamente localStorage haría creer que no hay nada guardado.
+    recuperarHistorialDeIdb();
+    recuperarPapeleraDeIdb();
+  }
+  // Funde en el historial las semanas que estén en IndexedDB y falten aquí. Nunca quita nada:
+  // solo puede AÑADIR lo que falte, identificando cada semana por su fecha de cierre.
+  function recuperarHistorialDeIdb(){
+    if(!state.profile.activeUser) return;
+    var usuario = state.profile.activeUser;
+    var clave = historyKeyFor(usuario);
+    idbGet(clave).then(function(guardado){
+      if(state.profile.activeUser !== usuario) return; // cambió de cuenta mientras se leía
+      if(!Array.isArray(guardado) || !guardado.length) return;
+      var conocidas = {};
+      state.history.forEach(function(h){ if(h && h.closedAt) conocidas[h.closedAt] = true; });
+      var recuperadas = guardado.filter(function(h){ return h && h.closedAt && !conocidas[h.closedAt]; });
+      if(!recuperadas.length) return;
+      state.history = state.history.concat(recuperadas).sort(function(a,b){
+        return String(a.closedAt||"").localeCompare(String(b.closedAt||""));
+      });
+      var nRad = recuperadas.reduce(function(n,h){ return n + ((h.records||[]).length); }, 0);
+      try{ renderHistorial(); }catch(e){}
+      try{ renderHistory(); }catch(e){}
+      toast("Se recuperaron " + recuperadas.length + " semana(s) del archivo (" + nRad +
+            " radicados) desde la copia de seguridad de este navegador.");
+    }).catch(function(){});
   }
   // skipCloud: ver la nota junto a save() -- mismo motivo.
+  // Devuelve true SOLO si el historial quedó realmente escrito. Antes se tragaba el error y no
+  // devolvía nada, y quien cerraba la semana borraba los radicados igual, creyendo que estaban
+  // archivados: eso costaba la semana entera sin dejar rastro. Ahora el resultado es obligatorio
+  // de mirar (ver archivarSemanaVerificado).
   function saveHistory(skipCloud){
-    if(!state.profile.activeUser) return;
-    try{ localStorage.setItem(historyKeyFor(state.profile.activeUser), JSON.stringify(state.history)); if(!skipCloud) queueCloudSync(); }
-    catch(e){ toast("No se pudo guardar el historial de esta semana en este navegador (tus radicados no se ven afectados)."); }
+    if(!state.profile.activeUser) return false;
+    // Espejo en IndexedDB SIEMPRE, en paralelo: es un almacén mucho más grande que localStorage
+    // (que ronda los 5 MB) y es la red que sostiene el historial cuando el otro se llena.
+    idbSet(historyKeyFor(state.profile.activeUser), state.history);
+    try{
+      localStorage.setItem(historyKeyFor(state.profile.activeUser), JSON.stringify(state.history));
+      if(!skipCloud) queueCloudSync();
+      return true;
+    }catch(e){
+      toast("No se pudo guardar el historial en este navegador — se está intentando por otra vía.", "warn");
+      return false;
+    }
+  }
+  // Escritura CONFIRMADA en IndexedDB: idbSet() es "dispara y olvida" y no sirve para decidir si
+  // ya es seguro borrar algo. Esta espera a que la transacción se complete de verdad.
+  function idbSetConfirmado(key, value){
+    return getIdb().then(function(db){
+      if(!db) return false;
+      return new Promise(function(resolve){
+        try{
+          var tx = db.transaction("kv","readwrite");
+          tx.objectStore("kv").put(value, key);
+          tx.oncomplete = function(){ resolve(true); };
+          tx.onerror = function(){ resolve(false); };
+          tx.onabort = function(){ resolve(false); };
+        }catch(e){ resolve(false); }
+      });
+    }).catch(function(){ return false; });
+  }
+  // ARCHIVADO VERIFICADO DE UNA SEMANA.
+  // Regla: NADA se borra de la lista hasta que el archivo esté escrito Y se pueda volver a leer con
+  // el mismo número de radicados. Se intentan las dos vías (localStorage e IndexedDB) y basta con
+  // que UNA quede verificada. Si ninguna lo consigue, se deshace el apunte y se devuelve false,
+  // para que quien llama NO borre nada.
+  function archivarSemanaVerificado(entrada){
+    var clave = historyKeyFor(state.profile.activeUser);
+    var esperados = (entrada.records || []).length;
+    state.history.push(entrada);
+    var recortadas = [];
+    if(state.history.length > 104){
+      recortadas = state.history.slice(0, state.history.length - 104);
+      state.history = state.history.slice(state.history.length - 104);
+    }
+    function deshacer(){
+      state.history = state.history.filter(function(h){ return h !== entrada; });
+      recortadas.forEach(function(h){ state.history.unshift(h); });
+    }
+    // 1) localStorage, y se relee para comprobar que de verdad quedó.
+    var okLocal = false;
+    try{
+      localStorage.setItem(clave, JSON.stringify(state.history));
+      var vuelta = JSON.parse(localStorage.getItem(clave) || "[]");
+      var enc = vuelta.filter(function(h){ return h.closedAt === entrada.closedAt; })[0];
+      okLocal = !!enc && (enc.records || []).length === esperados;
+    }catch(e){ okLocal = false; }
+
+    // 2) IndexedDB, confirmada y releída igual.
+    return idbSetConfirmado(clave, state.history).then(function(escrito){
+      if(!escrito) return false;
+      return idbGet(clave).then(function(v){
+        if(!Array.isArray(v)) return false;
+        var e2 = v.filter(function(h){ return h.closedAt === entrada.closedAt; })[0];
+        return !!e2 && (e2.records || []).length === esperados;
+      }).catch(function(){ return false; });
+    }).catch(function(){ return false; }).then(function(okIdb){
+      if(okLocal || okIdb){
+        if(!okLocal) toast("El historial se guardó en la copia de seguridad del navegador (el almacenamiento principal está lleno).", "warn");
+        queueCloudSync();
+        return {ok:true, local:okLocal, idb:okIdb, recortadas:recortadas};
+      }
+      deshacer();
+      return {ok:false, local:false, idb:false, recortadas:[]};
+    });
   }
   // Mismo cálculo que usa el panel de arriba, reutilizado para el resumen que se guarda al cerrar la semana.
   function computeSummary(recs){
@@ -3219,10 +3362,23 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }
   }
 
-  // Último recurso: si se cierra la pestaña con algo escrito y sin haber navegado a otro caso,
-  // se intenta un guardado final síncrono (localStorage.setItem sí es síncrono).
-  window.addEventListener("beforeunload", function(){
+  // ÚLTIMO RECURSO ANTES DE PERDER LA PANTALLA. El autoguardado espera 1,2 s desde la última tecla;
+  // si en ese intervalo se cierra la ventana, lo escrito se perdería. Se salva con un guardado final
+  // síncrono (localStorage.setItem lo es).
+  //
+  // Se escucha en TRES eventos a propósito, no solo en "beforeunload": los navegadores NO garantizan
+  // ese evento al cerrar un iframe ni al descartar una pestaña, y la ventana flotante es
+  // precisamente un iframe. El evento fiable en esos casos es "visibilitychange" a hidden, que sí se
+  // dispara al cerrar la flotante, al minimizar o al cambiar de aplicación; "pagehide" cubre además
+  // la navegación con caché hacia atrás/adelante. Guardar de más es inocuo -- commitCurrentEdits() no
+  // hace nada si no hay un radicado abierto -- y guardar de menos cuesta el trabajo de la persona.
+  function guardadoDeUltimoRecurso(){
     try{ commitCurrentEdits(); }catch(e){}
+  }
+  window.addEventListener("beforeunload", guardadoDeUltimoRecurso);
+  window.addEventListener("pagehide", guardadoDeUltimoRecurso);
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "hidden") guardadoDeUltimoRecurso();
   });
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
   function pad(n){ n = String(n); return n.length < 2 ? "0"+n : n; }
@@ -5919,27 +6075,55 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // existiendo -- no se pierde para siempre solo por haber usado "Nueva semana".
     var summary = computeSummary(toClose);
     var now = new Date();
-    state.history.push({
+    var entrada = {
       closedAt: now.toISOString(),
       closedAtDisplay: pad(now.getDate())+"/"+pad(now.getMonth()+1)+"/"+now.getFullYear(),
       weekLabel: isoWeekLabel(now),
       total: summary.total, done: summary.done, pct: summary.pct,
       devuelto: summary.devuelto, pctDevuelto: summary.pctDevuelto,
       records: toClose.map(function(r){ return Object.assign({}, r); }) // copia completa, no solo el resumen
+    };
+    var btn = document.getElementById("confirmOk");
+    btn.disabled = true;
+    // EL CIERRE DE SEMANA ES UNA TRANSACCIÓN. Antes se llamaba a saveHistory() sin mirar el
+    // resultado y se borraba la lista a continuación: si el navegador estaba lleno, el archivado
+    // fallaba en silencio y la semana entera desaparecía sin dejar rastro (reproducido: 194
+    // radicados borrados, 0 archivados, sin un solo error en consola). Ahora NO se borra nada
+    // hasta que el archivo esté escrito y releído con el mismo número de radicados.
+    archivarSemanaVerificado(entrada).then(function(res){
+      btn.disabled = false;
+      if(!res.ok){
+        confirmDialog.close();
+        showDataSafetyBanner(
+          "NO se cerró la semana y NO se borró nada. No se pudo archivar el detalle de los " +
+          toClose.length + " radicados (el almacenamiento de este navegador está lleno o bloqueado), " +
+          "y cerrar sin ese archivo habría hecho que perdieras la semana entera. " +
+          "Descarga el respaldo (.json) del Paso 3 ahora mismo; con él a salvo puedes liberar espacio " +
+          "y volver a intentarlo.", "error", "Descargar respaldo ahora", function(){
+            var b = document.getElementById("backupBtn") || document.getElementById("downloadJsonBtn");
+            if(b) b.click();
+          });
+        toast("Semana NO cerrada — no se pudo archivar. Tus radicados siguen intactos.", "warn");
+        return;
+      }
+      if(res.recortadas && res.recortadas.length){
+        showDataSafetyBanner(
+          "Se alcanzó el tope de 104 semanas guardadas y salió del historial la más antigua (" +
+          (res.recortadas[0].closedAtDisplay || "—") + "). Si necesitas conservarla, descárgala del " +
+          "Historial de asignaciones antes de que se pierda del todo.", "warn");
+      }
+      // Cierre deliberado de semana: estos radicados SÍ deben salir de la lista activa (su detalle
+      // completo acaba de quedar archivado y verificado), así que no deben disparar la alarma de
+      // "desaparecieron sin borrarse a mano" -- ver revisarDesaparecidosAntesDeGuardar().
+      toClose.forEach(function(r){ idsBorradosAdrede[r.id] = true; });
+      state.records = toKeep;
+      state.records.forEach(function(r,i){ r.order = i; });
+      state.activeId = null;
+      explicitRemovalPending = state.records.length === 0; // el freno de la nube no debe bloquear un vaciado deliberado
+      save(); renderAll();
+      confirmDialog.close();
+      toast("Semana cerrada (" + toClose.length + " radicados, agendamientos incluidos) — archivado verificado en tu Historial.");
     });
-    if(state.history.length > 104) state.history = state.history.slice(state.history.length - 104); // ~2 años, no crece sin límite
-    saveHistory();
-    // Cierre deliberado de semana: estos radicados SÍ deben salir de la lista activa (su detalle
-    // completo acaba de quedar en el Historial, arriba), así que no deben disparar la alarma de
-    // "desaparecieron sin borrarse a mano" -- ver revisarDesaparecidosAntesDeGuardar().
-    toClose.forEach(function(r){ idsBorradosAdrede[r.id] = true; });
-    state.records = toKeep;
-    state.records.forEach(function(r,i){ r.order = i; });
-    state.activeId = null;
-    explicitRemovalPending = state.records.length === 0; // el freno de la nube no debe bloquear un vaciado deliberado
-    save(); renderAll();
-    confirmDialog.close();
-    toast("Semana cerrada (" + toClose.length + " radicados, agendamientos incluidos) — el detalle completo de cada uno quedó guardado en tu Historial de asignaciones.");
   });
 
   document.getElementById("manualCopyClose").addEventListener("click", function(){
