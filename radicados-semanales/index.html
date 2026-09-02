@@ -398,35 +398,8 @@
   .queue-empty{padding:26px 10px;text-align:center;color:var(--muted);font-size:0.82rem;}
   .queue-count{padding:4px 8px 8px;color:var(--muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:.04em;}
 
-  .agenda-item{padding:10px 12px;border-radius:8px;border:1px solid var(--border);margin-bottom:7px;background:var(--surface);}
-  .agenda-item.vencido{background:var(--stamp-soft);border-color:var(--stamp);}
-  .agenda-item .ai-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;}
-  .agenda-item .ai-radicado{font-variant-numeric:tabular-nums;font-weight:700;font-size:0.9rem;}
-  .agenda-item .ai-name{color:var(--muted);font-size:0.82rem;margin-top:1px;}
-  .agenda-item .ai-meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:7px;font-size:0.78rem;color:var(--muted);}
-  .agenda-item .ai-meta b{color:var(--ink);font-weight:600;}
-  .agenda-item .ai-dup{margin-top:7px;font-size:0.78rem;color:var(--stamp);font-weight:700;}
-  /* Resumen de un vistazo, arriba de la lista de agendamientos: cuántos hay en cada estado. */
-  .agenda-resumen{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px;}
-  /* Historial de radicados */
-  .historial-resumen{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;}
-  .hist-item{padding:10px 12px;border-radius:8px;border:1px solid var(--border);margin-bottom:7px;background:var(--surface);}
-  .hist-item.borrado{opacity:.75;border-style:dashed;}
   .hist-detalle{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);
     display:grid;grid-template-columns:minmax(220px,1fr) minmax(240px,1.4fr);gap:16px;}
-  @media (max-width:640px){ .hist-detalle{grid-template-columns:1fr;} }
-  .hist-recorrido b{font-size:0.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
-  .hist-recorrido ol{margin:6px 0 0;padding-left:18px;font-size:0.82rem;}
-  .hist-recorrido li{margin-bottom:7px;}
-  .hist-ficha{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 14px;margin:0;font-size:0.8rem;}
-  .hist-ficha dt{color:var(--muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;}
-  .hist-ficha dd{margin:1px 0 0;font-weight:600;overflow-wrap:anywhere;}
-  /* Edición dentro de la propia ventana de Agendamientos (ver formularioAgendaInline). */
-  .agenda-item .ai-edit{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);}
-  .agenda-item .ai-edit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
-  .agenda-item .ai-edit label{display:block;font-size:0.74rem;color:var(--muted);margin-bottom:3px;}
-  .agenda-item .ai-edit input,.agenda-item .ai-edit textarea{width:100%;}
-  .agenda-item .ai-actions{margin-top:9px;display:flex;gap:8px;}
 
   .capture-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 18px;position:sticky;top:12px;}
   .capture-card .cc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:2px;flex-wrap:wrap;}
@@ -569,6 +542,100 @@
   .profile-new input{flex:1;}
 
   dialog.wide-settings{max-width:640px;width:94vw;}
+
+  /* ============================================================
+     ESPACIOS DE TRABAJO (Agendamientos e Historial de radicados)
+     ------------------------------------------------------------
+     Estas dos NO son ventanas de ajustes: son secciones donde se consulta y se trabaja sobre
+     cientos de expedientes. Antes heredaban la caja de 640 px de los ajustes, y todo quedaba
+     amontonado en una columna estrecha con la explicación ocupando el primer tercio de la pantalla.
+     Ahora ocupan la ventana como corresponde y se organizan en DOS PANELES: la lista a la izquierda
+     para recorrerla, y el expediente completo a la derecha. Es la disposición de cualquier sistema
+     de consulta de expedientes, y evita el desplegar/plegar de cada tarjeta, que era el que
+     producía el desorden.
+     ============================================================ */
+  dialog.workspace{max-width:1180px;width:96vw;height:90vh;max-height:90vh;
+    display:flex;flex-direction:column;overflow:hidden;}
+  @supports (height: 90dvh){ dialog.workspace{ height:90dvh; max-height:90dvh; } }
+
+  .ws-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;
+    padding:18px 22px 14px;border-bottom:1px solid var(--border);flex:none;}
+  .ws-head h2{margin:2px 0 0;font-size:1.3rem;letter-spacing:-0.01em;}
+  .ws-head .step{margin:0;}
+  /* Franja de cifras: el estado del lote de un vistazo, en una sola línea alineada. */
+  .ws-stats{display:flex;gap:0;flex-wrap:wrap;align-items:stretch;
+    border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface-2);}
+  .ws-stat{padding:7px 14px;border-right:1px solid var(--border);min-width:78px;}
+  .ws-stat:last-child{border-right:none;}
+  .ws-stat b{display:block;font-size:1.15rem;line-height:1.1;font-variant-numeric:tabular-nums;}
+  .ws-stat span{display:block;font-size:0.68rem;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--muted);margin-top:2px;white-space:nowrap;}
+  .ws-stat.alerta b{color:var(--stamp);}
+  .ws-stat.bien b{color:var(--accent);}
+
+  .ws-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:12px 22px;border-bottom:1px solid var(--border);flex:none;background:var(--surface-2);}
+  .ws-tools .search-box{flex:1 1 260px;max-width:420px;}
+  .ws-tools .filter-tabs{background:var(--surface);}
+  /* La explicación larga deja de ocupar el primer tercio de la pantalla: queda a un clic. */
+  .ws-ayuda{margin-left:auto;}
+  .ws-ayuda>summary{cursor:pointer;font-size:0.8rem;color:var(--accent);font-weight:600;
+    list-style:none;padding:6px 10px;border-radius:8px;white-space:nowrap;}
+  .ws-ayuda>summary::-webkit-details-marker{display:none;}
+  .ws-ayuda>summary:hover{background:var(--accent-soft);}
+  .ws-ayuda-texto{position:absolute;z-index:5;right:22px;margin-top:6px;max-width:520px;
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:14px 16px;box-shadow:var(--shadow);font-size:0.84rem;line-height:1.55;color:var(--muted);}
+
+  .ws-body{flex:1 1 auto;display:grid;grid-template-columns:minmax(300px,1fr) minmax(340px,1.15fr);
+    min-height:0;overflow:hidden;}
+  .ws-list{overflow-y:auto;border-right:1px solid var(--border);min-height:0;}
+  .ws-detail{overflow-y:auto;min-height:0;background:var(--surface-2);}
+  .ws-listhead{position:sticky;top:0;z-index:2;background:var(--surface);
+    padding:8px 16px;border-bottom:1px solid var(--border);
+    font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+
+  /* Una fila de la lista: compacta, alineada y seleccionable. Sin botones sueltos por fila. */
+  .ws-row{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;
+    padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;}
+  .ws-row:hover{background:var(--surface-2);}
+  .ws-row.sel{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent);}
+  .ws-row .r-rad{font-variant-numeric:tabular-nums;font-weight:700;font-size:0.86rem;}
+  .ws-row .r-nom{grid-column:1;color:var(--muted);font-size:0.8rem;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ws-row .r-chip{grid-row:1;grid-column:2;}
+  .ws-row .r-sub{grid-column:1 / -1;font-size:0.75rem;color:var(--muted);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ws-row.urgente .r-rad{color:var(--stamp);}
+  .ws-vacio{padding:28px 20px;text-align:center;color:var(--muted);font-size:0.88rem;}
+
+  /* El panel del expediente. */
+  .ws-detail-inner{padding:18px 20px 24px;}
+  .ws-detail h3{margin:0;font-size:1.05rem;font-variant-numeric:tabular-nums;}
+  .ws-detail .d-nombre{color:var(--muted);font-size:0.88rem;margin:2px 0 12px;}
+  .ws-seccion{margin-top:18px;}
+  .ws-seccion>h4{margin:0 0 8px;font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--muted);font-weight:700;}
+  .ws-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 16px;margin:0;}
+  .ws-campos dt{font-size:0.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
+  .ws-campos dd{margin:1px 0 0;font-weight:600;font-size:0.86rem;overflow-wrap:anywhere;}
+  .ws-linea{border:0;border-top:1px solid var(--border);margin:16px 0 0;}
+  .ws-acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+  .ws-aviso{background:var(--stamp-soft);color:var(--stamp);border-radius:8px;
+    padding:9px 12px;font-size:0.82rem;font-weight:600;margin-top:12px;}
+  .ws-recorrido{margin:0;padding-left:18px;font-size:0.84rem;}
+  .ws-recorrido li{margin-bottom:9px;}
+  .ws-recorrido .cuando{color:var(--muted);font-size:0.78rem;display:block;}
+
+  .ws-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    padding:12px 22px;border-top:1px solid var(--border);flex:none;background:var(--surface);}
+  .ws-foot .acciones{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;}
+
+  @media (max-width:860px){
+    .ws-body{grid-template-columns:1fr;grid-template-rows:minmax(160px,42%) 1fr;}
+    .ws-list{border-right:none;border-bottom:1px solid var(--border);}
+    .ws-ayuda{margin-left:0;}
+  }
   .auth-security-note{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:0.82rem;color:var(--muted);margin:0 0 14px;}
 
   /* ---- tarjeta de sesión activa: a quién pertenece y cómo cerrarla, separado de cambiar de cuenta ---- */
@@ -1033,80 +1100,83 @@
      lista de esta semana, los radicados de cada semana ya cerrada, y la papelera. Un mismo radicado
      puede aparecer en varias (se reimportó, se cerró, se borró): por eso se agrupa POR RADICADO y se
      muestra su recorrido completo en orden, que es lo que de verdad responde "¿qué pasó con este?". -->
-<dialog id="historialDialog" class="wide-settings" aria-labelledby="historialDialogTitle">
-  <div class="panel-head">
+<dialog id="historialDialog" class="workspace" aria-labelledby="historialDialogTitle">
+  <div class="ws-head">
     <div><span class="step">Memoria completa</span><h2 id="historialDialogTitle">Historial de radicados</h2></div>
-    <div class="toolbar">
-      <div class="search-box">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input id="historialSearch" placeholder="Buscar radicado, nombre, comparendo, documento, placa, correo, resolución...">
-      </div>
-    </div>
+    <div class="ws-stats" id="historialResumen"></div>
   </div>
-  <div class="panel-body">
-    <p class="panel-desc" style="margin-top:0;">Aquí está <b>todo radicado que hayas trabajado</b>, sin importar cómo lo clasificaste: los de la lista de esta semana, los de todas las semanas ya cerradas y los que borraste. Busca cualquiera y verás su recorrido completo — cómo quedó clasificado, si salió en la base que entregaste, y en qué semana se cerró.</p>
-    <div class="historial-resumen" id="historialResumen"></div>
-    <div class="filter-tabs" id="historialFilterTabs" style="margin-bottom:10px;flex-wrap:wrap;">
+  <div class="ws-tools">
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="historialSearch" placeholder="Buscar radicado, nombre, comparendo, documento, placa...">
+    </div>
+    <div class="filter-tabs" id="historialFilterTabs">
       <button data-histfilter="all" class="active">Todos</button>
-      <button data-histfilter="masiva">Entregados en la masiva</button>
+      <button data-histfilter="masiva">Entregados</button>
       <button data-histfilter="agenda">Agendamientos</button>
       <button data-histfilter="devuelto">Devueltos</button>
       <button data-histfilter="sinclasificar">Sin clasificar</button>
       <button data-histfilter="papelera">Borrados</button>
     </div>
-    <div class="queue-count" id="historialCount">0 radicados</div>
-    <div class="queue-panel" id="historialPanel" style="max-height:440px;"></div>
-    <div class="import-actions" style="margin-top:14px;flex-wrap:wrap;justify-content:space-between;align-items:center;">
-      <span class="hint" id="historialNota"></span>
-      <span style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn" id="historialCopiar" type="button">Copiar lo que estoy viendo</button>
-        <button class="btn primary" id="historialDescargar" type="button">Descargar Excel (.xlsx)</button>
-      </span>
-    </div>
+    <details class="ws-ayuda">
+      <summary>¿Qué hay aquí?</summary>
+      <div class="ws-ayuda-texto">Está <b>todo radicado que hayas trabajado</b>, sin importar cómo lo clasificaste: los de la lista de esta semana, los de todas las semanas ya cerradas y los que borraste. Al elegir uno verás su <b>recorrido completo</b> — cómo quedó clasificado, si salió en la base que entregaste, y en qué semana se cerró.</div>
+    </details>
   </div>
-  <div class="form-actions">
-    <button class="btn ghost" id="historialDialogClose" type="button">Cerrar</button>
+  <div class="ws-body">
+    <div class="ws-list">
+      <div class="ws-listhead" id="historialCount">0 radicados</div>
+      <div id="historialPanel"></div>
+    </div>
+    <div class="ws-detail" id="historialDetalle"></div>
+  </div>
+  <div class="ws-foot">
+    <span class="hint" id="historialNota"></span>
+    <span class="acciones">
+      <button class="btn" id="historialCopiar" type="button">Copiar lo filtrado</button>
+      <button class="btn primary" id="historialDescargar" type="button">Descargar Excel (.xlsx)</button>
+      <button class="btn ghost" id="historialDialogClose" type="button">Cerrar</button>
+    </span>
   </div>
 </dialog>
 
-<dialog id="agendaDialog" class="wide-settings" aria-labelledby="agendaDialogTitle">
-  <div class="panel-head">
+<dialog id="agendaDialog" class="workspace" aria-labelledby="agendaDialogTitle">
+  <div class="ws-head">
     <div><span class="step">Ventana aparte</span><h2 id="agendaDialogTitle">Agendamientos</h2></div>
-    <div class="toolbar">
-      <div class="search-box">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input id="agendaSearch" placeholder="Buscar radicado, nombre, comparendo, placa...">
-      </div>
-      <div class="filter-tabs" id="agendaFilterTabs">
-        <button data-agendafilter="pend" class="active">Pendientes</button>
-        <button data-agendafilter="vencidos">Fuera de término</button>
-        <button data-agendafilter="sinfechas">Sin fechas</button>
-        <button data-agendafilter="done">Ya agendados</button>
-        <button data-agendafilter="all">Todos</button>
-      </div>
-    </div>
+    <div class="ws-stats" id="agendaResumen"></div>
   </div>
-  <div class="panel-body">
-    <p class="panel-desc" style="margin-top:0;">Los radicados que marcaste con <b>Formato = AGENDAMIENTO</b> viven aquí, aparte —
-    <b>nunca entran al documento final (masiva)</b>. Pensada para tu revisión de las mañanas: cuáles siguen en término
-    para solicitar audiencia (5 días hábiles si el comparendo es manual, 11 si es electrónico) y cuáles ya se pasaron.
-    El término se cuenta <b>solo con las fechas de la línea de Fénix</b> (notificación o, si no hay, imposición) contra
-    tu fecha de radicación — nunca con la fecha de asignación. Por eso aquí necesitas pegar esa línea completa
-    <b>hasta la Placa</b> (a diferencia de la masiva, que solo llega hasta el nombre del infractor).</p>
-    <div class="agenda-resumen" id="agendaResumen"></div>
-    <div class="queue-count" id="agendaCount">0 en la lista</div>
-    <div class="queue-panel" id="agendaPanel" style="max-height:400px;"></div>
-    <div class="import-actions" style="margin-top:14px;flex-wrap:wrap;justify-content:space-between;align-items:center;">
-      <span class="hint" id="agendaDocCount"></span>
-      <span style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn" id="copyAgendaBtn" type="button">Copiar plantilla</button>
-        <button class="btn primary" id="downloadAgendaBtn" type="button">Descargar plantilla de Agendamientos (.xlsx)</button>
-        <button class="btn ghost small" id="downloadAgendaDetalleBtn" type="button" title="Copia de control para ti, con el detalle del cálculo del término. NO es la que se entrega.">Detalle interno (.xlsx)</button>
-      </span>
+  <div class="ws-tools">
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="agendaSearch" placeholder="Buscar radicado, nombre, comparendo, placa...">
     </div>
+    <div class="filter-tabs" id="agendaFilterTabs">
+      <button data-agendafilter="pend" class="active">Pendientes</button>
+      <button data-agendafilter="vencidos">Fuera de término</button>
+      <button data-agendafilter="sinfechas">Sin fechas</button>
+      <button data-agendafilter="done">Ya agendados</button>
+      <button data-agendafilter="all">Todos</button>
+    </div>
+    <details class="ws-ayuda">
+      <summary>¿Cómo funciona?</summary>
+      <div class="ws-ayuda-texto">Los radicados con <b>Formato = AGENDAMIENTO</b> viven aquí, aparte: <b>nunca entran al documento final (masiva)</b>. El término para solicitar audiencia es de <b>5 días hábiles</b> si el comparendo es manual y <b>11</b> si es electrónico, y se cuenta <b>solo con las fechas de la línea de Fénix</b> (notificación o, si no hay, imposición) contra la fecha de radicación — nunca con la de asignación. Por eso aquí hay que pegar esa línea completa <b>hasta la Placa</b>.</div>
+    </details>
   </div>
-  <div class="form-actions">
-    <button class="btn ghost" id="agendaDialogClose" type="button">Cerrar</button>
+  <div class="ws-body">
+    <div class="ws-list">
+      <div class="ws-listhead" id="agendaCount">0 en la lista</div>
+      <div id="agendaPanel"></div>
+    </div>
+    <div class="ws-detail" id="agendaDetalle"></div>
+  </div>
+  <div class="ws-foot">
+    <span class="hint" id="agendaDocCount"></span>
+    <span class="acciones">
+      <button class="btn ghost small" id="downloadAgendaDetalleBtn" type="button" title="Copia de control para ti, con el detalle del cálculo del término. NO es la que se entrega.">Detalle interno (.xlsx)</button>
+      <button class="btn" id="copyAgendaBtn" type="button">Copiar plantilla</button>
+      <button class="btn primary" id="downloadAgendaBtn" type="button">Descargar plantilla (.xlsx)</button>
+      <button class="btn ghost" id="agendaDialogClose" type="button">Cerrar</button>
+    </span>
   </div>
 </dialog>
 
@@ -4010,14 +4080,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return true;
     });
   }
-  var HISTORIAL_TOPE = 150; // no se pintan miles de tarjetas de golpe; se busca para acotar
+  var HISTORIAL_TOPE = 300; // se pintan filas compactas, no tarjetas: caben muchas más
   function renderHistorial(){
     var panel = document.getElementById("historialPanel");
     if(!panel) return;
     var todos = historialUnificado();
     var lista = historialFiltrado();
-    var badge = document.getElementById("historialTriggerBadge");
-    if(badge) badge.textContent = todos.length + (todos.length===1 ? " radicado" : " radicados");
+    refreshHistorialBadge();
 
     var porEstado = {masiva:0, agenda:0, devuelto:0, sinclasificar:0};
     var enPapelera = 0;
@@ -4028,103 +4097,87 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var resumen = document.getElementById("historialResumen");
     if(resumen){
       resumen.innerHTML =
-        '<span class="pill set">' + todos.length + ' en total</span>' +
-        '<span class="pill ok">' + porEstado.masiva + ' entregados</span>' +
-        '<span class="pill">' + porEstado.agenda + ' agendamientos</span>' +
-        '<span class="pill">' + porEstado.devuelto + ' devueltos</span>' +
-        (porEstado.sinclasificar ? '<span class="pill pend">' + porEstado.sinclasificar + ' sin clasificar</span>' : '') +
-        (enPapelera ? '<span class="pill danger">' + enPapelera + ' borrados</span>' : '') +
-        '<span class="pill">' + (state.history||[]).length + ' semanas cerradas</span>';
+        stat(todos.length, "en total") +
+        stat(porEstado.masiva, "entregados", "bien") +
+        stat(porEstado.agenda, "agendamientos") +
+        stat(porEstado.devuelto, "devueltos") +
+        (porEstado.sinclasificar ? stat(porEstado.sinclasificar, "sin clasificar") : "") +
+        (enPapelera ? stat(enPapelera, "borrados", "alerta") : "") +
+        stat((state.history||[]).length, "semanas");
     }
-
     var mostrados = lista.slice(0, HISTORIAL_TOPE);
     document.getElementById("historialCount").textContent =
       lista.length + (lista.length===1 ? " radicado" : " radicados") +
-      (lista.length > mostrados.length ? " — se muestran los " + mostrados.length + " más recientes, busca para acotar" : "");
+      (lista.length > mostrados.length ? " · se muestran " + mostrados.length + ", busca para acotar" : "");
     document.getElementById("historialNota").textContent =
-      lista.length ? "Se descarga/copia todo lo filtrado (" + lista.length + "), no solo lo que se ve." : "";
+      lista.length ? "Se descarga o copia todo lo filtrado (" + lista.length + "), no solo lo que se ve." : "";
 
     if(!lista.length){
-      panel.innerHTML = '<div class="queue-empty">' +
+      panel.innerHTML = '<div class="ws-vacio">' +
         (todos.length ? "Ningún radicado coincide con lo que buscas." :
-         "Todavía no hay nada. Aquí irán apareciendo todos los radicados que trabajes, semana tras semana.") + '</div>';
+         "Todavía no hay nada. Aquí irán apareciendo todos los radicados que trabajes.") + '</div>';
+      renderHistorialDetalle(null);
       return;
     }
+    if(!mostrados.some(function(g){ return g.radicado === state.historialSel; })) state.historialSel = mostrados[0].radicado;
     panel.innerHTML = mostrados.map(function(g){
       var r = g.principal.rec;
-      var abierto = state.historialAbierto === g.radicado;
-      var donde = g.enLista ? "En tu lista de esta semana"
-        : (g.principal.origen === "semana" ? ("Semana cerrada el " + (g.principal.semana || "—"))
-        : ("Borrado el " + fechaCorta(g.principal.cuando)));
-      return '<div class="hist-item' + (g.enPapelera && !g.enLista ? " borrado" : "") + '">' +
-        '<div class="ai-top"><div>' +
-          '<div class="ai-radicado">' + escapeHtml(g.radicado) + '</div>' +
-          '<div class="ai-name">' + escapeHtml(r.nombreF || r.nombre || "(sin nombre)") + '</div>' +
-        '</div>' +
-        '<span class="pill ' + (g.estado.tono === "danger" ? "danger" : (g.estado.tono === "warn" ? "pend" : "ok")) + '">' +
-          escapeHtml(g.estado.texto) + '</span>' +
-        '</div>' +
-        '<div class="ai-meta">' +
-          '<span>' + escapeHtml(donde) + '</span>' +
-          '<span>Comparendo <b>' + escapeHtml(r.comparendoCompleto || "—") + '</b></span>' +
-          (r.res ? '<span>Resolución <b>' + escapeHtml(r.res) + '</b></span>' : '') +
-          '<span>Radicado el <b>' + escapeHtml(r.fechaRadicacion || "—") + '</b></span>' +
-        '</div>' +
-        '<div class="ai-actions">' +
-          '<button class="btn ghost small" data-histver="' + escapeHtml(g.radicado) + '" type="button">' +
-            (abierto ? "Ocultar detalle" : "Ver todo lo que pasó") + '</button>' +
-        '</div>' +
-        (abierto ? detalleHistorial(g) : '') +
+      var tono = g.estado.tono === "danger" ? "danger" : (g.estado.tono === "warn" ? "pend" : "ok");
+      var donde = g.enLista ? "Lista de esta semana"
+        : (g.principal.origen === "semana" ? "Semana del " + (g.principal.semana || "—")
+        : "Borrado el " + fechaCorta(g.principal.cuando));
+      return '<div class="ws-row' + (g.radicado === state.historialSel ? ' sel' : '') + '" data-histsel="' + escapeHtml(g.radicado) + '">' +
+        '<div class="r-rad">' + escapeHtml(g.radicado) + '</div>' +
+        '<div class="r-chip"><span class="pill ' + tono + '">' + escapeHtml((r.formato||"sin clasificar")) + '</span></div>' +
+        '<div class="r-nom">' + escapeHtml(r.nombreF || r.nombre || "(sin nombre)") + '</div>' +
+        '<div class="r-sub">' + escapeHtml(donde) + '</div>' +
       '</div>';
     }).join("");
+    renderHistorialDetalle(state.historialSel);
+  }
+  function renderHistorialDetalle(num){
+    var cont = document.getElementById("historialDetalle");
+    if(!cont) return;
+    var g = num && historialUnificado().filter(function(x){ return x.radicado === num; })[0];
+    if(!g){ cont.innerHTML = '<div class="ws-vacio">Elige un radicado de la lista para ver todo lo que pasó con él.</div>'; return; }
+    var r = g.principal.rec;
+    var recorrido = g.apariciones.map(function(a){
+      var titulo = a.origen === "activa" ? "Está en tu lista de trabajo ahora mismo"
+        : (a.origen === "semana" ? "Se cerró con la semana del " + (a.semana || "—") + (a.weekLabel ? " (" + a.weekLabel + ")" : "")
+        : "Se borró de la lista el " + fechaCorta(a.cuando));
+      var sub = a.origen === "papelera"
+        ? "Motivo: " + (a.motivo || "sin especificar") + " · desde " + (a.desde || "—")
+        : "Clasificado como " + ((a.rec.formato||"").trim() || "(sin clasificar)");
+      return '<li><b>' + escapeHtml(titulo) + '</b><span class="cuando">' + escapeHtml(sub) + '</span></li>';
+    }).join("");
+    cont.innerHTML = '<div class="ws-detail-inner">' +
+      '<h3>' + escapeHtml(g.radicado) + '</h3>' +
+      '<div class="d-nombre">' + escapeHtml(r.nombreF || r.nombre || "(sin nombre)") + '</div>' +
+      '<div class="ws-aviso" style="background:var(--accent-soft);color:var(--accent);">' +
+        escapeHtml(g.estado.texto) + '</div>' +
+      '<div class="ws-seccion"><h4>Recorrido</h4><ol class="ws-recorrido">' + recorrido + '</ol></div>' +
+      '<hr class="ws-linea">' +
+      '<div class="ws-seccion"><h4>Ficha del expediente</h4><dl class="ws-campos">' +
+        campo("Solicitante", r.nombre) + campo("Infractor (Fénix)", r.nombreF) +
+        campo("Documento", ((r.tipoId||"") + " " + (r.idNum||"")).trim()) +
+        campo("Correo o dirección", r.direccion) +
+        campo("Radicación", r.fechaRadicacion) + campo("Asignación", r.fechaAsignacion) +
+        campo("Formato", r.formato) + campo("Comparendo", r.comparendoCompleto) +
+        campo("Código", r.cod) + campo("Medio", r.medio) + campo("Estado comparendo", r.estado) +
+        campo("Imposición", r.imposicion) + campo("Notificación", r.notificacion) +
+        campo("Placa", r.placa) + campo("Resolución", r.res) + campo("Fecha resolución", r.fechaRes) +
+        campo("Formato plantilla", r.agendaFormato) + campo("Comentario", r.comentario) +
+      '</dl></div></div>';
   }
   function fechaCorta(iso){
     if(!iso) return "—";
     try{ return new Date(iso).toLocaleDateString("es-CO"); }catch(e){ return String(iso).slice(0,10); }
   }
-  // El detalle: el recorrido completo del radicado (cada aparición, en orden) y su ficha de datos.
-  function detalleHistorial(g){
-    var r = g.principal.rec;
-    var recorrido = g.apariciones.map(function(a){
-      var titulo = a.origen === "activa" ? "Está en tu lista de trabajo ahora mismo"
-        : (a.origen === "semana" ? ("Se cerró con la semana del " + (a.semana || "—") + (a.weekLabel ? " (" + a.weekLabel + ")" : ""))
-        : ("Se borró de la lista el " + fechaCorta(a.cuando)));
-      var sub = a.origen === "papelera"
-        ? ("Motivo: " + (a.motivo || "sin especificar") + " · desde " + (a.desde || "—"))
-        : ("Clasificado como " + ((a.rec.formato||"").trim() || "(sin clasificar)"));
-      return '<li><b>' + escapeHtml(titulo) + '</b><br><span class="hint">' + escapeHtml(sub) + '</span></li>';
-    }).join("");
-    function fila(etiqueta, valor){
-      if(!String(valor||"").trim()) return "";
-      return '<div><dt>' + escapeHtml(etiqueta) + '</dt><dd>' + escapeHtml(String(valor)) + '</dd></div>';
-    }
-    return '<div class="hist-detalle">' +
-      '<div class="hist-recorrido"><b>Recorrido</b><ol>' + recorrido + '</ol></div>' +
-      '<dl class="hist-ficha">' +
-        fila("Solicitante", r.nombre) +
-        fila("Infractor (Fénix)", r.nombreF) +
-        fila("Documento", ((r.tipoId||"") + " " + (r.idNum||"")).trim()) +
-        fila("Correo o dirección", r.direccion) +
-        fila("Fecha de radicación", r.fechaRadicacion) +
-        fila("Fecha de asignación", r.fechaAsignacion) +
-        fila("Formato", r.formato) +
-        fila("Comparendo", r.comparendoCompleto) +
-        fila("Código de infracción", r.cod) +
-        fila("Medio", r.medio) +
-        fila("Estado del comparendo", r.estado) +
-        fila("Fecha de imposición", r.imposicion) +
-        fila("Fecha de notificación", r.notificacion) +
-        fila("Placa", r.placa) +
-        fila("Resolución", r.res) +
-        fila("Fecha de resolución", r.fechaRes) +
-        fila("Comentario", r.comentario) +
-      '</dl></div>';
-  }
   function renderAgendamientos(){
     var panel = document.getElementById("agendaPanel");
     var filter = state.agendaFilter || "pend";
     var all = agendamientoList();
-    refreshAgendaTriggerBadge(); // el botón que abre el dialog siempre debe reflejar el conteo actual
+    refreshAgendaTriggerBadge();
     refreshHistorialBadge();
     var dup = agendamientoDuplicados();
     var busqueda = (state.agendaSearch || "").trim().toUpperCase();
@@ -4140,10 +4193,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       }
       return true;
     }).sort(function(a, b){
-      // ORDEN POR URGENCIA, de lo que necesita atención a lo que ya está resuelto:
-      //   1) pendientes FUERA de término   2) pendientes sin fechas (no se puede saber)
-      //   3) pendientes dentro de término, primero los que pasaron más justos
-      //   4) los ya agendados, al final
+      // Orden por urgencia: lo que necesita atención arriba, lo resuelto abajo.
       function rango(r){
         var i = agendamientoInfo(r);
         if(r.agendado) return 3;
@@ -4153,7 +4203,6 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       }
       var ra = rango(a), rb = rango(b);
       if(ra !== rb) return ra - rb;
-      // Dentro del mismo grupo: el margen más ajustado primero (cuántos días le sobraron al ciudadano).
       var ia = agendamientoInfo(a), ib = agendamientoInfo(b);
       var ma = (ia.umbral !== null && ia.dias !== null) ? (ia.umbral - ia.dias) : 999;
       var mb = (ib.umbral !== null && ib.dias !== null) ? (ib.umbral - ib.dias) : 999;
@@ -4161,69 +4210,122 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return (a.order||0) - (b.order||0);
     });
 
-    // Resumen permanente arriba: qué hay que mirar hoy, sin tener que contar a mano.
     var pend = all.filter(function(r){ return !r.agendado; });
-    var nVencidos = pend.filter(function(r){ return agendamientoInfo(r).vencido; }).length;
-    var nSinFechas = pend.filter(function(r){ return agendamientoInfo(r).dias === null; }).length;
-    var nEnTermino = pend.length - nVencidos - nSinFechas;
+    var nVenc = pend.filter(function(r){ return agendamientoInfo(r).vencido; }).length;
+    var nSinF = pend.filter(function(r){ return agendamientoInfo(r).dias === null; }).length;
+    var nSinFmt = all.filter(function(r){ return !r.agendaFormato; }).length;
     var resumen = document.getElementById("agendaResumen");
     if(resumen){
       resumen.innerHTML =
-        '<span class="pill danger">' + nVencidos + ' fuera de término</span>' +
-        '<span class="pill">' + nEnTermino + ' dentro de término</span>' +
-        (nSinFechas ? '<span class="pill">' + nSinFechas + ' sin fechas para calcular</span>' : '') +
-        (function(){
-          var sinFormato = all.filter(function(r){ return !r.agendaFormato; }).length;
-          return sinFormato ? '<span class="pill danger">' + sinFormato + ' sin formato de plantilla</span>' : '';
-        })() +
-        '<span class="pill ok">' + (all.length - pend.length) + ' ya agendados</span>';
+        stat(all.length, "en total") +
+        stat(nVenc, "fuera de término", nVenc ? "alerta" : "") +
+        stat(pend.length - nVenc - nSinF, "en término", "bien") +
+        (nSinF ? stat(nSinF, "sin fechas") : "") +
+        (nSinFmt ? stat(nSinFmt, "sin formato", "alerta") : "") +
+        stat(all.length - pend.length, "ya agendados");
     }
-    document.getElementById("agendaCount").textContent = list.length + (list.length===1?" radicado":" radicados") + " en la lista ("+all.length+" en total)";
+    document.getElementById("agendaCount").textContent =
+      list.length + (list.length===1 ? " radicado" : " radicados") +
+      (list.length !== all.length ? " de " + all.length : "");
+    refreshAgendaDocCount();
+
     if(!list.length){
-      panel.innerHTML = '<div class="queue-empty">'+(all.length ? "Nada con este filtro." : "Aún no tienes radicados con Formato = AGENDAMIENTO.")+'</div>';
+      panel.innerHTML = '<div class="ws-vacio">' +
+        (all.length ? "Ningún agendamiento coincide con este filtro." :
+         "Aún no tienes radicados con Formato = AGENDAMIENTO.") + '</div>';
+      renderAgendaDetalle(null);
       return;
     }
+    // Si el seleccionado ya no está a la vista, se pasa al primero: el panel derecho nunca queda vacío.
+    if(!list.some(function(r){ return r.id === state.agendaSel; })) state.agendaSel = list[0].id;
     panel.innerHTML = list.map(function(r){
       var info = agendamientoInfo(r);
-      var corto = comparendoCorto(r);
-      var esDup = corto && dup[corto] > 1;
-      var terminoTxt = info.dias === null ? "faltan fechas de Fénix (notificación/imposición) o de radicación"
-        : (info.umbral === null ? (info.dias + " días hábiles (falta el Medio para saber el término)")
-        : (info.dias + " / " + info.umbral + " días hábiles (" + (info.tipo === "MANUAL" ? "manual" : "electrónico") + ")"));
-      // Margen: cuántos días hábiles le sobraron (o le faltaron) al ciudadano frente a su término.
-      var margen = (info.umbral !== null && info.dias !== null) ? (info.umbral - info.dias) : null;
-      var margenTxt = margen === null ? ""
-        : (margen < 0 ? ("se pasó por " + Math.abs(margen) + " día" + (Math.abs(margen)===1?"":"s") + " hábil" + (Math.abs(margen)===1?"":"es"))
-        : (margen === 0 ? "justo en el último día" : ("le sobraron " + margen + " día" + (margen===1?"":"s") + " hábil" + (margen===1?"":"es"))));
-      var abierto = state.agendaEditId === r.id;
-      return '<div class="agenda-item'+(info.vencido && !r.agendado ? " vencido" : "")+'" data-id="'+r.id+'">'+
-        '<div class="ai-top"><div><div class="ai-radicado">'+escapeHtml(r.radicado)+'</div>'+
-        '<div class="ai-name">'+escapeHtml(r.nombreF || r.nombre || "(sin nombre)")+'</div></div>'+
-        (r.agendado ? '<span class="pill ok">Ya agendado</span>'
-          : (info.vencido ? '<span class="pill danger">FUERA DE TÉRMINO</span>'
-          : (info.dias === null ? '<span class="pill">SIN FECHAS</span>' : '<span class="pill ok">DENTRO DE TÉRMINO</span>')))+
-        '</div>'+
-        '<div class="ai-meta">'+
-        '<span>Comparendo <b>'+escapeHtml(corto||"—")+'</b></span>'+
-        '<span>Documento <b>'+escapeHtml((r.tipoId||"")+" "+(r.idNum||""))+'</b></span>'+
-        '<span>Correo/dirección <b>'+escapeHtml(r.direccion||"—")+'</b></span>'+
-        '<span>Placa <b>'+escapeHtml(r.placa||"—")+'</b></span>'+
-        '<span>Término <b>'+terminoTxt+'</b></span>'+
-        (margenTxt ? '<span>Margen <b>'+escapeHtml(margenTxt)+'</b></span>' : '')+
-        '<span>Formato plantilla <b>'+escapeHtml(r.agendaFormato || "— falta elegirlo —")+'</b></span>'+
-        '</div>'+
-        (!r.agendaFormato ? '<div class="ai-dup">Falta elegir el <b>Formato de la plantilla</b> (con pruebas / sin pruebas): esa casilla saldría vacía en el archivo que entregas.</div>' : '')+
-        (esDup ? '<div class="ai-dup">🔴 Este número de comparendo aparece más de una vez entre tus AGENDAMIENTOS -- revisa que no esté duplicado.</div>' : '')+
-        '<div class="ai-actions">'+
-        '<button class="btn small" data-toggleagendado="'+r.id+'" type="button">'+(r.agendado ? "Marcar como pendiente" : "Marcar como ya agendado")+'</button>'+
-        '<button class="btn ghost small" data-agendaedit="'+r.id+'" type="button">'+(abierto ? "Cerrar edición" : "Editar aquí")+'</button>'+
-        '<button class="btn ghost small" data-editagendado="'+r.id+'" type="button">Abrir en el Paso 2</button>'+
-        '</div>'+
-        (abierto ? formularioAgendaInline(r) : '')+
+      var estado = r.agendado ? '<span class="pill ok">Agendado</span>'
+        : (info.vencido ? '<span class="pill danger">Fuera de término</span>'
+        : (info.dias === null ? '<span class="pill">Sin fechas</span>'
+        : '<span class="pill ok">En término</span>'));
+      var sub = "Comparendo " + (comparendoCorto(r) || "—") +
+                " · Placa " + (r.placa || "—") +
+                (r.agendaFormato ? "" : " · falta el formato");
+      return '<div class="ws-row' + (r.id === state.agendaSel ? ' sel' : '') +
+        (info.vencido && !r.agendado ? ' urgente' : '') + '" data-agsel="' + r.id + '">' +
+        '<div class="r-rad">' + escapeHtml(r.radicado) + '</div>' +
+        '<div class="r-chip">' + estado + '</div>' +
+        '<div class="r-nom">' + escapeHtml(r.nombreF || r.nombre || "(sin nombre)") + '</div>' +
+        '<div class="r-sub">' + escapeHtml(sub) + '</div>' +
       '</div>';
     }).join("");
+    renderAgendaDetalle(state.agendaSel);
   }
-  // ---------- Historial de radicados: interacción ----------
+  function stat(n, etiqueta, clase){
+    return '<div class="ws-stat' + (clase ? " " + clase : "") + '"><b>' + n + '</b><span>' +
+           escapeHtml(etiqueta) + '</span></div>';
+  }
+  function campo(etiqueta, valor){
+    if(!String(valor==null?"":valor).trim()) return "";
+    return '<div><dt>' + escapeHtml(etiqueta) + '</dt><dd>' + escapeHtml(String(valor)) + '</dd></div>';
+  }
+  function renderAgendaDetalle(id){
+    var cont = document.getElementById("agendaDetalle");
+    if(!cont) return;
+    var r = id && state.records.find(function(x){ return x.id === id; });
+    if(!r){ cont.innerHTML = '<div class="ws-vacio">Elige un agendamiento de la lista para ver y completar su información.</div>'; return; }
+    var info = agendamientoInfo(r);
+    var margen = (info.umbral !== null && info.dias !== null) ? (info.umbral - info.dias) : null;
+    var margenTxt = margen === null ? ""
+      : (margen < 0 ? "se pasó por " + Math.abs(margen) + " día(s) hábil(es)"
+      : (margen === 0 ? "justo en el último día" : "le sobraron " + margen + " día(s) hábil(es)"));
+    var termino = info.dias === null ? "faltan fechas de Fénix o de radicación"
+      : (info.umbral === null ? info.dias + " días hábiles (falta el Medio)"
+      : info.dias + " de " + info.umbral + " días hábiles (" + (info.tipo === "MANUAL" ? "manual" : "electrónico") + ")");
+    var corto = comparendoCorto(r);
+    var esDup = corto && dupActual(corto) > 1;
+    var opciones = AGENDA_FORMATOS.map(function(o){
+      return '<option value="'+escapeHtml(o)+'"'+(r.agendaFormato===o?' selected':'')+'>'+escapeHtml(o)+'</option>';
+    }).join("");
+    cont.innerHTML = '<div class="ws-detail-inner">' +
+      '<h3>' + escapeHtml(r.radicado) + '</h3>' +
+      '<div class="d-nombre">' + escapeHtml(r.nombreF || r.nombre || "(sin nombre)") + '</div>' +
+      (info.vencido && !r.agendado ? '<div class="ws-aviso">Este agendamiento quedó FUERA de término — ' + escapeHtml(margenTxt) + '.</div>' : '') +
+      (esDup ? '<div class="ws-aviso">El comparendo ' + escapeHtml(corto) + ' aparece en más de un agendamiento. Revisa que no esté duplicado.</div>' : '') +
+      (!r.agendaFormato ? '<div class="ws-aviso">Falta elegir el Formato de la plantilla: esa casilla saldría vacía en el archivo que entregas.</div>' : '') +
+
+      '<div class="ws-seccion"><h4>Término para solicitar audiencia</h4><dl class="ws-campos">' +
+        campo("Estado", info.dias === null ? "Sin fechas para calcular" : (info.vencido ? "FUERA DE TÉRMINO" : "Dentro de término")) +
+        campo("Días", termino) + campo("Margen", margenTxt) +
+        campo("Fecha base", formatDateEs(r.notificacion || r.imposicion) + (r.notificacion ? " (notificación)" : (r.imposicion ? " (imposición)" : ""))) +
+        campo("Radicación", formatDateEs(r.fechaRadicacion)) +
+      '</dl></div>' +
+
+      '<div class="ws-seccion"><h4>Datos del expediente</h4><dl class="ws-campos">' +
+        campo("Comparendo", corto) + campo("Comparendo completo", r.comparendoCompleto) +
+        campo("Código", r.cod) + campo("Medio", r.medio) + campo("Estado comparendo", r.estado) +
+        campo("Documento", ((r.tipoId||"") + " " + (r.idNum||"")).trim()) +
+      '</dl></div>' +
+
+      '<hr class="ws-linea">' +
+      '<div class="ws-seccion"><h4>Completar aquí</h4>' +
+      '<div class="ws-campos" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));">' +
+        '<div><label for="ae_direccion">Correo o dirección</label><input id="ae_direccion" value="'+escapeHtml(r.direccion||"")+'" placeholder="correo de notificación"></div>' +
+        '<div><label for="ae_placa">Placa</label><input id="ae_placa" value="'+escapeHtml(r.placa||"")+'" placeholder="ej. ABC123"></div>' +
+        '<div><label for="ae_agendaFormato">Formato de la plantilla</label>' +
+          '<select id="ae_agendaFormato"><option value="">(sin elegir)</option>' + opciones + '</select></div>' +
+        '<div><label for="ae_comentario">Comentario</label><input id="ae_comentario" value="'+escapeHtml(r.comentario||"")+'" placeholder="notas de esta solicitud"></div>' +
+      '</div>' +
+      '<div style="margin-top:10px;"><label for="ae_comparendo">Línea completa del comparendo (hasta la Placa)</label>' +
+        '<textarea id="ae_comparendo" rows="2" placeholder="Pega aquí la línea copiada de Fénix">'+escapeHtml(r.comparendoRaw||"")+'</textarea>' +
+        '<div class="field-hint">Al pegarla se recalculan solos el término, la placa y los datos del infractor.</div></div>' +
+      '<div class="ws-acciones">' +
+        '<button class="btn primary small" data-agendaguardar="'+r.id+'" type="button">Guardar cambios</button>' +
+        '<button class="btn small" data-toggleagendado="'+r.id+'" type="button">'+(r.agendado ? "Marcar como pendiente" : "Marcar como ya agendado")+'</button>' +
+        '<button class="btn ghost small" data-editagendado="'+r.id+'" type="button">Abrir en el Paso 2</button>' +
+      '</div></div></div>';
+  }
+  function dupActual(corto){
+    var d = agendamientoDuplicados();
+    return d[corto] || 0;
+  }
+  // ---------- Historial de radicados: interacción y exportación ----------
   document.getElementById("historialTriggerBtn").addEventListener("click", function(){
     renderHistorial();
     document.getElementById("historialDialog").showModal();
@@ -4233,28 +4335,20 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   });
   document.getElementById("historialSearch").addEventListener("input", function(){
     state.historialSearch = this.value;
-    state.historialAbierto = null;
+    state.historialSel = null;
     renderHistorial();
   });
   document.getElementById("historialFilterTabs").addEventListener("click", function(e){
     var btn = e.target.closest("button[data-histfilter]");
     if(!btn) return;
     state.historialFilter = btn.getAttribute("data-histfilter");
-    state.historialAbierto = null;
+    state.historialSel = null;
     Array.prototype.forEach.call(document.querySelectorAll("#historialFilterTabs button"), function(b){
       b.classList.toggle("active", b===btn);
     });
     renderHistorial();
   });
-  document.getElementById("historialPanel").addEventListener("click", function(e){
-    var btn = e.target.closest("button[data-histver]");
-    if(!btn) return;
-    var num = btn.getAttribute("data-histver");
-    state.historialAbierto = (state.historialAbierto === num) ? null : num;
-    renderHistorial();
-  });
-
-  // Exportación del historial. Sale SIEMPRE lo filtrado completo, no solo las tarjetas visibles.
+  // Exportación del historial. Sale SIEMPRE lo filtrado completo, no solo las filas visibles.
   var HISTORIAL_HEADERS = ["RADICADO","NOMBRE (SOLICITANTE)","NOMBRE (INFRACTOR)","TIPO DE DOCUMENTO",
     "NUMERO DE DOCUMENTO","CORREO O DIRECCION","FORMATO","QUE PASO","DONDE ESTA","SEMANA DE CIERRE",
     "COMPARENDO","CODIGO DE INFRACCION","MEDIO","ESTADO DEL COMPARENDO","FECHA DE IMPOSICION",
@@ -4290,7 +4384,6 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
   document.getElementById("agendaSearch").addEventListener("input", function(){
     state.agendaSearch = this.value;
-    state.agendaEditId = null; // al filtrar, se cierra cualquier edición abierta para no perderla de vista
     renderAgendamientos();
   });
   document.getElementById("agendaFilterTabs").addEventListener("click", function(e){
@@ -4302,7 +4395,17 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     });
     renderAgendamientos();
   });
+  // La lista SOLO selecciona. Todo lo que se hace con un agendamiento vive en el panel derecho,
+  // que es lo que quita el amontonamiento de botones que había dentro de cada tarjeta.
   document.getElementById("agendaPanel").addEventListener("click", function(e){
+    var fila = e.target.closest("[data-agsel]");
+    if(fila){ state.agendaSel = fila.getAttribute("data-agsel"); renderAgendamientos(); }
+  });
+  document.getElementById("historialPanel").addEventListener("click", function(e){
+    var f = e.target.closest("[data-histsel]");
+    if(f){ state.historialSel = f.getAttribute("data-histsel"); renderHistorial(); }
+  });
+  document.getElementById("agendaDetalle").addEventListener("click", function(e){
     var toggleBtn = e.target.closest("button[data-toggleagendado]");
     if(toggleBtn){
       var id = toggleBtn.getAttribute("data-toggleagendado");
@@ -4314,16 +4417,6 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         toast(rec.agendado ? "Marcado como ya agendado" : "Marcado como pendiente otra vez");
       }
       return;
-    }
-    var abrirBtn = e.target.closest("button[data-agendaedit]");
-    if(abrirBtn){
-      var abrirId = abrirBtn.getAttribute("data-agendaedit");
-      state.agendaEditId = (state.agendaEditId === abrirId) ? null : abrirId;
-      renderAgendamientos();
-      return;
-    }
-    if(e.target.closest("button[data-agendacancelar]")){
-      state.agendaEditId = null; renderAgendamientos(); return;
     }
     var guardarBtn = e.target.closest("button[data-agendaguardar]");
     if(guardarBtn){
@@ -4345,7 +4438,6 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         var placaManual = cleanSpaces(document.getElementById("ae_placa").value);
         if(placaManual) grec.placa = placaManual;
         grec.modificadoEn = Date.now();
-        state.agendaEditId = null;
         save(); renderAll();
         vigilarRepetidosDe(grec);
         toast("Agendamiento " + grec.radicado + " guardado");
