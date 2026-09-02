@@ -1099,8 +1099,9 @@
     <div class="import-actions" style="margin-top:14px;flex-wrap:wrap;justify-content:space-between;align-items:center;">
       <span class="hint" id="agendaDocCount"></span>
       <span style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn" id="copyAgendaBtn" type="button">Copiar</button>
-        <button class="btn primary" id="downloadAgendaBtn" type="button">Descargar Excel de Agendamientos (.xlsx)</button>
+        <button class="btn" id="copyAgendaBtn" type="button">Copiar plantilla</button>
+        <button class="btn primary" id="downloadAgendaBtn" type="button">Descargar plantilla de Agendamientos (.xlsx)</button>
+        <button class="btn ghost small" id="downloadAgendaDetalleBtn" type="button" title="Copia de control para ti, con el detalle del cálculo del término. NO es la que se entrega.">Detalle interno (.xlsx)</button>
       </span>
     </div>
   </div>
@@ -5932,10 +5933,57 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
 
   // ---------- documento aparte para Agendamientos (NUNCA se mezcla con la masiva) ----------
-  // 24 columnas. Se ampliaron a petición de la usuaria para que el Excel de Agendamientos se
-  // explique solo: además de los datos del caso, lleva AMBAS fechas de Fénix, dice CUÁL de las dos
-  // se usó como base del término y cuántos días de margen quedaron. Así, si alguien cuestiona un
-  // "fuera de término", la propia fila enseña de dónde salió el cálculo, sin volver a Fénix.
+  // ============================================================
+  // PLANTILLA OFICIAL DE AGENDAMIENTOS
+  // ------------------------------------------------------------
+  // Los 15 títulos van copiados LETRA POR LETRA del archivo de ejemplo que entrega la entidad
+  // (AGENDAMIENTO_SEPTIEMBRE_2026.xlsx), tildes incluidas: "NÚMERO DE DOCUMENTO", "CÓDIGO DE
+  // INFRACCIÓN", "CORREO ELECTRONICO" (sin tilde, así viene), "FECHA APELACION" (sin tilde, así
+  // viene). NO se corrigen ni se "mejoran": tienen que coincidir con lo que espera quien recibe.
+  //
+  // No todas las llena esta app -- así lo indicó la usuaria. FECHA APERTURA, HORA y LINK AUDIENCIA
+  // las completa después otra persona, y salen en blanco a propósito.
+  var PLANTILLA_AGENDA_HEADERS = [
+    "FECHA APERTURA", "HORA", "LINK AUDIENCIA", "NOMBRE Y APELLIDO DEL CIUDADANO",
+    "NÚMERO DE DOCUMENTO", "CORREO ELECTRONICO", "NÚMERO DE COMPARENDO", "PLACA",
+    "MEDIO DE SOLICITUD", "FECHA DE COMPARENDO", "CÓDIGO DE INFRACCIÓN", "FECHA APELACION",
+    "AGENDADO POR", "FECHA DIGITACION", "FORMATO"
+  ];
+  function recordToPlantillaAgendaRow(rec){
+    var user = currentUser();
+    var agendadoPor = state.settings.alias || state.settings.usuarioDocumento || (user && user.name) || "";
+    // "CORREO ELECTRONICO, ÚNICAMENTE": si lo guardado no es un correo sino una dirección física
+    // ("CALLE 13 36 31 BAHIA 1"), esta casilla va VACÍA. Escribir una dirección en una columna que
+    // dice "correo electrónico" es exactamente la clase de dato mal colocado que devolvió la
+    // jefatura; es preferible una casilla vacía que un dato en el lugar equivocado.
+    var correo = String(rec.direccion||"").trim();
+    var correoLimpio = correo.indexOf("@") !== -1 ? correo : "";
+    return [
+      "",                                   // FECHA APERTURA   -- la completa la otra persona
+      "",                                   // HORA             -- la completa la otra persona
+      "",                                   // LINK AUDIENCIA   -- la completa la otra persona
+      rec.nombreF || rec.nombre,            // NOMBRE Y APELLIDO DEL CIUDADANO
+      rec.idNum,                            // NÚMERO DE DOCUMENTO (solo el número, sin el tipo)
+      correoLimpio,                         // CORREO ELECTRONICO
+      comparendoCorto(rec),                 // NÚMERO DE COMPARENDO (los 8 dígitos)
+      rec.placa,                            // PLACA
+      rec.radicado,                         // MEDIO DE SOLICITUD (el radicado, confirmado con la usuaria)
+      formatDateEs(rec.imposicion),         // FECHA DE COMPARENDO
+      rec.cod,                              // CÓDIGO DE INFRACCIÓN
+      formatDateEs(rec.fechaRadicacion),    // FECHA APELACION (cuando el ciudadano la presentó)
+      agendadoPor,                          // AGENDADO POR
+      formatDateEs(hoyDDMMYYYY()),          // FECHA DIGITACION (el día en que se genera este archivo)
+      rec.formato                           // FORMATO
+    ].map(cleanSpaces);
+  }
+  function hoyDDMMYYYY(){
+    var d = new Date();
+    return pad(d.getDate()) + "-" + pad(d.getMonth()+1) + "-" + d.getFullYear();
+  }
+
+  // Detalle interno (24 columnas). NO es lo que se entrega: es la copia de control, con ambas
+  // fechas de Fénix, cuál de las dos se usó como base del término y cuántos días de margen quedaron.
+  // Sirve para sostener un "fuera de término" si alguien lo cuestiona, sin volver a Fénix.
   var AGENDA_HEADERS = ["RADICADO","NOMBRE Y APELLIDO","TIPO DE DOCUMENTO","NUMERO DE DOCUMENTO",
     "CORREO O DIRECCION","NUMERO DE COMPARENDO","COMPARENDO COMPLETO","PLACA","CODIGO DE INFRACCION",
     "ESTADO DEL COMPARENDO","TIENE CURSO","MEDIO","FECHA DE IMPOSICION","FECHA DE NOTIFICACION",
@@ -5965,17 +6013,29 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       ? n + " radicado" + (n===1?"":"s") + " de AGENDAMIENTO listo" + (n===1?"":"s") + " para exportar"
       : "Aún no hay radicados con Formato = AGENDAMIENTO";
   }
+  // El botón principal genera la PLANTILLA OFICIAL, con los títulos exactos de la entidad: es lo
+  // que se entrega. El detalle interno de 24 columnas queda en su propio botón, aparte, para que
+  // nunca se confunda uno con otro a la hora de enviar.
   document.getElementById("downloadAgendaBtn").addEventListener("click", function(){
     var list = agendamientoList();
     if(!list.length){ toast("Aún no hay radicados con Formato = AGENDAMIENTO para exportar"); return; }
     var filename = "AGENDAMIENTOS_" + userSlug() + "_" + new Date().toISOString().slice(0,10);
-    downloadExcel(filename, AGENDA_HEADERS, list.map(recordToAgendaRow), "Excel de Agendamientos descargado — " + list.length + " radicados");
+    downloadExcel(filename, PLANTILLA_AGENDA_HEADERS, list.map(recordToPlantillaAgendaRow),
+      "Plantilla de Agendamientos descargada — " + list.length + " radicados");
   });
   document.getElementById("copyAgendaBtn").addEventListener("click", function(){
     var list = agendamientoList();
     if(!list.length){ toast("Aún no hay radicados con Formato = AGENDAMIENTO para exportar"); return; }
-    var text = rowsToTSV(AGENDA_HEADERS, list.map(recordToAgendaRow));
-    copyOrShowManually(text, list.length + " filas copiadas — pégalas en una hoja nueva de Excel", "Agendamientos (" + list.length + " radicados)");
+    var text = rowsToTSV(PLANTILLA_AGENDA_HEADERS, list.map(recordToPlantillaAgendaRow));
+    copyOrShowManually(text, list.length + " filas copiadas — pégalas bajo los títulos de la plantilla",
+      "Plantilla de Agendamientos (" + list.length + " radicados)");
+  });
+  document.getElementById("downloadAgendaDetalleBtn").addEventListener("click", function(){
+    var list = agendamientoList();
+    if(!list.length){ toast("Aún no hay radicados con Formato = AGENDAMIENTO para exportar"); return; }
+    var filename = "AGENDAMIENTOS_DETALLE_INTERNO_" + userSlug() + "_" + new Date().toISOString().slice(0,10);
+    downloadExcel(filename, AGENDA_HEADERS, list.map(recordToAgendaRow),
+      "Detalle interno descargado (NO es el archivo que se entrega) — " + list.length + " radicados");
   });
   // Contador del acceso al Historial. Cuenta radicados ÚNICOS entre las tres fuentes sin construir
   // todo el historial (que en dos años puede ser mucho): solo necesita los números.
