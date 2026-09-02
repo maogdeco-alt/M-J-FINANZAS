@@ -3733,6 +3733,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       direccion:"", formato:"", tipoComparendo:"", comentario:"", res:"", fechaRes:"",
       comparendoCompleto:"", comparendoRaw:"", cod:"", imposicion:"", notificacion:"", curso:"",
       medio:"", estado:"", f8:"", f9:"", f10:"", tipoId:"", idNum:"", nombreF:"", placa:"",
+      agendaFormato:"", // columna FORMATO de la plantilla de agendamientos (con/sin pruebas)
       agendado:false, completadoEn:"" };
   }
 
@@ -3909,10 +3910,16 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return '<div><label for="'+id+'">'+escapeHtml(etiqueta)+'</label>' +
              '<input id="'+id+'" value="'+escapeHtml(valor||"")+'" placeholder="'+escapeHtml(placeholder||"")+'"></div>';
     }
+    var opciones = AGENDA_FORMATOS.map(function(o){
+      return '<option value="'+escapeHtml(o)+'"'+(rec.agendaFormato===o?' selected':'')+'>'+escapeHtml(o)+'</option>';
+    }).join("");
     return '<div class="ai-edit">' +
       '<div class="ai-edit-grid">' +
         campo("ae_direccion", "Correo o dirección", rec.direccion, "correo o dirección de notificación") +
         campo("ae_placa", "Placa", rec.placa, "ej. ABC123") +
+        // La columna FORMATO de la plantilla que se entrega: la decide la abogada caso por caso.
+        '<div><label for="ae_agendaFormato">Formato de la plantilla</label>' +
+        '<select id="ae_agendaFormato"><option value="">(sin elegir)</option>' + opciones + '</select></div>' +
         campo("ae_comentario", "Comentario", rec.comentario, "notas de esta solicitud") +
       '</div>' +
       '<div style="margin-top:10px;">' +
@@ -4165,6 +4172,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         '<span class="pill danger">' + nVencidos + ' fuera de término</span>' +
         '<span class="pill">' + nEnTermino + ' dentro de término</span>' +
         (nSinFechas ? '<span class="pill">' + nSinFechas + ' sin fechas para calcular</span>' : '') +
+        (function(){
+          var sinFormato = all.filter(function(r){ return !r.agendaFormato; }).length;
+          return sinFormato ? '<span class="pill danger">' + sinFormato + ' sin formato de plantilla</span>' : '';
+        })() +
         '<span class="pill ok">' + (all.length - pend.length) + ' ya agendados</span>';
     }
     document.getElementById("agendaCount").textContent = list.length + (list.length===1?" radicado":" radicados") + " en la lista ("+all.length+" en total)";
@@ -4199,7 +4210,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         '<span>Placa <b>'+escapeHtml(r.placa||"—")+'</b></span>'+
         '<span>Término <b>'+terminoTxt+'</b></span>'+
         (margenTxt ? '<span>Margen <b>'+escapeHtml(margenTxt)+'</b></span>' : '')+
+        '<span>Formato plantilla <b>'+escapeHtml(r.agendaFormato || "— falta elegirlo —")+'</b></span>'+
         '</div>'+
+        (!r.agendaFormato ? '<div class="ai-dup">Falta elegir el <b>Formato de la plantilla</b> (con pruebas / sin pruebas): esa casilla saldría vacía en el archivo que entregas.</div>' : '')+
         (esDup ? '<div class="ai-dup">🔴 Este número de comparendo aparece más de una vez entre tus AGENDAMIENTOS -- revisa que no esté duplicado.</div>' : '')+
         '<div class="ai-actions">'+
         '<button class="btn small" data-toggleagendado="'+r.id+'" type="button">'+(r.agendado ? "Marcar como pendiente" : "Marcar como ya agendado")+'</button>'+
@@ -4319,6 +4332,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(grec){
         grec.direccion  = cleanSpaces(document.getElementById("ae_direccion").value);
         grec.comentario = cleanSpaces(document.getElementById("ae_comentario").value);
+        grec.agendaFormato = document.getElementById("ae_agendaFormato").value;
         var raw = document.getElementById("ae_comparendo").value; // sin limpiar: los tabs son el separador
         if(raw.trim()){
           grec.comparendoRaw = raw;
@@ -5525,10 +5539,18 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // acentos y ñ perfectos) usando la librería SheetJS incluida en este mismo archivo.
   function downloadExcel(filenameBase, headers, rows2d, okMsg){
     try{
+      // Los valores Date se dejan pasar TAL CUAL (no se convierten a texto): así Excel los guarda
+      // como fechas de verdad, con su formato, y no como una cadena. Importa: en la plantilla de
+      // agendamientos de la entidad las fechas son fechas -- si se entregaran como texto, ordenar
+      // por fecha o cualquier fórmula sobre esa columna dejaría de funcionar en el archivo que
+      // recibe la otra persona.
       var wsData = [headers].concat(rows2d.map(function(row){
-        return row.map(function(v){ return v==null ? "" : String(v); });
+        return row.map(function(v){
+          if(v instanceof Date && !isNaN(v.getTime())) return v;
+          return v==null ? "" : String(v);
+        });
       }));
-      var ws = XLSX.utils.aoa_to_sheet(wsData);
+      var ws = XLSX.utils.aoa_to_sheet(wsData, {cellDates: true, dateNF: "dd/mm/yyyy"});
       ws["!cols"] = headers.map(function(h){ return {wch: Math.min(38, Math.max(11, String(h).length + 2))}; });
       var wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Datos");
@@ -5949,6 +5971,24 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     "MEDIO DE SOLICITUD", "FECHA DE COMPARENDO", "CÓDIGO DE INFRACCIÓN", "FECHA APELACION",
     "AGENDADO POR", "FECHA DIGITACION", "FORMATO"
   ];
+  // Los dos únicos valores que admite la columna FORMATO de la plantilla, tomados del archivo real
+  // ya diligenciado que entregó la usuaria (751 filas: 555 "AGENDAR SIN PRUEBAS" y 195 "AGENDAR
+  // CON PRUEBAS"). NO es la clasificación interna de la app ("AGENDAMIENTO"): es un criterio que
+  // decide la abogada caso por caso, según si la solicitud viene con pruebas. Por eso se guarda en
+  // el propio radicado (rec.agendaFormato) y se elige a mano en la ventana de Agendamientos.
+  var AGENDA_FORMATOS = ["AGENDAR SIN PRUEBAS", "AGENDAR CON PRUEBAS"];
+  // Convierte una fecha del expediente en un Date de verdad, para que Excel la guarde como fecha.
+  // Si no se puede interpretar, se devuelve cadena vacía en vez de inventar una.
+  function comoFecha(valor){
+    var d = parseDMY(normalizeDate(valor));
+    return d || "";
+  }
+  // El día de hoy SIN la hora: en el archivo real de la entidad estas fechas son días enteros
+  // (46244), no fracciones con la hora pegada detrás (46244,61...).
+  function hoySinHora(){
+    var n = new Date();
+    return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  }
   function recordToPlantillaAgendaRow(rec){
     var user = currentUser();
     var agendadoPor = state.settings.alias || state.settings.usuarioDocumento || (user && user.name) || "";
@@ -5968,17 +6008,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       comparendoCorto(rec),                 // NÚMERO DE COMPARENDO (los 8 dígitos)
       rec.placa,                            // PLACA
       rec.radicado,                         // MEDIO DE SOLICITUD (el radicado, confirmado con la usuaria)
-      formatDateEs(rec.imposicion),         // FECHA DE COMPARENDO
+      comoFecha(rec.imposicion),            // FECHA DE COMPARENDO   (fecha real, no texto)
       rec.cod,                              // CÓDIGO DE INFRACCIÓN
-      formatDateEs(rec.fechaRadicacion),    // FECHA APELACION (cuando el ciudadano la presentó)
+      comoFecha(rec.fechaRadicacion),       // FECHA APELACION       (cuando el ciudadano la presentó)
       agendadoPor,                          // AGENDADO POR
-      formatDateEs(hoyDDMMYYYY()),          // FECHA DIGITACION (el día en que se genera este archivo)
-      rec.formato                           // FORMATO
-    ].map(cleanSpaces);
-  }
-  function hoyDDMMYYYY(){
-    var d = new Date();
-    return pad(d.getDate()) + "-" + pad(d.getMonth()+1) + "-" + d.getFullYear();
+      hoySinHora(),                         // FECHA DIGITACION      (el día en que se genera el archivo)
+      rec.agendaFormato || ""               // FORMATO: "AGENDAR CON/SIN PRUEBAS", elegido por la abogada
+    ].map(function(v){ return v instanceof Date ? v : cleanSpaces(v); });
   }
 
   // Detalle interno (24 columnas). NO es lo que se entrega: es la copia de control, con ambas
