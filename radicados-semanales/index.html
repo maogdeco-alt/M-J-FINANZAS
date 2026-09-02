@@ -137,7 +137,21 @@
   @media (prefers-reduced-motion: reduce){.progress-fill{transition:none;}}
   .progress-note{color:var(--muted);font-size:0.78rem;margin:0 0 20px;}
 
-  .formato-chips{display:flex;flex-wrap:wrap;gap:6px;}
+    /* Reparto por formato: es información SECUNDARIA. Antes eran once fichas del mismo peso
+     visual que los datos principales, envueltas en dos filas. Ahora es una sola línea discreta
+     que se lee de corrido y no compite con las cifras de arriba. */
+  /* El pie explicativo: información de referencia, no de uso diario. Queda a un clic en vez de
+     ocupar tres párrafos permanentes al final de cada pantalla. */
+  .note-plegable>summary{cursor:pointer;font-weight:600;color:var(--accent);list-style:none;}
+  .note-plegable>summary::-webkit-details-marker{display:none;}
+  .note-plegable>summary::before{content:"› ";}
+  .note-plegable[open]>summary::before{content:"⌄ ";}
+  .note-plegable[open]>div{margin-top:10px;}
+  .formato-chips{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:12px;
+    padding-top:10px;border-top:1px solid var(--border);}
+  .formato-chips>*{background:none!important;border:none!important;padding:0!important;
+    font-size:0.76rem!important;color:var(--muted)!important;border-radius:0!important;}
+  .formato-chips b{color:var(--ink);}
   .chip{background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:5px 12px;font-size:0.82rem;color:var(--muted);display:flex;gap:5px;align-items:baseline;}
   .chip b{color:var(--ink);font-variant-numeric:tabular-nums;}
   .chip.extra{border-style:dashed;}
@@ -210,6 +224,11 @@
   .import-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;}
   @media (max-width:820px){.import-grid{grid-template-columns:1fr;}}
   .import-grid textarea{min-height:110px;}
+  .import-tips>summary{cursor:pointer;font-weight:600;color:var(--accent);font-size:0.84rem;list-style:none;}
+  .import-tips>summary::-webkit-details-marker{display:none;}
+  .import-tips>summary::before{content:"› ";}
+  .import-tips[open]>summary::before{content:"⌄ ";}
+  .import-tips[open]>div{margin-top:8px;}
   .import-tips{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:0.9rem;color:var(--muted);}
   .import-tips b{color:var(--ink);}
   .import-actions{display:flex;justify-content:flex-end;margin-top:10px;}
@@ -230,7 +249,7 @@
     background:transparent;border:none;padding:16px 20px;cursor:pointer;text-align:left;font:inherit;color:var(--ink);}
   .agenda-trigger:hover{background:var(--surface-2);}
   .at-left{display:flex;align-items:center;gap:12px;min-width:0;}
-  .at-icon{font-size:1.4rem;line-height:1;}
+  .at-icon{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;flex:none;border-radius:9px;background:var(--accent-soft);color:var(--accent);}
   .at-left strong{display:block;font-size:1rem;}
   .at-sub{display:block;color:var(--muted);font-size:0.8rem;margin-top:1px;}
   .at-right{display:flex;align-items:center;gap:10px;flex:none;}
@@ -245,8 +264,18 @@
   footer.note{margin-top:28px;color:var(--muted);font-size:0.88rem;line-height:1.65;}
   footer.note b{color:var(--ink);}
 
-  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);color:var(--bg);padding:14px 24px;border-radius:10px;font-size:1rem;font-weight:600;line-height:1.4;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .18s ease, transform .18s ease;z-index:60;max-width:min(92vw,620px);text-align:center;}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  /* El aviso emergente va anclado a la esquina inferior DERECHA, no centrado. Centrado y ancho
+     (620 px) se plantaba justo encima de la fila de botones del Paso 2 y tapaba "Guardar y
+     siguiente pendiente", que es el botón que más se usa en toda la app. Va a la esquina inferior
+     IZQUIERDA a propósito: la acción principal del formulario está abajo a la derecha, así que esa
+     esquina también estaría ocupada. Encima de la cola, un aviso pasajero no estorba a nadie. */
+  .toast{position:fixed;bottom:20px;left:20px;right:auto;transform:translateY(10px);
+    background:var(--ink);color:var(--bg);padding:13px 18px;border-radius:10px;font-size:0.92rem;
+    font-weight:600;line-height:1.45;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;
+    pointer-events:none;transition:opacity .18s ease, transform .18s ease;z-index:60;
+    max-width:min(92vw,380px);text-align:left;}
+  .toast.show{opacity:1;transform:translateY(0);}
+  @media (max-width:520px){ .toast{left:12px;right:12px;max-width:none;} }
   /* Los avisos de reglas de negocio (no bloquean, pero conviene corregirlos) usan este color, más
      llamativo, y se quedan más tiempo en pantalla que una confirmación normal de "guardado". */
   .toast.warn{background:var(--stamp);color:#fff;}
@@ -384,8 +413,11 @@
   .queue-item:hover{background:var(--surface);}
   .queue-item.active{background:var(--accent-soft);border-color:var(--accent);}
   .queue-item .qi-body{min-width:0;flex:1;}
-  .queue-item .qi-radicado{font-variant-numeric:tabular-nums;font-weight:700;font-size:0.86rem;}
-  .queue-item .qi-name{font-size:0.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+  /* display:block, no inline. Eran dos <span> en línea, así que el número y el nombre salían
+     pegados uno detrás del otro ("202661203183682NESTOR ALFONSO...") y el texto se desbordaba
+     fuera del panel. Es la lista que más se mira en toda la app. */
+  .queue-item .qi-radicado{display:block;font-variant-numeric:tabular-nums;font-weight:700;font-size:0.86rem;}
+  .queue-item .qi-name{display:block;font-size:0.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
   .queue-item .qi-del{border:none;background:transparent;color:var(--muted);cursor:pointer;padding:2px 4px;font-size:0.8rem;line-height:1;flex:none;}
   .queue-item .qi-del:hover{color:var(--stamp);}
   .queue-item.prioritario{background:var(--stamp-soft);border-color:var(--stamp);}
@@ -752,7 +784,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         <span class="btn-label" aria-hidden="true">Instalar app</span>
       </button>
-      <button class="icon-btn" id="focusModeBtn" type="button" title="Modo enfocado: oculta el resumen para que el Paso 2 use toda la pantalla" aria-label="Modo enfocado">🎯</button>
+      <button class="icon-btn" id="focusModeBtn" type="button" title="Modo enfocado: oculta el resumen para que el Paso 2 use toda la pantalla" aria-label="Modo enfocado"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
       <button class="icon-btn" id="themeToggleBtn" type="button" title="Cambiar entre tema claro y oscuro" aria-label="Cambiar entre tema claro y oscuro">
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 13.6A9 9 0 1 1 10.9 3.2a7.2 7.2 0 0 0 10.1 10.4z"/></svg>
@@ -761,7 +793,7 @@
         <span class="avatar" id="userAvatar" aria-hidden="true">—</span>
         <span id="userLabel">Iniciar sesión</span>
       </button>
-      <button class="icon-btn" id="settingsBtn" type="button" title="Ajustes" aria-label="Ajustes">⚙</button>
+      <button class="icon-btn" id="settingsBtn" type="button" title="Ajustes" aria-label="Ajustes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
   </header>
 
@@ -788,7 +820,7 @@
         <div class="num" id="statDevuelto">0%</div>
         <div class="label">% Devuelto</div>
       </div>
-      <div class="stat-card urgent" id="statPrioritariosCard">
+      <div class="stat-card" id="statPrioritariosCard">
         <div class="num" id="statPrioritarios">0</div>
         <div class="label">Prioritarios</div>
       </div>
@@ -823,9 +855,9 @@
             <button class="btn primary" id="importBtn" type="button">Importar a la lista</button>
           </div>
         </div>
-        <div class="import-tips">
+        <details class="import-tips"><summary>¿Cómo pego el bloque?</summary><div>
           <b>Cómo pegar:</b> selecciona el bloque en tu fuente y pégalo aquí con Ctrl+V, tal como harías en Excel. Funciona tanto si copias solo las 4 columnas (radicado, fecha de radicación, fecha de asignación, nombre) como si copias el formato con la columna en blanco entre el radicado y las fechas — la app la detecta sola. Los radicados ya existentes en la lista se omiten automáticamente para que no se dupliquen.
-        </div>
+        </div></details>
       </div>
     </div>
   </details>
@@ -844,8 +876,8 @@
           <button data-filter="done">Completos</button>
           <button data-filter="all">Todos</button>
         </div>
-        <button class="icon-btn" id="toggleQueueBtn" type="button" title="Ocultar la lista de la cola para que el formulario ocupe toda la pantalla -- útil en ventanas pequeñas" aria-label="Ocultar la cola de radicados">☰</button>
-        <button class="icon-btn" id="floatModeBtn" type="button" title="Abrir el Paso 2 en una ventana flotante que se queda visible encima de otros programas (SIMIT, Fénix, ORFEO)" aria-label="Abrir en ventana flotante">🪟</button>
+        <button class="icon-btn" id="toggleQueueBtn" type="button" title="Ocultar la lista de la cola para que el formulario ocupe toda la pantalla -- útil en ventanas pequeñas" aria-label="Ocultar la cola de radicados"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <button class="icon-btn" id="floatModeBtn" type="button" title="Abrir el Paso 2 en una ventana flotante que se queda visible encima de otros programas (SIMIT, Fénix, ORFEO)" aria-label="Abrir en ventana flotante"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><rect x="12" y="11" width="8" height="7" rx="1" fill="currentColor" stroke="none" opacity=".28"/></svg></button>
       </div>
     </div>
     <div class="panel-body">
@@ -864,7 +896,7 @@
           <div id="captureForm" style="display:none;">
             <div class="cc-head">
               <div>
-                <h3><span class="qi-priority-badge" id="cc_priorityBadge" hidden>🔴 PRIORITARIO</span><span id="cc_radicadoLabel">Radicado</span></h3>
+                <h3><span class="qi-priority-badge" id="cc_priorityBadge" hidden>PRIORITARIO</span><span id="cc_radicadoLabel">Radicado</span></h3>
                 <div class="cc-sub" id="cc_nombreLabel"></div>
               </div>
               <div class="cc-nav">
@@ -917,7 +949,7 @@
               <div id="wrap_res">
                 <div class="res-label-row">
                   <label for="cc_res">Res.<span class="required-mark" id="req_res" hidden>*</span></label>
-                  <a class="btn small simit-btn is-disabled" id="cc_simitBtn" href="https://www.fcm.org.co/simit/#/home-public" target="simitConsultaMJ" aria-disabled="true" title="Pega primero la línea del comparendo -- de ahí sale el número de documento">🔎 <span id="cc_simitBtnLabel">Buscar en SIMIT</span></a>
+                  <a class="btn small simit-btn is-disabled" id="cc_simitBtn" href="https://www.fcm.org.co/simit/#/home-public" target="simitConsultaMJ" aria-disabled="true" title="Pega primero la línea del comparendo -- de ahí sale el número de documento"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="vertical-align:-2px;margin-right:5px;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span id="cc_simitBtnLabel">Buscar en SIMIT</span></a>
                 </div>
                 <input id="cc_res" placeholder="pega directo de SIMIT: se separa sola de la fecha">
                 <div class="field-hint">Puedes pegar tal cual copias de SIMIT ("1368706 Fecha: 26/07/2024") — separa el número y la fecha solo.</div>
@@ -947,7 +979,7 @@
   <section class="panel" id="agendaTriggerSection">
     <button class="agenda-trigger" id="agendaTriggerBtn" type="button">
       <span class="at-left">
-        <span class="at-icon">📅</span>
+        <span class="at-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
         <span>
           <strong>Agendamientos</strong>
           <span class="at-sub">Formato = AGENDAMIENTO — aparte de la masiva</span>
@@ -966,7 +998,7 @@
   <section class="panel" id="historialTriggerSection">
     <button class="agenda-trigger" id="historialTriggerBtn" type="button">
       <span class="at-left">
-        <span class="at-icon">🗂️</span>
+        <span class="at-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 11h18"/></svg></span>
         <span>
           <strong>Historial de radicados</strong>
           <span class="at-sub">Todos los que has trabajado — busca cualquiera y mira qué pasó</span>
@@ -1021,14 +1053,17 @@
   </section>
 
   <footer class="note">
+    <details class="note-plegable"><summary>Cómo funciona esta app, usuarios y privacidad</summary>
+    <div>
     Esta app no reemplaza ni modifica tu Excel — organiza el trabajo mientras completas cada radicado y genera los documentos de salida. El Paso 1 trae lo fijo
     (radicado, fechas, nombre); el Paso 2 es tu trabajo real: formato, dirección, resolución y la línea del comparendo, que se separa sola en sus columnas.
     Copiar/descargar (Paso 3) siempre usa los mismos datos que ya tienes capturados.<br><br>
     <b>Usuarios:</b> cada persona inicia sesión con su propio correo de Gmail y contraseña — así se separan los datos de cada quien, incluso si comparten computador o navegador. No es un sistema de autenticación de nivel institucional (la contraseña se valida solo en este navegador, sin servidor).
-    En <b>⚙ Ajustes</b> configuras campos obligatorios, categorías, el diccionario de plantillas, tus datos para el documento final y ves tus informes históricos.<br><br>
+    En <b>Ajustes</b> configuras campos obligatorios, categorías, el diccionario de plantillas, tus datos para el documento final y ves tus informes históricos.<br><br>
     <b>Privacidad:</b> esta app no tiene servidor ni base de datos propia — todo lo que capturas se guarda únicamente en el navegador de quien la usa, y nunca se envía a ningún tercero. La dirección web en sí es pública (cualquiera con el enlace puede abrirla), así que compártela solo con tu equipo; lo que la protege es que cada quien necesita su propia cuenta para ver sus datos.<br><br>
     <b>Si el navegador no logra guardar</b> (aviso arriba): la app sigue funcionando con normalidad mientras la pestaña quede abierta; solo no se guarda para la
     próxima vez. Descarga el respaldo (.json) seguido y cárgalo al volver a entrar.
+    </div></details>
   </footer>
 </div>
 
@@ -1336,11 +1371,11 @@
         <p class="hint">Dos "marcadores" que arrastras a la barra de marcadores de tu navegador (no son botones de esta app -- se ejecutan DENTRO de ORFEO o Fénix, con tu propia sesión ya iniciada, sin abrir ninguna pestaña nueva ni pedir nada por fuera de esa pantalla). Nunca tocan tu contraseña ni hacen ninguna petición adicional al servidor -- solo leen lo que ya está en tu pantalla y lo copian al portapapeles, igual que si lo seleccionaras e hicieras Ctrl+C a mano. Son una primera versión: si algo no encaja con la pantalla real, avísame para afinarlos.</p>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div>
-            <a href="javascript:%28function%28%29%7B%20function%20banner%28msg%2C%20ok%29%7B%20var%20b%20%3D%20document.createElement%28%27div%27%29%3B%20b.textContent%20%3D%20msg%3B%20b.style.cssText%20%3D%20%27position%3Afixed%3Btop%3A16px%3Bright%3A16px%3Bz-index%3A999999%3Bbackground%3A%27%2B%28ok%3F%27%230f7a4d%27%3A%27%23b3261e%27%29%2B%27%3Bcolor%3A%23fff%3Bpadding%3A12px%2018px%3Bborder-radius%3A8px%3Bfont%3A14px%20sans-serif%3Bbox-shadow%3A0%204px%2014px%20rgba%280%2C0%2C0%2C.3%29%3Bmax-width%3A340px%3B%27%3B%20document.body.appendChild%28b%29%3B%20setTimeout%28function%28%29%7B%20try%7B%20b.remove%28%29%3B%20%7Dcatch%28e%29%7B%7D%20%7D%2C%207000%29%3B%20%7D%20function%20allDocs%28%29%7B%20var%20docs%20%3D%20%5Bdocument%5D%3B%20try%7B%20for%28var%20i%3D0%3Bi%3Cwindow.frames.length%3Bi%2B%2B%29%7B%20try%7B%20if%28window.frames%5Bi%5D.document%29%20docs.push%28window.frames%5Bi%5D.document%29%3B%20%7Dcatch%28e%29%7B%7D%20%7D%20%7Dcatch%28e%29%7B%7D%20return%20docs%3B%20%7D%20var%20emailRe%20%3D%20%2F%5Ba-zA-Z0-9._%25%2B-%5D%2B%40%5Ba-zA-Z0-9.-%5D%2B%5C.%5Ba-zA-Z%5D%7B2%2C%7D%2F%3B%20function%20findEmail%28root%29%7B%20var%20all%20%3D%20root.querySelectorAll%28%27%2A%27%29%3B%20for%28var%20i%3D0%3Bi%3Call.length%3Bi%2B%2B%29%7B%20var%20el%20%3D%20all%5Bi%5D%3B%20if%28el.children.length%29%20continue%3B%20var%20txt%20%3D%20%28el.textContent%7C%7C%22%22%29.trim%28%29%3B%20var%20label%20%3D%20txt.toLowerCase%28%29%3B%20if%28%2Fe-%3Fmail%7Ccorreo%2F.test%28label%29%20%26%26%20label.length%20%3C%2040%29%7B%20var%20m%20%3D%20txt.match%28emailRe%29%3B%20if%28m%29%20return%20m%5B0%5D%3B%20var%20sib%20%3D%20el.nextElementSibling%3B%20if%28sib%29%7B%20var%20m2%20%3D%20%28sib.textContent%7C%7C%22%22%29.match%28emailRe%29%3B%20if%28m2%29%20return%20m2%5B0%5D%3B%20%7D%20var%20parentTxt%20%3D%20el.parentElement%20%3F%20el.parentElement.textContent%20%3A%20%22%22%3B%20var%20m3%20%3D%20parentTxt.match%28emailRe%29%3B%20if%28m3%29%20return%20m3%5B0%5D%3B%20%7D%20%7D%20var%20full%20%3D%20%28root.body%20%3F%20root.body.innerText%20%3A%20%22%22%29%20%7C%7C%20%22%22%3B%20var%20m4%20%3D%20full.match%28emailRe%29%3B%20return%20m4%20%3F%20m4%5B0%5D%20%3A%20null%3B%20%7D%20var%20seleccion%20%3D%20%22%22%3B%20try%7B%20seleccion%20%3D%20%28window.getSelection%20%3F%20String%28window.getSelection%28%29%29%20%3A%20%22%22%29.trim%28%29%3B%20%7Dcatch%28e%29%7B%7D%20var%20radicado%20%3D%20seleccion%20%7C%7C%20prompt%28%22N%C3%BAmero%20de%20Radicado%20a%20buscar%20en%20esta%20pantalla%20de%20ORFEO%20%28si%20ya%20seleccionaste%20la%20celda%20del%20radicado%20antes%20de%20usar%20este%20marcador%2C%20te%20saltas%20esta%20pregunta%29%3A%22%29%3B%20if%28%21radicado%29%20return%3B%20radicado%20%3D%20radicado.trim%28%29%3B%20if%28%21radicado%29%7B%20return%3B%20%7D%20var%20docs%20%3D%20allDocs%28%29%3B%20var%20foundCell%20%3D%20null%3B%20for%28var%20d%3D0%3B%20d%3Cdocs.length%20%26%26%20%21foundCell%3B%20d%2B%2B%29%7B%20var%20cells%20%3D%20docs%5Bd%5D.querySelectorAll%28%27td%2C%20a%2C%20span%2C%20div%27%29%3B%20for%28var%20i%3D0%3Bi%3Ccells.length%3Bi%2B%2B%29%7B%20var%20t%20%3D%20%28cells%5Bi%5D.textContent%7C%7C%22%22%29.trim%28%29%3B%20if%28t%20%3D%3D%3D%20radicado%29%7B%20foundCell%20%3D%20cells%5Bi%5D%3B%20break%3B%20%7D%20%7D%20%7D%20if%28%21foundCell%29%7B%20banner%28%27No%20encontre%20el%20radicado%20%27%20%2B%20radicado%20%2B%20%27%20en%20esta%20pantalla.%20Revisa%20que%20estes%20en%20%22Entrada%22.%27%2C%20false%29%3B%20return%3B%20%7D%20var%20clickable%20%3D%20foundCell.closest%28%27a%2C%20tr%5Bonclick%5D%2C%20%5Bonclick%5D%27%29%20%7C%7C%20foundCell%3B%20clickable.click%28%29%3B%20var%20intentos%20%3D%200%3B%20var%20maxIntentos%20%3D%2040%3B%20var%20timer%20%3D%20setInterval%28function%28%29%7B%20intentos%2B%2B%3B%20var%20email%20%3D%20findEmail%28document%29%3B%20if%28%21email%29%7B%20var%20fdocs%20%3D%20allDocs%28%29%3B%20for%28var%20d2%3D0%3B%20d2%3Cfdocs.length%20%26%26%20%21email%3B%20d2%2B%2B%29%7B%20email%20%3D%20findEmail%28fdocs%5Bd2%5D%29%3B%20%7D%20%7D%20if%28email%29%7B%20clearInterval%28timer%29%3B%20try%7B%20navigator.clipboard.writeText%28email%29%3B%20%7Dcatch%28e%29%7B%7D%20banner%28%27Email%20copiado%3A%20%27%20%2B%20email%2C%20true%29%3B%20%7D%20else%20if%28intentos%20%3E%3D%20maxIntentos%29%7B%20clearInterval%28timer%29%3B%20banner%28%27No%20encontre%20un%20correo%20en%20este%20radicado%20--%20puede%20ser%20de%20los%20casos%20sin%20correo.%20Revisalo%20a%20mano.%27%2C%20false%29%3B%20%7D%20%7D%2C%20250%29%3B%20%7D%29%28%29%3B" onclick="return false;" style="display:inline-block;padding:8px 14px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:700;text-decoration:none;cursor:grab;">📂 Copiar Email de ORFEO</a>
+            <a href="javascript:%28function%28%29%7B%20function%20banner%28msg%2C%20ok%29%7B%20var%20b%20%3D%20document.createElement%28%27div%27%29%3B%20b.textContent%20%3D%20msg%3B%20b.style.cssText%20%3D%20%27position%3Afixed%3Btop%3A16px%3Bright%3A16px%3Bz-index%3A999999%3Bbackground%3A%27%2B%28ok%3F%27%230f7a4d%27%3A%27%23b3261e%27%29%2B%27%3Bcolor%3A%23fff%3Bpadding%3A12px%2018px%3Bborder-radius%3A8px%3Bfont%3A14px%20sans-serif%3Bbox-shadow%3A0%204px%2014px%20rgba%280%2C0%2C0%2C.3%29%3Bmax-width%3A340px%3B%27%3B%20document.body.appendChild%28b%29%3B%20setTimeout%28function%28%29%7B%20try%7B%20b.remove%28%29%3B%20%7Dcatch%28e%29%7B%7D%20%7D%2C%207000%29%3B%20%7D%20function%20allDocs%28%29%7B%20var%20docs%20%3D%20%5Bdocument%5D%3B%20try%7B%20for%28var%20i%3D0%3Bi%3Cwindow.frames.length%3Bi%2B%2B%29%7B%20try%7B%20if%28window.frames%5Bi%5D.document%29%20docs.push%28window.frames%5Bi%5D.document%29%3B%20%7Dcatch%28e%29%7B%7D%20%7D%20%7Dcatch%28e%29%7B%7D%20return%20docs%3B%20%7D%20var%20emailRe%20%3D%20%2F%5Ba-zA-Z0-9._%25%2B-%5D%2B%40%5Ba-zA-Z0-9.-%5D%2B%5C.%5Ba-zA-Z%5D%7B2%2C%7D%2F%3B%20function%20findEmail%28root%29%7B%20var%20all%20%3D%20root.querySelectorAll%28%27%2A%27%29%3B%20for%28var%20i%3D0%3Bi%3Call.length%3Bi%2B%2B%29%7B%20var%20el%20%3D%20all%5Bi%5D%3B%20if%28el.children.length%29%20continue%3B%20var%20txt%20%3D%20%28el.textContent%7C%7C%22%22%29.trim%28%29%3B%20var%20label%20%3D%20txt.toLowerCase%28%29%3B%20if%28%2Fe-%3Fmail%7Ccorreo%2F.test%28label%29%20%26%26%20label.length%20%3C%2040%29%7B%20var%20m%20%3D%20txt.match%28emailRe%29%3B%20if%28m%29%20return%20m%5B0%5D%3B%20var%20sib%20%3D%20el.nextElementSibling%3B%20if%28sib%29%7B%20var%20m2%20%3D%20%28sib.textContent%7C%7C%22%22%29.match%28emailRe%29%3B%20if%28m2%29%20return%20m2%5B0%5D%3B%20%7D%20var%20parentTxt%20%3D%20el.parentElement%20%3F%20el.parentElement.textContent%20%3A%20%22%22%3B%20var%20m3%20%3D%20parentTxt.match%28emailRe%29%3B%20if%28m3%29%20return%20m3%5B0%5D%3B%20%7D%20%7D%20var%20full%20%3D%20%28root.body%20%3F%20root.body.innerText%20%3A%20%22%22%29%20%7C%7C%20%22%22%3B%20var%20m4%20%3D%20full.match%28emailRe%29%3B%20return%20m4%20%3F%20m4%5B0%5D%20%3A%20null%3B%20%7D%20var%20seleccion%20%3D%20%22%22%3B%20try%7B%20seleccion%20%3D%20%28window.getSelection%20%3F%20String%28window.getSelection%28%29%29%20%3A%20%22%22%29.trim%28%29%3B%20%7Dcatch%28e%29%7B%7D%20var%20radicado%20%3D%20seleccion%20%7C%7C%20prompt%28%22N%C3%BAmero%20de%20Radicado%20a%20buscar%20en%20esta%20pantalla%20de%20ORFEO%20%28si%20ya%20seleccionaste%20la%20celda%20del%20radicado%20antes%20de%20usar%20este%20marcador%2C%20te%20saltas%20esta%20pregunta%29%3A%22%29%3B%20if%28%21radicado%29%20return%3B%20radicado%20%3D%20radicado.trim%28%29%3B%20if%28%21radicado%29%7B%20return%3B%20%7D%20var%20docs%20%3D%20allDocs%28%29%3B%20var%20foundCell%20%3D%20null%3B%20for%28var%20d%3D0%3B%20d%3Cdocs.length%20%26%26%20%21foundCell%3B%20d%2B%2B%29%7B%20var%20cells%20%3D%20docs%5Bd%5D.querySelectorAll%28%27td%2C%20a%2C%20span%2C%20div%27%29%3B%20for%28var%20i%3D0%3Bi%3Ccells.length%3Bi%2B%2B%29%7B%20var%20t%20%3D%20%28cells%5Bi%5D.textContent%7C%7C%22%22%29.trim%28%29%3B%20if%28t%20%3D%3D%3D%20radicado%29%7B%20foundCell%20%3D%20cells%5Bi%5D%3B%20break%3B%20%7D%20%7D%20%7D%20if%28%21foundCell%29%7B%20banner%28%27No%20encontre%20el%20radicado%20%27%20%2B%20radicado%20%2B%20%27%20en%20esta%20pantalla.%20Revisa%20que%20estes%20en%20%22Entrada%22.%27%2C%20false%29%3B%20return%3B%20%7D%20var%20clickable%20%3D%20foundCell.closest%28%27a%2C%20tr%5Bonclick%5D%2C%20%5Bonclick%5D%27%29%20%7C%7C%20foundCell%3B%20clickable.click%28%29%3B%20var%20intentos%20%3D%200%3B%20var%20maxIntentos%20%3D%2040%3B%20var%20timer%20%3D%20setInterval%28function%28%29%7B%20intentos%2B%2B%3B%20var%20email%20%3D%20findEmail%28document%29%3B%20if%28%21email%29%7B%20var%20fdocs%20%3D%20allDocs%28%29%3B%20for%28var%20d2%3D0%3B%20d2%3Cfdocs.length%20%26%26%20%21email%3B%20d2%2B%2B%29%7B%20email%20%3D%20findEmail%28fdocs%5Bd2%5D%29%3B%20%7D%20%7D%20if%28email%29%7B%20clearInterval%28timer%29%3B%20try%7B%20navigator.clipboard.writeText%28email%29%3B%20%7Dcatch%28e%29%7B%7D%20banner%28%27Email%20copiado%3A%20%27%20%2B%20email%2C%20true%29%3B%20%7D%20else%20if%28intentos%20%3E%3D%20maxIntentos%29%7B%20clearInterval%28timer%29%3B%20banner%28%27No%20encontre%20un%20correo%20en%20este%20radicado%20--%20puede%20ser%20de%20los%20casos%20sin%20correo.%20Revisalo%20a%20mano.%27%2C%20false%29%3B%20%7D%20%7D%2C%20250%29%3B%20%7D%29%28%29%3B" onclick="return false;" style="display:inline-block;padding:8px 14px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:700;text-decoration:none;cursor:grab;">Copiar Email de ORFEO</a>
             <div class="hint" style="margin-top:4px;">Arrástralo a tu barra de marcadores. Úsalo estando en "Entrada": si ya seleccionaste (resaltaste) la celda del Radicado en la tabla, lo detecta solo; si no, te lo pregunta. Abre esa fila y copia el Email a tu portapapeles.</div>
           </div>
           <div>
-            <a href="javascript:%28function%28%29%7B%20function%20banner%28msg%2C%20ok%29%7B%20var%20b%20%3D%20document.createElement%28%27div%27%29%3B%20b.textContent%20%3D%20msg%3B%20b.style.cssText%20%3D%20%27position%3Afixed%3Btop%3A16px%3Bright%3A16px%3Bz-index%3A999999%3Bbackground%3A%27%2B%28ok%3F%27%230f7a4d%27%3A%27%23b3261e%27%29%2B%27%3Bcolor%3A%23fff%3Bpadding%3A12px%2018px%3Bborder-radius%3A8px%3Bfont%3A14px%20sans-serif%3Bbox-shadow%3A0%204px%2014px%20rgba%280%2C0%2C0%2C.3%29%3Bmax-width%3A360px%3Bwhite-space%3Apre-wrap%3B%27%3B%20document.body.appendChild%28b%29%3B%20setTimeout%28function%28%29%7B%20try%7B%20b.remove%28%29%3B%20%7Dcatch%28e%29%7B%7D%20%7D%2C%208000%29%3B%20%7D%20function%20stripAccents%28s%29%7B%20return%20String%28s%7C%7C%22%22%29.normalize%28%22NFD%22%29.replace%28%2F%5B%5Cu0300-%5Cu036f%5D%2Fg%2C%20%22%22%29%3B%20%7D%20var%20headerWords%20%3D%20%5B%20%22COMPARENDO%22%2C%22INFRACCION%22%2C%22IMPOSICION%22%2C%22NOTIFICACION%22%2C%22CURSO%22%2C%22MEDIO%22%2C%20%22ESTADO%22%2C%22CIERRE%22%2C%22PROCESO%20GC%22%2C%22DOCUMENTO%22%2C%22INFRACTOR%22%20%5D%3B%20function%20normalize%28s%29%7B%20return%20stripAccents%28s%29.toUpperCase%28%29%3B%20%7D%20var%20tables%20%3D%20document.querySelectorAll%28%27table%27%29%3B%20var%20linea%20%3D%20null%3B%20for%28var%20t%3D0%3B%20t%3Ctables.length%20%26%26%20%21linea%3B%20t%2B%2B%29%7B%20var%20rows%20%3D%20tables%5Bt%5D.querySelectorAll%28%27tr%27%29%3B%20for%28var%20r%3D0%3B%20r%3Crows.length%3B%20r%2B%2B%29%7B%20var%20cells%20%3D%20rows%5Br%5D.querySelectorAll%28%27th%2Ctd%27%29%3B%20if%28cells.length%20%3C%208%29%20continue%3B%20var%20texts%20%3D%20Array.prototype.map.call%28cells%2C%20function%28c%29%7B%20return%20%28c.textContent%7C%7C%22%22%29.trim%28%29%3B%20%7D%29%3B%20var%20joined%20%3D%20normalize%28texts.join%28%22%20%22%29%29%3B%20var%20hits%20%3D%20headerWords.filter%28function%28w%29%7B%20return%20joined.indexOf%28w%29%20%21%3D%3D%20-1%3B%20%7D%29.length%3B%20if%28hits%20%3E%3D%206%20%26%26%20rows%5Br%2B1%5D%29%7B%20var%20dataCells%20%3D%20rows%5Br%2B1%5D.querySelectorAll%28%27th%2Ctd%27%29%3B%20var%20dataTexts%20%3D%20Array.prototype.map.call%28dataCells%2C%20function%28c%29%7B%20return%20%28c.textContent%7C%7C%22%22%29.trim%28%29%3B%20%7D%29%3B%20linea%20%3D%20dataTexts.join%28%22%5Ct%22%29%3B%20break%3B%20%7D%20%7D%20%7D%20if%28linea%29%7B%20try%7B%20navigator.clipboard.writeText%28linea%29%3B%20%7Dcatch%28e%29%7B%7D%20banner%28%27Linea%20copiada%20%28%27%20%2B%20linea.split%28%22%5Ct%22%29.length%20%2B%20%27%20columnas%29%20--%20pegala%20en%20%22Radicados%20Semanales%22.%27%2C%20true%29%3B%20%7D%20else%20%7B%20banner%28%27No%20encontre%20la%20tabla%20de%20%22Historial%22%20en%20esta%20pantalla%20--%20entra%20a%20esa%20seccion%20del%20expediente%20y%20vuelve%20a%20intentar.%20Si%20sigue%20sin%20encontrarla%2C%20avisale%20a%20quien%20programo%20esto%20con%20el%20HTML%20real.%27%2C%20false%29%3B%20%7D%20%7D%29%28%29%3B" onclick="return false;" style="display:inline-block;padding:8px 14px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:700;text-decoration:none;cursor:grab;">🔗 Copiar línea de Fénix</a>
+            <a href="javascript:%28function%28%29%7B%20function%20banner%28msg%2C%20ok%29%7B%20var%20b%20%3D%20document.createElement%28%27div%27%29%3B%20b.textContent%20%3D%20msg%3B%20b.style.cssText%20%3D%20%27position%3Afixed%3Btop%3A16px%3Bright%3A16px%3Bz-index%3A999999%3Bbackground%3A%27%2B%28ok%3F%27%230f7a4d%27%3A%27%23b3261e%27%29%2B%27%3Bcolor%3A%23fff%3Bpadding%3A12px%2018px%3Bborder-radius%3A8px%3Bfont%3A14px%20sans-serif%3Bbox-shadow%3A0%204px%2014px%20rgba%280%2C0%2C0%2C.3%29%3Bmax-width%3A360px%3Bwhite-space%3Apre-wrap%3B%27%3B%20document.body.appendChild%28b%29%3B%20setTimeout%28function%28%29%7B%20try%7B%20b.remove%28%29%3B%20%7Dcatch%28e%29%7B%7D%20%7D%2C%208000%29%3B%20%7D%20function%20stripAccents%28s%29%7B%20return%20String%28s%7C%7C%22%22%29.normalize%28%22NFD%22%29.replace%28%2F%5B%5Cu0300-%5Cu036f%5D%2Fg%2C%20%22%22%29%3B%20%7D%20var%20headerWords%20%3D%20%5B%20%22COMPARENDO%22%2C%22INFRACCION%22%2C%22IMPOSICION%22%2C%22NOTIFICACION%22%2C%22CURSO%22%2C%22MEDIO%22%2C%20%22ESTADO%22%2C%22CIERRE%22%2C%22PROCESO%20GC%22%2C%22DOCUMENTO%22%2C%22INFRACTOR%22%20%5D%3B%20function%20normalize%28s%29%7B%20return%20stripAccents%28s%29.toUpperCase%28%29%3B%20%7D%20var%20tables%20%3D%20document.querySelectorAll%28%27table%27%29%3B%20var%20linea%20%3D%20null%3B%20for%28var%20t%3D0%3B%20t%3Ctables.length%20%26%26%20%21linea%3B%20t%2B%2B%29%7B%20var%20rows%20%3D%20tables%5Bt%5D.querySelectorAll%28%27tr%27%29%3B%20for%28var%20r%3D0%3B%20r%3Crows.length%3B%20r%2B%2B%29%7B%20var%20cells%20%3D%20rows%5Br%5D.querySelectorAll%28%27th%2Ctd%27%29%3B%20if%28cells.length%20%3C%208%29%20continue%3B%20var%20texts%20%3D%20Array.prototype.map.call%28cells%2C%20function%28c%29%7B%20return%20%28c.textContent%7C%7C%22%22%29.trim%28%29%3B%20%7D%29%3B%20var%20joined%20%3D%20normalize%28texts.join%28%22%20%22%29%29%3B%20var%20hits%20%3D%20headerWords.filter%28function%28w%29%7B%20return%20joined.indexOf%28w%29%20%21%3D%3D%20-1%3B%20%7D%29.length%3B%20if%28hits%20%3E%3D%206%20%26%26%20rows%5Br%2B1%5D%29%7B%20var%20dataCells%20%3D%20rows%5Br%2B1%5D.querySelectorAll%28%27th%2Ctd%27%29%3B%20var%20dataTexts%20%3D%20Array.prototype.map.call%28dataCells%2C%20function%28c%29%7B%20return%20%28c.textContent%7C%7C%22%22%29.trim%28%29%3B%20%7D%29%3B%20linea%20%3D%20dataTexts.join%28%22%5Ct%22%29%3B%20break%3B%20%7D%20%7D%20%7D%20if%28linea%29%7B%20try%7B%20navigator.clipboard.writeText%28linea%29%3B%20%7Dcatch%28e%29%7B%7D%20banner%28%27Linea%20copiada%20%28%27%20%2B%20linea.split%28%22%5Ct%22%29.length%20%2B%20%27%20columnas%29%20--%20pegala%20en%20%22Radicados%20Semanales%22.%27%2C%20true%29%3B%20%7D%20else%20%7B%20banner%28%27No%20encontre%20la%20tabla%20de%20%22Historial%22%20en%20esta%20pantalla%20--%20entra%20a%20esa%20seccion%20del%20expediente%20y%20vuelve%20a%20intentar.%20Si%20sigue%20sin%20encontrarla%2C%20avisale%20a%20quien%20programo%20esto%20con%20el%20HTML%20real.%27%2C%20false%29%3B%20%7D%20%7D%29%28%29%3B" onclick="return false;" style="display:inline-block;padding:8px 14px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:700;text-decoration:none;cursor:grab;">Copiar línea de Fénix</a>
             <div class="hint" style="margin-top:4px;">Arrástralo a tu barra de marcadores. Úsalo en la sección <b>"Historial"</b> del expediente en Fénix: copia la línea completa (13 o más columnas, incluida la Placa si la tabla la trae) a tu portapapeles, lista para pegar aquí.</div>
           </div>
         </div>
@@ -3820,6 +3855,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("statDevuelto").textContent = summary.pctDevuelto + "%";
     document.getElementById("statDevuelto").parentElement.title = summary.devuelto + " de " + total + " radicados con Formato = DEVUELTO";
     document.getElementById("statPrioritarios").textContent = summary.prioritarios;
+    // Un cero no es una alarma. La tarjeta solo se pinta de rojo cuando hay algo que atender;
+    // en rojo permanente el color deja de significar nada y es puro ruido.
+    document.getElementById("statPrioritariosCard").classList.toggle("urgent", summary.prioritarios > 0);
     document.getElementById("statPrioritariosCard").title = "Pendientes que ya llevan " + UMBRAL_PRIORITARIO_DIAS + " o más días hábiles desde su asignación -- se te acaba el término de " + TERMINO_RADICADO_DIAS_HABILES + " días hábiles";
     var fill = document.getElementById("progressFill");
     fill.style.width = pct + "%";
@@ -3964,7 +4002,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var prioritario = esPrioritario(r);
       return '<div class="queue-item'+(r.id===state.activeId?" active":"")+(prioritario?" prioritario":"")+'" data-id="'+r.id+'">'+
         '<span class="dot '+(done?"done":"pend")+'"></span>'+
-        '<span class="qi-body"><span class="qi-radicado">'+(prioritario?'<span class="qi-priority-badge" title="'+TERMINO_RADICADO_DIAS_HABILES+' días hábiles de término, ya van '+UMBRAL_PRIORITARIO_DIAS+' o más desde la asignación">🔴 PRIORITARIO</span> ':'')+escapeHtml(r.radicado)+'</span>'+
+        '<span class="qi-body"><span class="qi-radicado">'+(prioritario?'<span class="qi-priority-badge" title="'+TERMINO_RADICADO_DIAS_HABILES+' días hábiles de término, ya van '+UMBRAL_PRIORITARIO_DIAS+' o más desde la asignación">PRIORITARIO</span> ':'')+escapeHtml(r.radicado)+'</span>'+
         '<span class="qi-name">'+escapeHtml(r.nombre||"(sin nombre)")+'</span></span>'+
         '<button class="qi-del" data-del="'+r.id+'" title="Borrar" type="button" aria-label="Borrar radicado '+escapeHtml(r.radicado)+'">✕</button>'+
       '</div>';
@@ -5074,7 +5112,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         var gapDiasIns = startGapIns > lateIns ? 0 : countBusinessDays(startGapIns, lateIns);
         var fueraDeGap = umbralGapIns !== null && gapDiasIns !== null && gapDiasIns > umbralGapIns;
         if(gapDiasIns !== null){
-          chips.push({cls: fueraDeGap ? "alert" : "", text: "📋 " + gapDiasIns + " días hábiles (radicación → asignación)" + (fueraDeGap ? " -- más de lo habitual" : "")});
+          chips.push({cls: fueraDeGap ? "alert" : "", text: gapDiasIns + (gapDiasIns === 1 ? " día hábil" : " días hábiles") + " (radicación → asignación)" + (fueraDeGap ? " -- más de lo habitual" : "")});
         }
       }
     }
