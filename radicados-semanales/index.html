@@ -3266,9 +3266,17 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // ¿Este formato exige número de resolución? Se deduce de la PLANTILLA que le corresponde en
   // Ajustes, no de una lista fija: si la plantilla dice "SIN RES." (como "FOTO EXTEMPO SIN RES."
   // para T6), pedir la resolución es pedir justo lo que ese formato no lleva.
+  // Formatos que NO llevan número de resolución, confirmado por la usuaria:
+  //   T10 / "Petición oscura" -- no lleva resolución (igual que tampoco lleva comparendo).
+  //   T6  / "Foto extempo SIN RES." -- lo dice su propia plantilla.
+  // Se comprueban las dos vías: la lista explícita y, además, cualquier formato cuya plantilla
+  // configurada en Ajustes diga "SIN RES.", para que un formato nuevo con esa característica quede
+  // cubierto solo, sin tener que acordarse de tocar esta lista.
+  var FORMATOS_SIN_RESOLUCION = ["T10", "T6"];
   function resolucionEsEsperada(formato){
     var f = String(formato||"").trim().toUpperCase();
     if(!/^T\d+$/.test(f)) return false;
+    if(FORMATOS_SIN_RESOLUCION.indexOf(f) !== -1) return false;
     var dict = (state.settings && state.settings.formatToPlantilla) || DEFAULT_SETTINGS.formatToPlantilla;
     var plantilla = String(dict[f] || "").toUpperCase();
     if(plantilla.indexOf("SIN RES") !== -1) return false;
@@ -4915,9 +4923,23 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Cada hallazgo se clasifica en dos niveles:
   //   grave = la fila saldría inservible o con un dato que corresponde a OTRO expediente
   //   aviso = falta algo que casi siempre debería estar, pero puede ser legítimo según el caso
+  // La casilla se llama "Dirección" y su propio texto de ayuda dice "correo o dirección de
+  // notificación": una dirección física es un valor LEGÍTIMO ahí. Avisar "esto no parece un correo"
+  // ante cada dirección real era contradecir la definición del propio campo, y sobre la base real
+  // eran los 7 únicos avisos que quedaban -- los 7, correctos. Así que aquí se acepta un correo o
+  // una dirección con forma de dirección colombiana, y se avisa solo de lo que no es ninguna de las
+  // dos. Lo que de verdad importa (un comparendo o una línea entera pegada aquí) se comprueba antes
+  // y por separado, como GRAVE: aflojar este aviso no debilita esa protección.
+  var PALABRAS_DIRECCION = /\b(CALLE|CL|CRA|CARRERA|KR|AV|AVENIDA|DIAGONAL|DG|TRANSVERSAL|TV|MANZANA|MZ|BLOQUE|BL|APTO|APARTAMENTO|TORRE|BARRIO|VEREDA|BAHIA|INTERIOR|INT|PISO|LOTE|CASA|CONJUNTO|URBANIZACION|SUR|NORTE|ESTE|OESTE)\b/;
+  function pareceDireccionFisica(valor){
+    var s = String(valor||"").trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    if(!s) return false;
+    if(PALABRAS_DIRECCION.test(s)) return true;
+    return s.indexOf("#") !== -1 && /\d/.test(s); // "Carrera2b#90-27" y variantes pegadas
+  }
   function correoParece(valor){
     var s = String(valor||"").trim();
-    return !s || s.indexOf("@") !== -1;
+    return !s || s.indexOf("@") !== -1 || pareceDireccionFisica(s);
   }
   function pareceNumeroDeComparendo(valor){
     var s = String(valor||"").trim();
@@ -4986,7 +5008,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         // es: un número de comparendo largo seguido de más columnas pegadas detrás.
         hallazgos.push({grave:true, texto:"En la casilla de correo/dirección quedó pegada una línea completa de otro campo (\"" + String(r.direccion).trim().slice(0,60) + "…\") — parece la línea de Fénix pegada en el lugar equivocado."});
       } else if(!correoParece(r.direccion)){
-        hallazgos.push({grave:false, texto:"La casilla de correo/dirección no parece un correo (\"" + String(r.direccion).trim() + "\") — verifica que sea el dato correcto."});
+        hallazgos.push({grave:false, texto:"La casilla de correo/dirección no parece ni un correo ni una dirección (\"" + String(r.direccion).trim() + "\") — verifica que sea el dato correcto."});
       }
       if(!String(r.direccion||"").trim()){
         hallazgos.push({grave:false, texto:"No tiene correo ni dirección de notificación."});
