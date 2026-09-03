@@ -209,6 +209,106 @@ ya usa la app para todo lo demás — porque un error puede pasar antes de que
 la persona inicie sesión. No hace falta el paso del `service_role` ni del
 cron: el navegador la llama solo, en el momento, cuando algo se rompe.)
 
+## 7. Recordatorios push en el celular (opcional)
+
+Un aviso que aparece directo en el celular — como cualquier notificación de
+cualquier otra app, aunque la app esté cerrada del todo — hasta 3 veces al
+día si queda algo pendiente por anotar HOY: un conductor que todavía no ha
+pagado, un fijo o una cuota que ya llegó su día. Deja de avisar solo, en
+cuanto se registra lo que faltaba — no hay ningún botón de "ya vi esto"
+aparte, el propio gesto de anotarlo es lo que basta.
+
+Cada celular se suscribe una sola vez desde **Ajustes → Recordatorios en el
+celular**; la función revisa 3 veces al día (1pm, 6pm y 11pm hora
+Colombia), negocio por negocio, si queda algo pendiente, y si sí, le manda
+el aviso a cada celular suscrito de ese negocio.
+
+**Importante en iPhone**: Apple solo permite este tipo de avisos si la app
+está **instalada** (ver la sección 4 más arriba, "Instalar la app") —
+abrirla desde Safari sin instalar no sirve para esto; la propia app avisa
+de esto mismo si lo intentan sin instalarla. En Android/Chrome funciona con
+solo abrir el sitio, sin necesidad de instalarlo (aunque instalarlo también
+funciona).
+
+**7.1 Sin migración nueva.** Los avisos activados se guardan junto con los
+demás datos del negocio, en el mismo lugar de siempre — no hay que correr
+ningún SQL nuevo para esta parte.
+
+**7.2 Desplegar la función.**
+1. En el panel de Supabase: **Edge Functions → Create a new function**.
+2. Nómbrala `recordatorios-push`.
+3. Borra el código de ejemplo y pega todo el contenido de
+   `flota/supabase/functions/recordatorios-push/index.ts`.
+4. **Deploy**.
+
+**7.3 Guardar el secreto.** Edge Functions → `recordatorios-push` →
+Secrets → agrega:
+- `VAPID_PRIVATE_KEY`: la llave privada del par que identifica a la app
+  frente a los servicios de aviso de Google/Apple/Firefox — **nunca va en
+  el navegador, solo acá**. Pídesela a Claude en la conversación (ya viene
+  generada, junto con su pareja pública que ya está metida en
+  `flota/index.html`) — por eso no está escrita en este archivo: un
+  secreto de verdad no debe quedar en un repositorio, ni siquiera uno
+  propio.
+
+  Si en algún momento prefieres generar tu propio par de llaves nuevo (por
+  ejemplo, instalando Node.js y corriendo
+  `npx web-push generate-vapid-keys` en una terminal), puedes reemplazar
+  esta y también la de abajo — pero no hace falta, la que ya viene sirve
+  igual.
+- `VAPID_PUBLIC_KEY` (opcional): solo hace falta si generas un par de
+  llaves nuevo — en ese caso, también hay que reemplazar el valor de
+  `const VAPID_PUBLIC_KEY` dentro de `flota/index.html` por la pública
+  nueva, y volver a publicar el sitio; si no, se puede dejar así, ya trae
+  la que corresponde por defecto.
+- `VAPID_SUBJECT` (opcional): un correo tipo `mailto:tucorreo@gmail.com`
+  — algunos de estos servicios lo piden para poder contactarte si algo
+  anda mal con los avisos. Si se deja así, usa uno genérico.
+- `APP_URL` (opcional): la URL de Netlify, para que al tocar el aviso
+  abra la app directo ahí.
+
+**7.4 Programar las 3 corridas diarias.** Necesita la misma llave
+`service_role` del paso 5.5 — si ya guardaste ahí el secreto
+`reporte_service_key` en el Vault, reutilízalo tal cual, no hace falta
+guardarlo de nuevo. Si te saltaste el paso 5.5, primero corre:
+
+```sql
+select vault.create_secret('TU-SERVICE-ROLE-KEY-AQUI', 'reporte_service_key');
+```
+
+Y luego programa el cron — reemplaza solo la URL de tu proyecto:
+
+```sql
+select cron.schedule(
+  'recordatorios-push-diario',
+  '0 18,23,4 * * *', -- 1pm, 6pm y 11pm hora de Colombia — el cron corre en UTC (UTC-5)
+  $$
+  select net.http_post(
+    url := 'https://TU-PROYECTO.supabase.co/functions/v1/recordatorios-push',
+    headers := jsonb_build_object(
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'reporte_service_key'),
+      'Content-Type', 'application/json'
+    ),
+    body := '{}'::jsonb
+  );
+  $$
+);
+```
+
+**7.5 Activarlo.** Dentro de la app, en cada celular donde se quieran
+recibir los avisos: **Ajustes → Recordatorios en el celular → Activar en
+este celular**. El navegador va a pedir permiso para mostrar
+notificaciones — hay que aceptarlo. Se apaga desde el mismo botón, ahí
+mismo, solo en ese celular (cada quien activa el suyo).
+
+Para probar que quedó bien conectado sin esperar a que llegue la hora, se
+puede llamar la función a mano una vez desde el SQL Editor (el mismo
+`select net.http_post(...)` de arriba, sin el `cron.schedule` alrededor) y
+revisar la respuesta con
+`select * from net._http_response order by id desc limit 1;` — o
+directamente en **Edge Functions → recordatorios-push → Logs**, para ver
+si encontró algo pendiente y a cuántos celulares les avisó.
+
 ## Cómo está pensada la seguridad
 
 - Cada quien tiene su propia cuenta (correo + contraseña) — no hay una sola

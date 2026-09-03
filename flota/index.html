@@ -1552,6 +1552,12 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
         <div id="instalarCuerpo"></div>
       </div>
 
+      <div class="section form" id="recordatoriosBox">
+        <h2 style="margin-bottom:8px">Recordatorios en el celular</h2>
+        <p class="sub">Un aviso que aparece directo en el celular — hasta 3 veces al día — si queda algo pendiente por anotar hoy (un pago de un conductor, un fijo o una cuota). Deja de avisar solo, en cuanto lo registre en la app; no hay que apagarlo a mano.</p>
+        <div id="recordatoriosCuerpo"></div>
+      </div>
+
       <div class="section" style="text-align:center">
         <button class="linkbtn" id="salirBtnAjustes"><span class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4.5H7A1.5 1.5 0 0 0 5.5 6v12A1.5 1.5 0 0 0 7 19.5h6"/><path d="M11 12h9M17 8.3l3.3 3.7-3.3 3.7"/></svg></span> Cerrar sesión</button>
       </div>
@@ -4088,7 +4094,7 @@ function go(v){
     else b.removeAttribute('aria-current');
   });
   if(v==='ajustes'){
-    renderNegocioPanel(); renderReporteToggle(); renderColorPicker(); renderAvatarPicker();
+    renderNegocioPanel(); renderReporteToggle(); renderColorPicker(); renderAvatarPicker(); renderRecordatorios();
     $('codigoBox').innerHTML='';
   }
   if(v==='proyectos'){
@@ -4213,6 +4219,93 @@ $('unirseOtroBtn').addEventListener('click', ()=>{
   });
   $('otroCodigo').focus();
 });
+
+/* Recordatorios push — un aviso real en el celular (funciona aunque la app
+   esté cerrada) hasta 3 veces al día si queda algo pendiente por anotar
+   HOY. Lo envía sola la Edge Function "recordatorios-push" corriendo en el
+   servidor (ver flota/README.md, sección 7); acá solo se pide permiso, se
+   suscribe este celular/navegador y se guarda esa suscripción junto con
+   los demás datos del negocio — así, la próxima vez que la función corra,
+   ya sabe a quién avisarle. Deja de avisar solo en cuanto lo pendiente se
+   resuelve (se anota el pago, se marca pagado el fijo) — no hay un botón
+   aparte de "ya vi esto": el propio gesto de resolverlo es lo que basta. */
+const VAPID_PUBLIC_KEY = 'BDiqcwFXAc3DZJV9az92qsmspSrWd2Ul8YTLIk5tS-WyirbjJXGGRS_ag0tHXT4IixlJ9tJCFXWKRq2FSdpn2wk';
+function soportaPush(){ return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g,'+').replace(/_/g,'/');
+  const raw = atob(base64);
+  const out = new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+function abufToB64url(buf){
+  const bytes = new Uint8Array(buf);
+  let bin = '';
+  bytes.forEach(b=>bin += String.fromCharCode(b));
+  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+async function suscripcionActual(){
+  if(!soportaPush()) return null;
+  try{
+    const reg = await navigator.serviceWorker.ready;
+    return await reg.pushManager.getSubscription();
+  }catch(e){ return null; }
+}
+async function activarRecordatorios(){
+  if(!soportaPush()){
+    return toast(esIOS() ? 'En iPhone, primero instale la app (arriba) y ábrala desde su ícono — ahí sí se puede activar esto.' : 'Este navegador no permite avisos push.', true);
+  }
+  if(Notification.permission === 'denied'){
+    return toast('Los avisos están bloqueados para este sitio — actívelos en los permisos del navegador (el ícono junto a la dirección) y vuelva a intentar.', true);
+  }
+  const permiso = await Notification.requestPermission();
+  if(permiso !== 'granted') return toast('No se activó — hace falta permitir los avisos cuando el navegador lo pregunte.', true);
+  try{
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) });
+    const entrada = { id:uid(), endpoint: sub.endpoint,
+      keys:{ p256dh: abufToB64url(sub.getKey('p256dh')), auth: abufToB64url(sub.getKey('auth')) },
+      creadoPor:quien(), creadoEn:todayISO() };
+    if(!S.config) S.config = {};
+    if(!Array.isArray(S.config.pushSubs)) S.config.pushSubs = [];
+    S.config.pushSubs = S.config.pushSubs.filter(s=>s.endpoint !== sub.endpoint);
+    S.config.pushSubs.push(entrada);
+    await save();
+    toast('Recordatorios activados en este celular');
+    renderRecordatorios();
+  }catch(e){ toast('No se pudo activar: ' + (e.message||'intente de nuevo.'), true); }
+}
+async function desactivarRecordatorios(){
+  try{
+    const sub = await suscripcionActual();
+    if(sub){
+      if(S.config && Array.isArray(S.config.pushSubs)) S.config.pushSubs = S.config.pushSubs.filter(s=>s.endpoint !== sub.endpoint);
+      await sub.unsubscribe();
+      await save();
+    }
+    toast('Recordatorios apagados en este celular');
+    renderRecordatorios();
+  }catch(e){ toast('No se pudo apagar: ' + (e.message||'intente de nuevo.'), true); }
+}
+async function renderRecordatorios(){
+  const box = $('recordatoriosCuerpo'); if(!box || !NEGOCIO) return;
+  if(!soportaPush()){
+    box.innerHTML = (esIOS() && !appInstalada())
+      ? `<p class="sub" style="margin:0">En iPhone, primero instale la app arriba y ábrala desde su ícono — ahí sí se puede activar este aviso.</p>`
+      : `<p class="sub" style="margin:0">Su navegador no permite este tipo de avisos. Pruebe con Chrome, o con la app ya instalada.</p>`;
+    return;
+  }
+  const sub = await suscripcionActual();
+  if(sub){
+    box.innerHTML = `<div class="gate-ok" style="margin:0 0 10px"><span class="icono">${ICONS.check}</span><span>Activados en este celular.</span></div>
+      <button class="btn ghost sm" id="recordatoriosApagar">Apagar en este celular</button>`;
+    $('recordatoriosApagar').addEventListener('click', desactivarRecordatorios);
+  } else {
+    box.innerHTML = `<button class="btn block" id="recordatoriosActivar"><span class="icono">${ICONS.check}</span> Activar en este celular</button>`;
+    $('recordatoriosActivar').addEventListener('click', activarRecordatorios);
+  }
+}
 
 /* Reporte cada 8 días por correo — el envío en sí lo hace la Edge Function
    "reporte-semanal" corriendo sola en el servidor (ver flota/README.md,
