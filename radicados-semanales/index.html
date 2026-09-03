@@ -2375,6 +2375,93 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Última copia que ESTA ventana escribió. Si lo que hay guardado ya no es esto, es que otra
   // ventana (la flotante, u otra pestaña) escribió en el medio y hay que fusionar, no pisar.
   var ultimoJsonEscrito = null;
+  // Y la copia POR RADICADO de eso mismo. Es la "base" de la mezcla de tres vías de abajo: sirve
+  // para saber qué cambió ESTA ventana desde su último guardado, que es lo único que permite
+  // combinar dos versiones sin que ninguna borre lo de la otra.
+  var ultimoEscritoPorId = {};
+  function recordarLoEscrito(json){
+    ultimoJsonEscrito = json;
+    ultimoEscritoPorId = {};
+    try{
+      JSON.parse(json).forEach(function(r){ if(r && r.id) ultimoEscritoPorId[r.id] = r; });
+    }catch(e){ ultimoEscritoPorId = {}; }
+  }
+  function mismoValor(a, b){
+    if(a === b) return true;
+    if(a == null && b == null) return true;
+    if(a && b && typeof a === "object" && typeof b === "object"){
+      try{ return JSON.stringify(a) === JSON.stringify(b); }catch(e){ return false; }
+    }
+    return false;
+  }
+  function valorVacio(v){ return v == null || v === ""; }
+  // MEZCLA DE TRES VÍAS. "base" es la versión que ESTA ventana escribió la última vez; "mio" la que
+  // tiene ahora en memoria; "otro" la que hay guardada, escrita por la otra ventana.
+  //
+  // Campo por campo: si aquí cambió respecto de la base, es un cambio de esta ventana y manda; si
+  // aquí NO cambió, manda lo del otro. Hace falta exactamente por esto: entre que se lee el
+  // formulario y se guarda pueden pasar segundos (el diálogo de "¿es la misma persona?", por
+  // ejemplo), y si en ese hueco la otra ventana guarda, quedarse sin más con "la versión más
+  // reciente" tira a la basura todo lo que se acababa de escribir aquí. Comprobado: sin esto, el
+  // Formato, la resolución, el comentario y el comparendo recién escritos desaparecían.
+  function combinarTresVias(base, mio, otro){
+    var claves = {};
+    [base, mio, otro].forEach(function(o){ if(o) Object.keys(o).forEach(function(k){ claves[k] = true; }); });
+    var res = {};
+    Object.keys(claves).forEach(function(k){
+      var vm = mio ? mio[k] : undefined;
+      var vb = base ? base[k] : undefined;
+      res[k] = mismoValor(vm, vb) ? (otro ? otro[k] : undefined) : vm;
+    });
+    res.modificadoEn = Math.max(Number((mio && mio.modificadoEn) || 0),
+                                Number((otro && otro.modificadoEn) || 0));
+    return res;
+  }
+  // Sin base de referencia (primer guardado de esta ventana en la sesión) no se puede saber quién
+  // cambió qué. Se toma la versión guardada, pero NUNCA se deja vacío un dato que aquí sí existe:
+  // ante la duda, se conserva información, jamás se borra.
+  function combinarSinVaciar(otro, mio){
+    var res = {};
+    Object.keys(otro || {}).forEach(function(k){ res[k] = otro[k]; });
+    Object.keys(mio || {}).forEach(function(k){
+      if(valorVacio(res[k]) && !valorVacio(mio[k])) res[k] = mio[k];
+    });
+    return res;
+  }
+  function combinarConLoOtro(mio, otro){
+    var base = ultimoEscritoPorId[otro.id];
+    return base ? combinarTresVias(base, mio, otro) : combinarSinVaciar(otro, mio);
+  }
+  function registrosIguales(a, b){
+    if(!a || !b) return a === b;
+    var claves = {};
+    Object.keys(a).forEach(function(k){ claves[k] = true; });
+    Object.keys(b).forEach(function(k){ claves[k] = true; });
+    return Object.keys(claves).every(function(k){
+      if(k === "modificadoEn") return true; // la marca de tiempo no es contenido
+      return mismoValor(a[k], b[k]);
+    });
+  }
+  // ¿Hay que combinar este radicado con la versión guardada?
+  //
+  // NO se decide por la marca de tiempo, y esa es la corrección importante: "modificadoEn" se sella
+  // cuando se LEE el formulario, no cuando se ESCRIBE en el almacenamiento. Si la otra ventana lee
+  // su formulario a las 10:00:00, esta guarda a las 10:00:01 y la otra termina de guardar a las
+  // 10:00:02, lo guardado lleva la marca de las 10:00:00 -- más VIEJA que la de esta ventana --
+  // aunque se escribió después. Comparando marcas, esta ventana concluía "lo mío es más nuevo", no
+  // combinaba, y en su siguiente guardado borraba el trabajo de la otra. Es una carrera real: en
+  // las pruebas aparecía de vez en cuando, según cómo cayeran los tiempos.
+  //
+  // La mezcla de tres vías no necesita marcas de tiempo: basta comparar lo guardado contra la base
+  // (lo que ESTA ventana dejó escrito la última vez). Si difiere, la otra ventana tocó algo y hay
+  // que combinar, sin importar qué hora diga.
+  function hayQueCombinar(mio, otro){
+    var base = ultimoEscritoPorId[otro.id];
+    if(base) return !registrosIguales(otro, base);
+    // Todavía sin base (esta ventana no ha guardado nada en esta sesión): lo único disponible es la
+    // marca de tiempo, y la combinación de ese caso nunca vacía un dato.
+    return Number(otro.modificadoEn||0) > Number(mio.modificadoEn||0);
+  }
   function fusionarConLoGuardado(mios){
     if(!state.profile.activeUser) return mios;
     var raw;
@@ -2395,10 +2482,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(idsBorradosAdrede[o.id]) return;
       var mio = porId[o.id];
       if(!mio){ resultado.push(o); recuperados++; return; } // existe allá y no aquí: se conserva
-      // Gana la versión tocada más recientemente. readCaptureIntoRecord() sella modificadoEn en
-      // cada guardado, así que esto distingue bien quién escribió después.
-      if(Number(o.modificadoEn||0) > Number(mio.modificadoEn||0)){
-        resultado[resultado.indexOf(mio)] = o;
+      // La otra ventana tocó este radicado. NO se sustituye entero por el suyo -- eso borraría lo
+      // que se acabe de escribir aquí y aún no se haya guardado. Se combina campo a campo.
+      if(hayQueCombinar(mio, o)){
+        resultado[resultado.indexOf(mio)] = combinarConLoOtro(mio, o);
         recuperados++;
       }
     });
@@ -2429,9 +2516,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(idsBorradosAdrede[o.id]) return;
       var mio = porId[o.id];
       if(!mio){ state.records.push(o); cambiados++; return; } // existe allá y no aquí: se conserva
-      if(Number(o.modificadoEn||0) > Number(mio.modificadoEn||0)){
+      if(hayQueCombinar(mio, o)){
         if(o.id === state.activeId) activoCambio = true;
-        Object.keys(o).forEach(function(k){ mio[k] = o[k]; });
+        // Igual que en fusionarConLoGuardado: campo a campo, nunca el radicado entero. En memoria
+        // puede haber cambios ya leídos del formulario y todavía sin guardar (por ejemplo mientras
+        // está abierto el diálogo de "¿es la misma persona?"), y volcarle encima la versión de la
+        // otra ventana se los llevaría por delante.
+        var combinado = combinarConLoOtro(mio, o);
+        Object.keys(combinado).forEach(function(k){ mio[k] = combinado[k]; });
         cambiados++;
       }
     });
@@ -3701,8 +3793,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       setSaveStatus("error");
       return false; // nunca sobrescribir un respaldo dañado con una lista posiblemente incompleta
     }
-    idbSet(storageKeyFor(state.profile.activeUser), state.records); // espejo automático, en paralelo
     if(state.storageAvailable === false){
+      idbSet(storageKeyFor(state.profile.activeUser), state.records);
       setSaveStatus("nostorage");
       return false; // ya se explicó en el aviso inicial; seguimos trabajando solo en memoria de esta pestaña
     }
@@ -3726,9 +3818,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // La protección de la nube (comparar "actualizado" antes de subir) nunca cubrió esto, porque
       // esto ocurre ANTES, en el almacenamiento local que las dos ventanas comparten.
       state.records = fusionarConLoGuardado(state.records);
+      // El espejo en IndexedDB se escribe DESPUÉS de la fusión, no antes: es la copia de seguridad
+      // que se usa cuando el almacenamiento principal falla o se llena, y guardarla con una versión
+      // más vieja que la principal sería justo al revés de lo que tiene que ser.
+      idbSet(storageKeyFor(state.profile.activeUser), state.records);
       var json = JSON.stringify(state.records);
       localStorage.setItem(storageKeyFor(state.profile.activeUser), json);
-      ultimoJsonEscrito = json;
+      recordarLoEscrito(json); // base de la mezcla de tres vías: "esto es lo que dejé escrito yo"
       // Ver "inConflictState" arriba: si hay un conflicto de sincronización sin resolver, este
       // "Guardado" es solo local (optimista) -- no se muestra encima del aviso de conflicto, para
       // no parecer resuelto sin estarlo.
@@ -5125,6 +5221,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var ta = document.getElementById("bulkPaste");
     var text = ta.value;
     if(!text.trim()){ toast("Pega primero el bloque de radicados"); return; }
+    // Lo que se esté escribiendo en el radicado abierto se guarda ANTES de importar: importar
+    // termina en renderAll(), que repinta el formulario entero y se llevaría por delante lo que
+    // hubiera a medio escribir. Comprobado: sin esto, escribir un comentario y luego importar el
+    // bloque de la mañana borraba ese comentario sin decir nada.
+    commitCurrentEdits();
     var res = parseBulkImport(text);
     // No se fija aquí el activo al "primero pegado" -- se deja que renderAll() elija el primero de
     // la cola YA ordenada por prioridad (visibleList()), para que al importar se abra directo el
@@ -5879,6 +5980,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function requestDeleteRecord(id){
     var rec = state.records.find(function(r){ return r.id===id; });
     if(!rec) return;
+    // Borrar termina en renderAll(), que repinta el formulario. Si se está borrando OTRO radicado
+    // desde la "✕" de la cola mientras se escribe en el que está abierto, lo escrito se perdería.
+    // Se guarda primero (si el que se borra es el abierto, guardarlo no cambia nada: se borra igual
+    // y su contenido íntegro queda en la Papelera).
+    if(id !== state.activeId) commitCurrentEdits();
     pendingDeleteId = rec.id;
     document.getElementById("deleteConfirmRadicado").textContent = rec.radicado;
     deleteConfirmDialog.showModal();
@@ -6390,8 +6496,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Muestra la revisión y solo continúa (onProceed) si la persona lo confirma. Si no hay ningún
   // hallazgo, no estorba: sigue de largo sin pedir nada.
   var pendingPreflightProceed = null;
+  // El mismo diálogo sirve para las dos revisiones (la masiva y la plantilla de Agendamientos) a
+  // propósito: es la misma pantalla, sin ruido nuevo. Esta bandera distingue cuál se está viendo,
+  // porque la constancia de entrega es solo de la masiva.
+  var pendingPreflightEsAgenda = false;
   function conRevisionPrevia(onProceed){
     var informe = auditarDocumentoFinal();
+    pendingPreflightEsAgenda = false;
     if(!informe.problemas.length){ registrarEntrega(false); onProceed(); return; }
     var graves = informe.problemas.filter(function(p){ return p.grave; }).length;
     document.getElementById("preflightResumen").textContent =
@@ -6410,9 +6521,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("preflightDialog").showModal();
   }
   function informePreflightComoTexto(){
-    var informe = auditarDocumentoFinal();
-    var lineas = ["REVISIÓN PREVIA DEL DOCUMENTO FINAL — " + new Date().toLocaleString("es-CO"),
-      "Radicados que entrarían: " + informe.total + " · con hallazgos: " + informe.problemas.length, ""];
+    // Tiene que corresponder a lo que se está viendo: el mismo diálogo muestra la revisión de la
+    // masiva y la de la plantilla de Agendamientos.
+    var esAgenda = pendingPreflightEsAgenda;
+    var informe = esAgenda ? auditarPlantillaAgenda() : auditarDocumentoFinal();
+    var lineas = [(esAgenda ? "REVISIÓN PREVIA DE LA PLANTILLA DE AGENDAMIENTOS — "
+                            : "REVISIÓN PREVIA DEL DOCUMENTO FINAL — ") + new Date().toLocaleString("es-CO"),
+      (esAgenda ? "Agendamientos que entrarían: " : "Radicados que entrarían: ")
+        + informe.total + " · con hallazgos: " + informe.problemas.length, ""];
     informe.problemas.forEach(function(p){
       lineas.push((p.grave ? "[GRAVE] " : "[AVISO] ") + p.rec.radicado + " — " + (p.rec.nombreF || p.rec.nombre || "(sin nombre)") + " — " + (p.rec.formato||""));
       p.hallazgos.forEach(function(h){ lineas.push("    " + (h.grave ? "• GRAVE: " : "• ") + h.texto); });
@@ -6422,12 +6538,16 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
   document.getElementById("preflightCancel").addEventListener("click", function(){
     pendingPreflightProceed = null;
+    pendingPreflightEsAgenda = false;
     document.getElementById("preflightDialog").close();
   });
   document.getElementById("preflightProceed").addEventListener("click", function(){
     var fn = pendingPreflightProceed;
+    var esAgenda = pendingPreflightEsAgenda;
     pendingPreflightProceed = null;
+    pendingPreflightEsAgenda = false;
     document.getElementById("preflightDialog").close();
+    if(esAgenda){ if(fn) fn(); return; } // la constancia de abajo es de la masiva, no de esta plantilla
     // Queda constancia de haber generado la base a pesar de los hallazgos: qué día, cuántas filas,
     // cuántos problemas graves y cuáles. No es para vigilar a nadie -- es exactamente lo contrario:
     // es poder decir con fecha y detalle qué se entregó y en qué estado estaba, en vez de tener que
@@ -6593,19 +6713,104 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // El botón principal genera la PLANTILLA OFICIAL, con los títulos exactos de la entidad: es lo
   // que se entrega. El detalle interno de 24 columnas queda en su propio botón, aparte, para que
   // nunca se confunda uno con otro a la hora de enviar.
+  // ---------- REVISIÓN PREVIA DE LA PLANTILLA DE AGENDAMIENTOS ----------
+  // La masiva tenía revisión antes de generarse; esta plantilla NO tenía ninguna, y es un archivo
+  // que también se entrega. Se podía descargar con la columna FORMATO vacía (sin "AGENDAR CON/SIN
+  // PRUEBAS"), sin PLACA, sin comparendo o sin firma, y nada lo advertía -- justo la clase de
+  // entrega incompleta que ya devolvió la jefatura una vez.
+  //
+  // La revisión se hace SOBRE LA FILA QUE SE VA A ESCRIBIR, no sobre una idea paralela de los
+  // datos: se genera con recordToPlantillaAgendaRow() y se miran sus columnas. Así la revisión no
+  // puede discrepar del archivo (la lección de la regla del comparendo escrita dos veces).
+  // Las tres primeras columnas (FECHA APERTURA, HORA, LINK AUDIENCIA) no se revisan: las completa
+  // la otra persona, no ella.
+  var COLUMNAS_AGENDA_EXIGIDAS = [
+    {i:3,  etiqueta:"NOMBRE Y APELLIDO DEL CIUDADANO", grave:true},
+    {i:6,  etiqueta:"NÚMERO DE COMPARENDO",            grave:true},
+    {i:7,  etiqueta:"PLACA",                           grave:true},
+    {i:8,  etiqueta:"MEDIO DE SOLICITUD (radicado)",   grave:true},
+    {i:12, etiqueta:"AGENDADO POR",                    grave:true},
+    {i:14, etiqueta:"FORMATO (AGENDAR CON/SIN PRUEBAS)", grave:true},
+    {i:4,  etiqueta:"NÚMERO DE DOCUMENTO",             grave:false},
+    {i:5,  etiqueta:"CORREO ELECTRONICO",              grave:false},
+    {i:9,  etiqueta:"FECHA DE COMPARENDO",             grave:false},
+    {i:10, etiqueta:"CÓDIGO DE INFRACCIÓN",            grave:false},
+    {i:11, etiqueta:"FECHA APELACION",                 grave:false}
+  ];
+  function celdaVacia(v){
+    if(v == null) return true;
+    if(v instanceof Date) return isNaN(v.getTime());
+    return String(v).trim() === "";
+  }
+  function auditarPlantillaAgenda(){
+    var list = agendamientoList();
+    var problemas = [];
+    var repetidosPorId = {};
+    buscarRepetidos(false).forEach(function(g){
+      g.registros.forEach(function(r){ (repetidosPorId[r.id] = repetidosPorId[r.id] || []).push(g); });
+    });
+    list.forEach(function(r){
+      var fila = recordToPlantillaAgendaRow(r);
+      var hallazgos = [];
+      COLUMNAS_AGENDA_EXIGIDAS.forEach(function(c){
+        if(celdaVacia(fila[c.i])){
+          hallazgos.push({grave:c.grave, texto:"La columna " + c.etiqueta + " saldría VACÍA en la plantilla."});
+        }
+      });
+      // El correo es el caso especial de siempre: si lo guardado es una dirección física, la
+      // columna sale vacía a propósito -- conviene decir por qué, para que no parezca un olvido.
+      if(celdaVacia(fila[5]) && String(r.direccion||"").trim()){
+        hallazgos.push({grave:false, texto:"Lo guardado en Dirección no es un correo (\"" +
+          String(r.direccion).trim().slice(0,40) + "\"), por eso CORREO ELECTRONICO sale vacío."});
+      }
+      var nombre = String(fila[3]||"").trim();
+      if(nombre && !pareceNombrePersona(nombre)){
+        hallazgos.push({grave:true, texto:"El nombre del ciudadano no parece un nombre de persona: \"" + nombre + "\"."});
+      }
+      (repetidosPorId[r.id]||[]).forEach(function(g){
+        hallazgos.push({grave:true, texto:"Su " + g.etiqueta + " (" + g.valor + ") también está en otro expediente."});
+      });
+      if(hallazgos.length) problemas.push({rec:r, hallazgos:hallazgos, grave:hallazgos.some(function(h){ return h.grave; })});
+    });
+    return {total:list.length, problemas:problemas};
+  }
+  function conRevisionAgenda(onProceed){
+    var informe = auditarPlantillaAgenda();
+    if(!informe.problemas.length){ onProceed(); return; }
+    var graves = informe.problemas.filter(function(p){ return p.grave; }).length;
+    document.getElementById("preflightResumen").textContent =
+      "De " + informe.total + " agendamiento(s), " + informe.problemas.length + " tiene(n) casillas por completar" +
+      (graves ? " — " + graves + " con algo GRAVE que saldría vacío en la plantilla que entregas." : ".") +
+      " Puedes cancelar, completarlos en la ventana de Agendamientos, y volver a generar.";
+    document.getElementById("preflightLista").innerHTML = informe.problemas.map(function(p){
+      return '<div class="preflight-item' + (p.grave ? ' grave' : '') + '">' +
+        '<div class="pf-head"><span class="pf-rad">' + escapeHtml(p.rec.radicado) + '</span>' +
+        '<span class="pf-nombre">' + escapeHtml(p.rec.nombreF || p.rec.nombre || "(sin nombre)") + '</span></div>' +
+        '<ul>' + p.hallazgos.map(function(h){
+          return '<li' + (h.grave ? ' class="pf-grave"' : '') + '>' + escapeHtml(h.texto) + '</li>';
+        }).join("") + '</ul></div>';
+    }).join("");
+    pendingPreflightProceed = onProceed;
+    pendingPreflightEsAgenda = true; // no es la masiva: no lleva constancia de entrega de la masiva
+    document.getElementById("preflightDialog").showModal();
+  }
   document.getElementById("downloadAgendaBtn").addEventListener("click", function(){
     var list = agendamientoList();
     if(!list.length){ toast("Aún no hay radicados con Formato = AGENDAMIENTO para exportar"); return; }
-    var filename = "AGENDAMIENTOS_" + userSlug() + "_" + new Date().toISOString().slice(0,10);
-    downloadExcel(filename, PLANTILLA_AGENDA_HEADERS, list.map(recordToPlantillaAgendaRow),
-      "Plantilla de Agendamientos descargada — " + list.length + " radicados");
+    conRevisionAgenda(function(){
+      var filename = "AGENDAMIENTOS_" + userSlug() + "_" + new Date().toISOString().slice(0,10);
+      downloadExcel(filename, PLANTILLA_AGENDA_HEADERS, agendamientoList().map(recordToPlantillaAgendaRow),
+        "Plantilla de Agendamientos descargada — " + list.length + " radicados");
+    });
   });
   document.getElementById("copyAgendaBtn").addEventListener("click", function(){
     var list = agendamientoList();
     if(!list.length){ toast("Aún no hay radicados con Formato = AGENDAMIENTO para exportar"); return; }
-    var text = rowsToTSV(PLANTILLA_AGENDA_HEADERS, list.map(recordToPlantillaAgendaRow));
-    copyOrShowManually(text, list.length + " filas copiadas — pégalas bajo los títulos de la plantilla",
-      "Plantilla de Agendamientos (" + list.length + " radicados)");
+    conRevisionAgenda(function(){
+      var text = rowsToTSV(PLANTILLA_AGENDA_HEADERS, agendamientoList().map(recordToPlantillaAgendaRow));
+      copyOrShowManually(text, list.length + " filas copiadas — pégalas bajo los títulos de la plantilla",
+        "Plantilla de Agendamientos (" + list.length + " radicados)");
+    });
   });
   document.getElementById("downloadAgendaDetalleBtn").addEventListener("click", function(){
     var list = agendamientoList();
