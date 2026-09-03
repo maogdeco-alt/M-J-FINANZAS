@@ -1826,14 +1826,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         }catch(e){}
         if(handoffTries >= 10) clearInterval(handoffInterval); // ~5s de intentos, de sobra para que cargue
       }, 500);
-      // La flotante corre su PROPIA copia de la app, con su propia memoria -- no comparte nada en
-      // vivo con esta pestaña más allá de esa sesión inicial, solo la nube (y solo cuando cada una
-      // guarda). Si aquí también se guarda algo mientras la flotante está abierta, las dos compiten
-      // por escribir la misma cuenta; eso ya no puede borrar nada en silencio (pushCloudNow lo
-      // bloquea y avisa si detecta que la otra ya guardó algo diferente, y además fusiona cualquier
-      // cambio sin subir la próxima vez que se inicie sesión), pero sigue siendo más simple no
-      // guardar nada aquí mientras se trabaja allá.
-      toast("Ventana flotante abierta — evita guardar cambios en esta pestaña mientras la uses, para que las dos no compitan por guardar al mismo tiempo.", "warn");
+      // Las dos ventanas comparten el almacenamiento de este navegador, y desde ahora se coordinan
+      // de verdad: cada una relee lo guardado justo ANTES de escribir y solo escribe las casillas
+      // que se tocaron a mano en ella (ver "LA FOTO DEL FORMULARIO" y
+      // sincronizarAntesDeLeerFormulario). Por eso ya se puede trabajar en las dos a la vez sin que
+      // una borre el avance de la otra -- que es lo que pasaba antes y obligaba a advertir aquí que
+      // no se tocara esta pestaña. Comprobado con las dos ventanas abiertas a la vez, incluso
+      // escribiendo las dos en el MISMO radicado.
+      toast("Ventana flotante abierta. Puedes trabajar en las dos a la vez: lo que escribas en cada una se combina, no se pisa.");
     }).catch(function(err){
       toast("No se pudo abrir la ventana flotante: " + (err && err.message ? err.message : "intenta de nuevo"), "warn");
     });
@@ -2372,6 +2372,261 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // (con su contenido íntegro) y se avisa. Los borrados hechos a propósito por la persona ya se
   // archivaron antes con su propio motivo, así que aquí no se duplican ni se avisa por ellos.
   var idsBorradosAdrede = {};
+  // Última copia que ESTA ventana escribió. Si lo que hay guardado ya no es esto, es que otra
+  // ventana (la flotante, u otra pestaña) escribió en el medio y hay que fusionar, no pisar.
+  var ultimoJsonEscrito = null;
+  function fusionarConLoGuardado(mios){
+    if(!state.profile.activeUser) return mios;
+    var raw;
+    try{ raw = localStorage.getItem(storageKeyFor(state.profile.activeUser)); }
+    catch(e){ return mios; }
+    if(!raw || raw === ultimoJsonEscrito) return mios; // nadie más ha escrito: nada que fusionar
+    var otros;
+    try{ otros = JSON.parse(raw); }catch(e){ return mios; }
+    if(!Array.isArray(otros) || !otros.length) return mios;
+
+    var porId = {};
+    mios.forEach(function(r){ if(r && r.id) porId[r.id] = r; });
+    var resultado = mios.slice();
+    var recuperados = 0;
+    otros.forEach(function(o){
+      if(!o || !o.id) return;
+      // Lo que se borró a propósito AQUÍ (borrar radicado, cerrar semana) no se resucita.
+      if(idsBorradosAdrede[o.id]) return;
+      var mio = porId[o.id];
+      if(!mio){ resultado.push(o); recuperados++; return; } // existe allá y no aquí: se conserva
+      // Gana la versión tocada más recientemente. readCaptureIntoRecord() sella modificadoEn en
+      // cada guardado, así que esto distingue bien quién escribió después.
+      if(Number(o.modificadoEn||0) > Number(mio.modificadoEn||0)){
+        resultado[resultado.indexOf(mio)] = o;
+        recuperados++;
+      }
+    });
+    if(recuperados){
+      // No es un error ni una alarma: es la app haciendo su trabajo. Pero conviene que se vea,
+      // para que quede claro que lo escrito en la otra ventana está aquí.
+      toast("Se combinaron " + recuperados + " radicado(s) que habías trabajado en la otra ventana.");
+      // No se repinta el formulario a lo bruto: si hay algo a medio escribir, solo se refrescan las
+      // casillas que no se están tocando (renderCapture() repinta TODO y se llevaría lo escrito).
+      setTimeout(function(){
+        try{
+          renderQueue(); renderStats(); renderAgendamientos();
+          if(hayCambiosSinGuardar()) refrescarCamposNoTocados(); else renderCapture();
+        }catch(e){}
+      }, 0);
+    }
+    return resultado;
+  }
+  // Trae a la MEMORIA de esta ventana todo lo que venga más nuevo que lo que tiene. Copia campo a
+  // campo sobre el objeto que ya existe (no lo reemplaza) para no romper las referencias que otras
+  // partes de la app tengan a ese radicado.
+  function absorberEntrantes(entrantes){
+    var porId = {};
+    state.records.forEach(function(r){ if(r && r.id) porId[r.id] = r; });
+    var cambiados = 0, activoCambio = false;
+    entrantes.forEach(function(o){
+      if(!o || !o.id) return;
+      if(idsBorradosAdrede[o.id]) return;
+      var mio = porId[o.id];
+      if(!mio){ state.records.push(o); cambiados++; return; } // existe allá y no aquí: se conserva
+      if(Number(o.modificadoEn||0) > Number(mio.modificadoEn||0)){
+        if(o.id === state.activeId) activoCambio = true;
+        Object.keys(o).forEach(function(k){ mio[k] = o[k]; });
+        cambiados++;
+      }
+    });
+    return {cambiados:cambiados, activoCambio:activoCambio};
+  }
+  // ---------- BORRADOS DELIBERADOS, AVISADOS A LA OTRA VENTANA ----------
+  // La fusión entre ventanas nunca quita un radicado por el simple hecho de que ya no aparezca en
+  // lo guardado: "no está" puede ser un fallo de lectura, y quitar trabajo por una suposición es
+  // exactamente lo que no puede pasar aquí. Por eso lo que se borra a propósito -- borrar un
+  // radicado, o cerrar la semana -- se AVISA de forma explícita, con su lista de identificadores.
+  // La otra ventana entonces sí sabe que fue una decisión, no una ausencia, y los quita; si no,
+  // seguiría con la lista vieja en memoria y en su siguiente guardado los devolvería todos (una
+  // semana ya cerrada y archivada reapareciendo entera en la lista de trabajo).
+  //
+  // Nada se pierde por esto: lo borrado a mano queda en la Papelera y lo cerrado queda archivado en
+  // el Historial, las dos cosas ANTES de avisar.
+  var CANAL_BORRADOS = "radicados_borrados_v1";
+  function avisarBorradosADemasVentanas(ids, motivo){
+    if(!ids || !ids.length) return;
+    try{
+      var ch = new BroadcastChannel(CANAL_BORRADOS);
+      ch.postMessage({ids: ids, motivo: motivo || "", usuario: state.profile.activeUser || ""});
+      ch.close();
+    }catch(e){} // navegador sin BroadcastChannel: sigue funcionando, solo sin el aviso inmediato
+  }
+  try{
+    var canalBorrados = new BroadcastChannel(CANAL_BORRADOS);
+    canalBorrados.onmessage = function(ev){
+      var msg = ev && ev.data;
+      if(!msg || !Array.isArray(msg.ids) || !msg.ids.length) return;
+      if(!state.profile.activeUser) return;
+      if(msg.usuario && msg.usuario !== state.profile.activeUser) return; // otra cuenta: no es asunto de esta ventana
+      if(msg.motivo === "restaurado"){
+        // Se deshizo el borrado allá: aquí deja de estar vetado, y vuelve por la fusión normal.
+        msg.ids.forEach(function(id){ delete idsBorradosAdrede[id]; });
+        sincronizarAntesDeLeerFormulario();
+        try{
+          renderQueue(); renderStats(); renderAgendamientos();
+          if(!hayCambiosSinGuardar()) renderCapture(); // no pisar lo que se esté escribiendo aquí
+        }catch(e){}
+        return;
+      }
+      var quitados = 0;
+      msg.ids.forEach(function(id){ idsBorradosAdrede[id] = true; });
+      state.records = state.records.filter(function(r){
+        if(r && r.id && idsBorradosAdrede[r.id]){ quitados++; return false; }
+        return true;
+      });
+      if(!quitados) return;
+      if(state.activeId && idsBorradosAdrede[state.activeId]) state.activeId = null;
+      try{ renderAll(); }catch(e){}
+      toast(msg.motivo === "semana"
+        ? "Se cerró la semana desde la otra ventana: los " + quitados + " radicados quedaron archivados en el Historial."
+        : quitados + " radicado(s) se borraron desde la otra ventana (quedan en la Papelera).");
+    };
+  }catch(e){}
+  function leerLoGuardado(){
+    if(!state.profile.activeUser) return null;
+    var raw;
+    try{ raw = localStorage.getItem(storageKeyFor(state.profile.activeUser)); }catch(e){ return null; }
+    if(!raw || raw === ultimoJsonEscrito) return null; // lo guardado es lo que escribió esta ventana
+    var arr;
+    try{ arr = JSON.parse(raw); }catch(e){ return null; }
+    return Array.isArray(arr) ? arr : null;
+  }
+  // Se llama al PRINCIPIO de cada lectura del formulario (ver readCaptureIntoRecord). Garantiza que
+  // esta ventana nunca escriba encima de una copia vieja, llegue o no el aviso "storage" del
+  // navegador: dentro de la ventana flotante ese aviso no es de fiar -- es un <iframe> dentro de una
+  // ventana aparte -- y no se puede depender de él para no perder trabajo. Esto no depende de nada:
+  // va a leer lo guardado en el momento justo antes de escribir.
+  function sincronizarAntesDeLeerFormulario(){
+    var entrantes = leerLoGuardado();
+    if(!entrantes) return;
+    var r = absorberEntrantes(entrantes);
+    if(!r.cambiados) return;
+    setTimeout(function(){ try{ renderQueue(); renderStats(); renderAgendamientos(); }catch(e){} }, 0);
+  }
+  window.addEventListener("storage", function(ev){
+    if(!state.profile.activeUser) return;
+    if(ev.key !== storageKeyFor(state.profile.activeUser)) return;
+    if(!ev.newValue) return;
+    var entrantes;
+    try{ entrantes = JSON.parse(ev.newValue); }catch(e){ return; }
+    if(!Array.isArray(entrantes)) return;
+    var res = absorberEntrantes(entrantes);
+    var cambiados = res.cambiados, activoCambio = res.activoCambio;
+    if(!cambiados) return;
+    var editando = hayCambiosSinGuardar();
+    try{ renderQueue(); renderStats(); renderAgendamientos(); }catch(e){}
+    if(activoCambio){
+      // Si no hay nada a medio escribir, se repinta el radicado abierto entero. Si sí lo hay, solo
+      // se refrescan las casillas que la persona NO está tocando: lo suyo se queda intacto y aun
+      // así ve llegar el avance de la otra ventana.
+      try{ if(editando) refrescarCamposNoTocados(); else renderCapture(); }catch(e){}
+    }
+    toast(cambiados + " radicado(s) se actualizaron desde la otra ventana." +
+          (activoCambio ? " Incluido el que tienes abierto." : ""));
+  });
+  // ---------- LA FOTO DEL FORMULARIO ----------
+  // Este es el corazón del arreglo de la pérdida de trabajo entre la ventana flotante y la
+  // principal, y conviene entender POR QUÉ, porque no es evidente.
+  //
+  // El formulario del Paso 2 es una copia en pantalla de UN radicado, hecha en el momento en que
+  // se abrió. Si mientras tanto la otra ventana avanza ese mismo radicado -- le pone el Formato,
+  // por ejemplo -- lo que hay en pantalla aquí queda VIEJO. Y al guardar, el código escribía en el
+  // registro TODAS las casillas de la pantalla, tocadas o no. Resultado: la casilla Formato, que
+  // aquí seguía vacía porque nunca se tocó, borraba el "T14" que la otra ventana ya había escrito.
+  // Esa es, literalmente, la forma en que se perdía el trabajo adelantado.
+  //
+  // La foto es lo que se PINTÓ al abrir. Comparando la casilla contra su foto se sabe si la
+  // persona la tocó de verdad. A partir de ahí la regla es una sola y vale en todos los casos:
+  //
+  //     lo que la persona escribió AQUÍ manda siempre;
+  //     lo que NO tocó nunca se escribe encima de lo guardado.
+  //
+  // Así las dos ventanas pueden trabajar el mismo radicado a la vez sin quitarse nada: cada una
+  // aporta las casillas que llenó.
+  var CAMPOS_FORMULARIO = [
+    {input:"cc_radicado",        campo:"radicado",        limpiar:function(v){ return cleanSpaces(v); }},
+    {input:"cc_nombre",          campo:"nombre",          limpiar:function(v){ return cleanSpaces(v); }},
+    {input:"cc_fechaRadicacion", campo:"fechaRadicacion", limpiar:function(v){ return cleanSpaces(v); }},
+    {input:"cc_fechaAsignacion", campo:"fechaAsignacion", limpiar:function(v){ return cleanSpaces(v); }},
+    {input:"cc_direccion",       campo:"direccion",       limpiar:function(v){ return cleanSpaces(v); }},
+    {input:"cc_formato",         campo:"formato",         limpiar:function(v){ return normalizeFormatoInput(v); }},
+    {input:"cc_res",             campo:"res",             limpiar:function(v){ return cleanSpaces(v); }},
+    {input:"cc_comentario",      campo:"comentario",      limpiar:function(v){ return cleanSpaces(v); }},
+    {input:"cc_fechaRes",        campo:"fechaRes",        limpiar:function(v){ return normalizeDate(cleanSpaces(v)); }}
+  ];
+  // La línea de Fénix va aparte: no es una casilla más, de ella se derivan comparendo, código,
+  // placa, medio, fechas... Si no se tocó, no se vuelve a interpretar (podría pisar lo que la otra
+  // ventana dedujo, o la placa corregida a mano en Agendamientos).
+  var CAMPO_COMPARENDO = "cc_comparendo";
+  var fotoFormulario = null;
+  function tomarFotoFormulario(){
+    if(!state.activeId){ fotoFormulario = null; return; }
+    var foto = {id: state.activeId};
+    CAMPOS_FORMULARIO.forEach(function(c){
+      var el = document.getElementById(c.input);
+      foto[c.input] = el ? String(el.value||"") : "";
+    });
+    var cp = document.getElementById(CAMPO_COMPARENDO);
+    foto[CAMPO_COMPARENDO] = cp ? String(cp.value||"") : "";
+    fotoFormulario = foto;
+  }
+  function campoTocadoAMano(inputId){
+    var el = document.getElementById(inputId);
+    if(!el) return false;
+    // Sin foto de este mismo radicado no hay forma de saberlo. Se toma lo de la pantalla como
+    // bueno: es el comportamiento de siempre, y nunca se pierde lo que la persona tenga escrito.
+    if(!fotoFormulario || fotoFormulario.id !== state.activeId) return true;
+    return String(el.value||"") !== String(fotoFormulario[inputId]||"");
+  }
+  // ¿El formulario tiene algo escrito que aún no se ha guardado en el radicado activo?
+  // Se mide contra la foto, NO contra el registro: si la otra ventana acaba de cambiar el
+  // registro, medirlo contra él daría "hay cambios sin guardar" cuando la persona no ha escrito
+  // nada -- y eso dejaba la pantalla congelada en lo viejo, que es justo el problema.
+  function hayCambiosSinGuardar(){
+    var form = document.getElementById("captureForm");
+    if(!form || form.style.display === "none") return false;
+    if(!fotoFormulario || fotoFormulario.id !== state.activeId) return false;
+    var alguno = false;
+    CAMPOS_FORMULARIO.forEach(function(c){ if(campoTocadoAMano(c.input)) alguno = true; });
+    if(campoTocadoAMano(CAMPO_COMPARENDO)) alguno = true;
+    return alguno;
+  }
+  // Trae a la pantalla lo que la otra ventana escribió, SIN tocar las casillas que se estén
+  // escribiendo aquí. Es lo que permite ver aparecer el avance de la flotante mientras se escribe
+  // un comentario, en vez de tener que elegir entre una cosa o la otra.
+  function refrescarCamposNoTocados(){
+    var rec = state.records.find(function(r){ return r.id === state.activeId; });
+    var form = document.getElementById("captureForm");
+    if(!rec || !form || form.style.display === "none") return 0;
+    var n = 0;
+    CAMPOS_FORMULARIO.forEach(function(c){
+      if(campoTocadoAMano(c.input)) return;
+      var el = document.getElementById(c.input);
+      if(!el) return;
+      var nuevo = rec[c.campo] == null ? "" : String(rec[c.campo]);
+      if(String(el.value||"") === nuevo) return;
+      el.value = nuevo;
+      if(fotoFormulario) fotoFormulario[c.input] = nuevo; // la foto se mueve con lo que se pintó
+      n++;
+    });
+    if(!campoTocadoAMano(CAMPO_COMPARENDO)){
+      var cp = document.getElementById(CAMPO_COMPARENDO);
+      var nuevoRaw = rec.comparendoRaw == null ? "" : String(rec.comparendoRaw);
+      if(cp && String(cp.value||"") !== nuevoRaw){
+        cp.value = nuevoRaw;
+        if(fotoFormulario) fotoFormulario[CAMPO_COMPARENDO] = nuevoRaw;
+        try{ renderBreakdown(parseComparendoLine(nuevoRaw)); }catch(e){}
+        n++;
+      }
+    }
+    return n;
+  }
   function revisarDesaparecidosAntesDeGuardar(){
     if(!state.profile.activeUser) return;
     var previos;
@@ -2932,6 +3187,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var rec = Object.assign({}, entrada.registro);
     rec.order = state.records.length;
     delete idsBorradosAdrede[rec.id]; // vuelve a estar vigilado por el guardián de desaparecidos
+    avisarBorradosADemasVentanas([rec.id], "restaurado"); // que la otra ventana lo deje de dar por borrado
     state.records.push(rec);
     save(); renderAll(); renderPapelera();
     toast("Radicado " + rec.radicado + " restaurado a tu lista");
@@ -3459,8 +3715,20 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // mañana), no solo el borrado manual, que ya se archivaba aparte. Nunca bloquea el guardado:
       // avisar y conservar una copia es más útil que impedir trabajar.
       revisarDesaparecidosAntesDeGuardar();
+      // FUSIÓN OBLIGATORIA ANTES DE ESCRIBIR. Este es el punto donde se perdía el trabajo de la
+      // ventana flotante, y era la causa de que "se borrara todo" una y otra vez: la pestaña
+      // principal guarda en memoria los radicados desde que se abrió; la flotante escribe SU
+      // versión en el navegador; y en cuanto la principal guardaba cualquier cosa, volcaba su
+      // copia vieja encima y se llevaba por delante todo lo adelantado en la flotante. Sin error
+      // y sin aviso: los radicados seguían ahí, pero vacíos, así que el guardián de desaparecidos
+      // tampoco saltaba (no faltaba ninguno, solo estaban borrados por dentro).
+      //
+      // La protección de la nube (comparar "actualizado" antes de subir) nunca cubrió esto, porque
+      // esto ocurre ANTES, en el almacenamiento local que las dos ventanas comparten.
+      state.records = fusionarConLoGuardado(state.records);
       var json = JSON.stringify(state.records);
       localStorage.setItem(storageKeyFor(state.profile.activeUser), json);
+      ultimoJsonEscrito = json;
       // Ver "inConflictState" arriba: si hay un conflicto de sincronización sin resolver, este
       // "Guardado" es solo local (optimista) -- no se muestra encima del aviso de conflicto, para
       // no parecer resuelto sin estarlo.
@@ -5253,6 +5521,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var empty = document.getElementById("captureEmpty");
     var form = document.getElementById("captureForm");
     if(!rec){
+      fotoFormulario = null;
       empty.style.display = "block"; form.style.display = "none";
       document.getElementById("captureEmptyText").textContent = state.records.length
         ? "No hay radicados en este filtro. Cambia a “Todos” o ajusta la búsqueda."
@@ -5278,6 +5547,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("cc_comentario").value = rec.comentario;
     document.getElementById("cc_fechaRes").value = rec.fechaRes;
     document.getElementById("cc_comparendo").value = rec.comparendoRaw || "";
+    // Foto de lo que se acaba de pintar: es la referencia para saber, de aquí en adelante, qué
+    // casillas tocó la persona y cuáles no (ver "LA FOTO DEL FORMULARIO").
+    tomarFotoFormulario();
     renderBreakdown(parseComparendoLine(rec.comparendoRaw || ""));
     renderInsights();
     // Vuelve a evaluar la guardia de la casilla del correo para el radicado que acaba de abrirse,
@@ -5497,22 +5769,44 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   });
 
   function readCaptureIntoRecord(){
+    // Antes de leer NADA de la pantalla: traer lo que la otra ventana haya guardado en el medio.
+    // Sin esto, el registro en memoria puede estar congelado desde que se abrió la ventana y lo
+    // que se escriba encima borraría el avance de la otra.
+    sincronizarAntesDeLeerFormulario();
     var rec = state.records.find(function(r){ return r.id===state.activeId; });
     if(!rec) return null;
     var estabaHechoAntes = isDone(rec);
-    rec.radicado = cleanSpaces(document.getElementById("cc_radicado").value);
-    rec.nombre = cleanSpaces(document.getElementById("cc_nombre").value);
-    rec.fechaRadicacion = cleanSpaces(document.getElementById("cc_fechaRadicacion").value);
-    rec.fechaAsignacion = cleanSpaces(document.getElementById("cc_fechaAsignacion").value);
-    rec.direccion = cleanSpaces(document.getElementById("cc_direccion").value);
-    rec.formato = normalizeFormatoInput(document.getElementById("cc_formato").value);
-    rec.res = cleanSpaces(document.getElementById("cc_res").value);
-    rec.comentario = cleanSpaces(document.getElementById("cc_comentario").value);
-    rec.fechaRes = normalizeDate(cleanSpaces(document.getElementById("cc_fechaRes").value));
-    var raw = document.getElementById("cc_comparendo").value; // sin limpiar: los tabs son el separador de columnas
-    rec.comparendoRaw = raw;
-    var parsed = parseComparendoLine(raw);
-    Object.keys(parsed).forEach(function(k){ rec[k] = parsed[k]; });
+    // Casilla por casilla, no en bloque: solo se escribe en el registro lo que la persona tocó de
+    // verdad en esta pantalla (ver "LA FOTO DEL FORMULARIO"). Lo que no tocó se deja como está
+    // guardado -- si la otra ventana lo adelantó, volcarlo desde aquí lo borraría.
+    var refrescadas = 0;
+    CAMPOS_FORMULARIO.forEach(function(c){
+      var el = document.getElementById(c.input);
+      if(!el) return;
+      var enPantalla = c.limpiar(el.value);
+      if(campoTocadoAMano(c.input)){ rec[c.campo] = enPantalla; return; }
+      var guardado = rec[c.campo] == null ? "" : String(rec[c.campo]);
+      if(guardado !== enPantalla){ el.value = guardado; refrescadas++; } // lo guardado es más nuevo
+    });
+    var cpEl = document.getElementById(CAMPO_COMPARENDO);
+    if(cpEl){
+      if(campoTocadoAMano(CAMPO_COMPARENDO)){
+        var raw = cpEl.value; // sin limpiar: los tabs son el separador de columnas
+        rec.comparendoRaw = raw;
+        var parsed = parseComparendoLine(raw);
+        Object.keys(parsed).forEach(function(k){ rec[k] = parsed[k]; });
+      }else{
+        var guardadoRaw = rec.comparendoRaw == null ? "" : String(rec.comparendoRaw);
+        if(guardadoRaw !== String(cpEl.value||"")){
+          cpEl.value = guardadoRaw;
+          try{ renderBreakdown(parseComparendoLine(guardadoRaw)); }catch(e){}
+          refrescadas++;
+        }
+      }
+    }
+    if(refrescadas){
+      toast("Se conservó lo que habías adelantado en la otra ventana (" + refrescadas + " casilla(s)).");
+    }
     rec.tipoComparendo = deriveTipoComparendo(rec.medio); // siempre derivado de MEDIO, nunca elegido a mano
     // Se guarda la marca de tiempo la primera vez que el radicado queda hecho (Formato diligenciado),
     // para poder calcular más adelante el ritmo real de hoy ("¿cuánto me falta en horas?"). Si ya
@@ -5525,6 +5819,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // descartar sin más cuando la pestaña principal y la ventana flotante trabajaron cada una en
     // radicados DIFERENTES al mismo tiempo (ver mergeRecordsByRecency, en completeLogin()).
     rec.modificadoEn = Date.now();
+    // A partir de aquí, lo que hay en pantalla es exactamente lo guardado: esa pasa a ser la foto
+    // nueva. Sin esto, todo lo escrito antes seguiría contando como "tocado a mano" para siempre.
+    tomarFotoFormulario();
     return rec;
   }
 
@@ -5601,6 +5898,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var rec = state.records[idx];
     guardarEnPapelera(rec, "borrado manual desde la app");
     idsBorradosAdrede[rec.id] = true; // deliberado: no debe disparar la alarma de desaparecidos
+    avisarBorradosADemasVentanas([rec.id], "borrado"); // ya está a salvo en la Papelera
     state.records = state.records.filter(function(r){ return r.id!==pendingDeleteId; });
     // Solo se limpia el radicado activo si es justo el que se borró -- borrar desde la "✕" de la
     // cola puede ser sobre uno DISTINTO al que se está editando en ese momento, y ese no se debe
@@ -5613,6 +5911,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     pendingDeleteId = null;
     toastAction("Radicado " + rec.radicado + " borrado", "Deshacer", function(){
       if(state.records.some(function(r){ return r.id===deletedId; })) return; // ya se restauró, o se volvió a crear con el mismo id (raro)
+      delete idsBorradosAdrede[deletedId];
+      avisarBorradosADemasVentanas([deletedId], "restaurado"); // que la otra ventana lo deje de dar por borrado
       state.records.splice(Math.min(restoreAt, state.records.length), 0, rec);
       state.records.forEach(function(r,i){ r.order = i; });
       save(); renderAll();
@@ -6453,6 +6753,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // completo acaba de quedar archivado y verificado), así que no deben disparar la alarma de
       // "desaparecieron sin borrarse a mano" -- ver revisarDesaparecidosAntesDeGuardar().
       toClose.forEach(function(r){ idsBorradosAdrede[r.id] = true; });
+      // Se avisa DESPUÉS de que el archivado quedó verificado: si la ventana flotante sigue
+      // abierta con la lista vieja, sin esto su próximo guardado devolvería la semana entera.
+      avisarBorradosADemasVentanas(toClose.map(function(r){ return r.id; }), "semana");
       state.records = toKeep;
       state.records.forEach(function(r,i){ r.order = i; });
       state.activeId = null;
