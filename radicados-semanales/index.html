@@ -1558,6 +1558,16 @@
       </div>
 
       <div class="settings-section">
+        <h3>Puntos de restauración</h3>
+        <p class="hint">La app guarda sola una <b>copia completa de toda tu lista</b> cada cierto tiempo y <b>siempre antes de algo que borre</b> (cerrar la semana, borrar un radicado, importar un bloque). Si alguna vez algo sale mal — no importa la causa — desde aquí puedes volver a cualquiera de esas copias. Se conservan las últimas 30, en este navegador. <b>Restaurar nunca borra nada</b>: añade lo que falte y rellena los datos vacíos, y deja intacto lo que ya tengas.</p>
+        <div class="toolbar" style="margin:12px 0;">
+          <button class="btn ghost small" id="puntosRefrescar" type="button">Actualizar lista</button>
+          <button class="btn ghost small" id="puntosCrear" type="button">Crear uno ahora</button>
+        </div>
+        <div id="puntosLista" class="preflight-list"></div>
+      </div>
+
+      <div class="settings-section">
         <h3>Datos repetidos</h3>
         <p class="hint">Cada expediente es único: un mismo número de <b>radicado</b>, <b>comparendo</b> o <b>resolución</b> no debería aparecer en dos filas. Aquí está, en todo momento, la lista completa de los que sí se repiten — mirando toda tu lista, agendamientos incluidos. La app además te avisa en el momento de escribir uno repetido, y otra vez antes de entregar. Si alguna repetición es legítima, la confirmas y deja de preguntar por ese dato.</p>
         <div class="toolbar" style="margin:12px 0;">
@@ -2894,6 +2904,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       } else {
         load(); loadSettings(); loadHistory();
       }
+      // Fuera del if a propósito: hay que comprobarlo VENGAN O NO datos de la nube. Cuando la nube
+      // trae datos ni siquiera se llama a load(), así que dejar esto dentro del "else" era dejarlo
+      // apagado en el caso normal -- que es exactamente lo que pasó en la primera versión de este
+      // arreglo: la comprobación existía y no se ejecutaba nunca.
+      reconciliarCopias(); // ¿la copia de seguridad va por delante del almacenamiento principal?
       var recovered = recoverLegacyFlatDataInto();
 
       // Comparación contra la memoria persistente de este navegador: si la última vez que se
@@ -2959,6 +2974,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       proceedAfterSyncCheck();
     }).catch(function(){
       load(); loadSettings(); loadHistory();
+      reconciliarCopias(); // ¿la copia de seguridad va por delante del almacenamiento principal?
       var recovered = recoverLegacyFlatDataInto(); // aunque falle la nube, no se pierde lo que hay en este navegador
       lastKnownSafeCount = state.records.length;
       lastKnownCloudActualizado = null; // no se pudo leer la nube -- sin marca de tiempo con qué comparar todavía
@@ -3171,7 +3187,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     ["general","clasificacion","informes","papelera"].forEach(function(t){
       document.getElementById("stab-"+t).style.display = (t===tab) ? "block" : "none";
     });
-    if(tab === "papelera"){ renderPapelera(); renderEntregas(); renderRepetidosPanel(); }
+    if(tab === "papelera"){ renderPapelera(); renderEntregas(); renderRepetidosPanel(); renderPuntos(); }
   }
   // ---------- Ajustes → Datos repetidos: la vista permanente ----------
   function renderRepetidosPanel(){
@@ -3242,6 +3258,154 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
     toast("Constancias descargadas");
   });
+  // ---------- PUNTOS DE RESTAURACIÓN ----------
+  // La última red, y la que no depende de haber previsto la falla. La papelera guarda lo que se
+  // borra a mano; el historial, las semanas cerradas; la copia de IndexedDB, el último estado. Pero
+  // ninguna de las tres protege del caso "la app estropeó los datos de una forma que ningún guardián
+  // reconoció" -- y ese caso ya ocurrió dos veces: radicados que seguían en la lista pero vacíos por
+  // dentro, y una tarde de trabajo que quedó fuera de la copia principal.
+  //
+  // Un punto de restauración es una copia COMPLETA de la lista, con fecha y motivo. Se toma sola
+  // cada 10 minutos (si algo cambió) y SIEMPRE antes de cualquier operación que borre. Viven en
+  // IndexedDB, no en el almacenamiento normal, para no competir por el espacio que ya escasea.
+  //
+  // Restaurar NUNCA borra: añade lo que falte y rellena lo que esté vacío. Volver a un punto no
+  // puede, por diseño, costar trabajo posterior.
+  var PUNTOS_PREFIX = "radicados_puntos_v1";
+  var MAX_PUNTOS = 30;
+  var MINUTOS_ENTRE_PUNTOS = 10;
+  function puntosKeyFor(emailId){ return PUNTOS_PREFIX + "::" + emailId; }
+  function leerPuntos(){
+    if(!state.profile.activeUser) return Promise.resolve([]);
+    return idbGet(puntosKeyFor(state.profile.activeUser)).then(function(v){
+      return Array.isArray(v) ? v : [];
+    }).catch(function(){ return []; });
+  }
+  var ultimoPuntoEn = 0;
+  var ultimaFirmaPunto = null;
+  function firmaDeLaLista(){
+    // Barata y suficiente para saber "¿cambió algo desde el último punto?": cantidad + la marca de
+    // modificación más alta. No hace falta comparar radicado por radicado en cada latido.
+    var maxMod = 0;
+    state.records.forEach(function(r){ if(r && Number(r.modificadoEn||0) > maxMod) maxMod = Number(r.modificadoEn); });
+    return state.records.length + ":" + maxMod;
+  }
+  // motivo: texto corto que explica por qué se tomó. forzar: true para los momentos críticos
+  // (antes de borrar), donde se toma aunque acabe de tomarse otro.
+  function crearPuntoDeRestauracion(motivo, forzar){
+    if(!state.profile.activeUser || !state.records.length) return Promise.resolve(false);
+    var firma = firmaDeLaLista();
+    var ahora = Date.now();
+    if(!forzar){
+      if(firma === ultimaFirmaPunto) return Promise.resolve(false); // nada cambió
+      if(ahora - ultimoPuntoEn < MINUTOS_ENTRE_PUNTOS * 60 * 1000) return Promise.resolve(false);
+    }
+    var punto = {
+      creadoEn: new Date(ahora).toISOString(),
+      motivo: motivo || "copia automática",
+      n: state.records.length,
+      // copia PROFUNDA: si se guardara la referencia, el punto cambiaría solo cuando cambien los
+      // radicados, que es exactamente lo contrario de un punto de restauración.
+      records: JSON.parse(JSON.stringify(state.records))
+    };
+    return leerPuntos().then(function(lista){
+      lista.push(punto);
+      if(lista.length > MAX_PUNTOS) lista = lista.slice(lista.length - MAX_PUNTOS);
+      ultimoPuntoEn = ahora;
+      ultimaFirmaPunto = firma;
+      idbSet(puntosKeyFor(state.profile.activeUser), lista);
+      return true;
+    }).catch(function(){ return false; });
+  }
+  // Cada 2 minutos se mira si toca uno; el propio crearPunto decide si de verdad hace falta.
+  setInterval(function(){
+    if(!state.profile.activeUser) return;
+    crearPuntoDeRestauracion("copia automática");
+  }, 2 * 60 * 1000);
+
+  function restaurarPunto(punto){
+    if(!punto || !Array.isArray(punto.records)) return;
+    var porId = {};
+    state.records.forEach(function(r){ if(r && r.id) porId[r.id] = r; });
+    var anadidos = 0, rellenados = 0;
+    punto.records.forEach(function(o){
+      if(!o || !o.id) return;
+      var mio = porId[o.id];
+      if(!mio){
+        delete idsBorradosAdrede[o.id]; // restaurar es una decisión explícita: vuelve a estar vigente
+        state.records.push(o); anadidos++; return;
+      }
+      if(registrosIguales(o, mio)) return;
+      var combinado = combinarSinVaciar(o, mio); // lo de ahora manda; el punto solo rellena huecos
+      var cambio = false;
+      Object.keys(combinado).forEach(function(k){
+        if(!mismoValor(mio[k], combinado[k])){ mio[k] = combinado[k]; cambio = true; }
+      });
+      if(cambio) rellenados++;
+    });
+    state.records.forEach(function(r,i){ if(r.order == null) r.order = i; });
+    save(); renderAll(); renderPuntos();
+    if(!anadidos && !rellenados){
+      toast("Ese punto no tiene nada que tu lista de ahora no tenga ya.");
+    }else{
+      showDataSafetyBanner("Restaurado el punto del " + fechaHoraCorta(punto.creadoEn) + ": volvieron " +
+        anadidos + " radicado(s) y se rellenaron datos en " + rellenados +
+        ". No se borró nada de lo que ya tenías.", "warn");
+    }
+  }
+  function fechaHoraCorta(iso){
+    try{ return new Date(iso).toLocaleString("es-CO", {dateStyle:"short", timeStyle:"short"}); }
+    catch(e){ return String(iso||"").slice(0,16).replace("T"," "); }
+  }
+  var puntosEnPantalla = [];
+  function renderPuntos(){
+    var cont = document.getElementById("puntosLista");
+    if(!cont) return;
+    leerPuntos().then(function(lista){
+      puntosEnPantalla = lista.slice().reverse(); // el más reciente arriba
+      if(!puntosEnPantalla.length){
+        cont.innerHTML = '<div class="preflight-ok">Todavía no hay puntos de restauración. Se crean solos mientras trabajas.</div>';
+        return;
+      }
+      cont.innerHTML = puntosEnPantalla.map(function(p, i){
+        return '<div class="preflight-item">' +
+          '<div class="pf-head"><span class="pf-rad">' + escapeHtml(fechaHoraCorta(p.creadoEn)) + '</span>' +
+          '<span class="pf-nombre">' + p.n + ' radicado(s) · ' + escapeHtml(p.motivo || "") + '</span></div>' +
+          '<div class="toolbar" style="margin-top:8px;">' +
+            '<button class="btn ghost small" data-punto-restaurar="' + i + '" type="button">Restaurar este punto</button>' +
+            '<button class="btn ghost small" data-punto-descargar="' + i + '" type="button">Descargar (.json)</button>' +
+          '</div></div>';
+      }).join("");
+    });
+  }
+  document.getElementById("puntosLista").addEventListener("click", function(e){
+    var rest = e.target.closest("button[data-punto-restaurar]");
+    if(rest){
+      var p = puntosEnPantalla[parseInt(rest.getAttribute("data-punto-restaurar"), 10)];
+      if(p) restaurarPunto(p);
+      return;
+    }
+    var desc = e.target.closest("button[data-punto-descargar]");
+    if(desc){
+      var q = puntosEnPantalla[parseInt(desc.getAttribute("data-punto-descargar"), 10)];
+      if(!q) return;
+      var blob = new Blob([JSON.stringify(q, null, 2)], {type:"application/json"});
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "punto-restauracion-" + String(q.creadoEn).slice(0,19).replace(/[:T]/g,"-") + ".json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+      toast("Punto de restauración descargado");
+    }
+  });
+  document.getElementById("puntosRefrescar").addEventListener("click", renderPuntos);
+  document.getElementById("puntosCrear").addEventListener("click", function(){
+    crearPuntoDeRestauracion("creado a mano", true).then(function(ok){
+      renderPuntos();
+      toast(ok ? "Punto de restauración creado" : "No hay radicados que copiar todavía");
+    });
+  });
+
   // ---------- Ajustes → Papelera: consultar y restaurar lo que salió de la lista ----------
   function renderPapelera(){
     var cont = document.getElementById("papeleraLista");
@@ -3549,6 +3713,28 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       try{ db.transaction("kv","readwrite").objectStore("kv").put(value, key); }catch(e){}
     });
   }
+  // Lee TODO el almacén de la copia de seguridad de una vez. Se usa para la foto del arranque: hay
+  // que capturar las copias de todos los usuarios porque en ese momento todavía no se sabe quién va
+  // a iniciar sesión.
+  function idbGetAll(){
+    return getIdb().then(function(db){
+      if(!db) return {};
+      return new Promise(function(resolve){
+        var salida = {};
+        try{
+          var st = db.transaction("kv","readonly").objectStore("kv");
+          var req = st.openCursor();
+          req.onsuccess = function(){
+            var cur = req.result;
+            if(!cur){ resolve(salida); return; }
+            salida[cur.key] = cur.value;
+            cur.continue();
+          };
+          req.onerror = function(){ resolve(salida); };
+        }catch(e){ resolve(salida); }
+      });
+    }).catch(function(){ return {}; });
+  }
   function idbGet(key){
     return getIdb().then(function(db){
       if(!db) return undefined;
@@ -3561,6 +3747,93 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       });
     });
   }
+  // ---------- CONTADOR DE ESCRITURAS: cuál de las dos copias es la buena ----------
+  // La app guarda en DOS sitios: el almacenamiento normal del navegador (principal) y una copia
+  // automática en IndexedDB. Pueden separarse -- y cuando pasa, hay que saber cuál es la reciente.
+  //
+  // El caso real: si el almacenamiento principal se llena, su escritura falla pero la copia de
+  // seguridad SÍ se guarda. Se puede seguir trabajando toda la tarde así (con el aviso en pantalla),
+  // y todo ese trabajo queda únicamente en la copia. Antes, al volver a abrir, la app leía el
+  // almacenamiento principal, lo encontraba NO vacío (con la versión de la mañana) y ni siquiera
+  // miraba la copia: la tarde entera desaparecía de la pantalla aunque estuviera guardada.
+  // Comprobado: 4 radicados trabajados con el disco lleno, 0 al reabrir.
+  //
+  // Con un contador que sube en cada guardado y se anota en las DOS copias, "cuál es la reciente"
+  // deja de ser una suposición: gana la del número más alto. Si los números son iguales, son la
+  // misma cosa y no hay nada que decidir.
+  var SEQ_PREFIX = "radicados_seq_v1";
+  function seqKeyFor(emailId){ return SEQ_PREFIX + "::" + emailId; }
+  function leerSeqLocal(emailId){
+    try{ return parseInt(localStorage.getItem(seqKeyFor(emailId)) || "0", 10) || 0; }catch(e){ return 0; }
+  }
+  // FOTO DE LAS DOS COPIAS AL ARRANCAR, antes de que nada las toque.
+  //
+  // Hace falta porque iniciar sesión ya guarda (refleja en este navegador lo que baja de la nube), y
+  // ese guardado sobrescribe la copia de seguridad. Si la comparación se hiciera después, se estaría
+  // comparando contra una copia que la propia app acaba de pisar -- la prueba lo confirmó: los 4
+  // radicados de la tarde seguían en la copia hasta que el inicio de sesión la reescribió con la
+  // versión vieja, y para cuando se miraba ya no había nada que recuperar. Con la foto tomada al
+  // arrancar, la evidencia no se puede destruir.
+  var estadoAlAbrir = {seqs:{}, idb:null};
+  function capturarEstadoAlAbrir(){
+    try{
+      for(var i = 0; i < localStorage.length; i++){
+        var k = localStorage.key(i);
+        if(k && k.indexOf(SEQ_PREFIX + "::") === 0){
+          estadoAlAbrir.seqs[k] = parseInt(localStorage.getItem(k) || "0", 10) || 0;
+        }
+      }
+    }catch(e){}
+    estadoAlAbrir.idb = idbGetAll().catch(function(){ return {}; });
+  }
+  // La copia de seguridad guarda un sobre {seq, records}; las copias viejas eran un arreglo pelado.
+  // Se aceptan las dos formas para no dejar atrás lo que ya esté guardado de antes.
+  function abrirSobreIdb(data){
+    if(Array.isArray(data)) return {seq:0, records:data};
+    if(data && Array.isArray(data.records)) return {seq:Number(data.seq||0), records:data.records};
+    return null;
+  }
+  // Se llama SIEMPRE al abrir, haya o no datos en el almacenamiento principal. Compara las dos
+  // copias y, si la de seguridad va por delante, la usa. Nada se descarta en silencio: lo que
+  // estuviera solo en la copia principal se archiva en la Papelera antes de cambiar de versión,
+  // para que siga siendo recuperable con un clic.
+  function reconciliarCopias(){
+    if(!state.profile.activeUser) return;
+    if(!estadoAlAbrir.idb) return;
+    var usuario = state.profile.activeUser;
+    var clave = storageKeyFor(usuario);
+    var seqLocal = estadoAlAbrir.seqs[seqKeyFor(usuario)] || 0;
+    estadoAlAbrir.idb.then(function(mapa){
+      if(state.profile.activeUser !== usuario) return; // cambió de usuario mientras se leía
+      var sobre = abrirSobreIdb(mapa ? mapa[clave] : null);
+      if(!sobre || !sobre.records.length) return;
+      if(sobre.seq <= seqLocal) return; // el principal está al día (o son lo mismo): nada que hacer
+      // Se UNE, no se sustituye. En memoria puede haber radicados que no están en la copia de
+      // seguridad -- por ejemplo los que acaban de bajar de la nube al iniciar sesión -- y
+      // reemplazar la lista entera se los llevaría. La unión no puede perder nada de ninguno de los
+      // dos lados, y combinarSinVaciar() nunca deja en blanco un dato que exista en el otro.
+      var porId = {};
+      state.records.forEach(function(r){ if(r && r.id) porId[r.id] = r; });
+      var recuperados = 0, anadidos = 0;
+      sobre.records.forEach(function(o){
+        if(!o || !o.id) return;
+        var mio = porId[o.id];
+        if(!mio){ state.records.push(o); anadidos++; return; }
+        if(registrosIguales(o, mio)) return;
+        var combinado = combinarSinVaciar(o, mio);
+        Object.keys(combinado).forEach(function(k){ mio[k] = combinado[k]; });
+        recuperados++;
+      });
+      if(!recuperados && !anadidos) return;
+      save(); // vuelve a dejar las dos copias iguales, y sube el contador
+      renderAll();
+      showDataSafetyBanner(
+        "Se recuperó tu trabajo desde la copia de seguridad de este navegador: el almacenamiento principal se había " +
+        "quedado atrás. Vuelven " + anadidos + " radicado(s) que no estaban en pantalla y " + recuperados +
+        " con datos que faltaban. Suele pasar cuando el navegador se queda sin espacio — descarga un " +
+        "respaldo (.json) y considera cerrar la semana para liberar espacio.", "warn");
+    }).catch(function(){});
+  }
   // Si el guardado principal no encontró nada, se intenta recuperar de la copia automática en
   // IndexedDB antes de asumir que el lote está realmente vacío.
   function tryIdbRecovery(){
@@ -3570,11 +3843,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     idbGet(key).then(function(data){
       // Si mientras se buscaba la copia se cambió de usuario o ya llegaron datos por otra vía, no se pisa nada.
       if(state.profile.activeUser !== targetUser || state.records.length) return;
-      if(Array.isArray(data) && data.length){
-        state.records = data;
+      var sobre = abrirSobreIdb(data);
+      if(sobre && sobre.records.length){
+        state.records = sobre.records;
         save();
         renderAll();
-        toast("Se recuperaron " + data.length + " radicados desde una copia de respaldo automática guardada en este navegador.");
+        toast("Se recuperaron " + sobre.records.length + " radicados desde una copia de respaldo automática guardada en este navegador.");
       }
     });
   }
@@ -3794,7 +4068,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return false; // nunca sobrescribir un respaldo dañado con una lista posiblemente incompleta
     }
     if(state.storageAvailable === false){
-      idbSet(storageKeyFor(state.profile.activeUser), state.records);
+      idbSet(storageKeyFor(state.profile.activeUser), {seq: leerSeqLocal(state.profile.activeUser) + 1,
+        escritoEn: Date.now(), records: state.records});
       setSaveStatus("nostorage");
       return false; // ya se explicó en el aviso inicial; seguimos trabajando solo en memoria de esta pestaña
     }
@@ -3821,9 +4096,17 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // El espejo en IndexedDB se escribe DESPUÉS de la fusión, no antes: es la copia de seguridad
       // que se usa cuando el almacenamiento principal falla o se llena, y guardarla con una versión
       // más vieja que la principal sería justo al revés de lo que tiene que ser.
-      idbSet(storageKeyFor(state.profile.activeUser), state.records);
+      //
+      // El contador va PRIMERO a la copia de seguridad y solo después al almacenamiento principal.
+      // Ese orden es el que hace que el arreglo funcione: si el principal falla por falta de
+      // espacio, su contador se queda atrás y el de la copia queda por delante, que es justo la
+      // señal que necesita reconciliarCopias() al abrir para saber cuál vale.
+      var claveRec = storageKeyFor(state.profile.activeUser);
+      var seq = leerSeqLocal(state.profile.activeUser) + 1;
+      idbSet(claveRec, {seq: seq, escritoEn: Date.now(), records: state.records});
       var json = JSON.stringify(state.records);
-      localStorage.setItem(storageKeyFor(state.profile.activeUser), json);
+      localStorage.setItem(claveRec, json);
+      try{ localStorage.setItem(seqKeyFor(state.profile.activeUser), String(seq)); }catch(e){}
       recordarLoEscrito(json); // base de la mezcla de tres vías: "esto es lo que dejé escrito yo"
       // Ver "inConflictState" arriba: si hay un conflicto de sincronización sin resolver, este
       // "Guardado" es solo local (optimista) -- no se muestra encima del aviso de conflicto, para
@@ -5226,6 +5509,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // hubiera a medio escribir. Comprobado: sin esto, escribir un comentario y luego importar el
     // bloque de la mañana borraba ese comentario sin decir nada.
     commitCurrentEdits();
+    crearPuntoDeRestauracion("antes de importar un bloque", true);
     var res = parseBulkImport(text);
     // No se fija aquí el activo al "primero pegado" -- se deja que renderAll() elija el primero de
     // la cola YA ordenada por prioridad (visibleList()), para que al importar se abra directo el
@@ -5985,6 +6269,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // Se guarda primero (si el que se borra es el abierto, guardarlo no cambia nada: se borra igual
     // y su contenido íntegro queda en la Papelera).
     if(id !== state.activeId) commitCurrentEdits();
+    crearPuntoDeRestauracion("antes de borrar el radicado " + rec.radicado, true);
     pendingDeleteId = rec.id;
     document.getElementById("deleteConfirmRadicado").textContent = rec.radicado;
     deleteConfirmDialog.showModal();
@@ -6155,6 +6440,26 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var rec = readCaptureIntoRecord();
       if(rec) save();
     }, 1200);
+  });
+  // GUARDAR AL SALIR DE CADA CASILLA. El autoguardado espera 1,2 s desde la última tecla; si en ese
+  // intervalo el computador se apaga, el navegador se cae o se cierra el portátil de golpe, no hay
+  // ningún evento de cierre que salve lo escrito -- comprobado: a los 200 ms de escribir, en disco
+  // todavía no hay nada.
+  //
+  // Al pasar de una casilla a otra (con el ratón o con Tab) se guarda de inmediato, sin esperar. En
+  // la práctica se llena una casilla y se pasa a la siguiente, así que esto reduce lo que una caída
+  // puede llevarse a lo tecleado en la casilla en curso, en vez de todo el radicado. No cuesta nada:
+  // si no cambió nada, save() escribe lo mismo que ya estaba.
+  document.getElementById("captureForm").addEventListener("focusout", function(ev){
+    var destino = ev.relatedTarget;
+    // Si el foco sigue dentro del mismo formulario o se fue a la nada (clic fuera), igual se guarda;
+    // lo único que se evita es guardar cuando no hay radicado abierto.
+    if(!state.activeId) return;
+    var campo = ev.target;
+    if(!campo || !/^(INPUT|TEXTAREA|SELECT)$/.test(campo.tagName)) return;
+    cancelAutosavePendiente();
+    var rec = readCaptureIntoRecord();
+    if(rec) save();
   });
 
   // ---------- Paso 3: export / backup / reset ----------
@@ -6889,6 +7194,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   document.getElementById("clearAllBtn").addEventListener("click", function(){
     var toClose = recordsToCloseThisWeek();
     if(!toClose.length){ toast("La lista ya está vacía"); return; }
+    // La operación que más borra de todas: punto de restauración obligatorio antes de nada.
+    crearPuntoDeRestauracion("antes de cerrar la semana (" + toClose.length + " radicados)", true);
     document.getElementById("confirmCount").textContent = toClose.length;
     var agendas = toClose.filter(esAgendamiento).length;
     var enTermino = toClose.filter(function(r){
@@ -6976,6 +7283,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   });
 
   state.storageAvailable = testStorageAvailable();
+  // Lo PRIMERO, antes de cargar ajustes o de que nadie inicie sesión: fotografiar las dos copias tal
+  // como quedaron la última vez. Iniciar sesión ya escribe, y escribir borra la evidencia.
+  capturarEstadoAlAbrir();
   loadSupaConfig();
   loadSettings(); // valores por defecto hasta confirmar sesión — se reemplazan tras iniciar sesión
   renderProfileUI();
