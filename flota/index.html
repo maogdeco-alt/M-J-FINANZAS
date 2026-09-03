@@ -1237,18 +1237,26 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 
       <div id="cuentasMotosA">
         <div class="section">
-          <h2>Recuperación de la inversión</h2>
+          <h2>Cuentas por vehículo</h2>
+          <p class="sub" style="margin:-4px 0 12px">Cada moto por separado — su propia inversión, lo que ha recaudado, sus gastos y su crédito si lo tiene. Nunca mezclada con las demás. Toque una para ver su ficha completa.</p>
+          <div class="grid2" id="cuentasPorVehiculo"></div>
+        </div>
+        <div class="section">
+          <h2>Total de la flota</h2>
+          <p class="sub" style="margin:-4px 0 12px">La suma de todos los vehículos de arriba juntos, más cualquier otra inversión que no sea de una moto en particular (papeles, GPS, cascos).</p>
           <div id="recuperacion"></div>
         </div>
       </div>
 
       <div class="section">
         <h2>Resultado mes a mes</h2>
+        <p class="sub" style="margin:-4px 0 12px">De toda la flota junta, mes por mes.</p>
         <div id="pyg"></div>
       </div>
 
       <div class="section">
         <h2>En qué se va la plata</h2>
+        <p class="sub" style="margin:-4px 0 12px">También de toda la flota junta. Para ver los gastos de un vehículo en particular, entre a su ficha (arriba).</p>
         <div id="porCategoria"></div>
       </div>
 
@@ -2744,7 +2752,49 @@ function renderAvisos(){
       <span class="cuando">${it.cuando}</span>
     </div>`).join('')}</div>` : '';
 }
+/* Cada moto por separado — su propia inversión, lo que ha recaudado, sus
+   gastos y su crédito si lo tiene, SIN mezclarse con las demás. Vive al
+   principio de "Cuentas" (no solo dentro de Vehículos) porque esta es la
+   pestaña que la persona revisa cuando quiere ver la plata — la
+   contabilidad de cada vehículo tiene que estar ahí mismo, no escondida
+   en otra parte. Toca una tarjeta y abre la ficha completa de esa moto. */
+function renderCuentasPorVehiculo(){
+  const box = $('cuentasPorVehiculo'); if(!box || !esMotos()) return;
+  if(!S.motos.length){
+    box.innerHTML = `<div class="empty"><span class="ic icono">${ICONS.vehiculos}</span><strong>Todavía no hay vehículos</strong>
+      Agregue uno en Vehículos para empezarle a ver las cuentas por separado.</div>`;
+    return;
+  }
+  box.innerHTML = S.motos.map(m=>{
+    const r = motoResumen(m);
+    const financiada = !!m.financiada;
+    const deudaTxt = !financiada ? 'Sin crédito'
+      : motoDeudaSaldada(m) ? '✅ Crédito saldado'
+      : `Debe ${money(m.saldo)} de su crédito`;
+    return `<div class="card" data-ver-moto-card="${m.id}" style="cursor:pointer">
+      <h3><span class="icono">${ICONS.vehiculos}</span> ${esc(m.placa)}${m.ref?' · '+esc(m.ref):''}</h3>
+      <div class="meta">Dueño: ${esc(m.propietario||'Sin asignar')} · ${deudaTxt}</div>
+      <div class="figs">
+        <div class="fig"><div class="k">Recaudado</div><div class="v">${money(r.recaudado)}</div></div>
+        <div class="fig"><div class="k">Gastos</div><div class="v">${money(r.gastosOperativos)}</div></div>
+        ${financiada ? `<div class="fig"><div class="k">Abonado crédito</div><div class="v">${money(r.abonosDeuda)}</div></div>` : ''}
+        <div class="fig"><div class="k">Utilidad neta</div><div class="v${r.utilidadNeta<0?' neg':''}">${money(r.utilidadNeta)}</div></div>
+      </div>
+      <div class="meta" style="margin-top:8px">Inversión: ${m.valorCompra ? money(m.valorCompra) : 'sin registrar'}${m.valorCompra ? ' · '+Math.round(r.pctInversion*100)+'% recuperada' : ''}</div>
+      <div class="acts"><button class="btn ghost sm" data-ver-moto="${m.id}"><span class="icono">${ICONS.vehiculos}</span> Ver ficha completa</button></div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('#cuentasPorVehiculo [data-ver-moto-card]').forEach(card=>card.addEventListener('click', e=>{
+    if(e.target.closest('[data-ver-moto]')) return; // el botón ya abre solo
+    abrirMotoDetalle(card.dataset.verMotoCard);
+  }));
+  document.querySelectorAll('#cuentasPorVehiculo [data-ver-moto]').forEach(b=>b.addEventListener('click', e=>{
+    e.stopPropagation();
+    abrirMotoDetalle(b.dataset.verMoto);
+  }));
+}
 function renderCuentas(){
+  renderCuentasPorVehiculo();
   const r = recuperacion();
   const pctTxt = (r.pct*100).toFixed(1) + '%';
   $('recuperacion').innerHTML = `
