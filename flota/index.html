@@ -2771,7 +2771,7 @@ function renderCuentasPorVehiculo(){
     const deudaTxt = !financiada ? 'Sin crédito'
       : motoDeudaSaldada(m) ? '✅ Crédito saldado'
       : `Debe ${money(m.saldo)} de su crédito`;
-    return `<div class="card" data-ver-moto-card="${m.id}" style="cursor:pointer">
+    return `<div class="card" data-cuentas-moto-card="${m.id}" style="cursor:pointer">
       <h3><span class="icono">${ICONS.vehiculos}</span> ${esc(m.placa)}${m.ref?' · '+esc(m.ref):''}</h3>
       <div class="meta">Dueño: ${esc(m.propietario||'Sin asignar')} · ${deudaTxt}</div>
       <div class="figs">
@@ -2781,16 +2781,23 @@ function renderCuentasPorVehiculo(){
         <div class="fig"><div class="k">Utilidad neta</div><div class="v${r.utilidadNeta<0?' neg':''}">${money(r.utilidadNeta)}</div></div>
       </div>
       <div class="meta" style="margin-top:8px">Inversión: ${m.valorCompra ? money(m.valorCompra) : 'sin registrar'}${m.valorCompra ? ' · '+Math.round(r.pctInversion*100)+'% recuperada' : ''}</div>
-      <div class="acts"><button class="btn ghost sm" data-ver-moto="${m.id}"><span class="icono">${ICONS.vehiculos}</span> Ver ficha completa</button></div>
+      <div class="acts"><button class="btn ghost sm" data-cuentas-moto-ver="${m.id}"><span class="icono">${ICONS.vehiculos}</span> Ver ficha completa</button></div>
     </div>`;
   }).join('');
-  document.querySelectorAll('#cuentasPorVehiculo [data-ver-moto-card]').forEach(card=>card.addEventListener('click', e=>{
-    if(e.target.closest('[data-ver-moto]')) return; // el botón ya abre solo
-    abrirMotoDetalle(card.dataset.verMotoCard);
+  // Atributos propios (data-cuentas-moto-*), distintos de los que usa la
+  // tarjeta de Vehículos (data-ver-moto-card / data-ver-moto) — ambas
+  // tarjetas conviven siempre en el DOM (renderAll() dibuja las dos
+  // pestañas aunque solo una esté visible), así que si compartieran el
+  // mismo atributo, cualquier búsqueda sin acotar por contenedor podía
+  // agarrar la tarjeta equivocada. Con nombre propio, no hay forma de
+  // confundirlas aunque sea la misma moto en las dos vistas.
+  document.querySelectorAll('#cuentasPorVehiculo [data-cuentas-moto-card]').forEach(card=>card.addEventListener('click', e=>{
+    if(e.target.closest('[data-cuentas-moto-ver]')) return; // el botón ya abre solo
+    abrirMotoDetalle(card.dataset.cuentasMotoCard);
   }));
-  document.querySelectorAll('#cuentasPorVehiculo [data-ver-moto]').forEach(b=>b.addEventListener('click', e=>{
+  document.querySelectorAll('#cuentasPorVehiculo [data-cuentas-moto-ver]').forEach(b=>b.addEventListener('click', e=>{
     e.stopPropagation();
-    abrirMotoDetalle(b.dataset.verMoto);
+    abrirMotoDetalle(b.dataset.cuentasMotoVer);
   }));
 }
 function renderCuentas(){
