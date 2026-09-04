@@ -70,6 +70,12 @@
   }
 
   *{box-sizing:border-box;}
+  /* "hidden" tiene que ocultar SIEMPRE. El navegador lo aplica con display:none, pero cualquier
+     regla propia con display (por ejemplo .ws-tools{display:flex}) le gana por especificidad y el
+     elemento se queda a la vista aunque el código lo haya ocultado. Ya pasó dos veces en esta app:
+     con los diálogos, que se pintaban todos a la vez, y con la caja de pegar de "Revisar masiva
+     terminada", que no se recogía. Esta línea cierra esa clase de error para toda la app. */
+  [hidden]{display:none !important;}
   html,body{margin:0;padding:0;}
   body{
     background:var(--bg); color:var(--ink);
@@ -786,6 +792,10 @@
   .ws-recorrido li{margin-bottom:9px;}
   .ws-recorrido .cuando{color:var(--muted);font-size:0.78rem;display:block;}
 
+  /* Las ventanas de dos paneles usan .ws-body tal cual; la de "Revisar masiva terminada" solo tiene
+     lista, así que ocupa el ancho completo. */
+  .ws-body.una-columna{grid-template-columns:1fr;}
+  .ws-body.una-columna .ws-list{border-right:none;}
   .ws-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
     padding:12px 22px;border-top:1px solid var(--border);flex:none;background:var(--surface);}
   .ws-foot .acciones{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;}
@@ -1291,6 +1301,40 @@
   </div>
 </dialog>
 
+<!-- Dialog: revisar una masiva TERMINADA fuera de la app, antes de darla por buena -->
+<dialog id="auditarMasivaDialog" class="workspace" aria-labelledby="auditarMasivaTitle">
+  <div class="ws-head">
+    <div><span class="step">Control de calidad</span><h2 id="auditarMasivaTitle">Revisar masiva terminada</h2></div>
+    <div class="ws-stats" id="auditarMasivaResumen"></div>
+  </div>
+  <div class="ws-tools">
+    <div class="backup-row">
+      <button class="btn primary" id="auditarMasivaArchivoBtn" type="button">Cargar archivo (.xlsx o .csv)</button>
+      <input type="file" id="auditarMasivaFile" accept=".xlsx,.xls,.csv,text/csv">
+      <button class="btn ghost" id="auditarMasivaPegarBtn" type="button">o pegar las filas</button>
+      <button class="btn ghost small" id="auditarMasivaLimpiar" type="button">Empezar de nuevo</button>
+    </div>
+  </div>
+  <div class="ws-tools" id="auditarMasivaPegarZona" hidden>
+    <textarea id="auditarMasivaPaste" rows="5" placeholder="Pega aquí desde Excel, INCLUYENDO la fila de títulos (RADICADO, FECHA_DE _RADICACION, COMPARENDO, TIPO, REMITENTE_DESTINATARIO...)"></textarea>
+    <button class="btn" id="auditarMasivaPasteBtn" type="button">Revisar lo pegado</button>
+  </div>
+  <div class="ws-body una-columna">
+    <div class="ws-list">
+      <div class="ws-listhead" id="auditarMasivaCuenta">Todavía no has cargado ningún archivo</div>
+      <div id="auditarMasivaPanel"></div>
+    </div>
+  </div>
+  <div class="ws-foot">
+    <span class="hint" id="auditarMasivaNota"></span>
+    <div class="toolbar">
+      <button class="btn" id="auditarMasivaCopiarInforme" type="button">Copiar el informe</button>
+      <button class="btn primary" id="auditarMasivaImportar" type="button" disabled>Importar radicados a masiva definitiva</button>
+      <button class="btn ghost" id="auditarMasivaClose" type="button">Cerrar</button>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="documentosDialog" class="hoja" aria-labelledby="documentosDialogTitle">
   <div class="hoja-head"><h2 id="documentosDialogTitle">Documentos y respaldo</h2>
     <button class="btn ghost small" id="documentosDialogClose" type="button">Cerrar</button></div>
@@ -1308,6 +1352,14 @@
         <button class="btn primary big" id="downloadFinalBtn" type="button">Descargar Excel (.xlsx)</button>
         <button class="btn" id="copyFinalBtn" type="button">Copiar</button>
         <span class="field-hint" id="finalDocCount"></span>
+      </div>
+
+      <div class="hr"></div>
+
+      <h4 class="subhead">Revisar una masiva que hiciste FUERA de la app</h4>
+      <p class="panel-desc">Si trabajaste la masiva directamente en Excel, cárgala aquí y la app la revisa <b>fila por fila con las mismas reglas</b> que usa para la suya. Te muestra qué rompe cada regla, tú confirmas una a una las que ya verificaste, y solo entonces se habilita <b>Importar a masiva definitiva</b>. Las columnas se reconocen por su <b>título</b>, no por su posición: aunque estén en otro orden, cada dato entra donde corresponde.</p>
+      <div class="toolbar">
+        <button class="btn primary" id="abrirAuditarMasivaBtn" type="button">Revisar masiva terminada</button>
       </div>
 
       <div class="hr"></div>
@@ -6709,6 +6761,331 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     "COMPARENDO","INFRACCCION","FECHA DE NOTIF","RESOLUCION","FECHA Res","ANEXO","PLANTILLA","USUARIO",
     "TIPO DE DOCUMENTO","NUMERO DE DOCUMENTO","RES. SALIDA","FECHA RES. SALIDA","PLACA","ANEXO"];
 
+  // ============================================================
+  // AUDITAR UNA MASIVA YA TERMINADA (hecha FUERA de la app)
+  // ------------------------------------------------------------
+  // Pedido de la usuaria: hay días en que trabaja la masiva directamente en Excel, sin la app. Esa
+  // base sale sin pasar por ninguna de las reglas, que es justo lo que ya le costó una devolución
+  // de la jefatura. Aquí se carga ese archivo terminado y se revisa FILA POR FILA con el MISMO
+  // motor de reglas de la app (hallazgosDeRegistro), no con una copia.
+  //
+  // LAS COLUMNAS SE BUSCAN POR SU TÍTULO, NUNCA POR SU POSICIÓN. Esto es deliberado y es lo que
+  // hace segura la carga: el error que originó todo este trabajo fue un corrimiento de columnas al
+  // pegar. Leyendo por título, da igual que el archivo tenga las columnas en otro orden, o alguna
+  // de más: cada dato entra donde le corresponde o no entra. Si falta un título obligatorio, se
+  // dice cuál y no se carga nada.
+  function normalizarTitulo(s){
+    return String(s||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
+      .replace(/[^A-Z0-9]/g,"");
+  }
+  // titulo del archivo -> campo del radicado. Varios títulos pueden alimentar el mismo campo (la
+  // masiva repite COMPARENDO dos veces); gana el primero que traiga contenido.
+  var MASIVA_A_CAMPO = [
+    {titulos:["RADICADO"],                       campo:"radicado",        obligatoria:true},
+    {titulos:["FECHADERADICACION","FECHA_DE_RADICACION"], campo:"fechaRadicacion"},
+    {titulos:["FECHADEASIGNACION","FECHA_ASIGNACION"],    campo:"fechaAsignacion"},
+    {titulos:["COMPARENDO"],                     campo:"comparendoCompleto"},
+    {titulos:["TIPO","PLANTILLA"],               campo:"_plantilla",      obligatoria:true},
+    {titulos:["REMITENTEDESTINATARIO","REMITENTE_DESTINATARIO","NOMBRE"], campo:"nombreF", obligatoria:true},
+    {titulos:["DIRECCION"],                      campo:"direccion"},
+    {titulos:["ESTADO"],                         campo:"estado"},
+    {titulos:["TIPODECOMPARENDO"],               campo:"medio"},
+    {titulos:["FECHADECOMPARENDO"],              campo:"imposicion"},
+    {titulos:["INFRACCCION","INFRACCION"],       campo:"cod"},
+    {titulos:["FECHADENOTIF"],                   campo:"notificacion"},
+    {titulos:["RESOLUCION"],                     campo:"res"},
+    {titulos:["FECHARES"],                       campo:"fechaRes"},
+    {titulos:["TIPODEDOCUMENTO"],                campo:"tipoId"},
+    {titulos:["NUMERODEDOCUMENTO"],              campo:"idNum"},
+    {titulos:["PLACA"],                          campo:"placa"}
+  ];
+  // De la PLANTILLA que trae el archivo se deduce el FORMATO (T11, T14...), porque la masiva no
+  // lleva el código: lleva el nombre de la plantilla. Se invierte el mismo diccionario de Ajustes
+  // que se usa para escribirla, así que ida y vuelta siempre coinciden.
+  function formatoDesdePlantilla(plantilla){
+    var dict = (state.settings && state.settings.formatToPlantilla) || DEFAULT_SETTINGS.formatToPlantilla;
+    var buscado = normalizarTitulo(plantilla);
+    if(!buscado) return "";
+    var encontrado = "";
+    Object.keys(dict).forEach(function(fmt){
+      if(!encontrado && normalizarTitulo(dict[fmt]) === buscado) encontrado = fmt;
+    });
+    // Si en la columna venía directamente el código ("T11"), también vale.
+    if(!encontrado && dict[String(plantilla||"").trim().toUpperCase()]) encontrado = String(plantilla).trim().toUpperCase();
+    return encontrado;
+  }
+  function valorDeCelda(v){
+    if(v == null) return "";
+    if(v instanceof Date && !isNaN(v.getTime())){
+      return pad(v.getDate()) + "/" + pad(v.getMonth()+1) + "/" + v.getFullYear();
+    }
+    return cleanSpaces(String(v));
+  }
+  // filas: arreglo de arreglos, la primera es la de títulos. Devuelve {ok, error, registros, avisos}
+  function leerMasivaTerminada(filas){
+    if(!filas || filas.length < 2) return {ok:false, error:"El archivo no tiene filas de datos (solo títulos, o está vacío)."};
+    var titulos = filas[0].map(normalizarTitulo);
+    var indice = {};
+    MASIVA_A_CAMPO.forEach(function(m){
+      m.titulos.forEach(function(t){
+        var i = titulos.indexOf(t);
+        if(i !== -1 && indice[m.campo] === undefined) indice[m.campo] = i;
+      });
+    });
+    var faltan = MASIVA_A_CAMPO.filter(function(m){ return m.obligatoria && indice[m.campo] === undefined; })
+      .map(function(m){ return m.titulos[0]; });
+    if(faltan.length){
+      return {ok:false, error:"No se reconocieron estas columnas obligatorias por su título: " + faltan.join(", ") +
+        ". Comprueba que la primera fila del archivo sean los títulos de la masiva."};
+    }
+    var registros = [], avisos = [];
+    for(var f = 1; f < filas.length; f++){
+      var celdas = filas[f] || [];
+      var rec = {};
+      MASIVA_A_CAMPO.forEach(function(m){
+        var i = indice[m.campo];
+        if(i === undefined) return;
+        var v = valorDeCelda(celdas[i]);
+        if(v && !rec[m.campo]) rec[m.campo] = v; // gana el primer título con contenido
+      });
+      if(!String(rec.radicado||"").trim()) continue; // fila en blanco al final del archivo
+      rec.formato = formatoDesdePlantilla(rec._plantilla);
+      if(!rec.formato && String(rec._plantilla||"").trim()){
+        avisos.push("Fila " + (f+1) + " (radicado " + rec.radicado + "): la plantilla \"" + rec._plantilla +
+          "\" no corresponde a ningún formato configurado en Ajustes.");
+      }
+      delete rec._plantilla;
+      rec.nombre = rec.nombre || rec.nombreF;
+      rec.comparendoRaw = "";
+      rec.tipoComparendo = deriveTipoComparendo(rec.medio);
+      rec.filaEnArchivo = f + 1;
+      rec.id = "masiva_" + f + "_" + (rec.radicado || "");
+      registros.push(rec);
+    }
+    if(!registros.length) return {ok:false, error:"No se encontró ninguna fila con número de radicado."};
+    return {ok:true, registros:registros, avisos:avisos};
+  }
+  // Revisa los registros leídos con el MISMO motor de la app, más las comprobaciones que solo
+  // tienen sentido sobre un archivo completo (radicados repetidos DENTRO del propio archivo).
+  function auditarMasivaTerminada(registros){
+    var porValor = {};
+    CAMPOS_UNICOS.forEach(function(c){ porValor[c.clave] = {}; });
+    registros.forEach(function(r){
+      CAMPOS_UNICOS.forEach(function(c){
+        var v = c.norm(r);
+        if(!v) return;
+        (porValor[c.clave][v] = porValor[c.clave][v] || []).push(r);
+      });
+    });
+    var repetidosPorId = {};
+    CAMPOS_UNICOS.forEach(function(c){
+      Object.keys(porValor[c.clave]).forEach(function(v){
+        var grupo = porValor[c.clave][v];
+        if(grupo.length < 2) return;
+        var g = {etiqueta:c.etiqueta, valor:v, registros:grupo};
+        grupo.forEach(function(r){ (repetidosPorId[r.id] = repetidosPorId[r.id] || []).push(g); });
+      });
+    });
+    var problemas = [];
+    registros.forEach(function(r){
+      var hallazgos = hallazgosDeRegistro(r, repetidosPorId);
+      if(hallazgos.length){
+        problemas.push({rec:r, hallazgos:hallazgos, grave:hallazgos.some(function(h){ return h.grave; })});
+      }
+    });
+    return {total:registros.length, problemas:problemas};
+  }
+
+  // ---------- la ventana de "Revisar masiva terminada" ----------
+  var masivaCargada = null;   // {registros, avisos}
+  var masivaInforme = null;   // {total, problemas}
+  var masivaConfirmados = {}; // id de fila -> true cuando la persona ya la verificó a mano
+  function masivaGravesPendientes(){
+    if(!masivaInforme) return 0;
+    return masivaInforme.problemas.filter(function(p){ return p.grave && !masivaConfirmados[p.rec.id]; }).length;
+  }
+  function renderAuditarMasiva(){
+    var panel = document.getElementById("auditarMasivaPanel");
+    var cuenta = document.getElementById("auditarMasivaCuenta");
+    var resumen = document.getElementById("auditarMasivaResumen");
+    var nota = document.getElementById("auditarMasivaNota");
+    var btnImportar = document.getElementById("auditarMasivaImportar");
+    if(!masivaCargada){
+      panel.innerHTML = '<div class="preflight-ok">Carga el archivo de tu masiva terminada (o pega las filas, con su fila de títulos) y la app la revisará con las mismas reglas que usa para la suya.</div>';
+      cuenta.textContent = "Todavía no has cargado ningún archivo";
+      resumen.innerHTML = ""; nota.textContent = "";
+      btnImportar.disabled = true;
+      return;
+    }
+    var total = masivaInforme.total;
+    var conHallazgos = masivaInforme.problemas.length;
+    var graves = masivaInforme.problemas.filter(function(p){ return p.grave; }).length;
+    var pendientes = masivaGravesPendientes();
+    resumen.innerHTML =
+      '<div class="ws-stat"><b>' + total + '</b><span>filas leídas</span></div>' +
+      '<div class="ws-stat' + (conHallazgos ? ' alerta' : ' bien') + '"><b>' + conHallazgos + '</b><span>con hallazgos</span></div>' +
+      '<div class="ws-stat' + (graves ? ' alerta' : ' bien') + '"><b>' + graves + '</b><span>graves</span></div>' +
+      '<div class="ws-stat' + (pendientes ? ' alerta' : ' bien') + '"><b>' + pendientes + '</b><span>sin confirmar</span></div>';
+    cuenta.textContent = conHallazgos
+      ? conHallazgos + " fila(s) con algo que revisar, de " + total
+      : "Las " + total + " filas cumplen todas las reglas";
+    var partes = [];
+    if(masivaCargada.avisos && masivaCargada.avisos.length) partes = partes.concat(masivaCargada.avisos);
+    if(pendientes){
+      nota.textContent = "Faltan " + pendientes + " fila(s) GRAVE(s) por confirmar a mano. " +
+        "Revísalas contra tu fuente y marca cada una como verificada; hasta entonces no se puede importar.";
+    } else {
+      nota.textContent = conHallazgos
+        ? "Todo lo grave está confirmado por ti. Ya se puede importar."
+        : "Ninguna regla se rompe. Ya se puede importar.";
+    }
+    btnImportar.disabled = pendientes > 0;
+    if(!conHallazgos){
+      panel.innerHTML = '<div class="preflight-ok">Se revisaron ' + total + ' filas y <b>ninguna rompe las reglas</b>.' +
+        (partes.length ? '<br><br>' + partes.map(escapeHtml).join("<br>") : "") + '</div>';
+      return;
+    }
+    panel.innerHTML = (partes.length ? '<div class="preflight-item"><ul>' +
+        partes.map(function(a){ return '<li>' + escapeHtml(a) + '</li>'; }).join("") + '</ul></div>' : "") +
+      masivaInforme.problemas.map(function(p){
+        var ok = !!masivaConfirmados[p.rec.id];
+        return '<div class="preflight-item' + (p.grave && !ok ? ' grave' : '') + '">' +
+          '<div class="pf-head"><span class="pf-rad">Fila ' + p.rec.filaEnArchivo + ' · ' + escapeHtml(p.rec.radicado) + '</span>' +
+          '<span class="pf-nombre">' + escapeHtml(p.rec.nombreF || "(sin nombre)") + ' · ' + escapeHtml(p.rec.formato || "sin formato") + '</span></div>' +
+          '<ul>' + p.hallazgos.map(function(h){
+            return '<li' + (h.grave ? ' class="pf-grave"' : '') + '>' + escapeHtml(h.texto) + '</li>';
+          }).join("") + '</ul>' +
+          (p.grave
+            ? '<div class="toolbar" style="margin-top:8px;">' +
+              (ok ? '<span class="pill ok">Verificado por ti</span>' +
+                    '<button class="btn ghost small" data-masiva-desconfirmar="' + escapeHtml(p.rec.id) + '" type="button">Quitar la confirmación</button>'
+                  : '<button class="btn small" data-masiva-confirmar="' + escapeHtml(p.rec.id) + '" type="button">Ya lo verifiqué, esta fila está correcta</button>') +
+              '</div>'
+            : '') +
+          '</div>';
+      }).join("");
+  }
+  function cargarMasivaDesdeFilas(filas){
+    var leido = leerMasivaTerminada(filas);
+    if(!leido.ok){
+      masivaCargada = null; masivaInforme = null; masivaConfirmados = {};
+      renderAuditarMasiva();
+      document.getElementById("auditarMasivaPanel").innerHTML =
+        '<div class="preflight-item grave"><ul><li class="pf-grave">' + escapeHtml(leido.error) + '</li></ul></div>';
+      return;
+    }
+    masivaCargada = leido;
+    masivaConfirmados = {};
+    // Leído con éxito: se recoge la caja de pegar para que la revisión ocupe la pantalla.
+    var zona = document.getElementById("auditarMasivaPegarZona");
+    if(zona) zona.hidden = true;
+    masivaInforme = auditarMasivaTerminada(leido.registros);
+    renderAuditarMasiva();
+  }
+  document.getElementById("abrirAuditarMasivaBtn").addEventListener("click", function(){
+    renderAuditarMasiva();
+    document.getElementById("auditarMasivaDialog").showModal();
+  });
+  document.getElementById("auditarMasivaClose").addEventListener("click", function(){
+    document.getElementById("auditarMasivaDialog").close();
+  });
+  document.getElementById("auditarMasivaLimpiar").addEventListener("click", function(){
+    masivaCargada = null; masivaInforme = null; masivaConfirmados = {};
+    document.getElementById("auditarMasivaPaste").value = "";
+    document.getElementById("auditarMasivaFile").value = "";
+    renderAuditarMasiva();
+  });
+  document.getElementById("auditarMasivaArchivoBtn").addEventListener("click", function(){
+    document.getElementById("auditarMasivaFile").click();
+  });
+  document.getElementById("auditarMasivaFile").addEventListener("change", function(){
+    var file = this.files && this.files[0];
+    if(!file) return;
+    var lector = new FileReader();
+    lector.onload = function(ev){
+      try{
+        var wb = XLSX.read(new Uint8Array(ev.target.result), {type:"array", cellDates:true});
+        var hoja = wb.Sheets[wb.SheetNames[0]];
+        var filas = XLSX.utils.sheet_to_json(hoja, {header:1, raw:false, defval:""});
+        cargarMasivaDesdeFilas(filas);
+      }catch(e){
+        document.getElementById("auditarMasivaPanel").innerHTML =
+          '<div class="preflight-item grave"><ul><li class="pf-grave">No se pudo leer el archivo (' +
+          escapeHtml(e && e.message ? e.message : "formato no reconocido") +
+          '). Prueba con el .xlsx original, o pega las filas.</li></ul></div>';
+      }
+    };
+    lector.readAsArrayBuffer(file);
+  });
+  document.getElementById("auditarMasivaPegarBtn").addEventListener("click", function(){
+    var z = document.getElementById("auditarMasivaPegarZona");
+    z.hidden = !z.hidden;
+    if(!z.hidden) document.getElementById("auditarMasivaPaste").focus();
+  });
+  document.getElementById("auditarMasivaPasteBtn").addEventListener("click", function(){
+    var texto = document.getElementById("auditarMasivaPaste").value;
+    if(!texto.trim()){ toast("Pega primero las filas, con su fila de títulos"); return; }
+    var filas = texto.replace(/\r/g,"").split("\n").filter(function(l){ return l.trim() !== ""; })
+      .map(function(l){ return l.split("\t"); });
+    cargarMasivaDesdeFilas(filas);
+  });
+  document.getElementById("auditarMasivaPanel").addEventListener("click", function(e){
+    var c = e.target.closest("button[data-masiva-confirmar]");
+    if(c){ masivaConfirmados[c.getAttribute("data-masiva-confirmar")] = true; renderAuditarMasiva(); return; }
+    var d = e.target.closest("button[data-masiva-desconfirmar]");
+    if(d){ delete masivaConfirmados[d.getAttribute("data-masiva-desconfirmar")]; renderAuditarMasiva(); }
+  });
+  document.getElementById("auditarMasivaCopiarInforme").addEventListener("click", function(){
+    if(!masivaInforme){ toast("Carga primero un archivo"); return; }
+    var l = ["REVISIÓN DE MASIVA TERMINADA — " + new Date().toLocaleString("es-CO"),
+             "Filas leídas: " + masivaInforme.total + " · con hallazgos: " + masivaInforme.problemas.length, ""];
+    masivaInforme.problemas.forEach(function(p){
+      l.push((p.grave ? "[GRAVE] " : "[AVISO] ") + "Fila " + p.rec.filaEnArchivo + " — " + p.rec.radicado +
+             " — " + (p.rec.nombreF||"") + (masivaConfirmados[p.rec.id] ? "  (verificada a mano)" : ""));
+      p.hallazgos.forEach(function(h){ l.push("    " + (h.grave ? "• GRAVE: " : "• ") + h.texto); });
+      l.push("");
+    });
+    copyOrShowManually(l.join("\n"), "Informe copiado", "Revisión de masiva terminada");
+  });
+  // IMPORTAR A MASIVA DEFINITIVA. Nunca borra: los radicados que ya estén en la lista se completan
+  // con lo que traiga el archivo (sin vaciar nada), y los que no estén se añaden. Antes de tocar
+  // nada se crea un punto de restauración, porque esto entra masivamente.
+  document.getElementById("auditarMasivaImportar").addEventListener("click", function(){
+    if(!masivaCargada || masivaGravesPendientes() > 0) return;
+    crearPuntoDeRestauracion("antes de importar una masiva terminada", true);
+    var porRadicado = {};
+    state.records.forEach(function(r){ if(r.radicado) porRadicado[String(r.radicado).trim()] = r; });
+    var nuevos = 0, completados = 0;
+    masivaCargada.registros.forEach(function(fila){
+      var limpio = {};
+      Object.keys(fila).forEach(function(k){
+        if(k === "id" || k === "filaEnArchivo") return;
+        limpio[k] = fila[k];
+      });
+      var existente = porRadicado[String(fila.radicado).trim()];
+      if(existente){
+        var antes = JSON.stringify(existente);
+        var combinado = combinarSinVaciar(limpio, existente); // lo que ya había manda; el archivo rellena
+        Object.keys(combinado).forEach(function(k){ existente[k] = combinado[k]; });
+        existente.modificadoEn = Date.now();
+        if(JSON.stringify(existente) !== antes) completados++;
+      }else{
+        limpio.id = uid();
+        limpio.order = state.records.length;
+        limpio.modificadoEn = Date.now();
+        limpio.origen = "masiva terminada cargada el " + new Date().toLocaleDateString("es-CO");
+        state.records.push(limpio);
+        porRadicado[String(limpio.radicado).trim()] = limpio;
+        nuevos++;
+      }
+    });
+    save(); renderAll();
+    document.getElementById("auditarMasivaDialog").close();
+    showDataSafetyBanner("Masiva definitiva importada: " + nuevos + " radicado(s) nuevos y " + completados +
+      " que ya tenías y se completaron con lo del archivo. No se borró nada: lo que ya estaba en la app manda, " +
+      "y el archivo solo rellenó lo que faltaba. Antes de importar quedó un punto de restauración.", "warn");
+  });
+
   function esDevuelto(rec){
     return (rec.formato||"").trim().toUpperCase() === "DEVUELTO";
   }
@@ -6764,24 +7141,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(/^\d{10,}\s+\S/.test(s)) return true;       // número largo + algo más detrás
     return s.split(/\s+/).length >= 6 && /\d{6,}/.test(s); // muchos trozos y un número largo adentro
   }
-  function auditarDocumentoFinal(){
-    var elegibles = finalDocEligible();
-    var problemas = [];
-    // Datos que deberían ser únicos y aparecen repetidos (radicado, comparendo, resolución). Se usa
-    // el MISMO motor que vigila permanentemente y que alimenta el panel de Ajustes, para que las
-    // tres vistas no puedan discrepar. Las repeticiones ya confirmadas por la usuaria no se repiten
-    // aquí: si dijo que son legítimas, insistir cada semana es ruido.
-    var repetidosPorId = {};
-    buscarRepetidos(false).forEach(function(g){
-      g.registros.forEach(function(r){
-        (repetidosPorId[r.id] = repetidosPorId[r.id] || []).push(g);
-      });
-    });
-
-    elegibles.forEach(function(r){
-      var hallazgos = [];
-      var formato = (r.formato||"").trim().toUpperCase();
-
+  // MOTOR DE REGLAS, UNO SOLO. Recibe UN radicado y devuelve sus hallazgos. Lo usan las tres
+  // revisiones que existen: la de la masiva que genera la app, la de la plantilla de Agendamientos
+  // y la de una masiva TERMINADA FUERA de la app que se carga para auditarla. Está aparte a
+  // propósito: una regla escrita dos veces termina discrepando consigo misma -- ya pasó con la del
+  // comparendo, y las nueve alarmas falsas que salieron de eso costaron una revisión entera.
+  function hallazgosDeRegistro(r, repetidosPorId){
+    var hallazgos = [];
+    var formato = (r.formato||"").trim().toUpperCase();
+    repetidosPorId = repetidosPorId || {};
       // Falta el comparendo. Solo es grave en los formatos que SÍ lo exigen: una "Petición oscura"
       // (T10) puede ir legítimamente sin comparendo, y marcarla en rojo cada semana no protege de
       // nada -- solo entrena a saltarse la revisión, que es peor que no tenerla.
@@ -6840,6 +7208,23 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         }
       });
 
+    return hallazgos;
+  }
+  // Índice de "qué radicados comparten radicado, comparendo o resolución", en la forma que espera
+  // hallazgosDeRegistro(). Se calcula una vez por revisión, no una vez por fila.
+  function indiceDeRepetidos(){
+    var porId = {};
+    buscarRepetidos(false).forEach(function(g){
+      g.registros.forEach(function(r){ (porId[r.id] = porId[r.id] || []).push(g); });
+    });
+    return porId;
+  }
+  function auditarDocumentoFinal(){
+    var elegibles = finalDocEligible();
+    var repetidosPorId = indiceDeRepetidos();
+    var problemas = [];
+    elegibles.forEach(function(r){
+      var hallazgos = hallazgosDeRegistro(r, repetidosPorId);
       if(hallazgos.length){
         problemas.push({rec:r, hallazgos:hallazgos, grave: hallazgos.some(function(h){ return h.grave; })});
       }
