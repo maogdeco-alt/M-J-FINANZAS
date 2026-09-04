@@ -109,8 +109,48 @@
      las cifras y los accesos, y el resto de la altura para el trabajo. Lo semanal (importar,
      documentos) vive en su propia ventana, a un clic.
      ============================================================ */
+  /* AIRE PARA EL TRABAJO — se aplica en cualquier escritorio, quepa o no la pantalla única.
+     La compactación no depende de que la ventana sea alta: en una ventana BAJA (zoom de Windows al
+     125 %, lo normal en equipos de entidad) es donde MÁS falta hace, porque ahí cada píxel de
+     cabecera es uno menos de formulario. Tenerla dentro del bloque de pantalla única dejaba
+     justamente al equipo más apretado con el diseño más holgado. */
   @media (min-width:900px){
-    html:not(.es-flotante), html:not(.es-flotante) body{height:100%;overflow:hidden;}
+    /* EL PRESUPUESTO DE ALTURA. En un portátil de 768 px, las bandas de arriba se estaban comiendo
+       405 px -- el 53 % de la pantalla -- y dejaban 363 px para lo único que se usa todo el día: el
+       formulario. Encima, los cuatro accesos (Importar, Agendamientos, Historial, Documentos) no
+       cabían junto a las cifras y se partían a una segunda línea, sumando otros 60 px.
+       Aquí no se quita ni se mueve nada: se aprieta lo de arriba para que el trabajo respire. */
+    html:not(.es-flotante) header.top{margin-bottom:0;align-items:center;}
+    html:not(.es-flotante) header.top .titles h1{font-size:1.35rem;line-height:1.2;}
+    html:not(.es-flotante) .appnav{padding:0 22px 8px;gap:10px 12px;flex-wrap:nowrap;}
+    /* Las cifras pueden encogerse (y desplazarse dentro de su propia tira si hiciera falta) en vez
+       de empujar los accesos a otra línea. */
+    html:not(.es-flotante) .nav-stats{flex:0 1 auto;min-width:0;overflow-x:auto;}
+    html:not(.es-flotante) .nav-acciones{flex:0 0 auto;margin-left:auto;}
+    html:not(.es-flotante) .nav-stat{padding:4px 11px;}
+    html:not(.es-flotante) .nav-stats .stat-card{padding:4px 10px;}
+    /* Sin esto, "% DEVUELTO" se partía en dos líneas y estiraba toda la tira a lo alto. */
+    html:not(.es-flotante) .nav-stats .stat-card .label,
+    html:not(.es-flotante) .nav-stat span{white-space:nowrap;font-size:0.62rem;}
+    /* El enlace de informes se caía a una segunda línea él solo, duplicando el alto de esta banda.
+       Empujado a la derecha, comparte línea con el reparto por formato. */
+    html:not(.es-flotante) .navsub{padding:5px 22px 6px;gap:6px 14px;flex-wrap:nowrap;}
+    html:not(.es-flotante) .navsub .formato-chips{min-width:0;overflow-x:auto;}
+    html:not(.es-flotante) .navsub #openInformesLink{margin-left:auto;flex:0 0 auto;white-space:nowrap;}
+    html:not(.es-flotante) #paso2Section>.panel-head{padding:10px 18px;}
+  }
+
+  /* PANTALLA ÚNICA (sin scroll de página) -- SOLO si de verdad cabe.
+     Se exige también una altura mínima: en una ventana baja (un portátil con el zoom de Windows al
+     125 % o 150 %, que es lo normal en equipos de entidad) este diseño no cabe, y forzarlo dejaba
+     botones y casillas literalmente INALCANZABLES -- ni el botón "Guardar radicado" ni la casilla
+     del comentario se podían ver ni bajar hasta ellos. Por debajo de ese alto se usa el
+     desplazamiento normal de página, que nunca puede dejar nada fuera del alcance. */
+  @media (min-width:900px) and (min-height:640px){
+    /* "auto", NO "hidden": red de seguridad. Si alguna vez un panel interno calcula mal su alto, con
+       "hidden" el contenido sobrante queda inaccesible para siempre; con "auto" la página se puede
+       bajar y siempre se llega. El diseño de pantalla única se mantiene igual mientras todo quepa. */
+    html:not(.es-flotante), html:not(.es-flotante) body{height:100%;overflow:auto;}
     html:not(.es-flotante) body{display:flex;flex-direction:column;}
     html:not(.es-flotante) .wrap{max-width:none;width:100%;flex:1 1 auto;min-height:0;
       display:flex;flex-direction:column;padding:0;margin:0;}
@@ -121,10 +161,19 @@
       margin:0;border-radius:0;border-left:0;border-right:0;border-bottom:0;box-shadow:none;}
     html:not(.es-flotante) #paso2Section>.panel-head{flex:none;}
     html:not(.es-flotante) #paso2Section>.panel-body{flex:1 1 auto;min-height:0;padding:0;}
-    html:not(.es-flotante) #workbench{height:100%;min-height:0;}
+    /* La rejilla llevaba "align-items:start", que hace que cada columna tome la altura de SU
+       CONTENIDO en vez de la de la fila. Con el formulario más alto que la pantalla, la fila crecía
+       hasta 806 px dentro de una rejilla de 363 px y el sobrante quedaba fuera, sin barra ni forma
+       de bajar: por eso "Guardar radicado" era inalcanzable. Con la fila limitada a la altura
+       disponible (minmax(0,1fr)) y las columnas estiradas, el formulario se queda dentro y es ÉL el
+       que se desplaza. */
+    html:not(.es-flotante) #workbench{height:100%;min-height:0;
+      grid-template-rows:minmax(0,1fr);align-items:stretch;}
+    html:not(.es-flotante) #workbench>*{min-height:0;}
     html:not(.es-flotante) #queueCol{min-height:0;display:flex;flex-direction:column;}
     html:not(.es-flotante) #queuePanel{flex:1 1 auto;min-height:0;max-height:none;}
-    html:not(.es-flotante) #captureCard{min-height:0;overflow-y:auto;}
+    html:not(.es-flotante) #captureCard{height:100%;min-height:0;overflow-y:auto;}
+
   }
 
   /* Barra de trabajo: cifras a la izquierda, accesos a la derecha, todo en una sola línea. */
