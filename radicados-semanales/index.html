@@ -6780,21 +6780,25 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
   // titulo del archivo -> campo del radicado. Varios títulos pueden alimentar el mismo campo (la
   // masiva repite COMPARENDO dos veces); gana el primero que traiga contenido.
+  // "fecha:true" marca las columnas que son fechas. Es imprescindible: Excel guarda las fechas como
+  // NÚMEROS de serie (19/08/2026 es 46234), y al pegar o al leer ciertos archivos llega ese número
+  // crudo. Sin normalizar, el radicado quedaba guardado con "46234" como fecha de radicación --
+  // comprobado -- y eso se vería así en pantalla y saldría así en la base que se entrega.
   var MASIVA_A_CAMPO = [
     {titulos:["RADICADO"],                       campo:"radicado",        obligatoria:true},
-    {titulos:["FECHADERADICACION","FECHA_DE_RADICACION"], campo:"fechaRadicacion"},
-    {titulos:["FECHADEASIGNACION","FECHA_ASIGNACION"],    campo:"fechaAsignacion"},
+    {titulos:["FECHADERADICACION","FECHA_DE_RADICACION"], campo:"fechaRadicacion", fecha:true},
+    {titulos:["FECHADEASIGNACION","FECHA_ASIGNACION"],    campo:"fechaAsignacion", fecha:true},
     {titulos:["COMPARENDO"],                     campo:"comparendoCompleto"},
     {titulos:["TIPO","PLANTILLA"],               campo:"_plantilla",      obligatoria:true},
     {titulos:["REMITENTEDESTINATARIO","REMITENTE_DESTINATARIO","NOMBRE"], campo:"nombreF", obligatoria:true},
     {titulos:["DIRECCION"],                      campo:"direccion"},
     {titulos:["ESTADO"],                         campo:"estado"},
     {titulos:["TIPODECOMPARENDO"],               campo:"medio"},
-    {titulos:["FECHADECOMPARENDO"],              campo:"imposicion"},
+    {titulos:["FECHADECOMPARENDO"],              campo:"imposicion",      fecha:true},
     {titulos:["INFRACCCION","INFRACCION"],       campo:"cod"},
-    {titulos:["FECHADENOTIF"],                   campo:"notificacion"},
+    {titulos:["FECHADENOTIF"],                   campo:"notificacion",    fecha:true},
     {titulos:["RESOLUCION"],                     campo:"res"},
-    {titulos:["FECHARES"],                       campo:"fechaRes"},
+    {titulos:["FECHARES"],                       campo:"fechaRes",        fecha:true},
     {titulos:["TIPODEDOCUMENTO"],                campo:"tipoId"},
     {titulos:["NUMERODEDOCUMENTO"],              campo:"idNum"},
     {titulos:["PLACA"],                          campo:"placa"}
@@ -6846,6 +6850,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         var i = indice[m.campo];
         if(i === undefined) return;
         var v = valorDeCelda(celdas[i]);
+        if(m.fecha && v){
+          var norm = normalizeDate(v);   // convierte el número de serie de Excel a fecha de verdad
+          if(norm) v = norm;
+        }
         if(v && !rec[m.campo]) rec[m.campo] = v; // gana el primer título con contenido
       });
       if(!String(rec.radicado||"").trim()) continue; // fila en blanco al final del archivo
@@ -7082,8 +7090,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     save(); renderAll();
     document.getElementById("auditarMasivaDialog").close();
     showDataSafetyBanner("Masiva definitiva importada: " + nuevos + " radicado(s) nuevos y " + completados +
-      " que ya tenías y se completaron con lo del archivo. No se borró nada: lo que ya estaba en la app manda, " +
-      "y el archivo solo rellenó lo que faltaba. Antes de importar quedó un punto de restauración.", "warn");
+      " que ya tenías y se actualizaron con lo del archivo. El archivo es tu trabajo terminado, así que MANDA " +
+      "sobre lo que había en la app — pero solo donde trae dato: una casilla vacía en el archivo nunca borra lo " +
+      "que ya estaba. Antes de importar quedó un punto de restauración, por si quieres deshacerlo.", "warn");
   });
 
   function esDevuelto(rec){
