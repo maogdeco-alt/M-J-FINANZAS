@@ -4356,10 +4356,42 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // exactamente igual en toda la app (plantilla de la masiva, reglas imperativas, campos
   // obligatorios, etc.) sin tener que duplicar ninguna lógica.
   var FORMATO_ALIASES = { "PETICION OSCURA": "T10" };
+  function normalizaTexto(s){
+    return String(s == null ? "" : s).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  }
+  function categoriasFormato(){
+    return (state.settings && state.settings.formatCategories) || DEFAULT_SETTINGS.formatCategories;
+  }
+  // ¿El formato escrito corresponde a una categoría conocida? Sirve para no dejar entrar a la
+  // masiva un formato a medio escribir.
+  function formatoEsConocido(formato){
+    var k = normalizaTexto(formato);
+    if(!k) return false;
+    return categoriasFormato().some(function(c){ return normalizaTexto(c) === k; });
+  }
+  // COMPLETA LO ESCRITO A MEDIAS. Este era el fallo que metía devoluciones en la masiva definitiva:
+  // la casilla Formato es de texto libre, y al escribir "DEV" y salir de ella sin elegir del
+  // desplegable, el radicado quedaba guardado con formato "DEV" -- no "DEVUELTO". Como la app
+  // compara con "DEVUELTO" exacto, no lo reconocía como devolución y lo daba por clasificado: la
+  // devolución terminaba en la masiva que se entrega. Visto en un caso real con "DEV" y con "DE".
+  //
+  // Ahora, si lo escrito es el principio de UNA SOLA categoría conocida, se completa a esa. La
+  // coincidencia exacta manda siempre, para que "T1" siga siendo T1 y no se lo lleve T10/T11/T14.
   function normalizeFormatoInput(raw){
     var v = cleanSpaces(raw || "");
-    var key = v.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    return FORMATO_ALIASES[key] || v;
+    if(!v) return "";
+    var key = normalizaTexto(v);
+    if(FORMATO_ALIASES[key]) return FORMATO_ALIASES[key];
+    var cats = categoriasFormato();
+    var exacta = null, prefijos = [];
+    cats.forEach(function(c){
+      var n = normalizaTexto(c);
+      if(n === key) exacta = c;
+      else if(n.indexOf(key) === 0) prefijos.push(c);
+    });
+    if(exacta) return exacta;
+    if(prefijos.length === 1) return prefijos[0];   // "DEV" -> "DEVUELTO", "AGEND" -> "AGENDAMIENTO"
+    return v;                                        // ambiguo o desconocido: se deja y la revisión lo marca
   }
 
   var MONTHS = {ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,set:9,oct:10,nov:11,dic:12};
@@ -6123,8 +6155,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // exactamente AGENDAMIENTO. El término para solicitar audiencia es fijo: 5 días hábiles si el
   // comparendo es manual, 11 si es electrónico -- se reutiliza deriveTipoComparendo(rec.medio),
   // igual que en el resto de la app, para no duplicar esa regla en dos sitios.
+  // Se comparan por el formato YA COMPLETADO, no por el texto crudo: así un radicado guardado de
+  // antes con "AGEND" o "DEV" se reconoce igual y no se cuela en la masiva.
   function esAgendamiento(rec){
-    return (rec.formato||"").trim().toUpperCase() === "AGENDAMIENTO";
+    return normalizeFormatoInput(rec.formato).toUpperCase() === "AGENDAMIENTO";
   }
   function comparendoCorto(rec){
     return right8(rec.comparendoCompleto);
@@ -7136,7 +7170,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   });
 
   function esDevuelto(rec){
-    return (rec.formato||"").trim().toUpperCase() === "DEVUELTO";
+    return normalizeFormatoInput(rec.formato).toUpperCase() === "DEVUELTO";
   }
   function finalDocEligible(){
     // Mismo criterio que "completo" en toda la app: Formato lleno (igual que tu Excel original) --
@@ -7144,8 +7178,18 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // DEVUELTO (no se le entrega nada a la entidad de un radicado que se devolvió -- no aplica al
     // documento final). Ninguno de los dos es parte del mismo documento final que el resto de
     // clasificaciones.
-    return state.records.filter(function(r){ return isDone(r) && !esAgendamiento(r) && !esDevuelto(r); })
-      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    return state.records.filter(function(r){
+      return isDone(r) && !esAgendamiento(r) && !esDevuelto(r) && formatoEsConocido(r.formato);
+    }).sort(function(a,b){ return (a.order||0)-(b.order||0); });
+  }
+  // Radicados que la persona dio por clasificados pero cuyo formato NO corresponde a ninguna
+  // categoría conocida (por ejemplo "T" o "DEVU" a medio escribir). NO entran a la masiva -- no se
+  // sabe si deberían -- pero tampoco pueden desaparecer en silencio: la revisión previa los saca
+  // en grande para que se corrijan.
+  function finalDocFormatoDesconocido(){
+    return state.records.filter(function(r){
+      return isDone(r) && !esAgendamiento(r) && !esDevuelto(r) && !formatoEsConocido(r.formato);
+    }).sort(function(a,b){ return (a.order||0)-(b.order||0); });
   }
 
   // ---------- REVISIÓN PREVIA del documento final (ver #preflightDialog) ----------
@@ -7279,6 +7323,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var elegibles = finalDocEligible();
     var repetidosPorId = indiceDeRepetidos();
     var problemas = [];
+    // PRIMERO, los que se quedan FUERA por tener el formato a medio escribir. Son los más graves de
+    // todos: la persona los dio por hechos y no van a salir en lo que entrega.
+    finalDocFormatoDesconocido().forEach(function(r){
+      problemas.push({rec:r, grave:true, hallazgos:[{grave:true, texto:
+        "El formato dice \"" + String(r.formato||"").trim() + "\", que no es ninguna de tus categorías. " +
+        "Este radicado NO va a salir en la masiva. Ábrelo y elige el formato correcto de la lista."}]});
+    });
     elegibles.forEach(function(r){
       var hallazgos = hallazgosDeRegistro(r, repetidosPorId);
       if(hallazgos.length){
@@ -7290,6 +7341,39 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
   // Muestra la revisión y solo continúa (onProceed) si la persona lo confirma. Si no hay ningún
   // hallazgo, no estorba: sigue de largo sin pedir nada.
+  // ¿En qué casilla está el problema? Sirve para dejar el cursor puesto donde hay que escribir.
+  function campoDelHallazgo(hallazgos){
+    var t = (hallazgos || []).map(function(h){ return h.texto; }).join(" ").toLowerCase();
+    if(t.indexOf("formato") !== -1) return "cc_formato";
+    if(t.indexOf("correo") !== -1 || t.indexOf("direcci") !== -1) return "cc_direccion";
+    if(t.indexOf("comparendo") !== -1) return "cc_comparendo";
+    if(t.indexOf("resoluci") !== -1) return "cc_res";
+    if(t.indexOf("fecha") !== -1) return "cc_fechaRes";
+    return "cc_formato";
+  }
+  document.getElementById("preflightLista").addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-preflight-corregir]");
+    if(!btn) return;
+    var id = btn.getAttribute("data-preflight-corregir");
+    var campo = btn.getAttribute("data-preflight-campo") || "cc_formato";
+    pendingPreflightProceed = null;
+    pendingPreflightEsAgenda = false;
+    document.getElementById("preflightDialog").close();
+    // También se cierra la hoja de Documentos si se llegó desde ahí, para dejar el Paso 2 a la vista.
+    var doc = document.getElementById("documentosDialog");
+    if(doc && doc.open) doc.close();
+    var rec = state.records.filter(function(r){ return r.id === id; })[0];
+    if(!rec){ toast("Ese radicado ya no está en la lista"); return; }
+    // El filtro puede estar en "Pendientes" y el radicado ya contar como completo: se pasa a Todos
+    // para que la fila exista y se pueda seleccionar.
+    state.filter = "all";
+    Array.prototype.forEach.call(document.querySelectorAll("#filterTabs button"), function(b){
+      b.classList.toggle("active", b.getAttribute("data-filter") === "all");
+    });
+    renderQueue();
+    selectRecord(id, campo);
+    toast("Radicado " + rec.radicado + " abierto para corregir. Cuando termines, vuelve a pulsar “Descargar masiva”.");
+  });
   var pendingPreflightProceed = null;
   // El mismo diálogo sirve para las dos revisiones (la masiva y la plantilla de Agendamientos) a
   // propósito: es la misma pantalla, sin ruido nuevo. Esta bandera distingue cuál se está viendo,
@@ -7304,13 +7388,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       "De " + informe.total + " radicado(s) que entrarían al documento final, " + informe.problemas.length +
       " tiene(n) algo por revisar" + (graves ? " — " + graves + " con un problema GRAVE que saldría mal en la base que entregas." : ".") +
       " Revísalos antes de enviar; puedes cancelar, corregirlos en el Paso 2, y volver a generar.";
+    // Cada fila trae su botón para IR A CORREGIRLA. Antes la revisión decía qué estaba mal pero
+    // dejaba a la persona buscando el radicado a mano en una lista de doscientos: "no deja subsanar
+    // cada radicado". Ahora se abre en el Paso 2, con el cursor puesto en la casilla del problema.
     document.getElementById("preflightLista").innerHTML = informe.problemas.map(function(p){
       return '<div class="preflight-item' + (p.grave ? ' grave' : '') + '">' +
         '<div class="pf-head"><span class="pf-rad">' + escapeHtml(p.rec.radicado) + '</span>' +
         '<span class="pf-nombre">' + escapeHtml(p.rec.nombreF || p.rec.nombre || "(sin nombre)") + ' · ' + escapeHtml(p.rec.formato||"") + '</span></div>' +
         '<ul>' + p.hallazgos.map(function(h){
           return '<li' + (h.grave ? ' class="pf-grave"' : '') + '>' + escapeHtml(h.texto) + '</li>';
-        }).join("") + '</ul></div>';
+        }).join("") + '</ul>' +
+        '<div class="toolbar" style="margin-top:8px;">' +
+          '<button class="btn small" data-preflight-corregir="' + escapeHtml(p.rec.id) + '"' +
+          ' data-preflight-campo="' + escapeHtml(campoDelHallazgo(p.hallazgos)) + '" type="button">' +
+          'Abrir y corregir este radicado</button>' +
+        '</div></div>';
     }).join("");
     pendingPreflightProceed = onProceed;
     document.getElementById("preflightDialog").showModal();
