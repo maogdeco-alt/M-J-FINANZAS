@@ -4548,10 +4548,24 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Por eso esto NO es una comprobación de última hora: vigila permanentemente (al escribir, al
   // guardar, en un panel propio y otra vez antes de entregar). Nunca bloquea: la usuaria confirma,
   // porque puede haber una excepción legítima, y esa confirmación se recuerda para no repreguntar.
+  // GRAVEDAD, CALIBRADA CONTRA UNA MASIVA REAL YA ENTREGADA (267 filas, agosto de 2026).
+  //
+  // El RADICADO sí tiene que ser único: en ese archivo real no se repite ni una sola vez. Que se
+  // repita es un error de verdad.
+  //
+  // El COMPARENDO y la RESOLUCIÓN, en cambio, SE REPITEN CON NORMALIDAD, y no es ninguna excepción
+  // remota: en ese mismo archivo hay 8 comparendos y 7 resoluciones compartidos por varios
+  // radicados. El caso es el corriente -- un ciudadano radica varias veces por el MISMO comparendo
+  // (una persona con cinco radicados del comparendo 38948629) y todas se resuelven con la MISMA
+  // resolución. Marcarlo como GRAVE convertía 20 filas correctas en 34 alarmas que bloqueaban la
+  // entrega. Se sigue avisando -- para eso se pidió la alarma -- pero como AVISO, no como error.
   var CAMPOS_UNICOS = [
-    {clave:"radicado",           etiqueta:"radicado",   norm:function(r){ return String(r.radicado||"").replace(/\s+/g,""); }},
-    {clave:"comparendoCompleto", etiqueta:"comparendo", norm:function(r){ return String(r.comparendoCompleto||"").replace(/\s+/g,""); }},
-    {clave:"res",                etiqueta:"resolución", norm:function(r){ return String(r.res||"").replace(/\s+/g,"").toUpperCase(); }}
+    {clave:"radicado",           etiqueta:"radicado",   grave:true,
+     norm:function(r){ return String(r.radicado||"").replace(/\s+/g,""); }},
+    {clave:"comparendoCompleto", etiqueta:"comparendo", grave:false,
+     norm:function(r){ return String(r.comparendoCompleto||"").replace(/\s+/g,""); }},
+    {clave:"res",                etiqueta:"resolución", grave:false,
+     norm:function(r){ return String(r.res||"").replace(/\s+/g,"").toUpperCase(); }}
   ];
   // Confirmaciones aceptadas por la usuaria: "sí, este comparendo repetido es correcto".
   // Se guardan por valor concreto, no por registro, para que valgan mientras el dato no cambie.
@@ -4590,6 +4604,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         if(!incluirAceptados && repetidoYaAceptado(campo.clave, v)) return;
         grupos.push({
           clave: campo.clave, etiqueta: campo.etiqueta, valor: v,
+          grave: !!campo.grave,
           registros: porValor[v],
           aceptado: repetidoYaAceptado(campo.clave, v)
         });
@@ -6915,7 +6930,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       Object.keys(porValor[c.clave]).forEach(function(v){
         var grupo = porValor[c.clave][v];
         if(grupo.length < 2) return;
-        var g = {etiqueta:c.etiqueta, valor:v, registros:grupo};
+        var g = {etiqueta:c.etiqueta, valor:v, grave:!!c.grave, registros:grupo};
         grupo.forEach(function(r){ (repetidosPorId[r.id] = repetidosPorId[r.id] || []).push(g); });
       });
     });
@@ -7194,8 +7209,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // dejaba aquí una FECHA, y esa fila pasaba la revisión sin una sola objeción -- exactamente
       // la fila que devolvió la jefatura. Ahora se exige que parezca el nombre de una persona.
       var destinatario = String(r.nombreF || r.nombre || "").trim();
+      // La PETICIÓN OSCURA (T10) va legítimamente SIN destinatario: se responde al correo desde el
+      // que llegó, y no hay comparendo ni infractor identificado. Comprobado en una masiva real ya
+      // entregada: sus 9 peticiones oscuras llevan radicado y correo, y nada más. Exigirles nombre
+      // era marcar como GRAVE una fila correcta, semana tras semana.
+      var esOscura = formato === "T10";
       if(!destinatario){
-        hallazgos.push({grave:true, texto:"No tiene nombre de destinatario."});
+        if(!esOscura) hallazgos.push({grave:true, texto:"No tiene nombre de destinatario."});
       } else if(!pareceNombrePersona(destinatario)){
         hallazgos.push({grave:true, texto:"El destinatario es \"" + destinatario + "\", que no parece el nombre de una persona — casi seguro las columnas se corrieron al importar y el nombre real se perdió. Verifícalo contra tu fuente antes de entregar."});
       }
@@ -7238,7 +7258,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         var otros = g.registros.filter(function(o){ return o.id !== r.id; })
           .map(function(o){ return o.radicado; }).join(", ");
         if(otros){
-          hallazgos.push({grave:true, texto:"El " + g.etiqueta + " " + g.valor + " también está en el/los radicado(s) " + otros + " — cada caso debería ser único; revisa que no se haya copiado al expediente equivocado."});
+          hallazgos.push({grave: !!g.grave, texto: g.grave
+            ? "El radicado " + g.valor + " está DUPLICADO: aparece también en otra fila. Cada radicado es un expediente distinto y no puede repetirse."
+            : "El " + g.etiqueta + " " + g.valor + " también está en el/los radicado(s) " + otros + " — normal cuando el ciudadano radica varias veces por el mismo comparendo; solo confirma que no se haya copiado al expediente equivocado."});
         }
       });
 
