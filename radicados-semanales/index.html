@@ -128,22 +128,37 @@
        Aquí no se quita ni se mueve nada: se aprieta lo de arriba para que el trabajo respire. */
     html:not(.es-flotante) header.top{margin-bottom:0;align-items:center;}
     html:not(.es-flotante) header.top .titles h1{font-size:1.35rem;line-height:1.2;}
-    html:not(.es-flotante) .appnav{padding:0 22px 8px;gap:10px 12px;flex-wrap:nowrap;}
+    html:not(.es-flotante) .appnav{padding:0 16px 8px;gap:10px 10px;}
     /* Las cifras pueden encogerse (y desplazarse dentro de su propia tira si hiciera falta) en vez
        de empujar los accesos a otra línea. */
     html:not(.es-flotante) .nav-stats{flex:0 1 auto;min-width:0;overflow-x:auto;}
-    html:not(.es-flotante) .nav-acciones{flex:0 0 auto;margin-left:auto;}
-    html:not(.es-flotante) .nav-stat{padding:4px 11px;}
-    html:not(.es-flotante) .nav-stats .stat-card{padding:4px 10px;}
+    /* "0 1 auto" y no "0 0 auto": tiene que poder encogerse. Con "0 0 auto" el grupo de accesos
+       conservaba el ancho de todos sus botones en fila y se salía por el borde derecho en vez de
+       partirse -- el botón "Descargar masiva" quedaba cortado fuera de la pantalla. */
+    html:not(.es-flotante) .nav-acciones{flex:0 1 auto;min-width:0;margin-left:auto;}
+    html:not(.es-flotante) .nav-stat{padding:4px 8px;}
+    html:not(.es-flotante) .nav-stats .stat-card{padding:4px 8px;}
+    html:not(.es-flotante) .nav-stats .stat-card .num{font-size:1rem;}
     /* Sin esto, "% DEVUELTO" se partía en dos líneas y estiraba toda la tira a lo alto. */
     html:not(.es-flotante) .nav-stats .stat-card .label,
-    html:not(.es-flotante) .nav-stat span{white-space:nowrap;font-size:0.62rem;}
+    html:not(.es-flotante) .nav-stat span{white-space:nowrap;font-size:0.58rem;letter-spacing:.03em;}
     /* El enlace de informes se caía a una segunda línea él solo, duplicando el alto de esta banda.
        Empujado a la derecha, comparte línea con el reparto por formato. */
     html:not(.es-flotante) .navsub{padding:5px 22px 6px;gap:6px 14px;flex-wrap:nowrap;}
     html:not(.es-flotante) .navsub .formato-chips{min-width:0;overflow-x:auto;}
     html:not(.es-flotante) .navsub #openInformesLink{margin-left:auto;flex:0 0 auto;white-space:nowrap;}
     html:not(.es-flotante) #paso2Section>.panel-head{padding:10px 18px;}
+  }
+  /* Los accesos en UNA sola línea solo cuando de verdad caben. Forzar "nowrap" a cualquier ancho
+     hacía que, con el zoom al 150 %, el botón "Descargar masiva" se saliera por el borde derecho y
+     quedara cortado -- el mismo tipo de fallo que ya dejó controles fuera del alcance. Por debajo
+     de este ancho la barra se parte en dos líneas: ocupa un poco más de alto, pero se ve entera. */
+  @media (min-width:1100px){
+    /* Aquí SÍ cabe todo en una línea: los accesos no se encogen ni se parten, y la barra se queda
+       en 55 px en vez de 102. Por debajo de este ancho manda la regla de arriba, que prefiere dos
+       líneas antes que cortar un botón. */
+    html:not(.es-flotante) .appnav{flex-wrap:nowrap;}
+    html:not(.es-flotante) .nav-acciones{flex:0 0 auto;flex-wrap:nowrap;}
   }
 
   /* PANTALLA ÚNICA (sin scroll de página) -- SOLO si de verdad cabe.
@@ -953,7 +968,7 @@
         </div>
         <div class="stat-card ok">
           <div class="num" id="statDone">0</div>
-          <div class="label">Completados</div>
+          <div class="label">Completos</div>
         </div>
         <div class="stat-card">
           <div class="num" id="statPct">0%</div>
@@ -979,7 +994,17 @@
       <button class="navbtn" id="historialTriggerBtn" type="button">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 11h18"/></svg>
         Historial <span class="navbadge" id="historialTriggerBadge">0</span></button>
-      <button class="navbtn primario" id="abrirDocumentosBtn" type="button">
+      <!-- LA ACCIÓN PRINCIPAL DEL DÍA, A LA VISTA Y A UN CLIC.
+           Antes esto vivía dentro de la ventana "Documentos": para descargar la masiva había que
+           saber que ese botón la contenía. La usuaria la buscó donde siempre estuvo (en la página),
+           no la encontró, y no pudo entregar. Descargar la masiva es lo último que hace cada
+           semana y no puede estar escondida detrás de una palabra que no dice "descargar". -->
+      <button class="navbtn primario" id="descargarMasivaBtn" type="button"
+              title="Genera y descarga la masiva final (.xlsx) con los radicados ya clasificados">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12M8 11l4 4 4-4M4 19h16"/></svg>
+        Descargar masiva <span class="navbadge" id="masivaListaBadge">0</span></button>
+      <button class="navbtn" id="abrirDocumentosBtn" type="button"
+              title="Respaldo, copia de tu tabla, revisar una masiva terminada y cerrar la semana">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
         Documentos</button>
     </div>
@@ -7579,15 +7604,19 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     });
     leerPapelera().forEach(function(e){ if(e && e.radicado) vistos[e.radicado] = 1; });
     var n = Object.keys(vistos).length;
-    badge.textContent = n + (n===1 ? " radicado" : " radicados");
+    badge.textContent = String(n);
+    var btnHi = document.getElementById("historialTriggerBtn");
+    if(btnHi) btnHi.title = n + " radicado(s) en total en el historial (esta semana, semanas cerradas y papelera)";
   }
   function refreshAgendaTriggerBadge(){
     var pendientes = agendamientoList().filter(function(r){ return !r.agendado; });
     var vencidos = pendientes.filter(function(r){ return agendamientoInfo(r).vencido; }).length;
     var badge = document.getElementById("agendaTriggerBadge");
-    badge.textContent = pendientes.length + (pendientes.length===1 ? " pendiente" : " pendientes");
+    badge.textContent = vencidos ? (pendientes.length + " · " + vencidos + "!") : String(pendientes.length);
     badge.className = "pill" + (vencidos ? " urgent" : "");
-    if(vencidos) badge.textContent += " (" + vencidos + " fuera de término)";
+    var btnAg = document.getElementById("agendaTriggerBtn");
+    if(btnAg) btnAg.title = pendientes.length + " agendamiento(s) pendiente(s)" +
+      (vencidos ? " — " + vencidos + " FUERA de término" : "");
   }
   document.getElementById("agendaTriggerBtn").addEventListener("click", function(){
     renderAgendamientos();
@@ -7600,6 +7629,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
   function refreshFinalDocCount(){
     var n = finalDocEligible().length;
+    // La misma cifra, también en el botón del encabezado: dice de un vistazo cuántos van a salir.
+    var badge = document.getElementById("masivaListaBadge");
+    if(badge){
+      badge.textContent = String(n);
+      var btnMas = document.getElementById("descargarMasivaBtn");
+      if(btnMas) btnMas.title = n
+        ? "Descargar la masiva final (.xlsx) — " + n + " radicados clasificados entrarían"
+        : "Todavía no hay radicados clasificados para la masiva";
+    }
     document.getElementById("finalDocCount").textContent = n
       ? n + " radicado" + (n===1?"":"s") + " clasificado" + (n===1?"":"s") + " listo" + (n===1?"":"s") + " para el documento final"
       : "Aún no hay radicados clasificados (Formato lleno) para generar el documento final";
@@ -7607,14 +7645,18 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
   // Los dos caminos que producen el documento que se ENTREGA pasan primero por la revisión previa
   // (ver conRevisionPrevia / #preflightDialog). Si no hay hallazgos, no estorba: sigue de largo.
-  document.getElementById("downloadFinalBtn").addEventListener("click", function(){
+  function generarMasivaFinal(){
     var eligible = finalDocEligible();
     if(!eligible.length){ toast("Aún no hay radicados clasificados (con Formato) para el documento final"); return; }
     conRevisionPrevia(function(){
       var filename = "MASIVA_" + userSlug() + "_" + new Date().toISOString().slice(0,10);
       downloadExcel(filename, MASIVA_HEADERS, eligible.map(recordToMasivaRow), "Documento final descargado — " + eligible.length + " radicados");
     });
-  });
+  }
+  document.getElementById("downloadFinalBtn").addEventListener("click", generarMasivaFinal);
+  // El botón del encabezado hace lo MISMO, sin pasar por ninguna ventana: mismo motor, misma
+  // revisión previa, misma constancia y el mismo archivo. No hay dos caminos que puedan discrepar.
+  document.getElementById("descargarMasivaBtn").addEventListener("click", generarMasivaFinal);
   document.getElementById("copyFinalBtn").addEventListener("click", function(){
     var eligible = finalDocEligible();
     if(!eligible.length){ toast("Aún no hay radicados clasificados (con Formato) para el documento final"); return; }
