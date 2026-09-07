@@ -4311,7 +4311,9 @@ async function suscripcionActual(){
 }
 async function activarRecordatorios(){
   if(!soportaPush()){
-    return toast(esIOS() ? 'En iPhone, primero instale la app (arriba) y ábrala desde su ícono — ahí sí se puede activar esto.' : 'Este navegador no permite avisos push.', true);
+    return toast(esIOSNoSafari() ? 'Está en Chrome (u otro navegador) — en iPhone, abra esto en Safari primero.'
+      : esIOS() ? 'En iPhone, primero instale la app (arriba) y ábrala desde su ícono — ahí sí se puede activar esto.'
+      : 'Este navegador no permite avisos push.', true);
   }
   if(Notification.permission === 'denied'){
     return toast('Los avisos están bloqueados para este sitio — actívelos en los permisos del navegador (el ícono junto a la dirección) y vuelva a intentar.', true);
@@ -4348,7 +4350,9 @@ async function desactivarRecordatorios(){
 async function renderRecordatorios(){
   const box = $('recordatoriosCuerpo'); if(!box || !NEGOCIO) return;
   if(!soportaPush()){
-    box.innerHTML = (esIOS() && !appInstalada())
+    box.innerHTML = esIOSNoSafari()
+      ? `<p class="sub" style="margin:0"><b>Está en Chrome (u otro navegador) — en iPhone, esto solo funciona desde Safari.</b> Abra esta misma dirección en Safari (la brújula azul) para poder instalarla y activar los avisos.</p>`
+      : (esIOS() && !appInstalada())
       ? `<p class="sub" style="margin:0">En iPhone, primero instale la app arriba y ábrala desde su ícono — ahí sí se puede activar este aviso.</p>`
       : `<p class="sub" style="margin:0">Su navegador no permite este tipo de avisos. Pruebe con Chrome, o con la app ya instalada.</p>`;
     return;
@@ -6492,6 +6496,16 @@ let INSTALL_PROMPT = null;
 const IKEY = 'maog:flota:instalar-oculto';
 const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
 const appInstalada = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+/* En iPhone, TODOS los navegadores corren por dentro sobre el motor de
+   Safari (Apple obliga a esto) — pero solo Safari mismo tiene permiso
+   para agregar el ícono a la pantalla de inicio como app completa y
+   para recibir avisos push. Chrome/Firefox/Edge en iPhone se identifican
+   igual que Safari como "iPhone" en el navigator.userAgent, así que sin
+   este chequeo aparte, a alguien en Chrome se le mostraban los mismos 3
+   pasos de "toque Compartir" que en Chrome no llevan al mismo resultado
+   — confuso, porque parece que la app está mal, cuando es Apple quien
+   pone esa regla. */
+const esIOSNoSafari = () => esIOS() && /CriOS|FxiOS|EdgiOS|OPiOS/i.test(navigator.userAgent);
 window.addEventListener('beforeinstallprompt', e=>{
   e.preventDefault(); INSTALL_PROMPT = e; renderInstalarApp();
 });
@@ -6524,6 +6538,10 @@ function renderInstalarApp(){
     if(cuerpoAjustes) cuerpoAjustes.innerHTML = html;
     if(cuerpoBanner) cuerpoBanner.innerHTML = `<button class="btn" id="instalarBtnBanner"><span class="icono">${ICONS.check}</span> Instalar app</button>`;
     document.querySelectorAll('#instalarBtnAjustes,#instalarBtnBanner').forEach(b=>b && b.addEventListener('click', dispararInstalar));
+  } else if(esIOSNoSafari()){
+    const aviso = `<p class="sub" style="margin:0"><b>Está en Chrome (u otro navegador) — en iPhone, esto solo se puede hacer desde Safari.</b> Copie esta dirección, ábrala en Safari (el ícono de la brújula azul) y ahí sí va a poder instalarla.</p>`;
+    if(cuerpoAjustes) cuerpoAjustes.innerHTML = aviso;
+    if(cuerpoBanner) cuerpoBanner.innerHTML = aviso;
   } else if(esIOS()){
     const pasos = `<ol class="bienvenida-pasos" style="list-style:none;padding:0">
       <li class="bienvenida-paso" style="cursor:default;align-items:flex-start"><span class="num">1</span><span>Toque el ícono <b>Compartir</b> (el cuadrito con la flecha hacia arriba) abajo en Safari.</span></li>
