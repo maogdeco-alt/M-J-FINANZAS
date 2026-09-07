@@ -301,7 +301,10 @@
   .formato-chips b{color:var(--ink);}
   .chip{background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:5px 12px;font-size:0.82rem;color:var(--muted);display:flex;gap:5px;align-items:baseline;}
   .chip b{color:var(--ink);font-variant-numeric:tabular-nums;}
-  .chip.extra{border-style:dashed;}
+  /* Clasificación que NO existe en la lista: se ve como alarma y se puede pulsar para corregirla. */
+  .chip.extra{border-style:dashed;border-color:var(--stamp);color:var(--stamp);background:var(--stamp-soft);
+    cursor:pointer;font:inherit;}
+  .chip.extra:hover{filter:brightness(0.96);}
 
   /* ---- aviso de ritmo real: cuánto falta en horas, calculado con el ritmo de HOY ---- */
   .pace-estimate{display:flex;align-items:center;gap:8px;margin-top:8px;padding:7px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);font-size:0.82rem;color:var(--muted);}
@@ -1323,6 +1326,29 @@
       </div>
     </div>
   </details>
+  </div>
+</dialog>
+
+<!-- Dialog: reparar clasificaciones que no existen (arrastradas de antes de la regla estricta) -->
+<dialog id="repararFormatosDialog" class="workspace" aria-labelledby="repararFormatosTitle">
+  <div class="ws-head">
+    <div><span class="step">Poner orden</span><h2 id="repararFormatosTitle">Clasificaciones que no existen</h2></div>
+    <div class="ws-stats" id="repararFormatosResumen"></div>
+  </div>
+  <div class="ws-tools">
+    <span class="hint">Estos radicados quedaron guardados con un texto que <b>no es ninguna de tus clasificaciones</b>. Por eso los recuentos no cuadran: el mismo concepto quedó repartido entre etiquetas que no existen. Elige la correcta y se aplica a todos los del grupo de una vez.</span>
+  </div>
+  <div class="ws-body una-columna">
+    <div class="ws-list">
+      <div class="ws-listhead" id="repararFormatosCuenta">—</div>
+      <div id="repararFormatosPanel"></div>
+    </div>
+  </div>
+  <div class="ws-foot">
+    <span class="hint">Nada se borra: solo se cambia el texto del formato por la clasificación que elijas. Antes de aplicar queda un punto de restauración.</span>
+    <div class="toolbar">
+      <button class="btn ghost" id="repararFormatosClose" type="button">Cerrar</button>
+    </div>
   </div>
 </dialog>
 
@@ -2793,6 +2819,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // ventana dedujo, o la placa corregida a mano en Agendamientos).
   var CAMPO_COMPARENDO = "cc_comparendo";
   var fotoFormulario = null;
+  // Queda apuntado cuando la última lectura del formulario encontró un formato que no existe, para
+  // que quien guarda pueda avisarlo con las opciones válidas en vez de guardar un dato inventado.
+  var formatoInvalidoPendiente = null;
   function tomarFotoFormulario(){
     if(!state.activeId){ fotoFormulario = null; return; }
     var foto = {id: state.activeId};
@@ -3035,6 +3064,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // apagado en el caso normal -- que es exactamente lo que pasó en la primera versión de este
       // arreglo: la comprobación existía y no se ejecutaba nunca.
       reconciliarCopias(); // ¿la copia de seguridad va por delante del almacenamiento principal?
+      setTimeout(refrescarAvisoFormatosInvalidos, 1200); // ¿hay clasificaciones inventadas de antes?
       var recovered = recoverLegacyFlatDataInto();
 
       // Comparación contra la memoria persistente de este navegador: si la última vez que se
@@ -3101,6 +3131,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }).catch(function(){
       load(); loadSettings(); loadHistory();
       reconciliarCopias(); // ¿la copia de seguridad va por delante del almacenamiento principal?
+      setTimeout(refrescarAvisoFormatosInvalidos, 1200);
       var recovered = recoverLegacyFlatDataInto(); // aunque falle la nube, no se pierde lo que hay en este navegador
       lastKnownSafeCount = state.records.length;
       lastKnownCloudActualizado = null; // no se pudo leer la nube -- sin marca de tiempo con qué comparar todavía
@@ -4377,11 +4408,45 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   //
   // Ahora, si lo escrito es el principio de UNA SOLA categoría conocida, se completa a esa. La
   // coincidencia exacta manda siempre, para que "T1" siga siendo T1 y no se lo lleve T10/T11/T14.
-  function normalizeFormatoInput(raw){
+  // ============================================================
+  // EL FORMATO SOLO PUEDE SER UNA CATEGORÍA QUE EXISTA
+  // ------------------------------------------------------------
+  // Esta es la regla de fondo, y su ausencia fue el peor defecto de la app. La casilla era texto
+  // libre: dejaba guardar "DEV", "DE", "DEVOL", "AGEND" o cualquier cosa inventada, y cada variante
+  // se convertía en una CLASIFICACIÓN NUEVA que no existe en ninguna parte. Consecuencias reales:
+  // las devoluciones no se reconocían como devoluciones y se colaban en la masiva definitiva, y los
+  // recuentos no cuadraban nunca porque el mismo concepto quedaba repartido entre tres o cuatro
+  // etiquetas fantasma. Horas de revisión a mano para encontrar eso.
+  //
+  // A partir de aquí hay UNA sola invariante, y la app la sostiene en todos los caminos de
+  // escritura: el formato de un radicado es "" (sin clasificar) o EXACTAMENTE una de las categorías
+  // configuradas. Nunca otra cosa. Así los números cuadran por construcción: total = suma de las
+  // categorías + sin clasificar.
+  //
+  // resolverFormato() devuelve {ok, valor, sugerencias}:
+  //   - ok:true  -> "valor" es la categoría exacta a guardar (se completó lo escrito a medias)
+  //   - ok:false -> lo escrito NO corresponde a ninguna; "sugerencias" trae las más parecidas
+  function distanciaTexto(a, b){
+    // Distancia de edición sencilla, para proponer "¿querías decir DEVUELTO?" ante "DEVOL".
+    var m = a.length, n = b.length;
+    if(!m) return n; if(!n) return m;
+    var fila = [], i, j;
+    for(j = 0; j <= n; j++) fila[j] = j;
+    for(i = 1; i <= m; i++){
+      var prev = fila[0]; fila[0] = i;
+      for(j = 1; j <= n; j++){
+        var tmp = fila[j];
+        fila[j] = Math.min(fila[j] + 1, fila[j-1] + 1, prev + (a.charAt(i-1) === b.charAt(j-1) ? 0 : 1));
+        prev = tmp;
+      }
+    }
+    return fila[n];
+  }
+  function resolverFormato(raw){
     var v = cleanSpaces(raw || "");
-    if(!v) return "";
+    if(!v) return {ok:true, valor:"", sugerencias:[]};
     var key = normalizaTexto(v);
-    if(FORMATO_ALIASES[key]) return FORMATO_ALIASES[key];
+    if(FORMATO_ALIASES[key]) return {ok:true, valor:FORMATO_ALIASES[key], sugerencias:[]};
     var cats = categoriasFormato();
     var exacta = null, prefijos = [];
     cats.forEach(function(c){
@@ -4389,9 +4454,29 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(n === key) exacta = c;
       else if(n.indexOf(key) === 0) prefijos.push(c);
     });
-    if(exacta) return exacta;
-    if(prefijos.length === 1) return prefijos[0];   // "DEV" -> "DEVUELTO", "AGEND" -> "AGENDAMIENTO"
-    return v;                                        // ambiguo o desconocido: se deja y la revisión lo marca
+    if(exacta) return {ok:true, valor:exacta, sugerencias:[]};          // "T1" sigue siendo T1
+    if(prefijos.length === 1) return {ok:true, valor:prefijos[0], sugerencias:[]}; // "DEV" -> DEVUELTO
+    // No resuelve. Se ordenan las categorías por parecido para poder sugerir ("DEVOL" -> DEVUELTO).
+    var porParecido = cats.slice().sort(function(x, y){
+      return distanciaTexto(key, normalizaTexto(x)) - distanciaTexto(key, normalizaTexto(y));
+    });
+    var cercanas = porParecido.filter(function(c){
+      var n = normalizaTexto(c);
+      // "DEVOL" -> "DEVUELTO" está a distancia 4 sobre 8 letras: entra. "DEVOL" -> "T1" está a 5
+      // sobre 2: no entra. Si nada se parece de verdad NO se sugiere nada: proponer opciones al
+      // azar es peor que no proponer ninguna -- invita a aceptar la equivocada.
+      return distanciaTexto(key, n) <= Math.max(2, Math.ceil(n.length * 0.5))
+          || n.indexOf(key) !== -1 || key.indexOf(n) !== -1;
+    });
+    return {ok:false, valor:"", sugerencias:cercanas.slice(0, 3),
+            escrito:v, ambiguo:prefijos.length > 1, opciones:prefijos};
+  }
+  // Se conserva el nombre de siempre para no tocar las decenas de sitios que lo usan: devuelve la
+  // categoría cuando se puede resolver, y el texto tal cual cuando no (quien decide qué hacer con
+  // un formato inválido es readCaptureIntoRecord, que es el único que ESCRIBE).
+  function normalizeFormatoInput(raw){
+    var r = resolverFormato(raw);
+    return r.ok ? r.valor : cleanSpaces(raw || "");
   }
 
   var MONTHS = {ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,set:9,oct:10,nov:11,dic:12};
@@ -4772,12 +4857,34 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var pct2 = total ? Math.round(n/total*100) : 0;
       return '<span class="chip">'+escapeHtml(k)+' <b>'+n+'</b> · '+pct2+'%</span>';
     });
+    // SIN CLASIFICAR, explícito: sin esta cifra el reparto no suma el total y no hay forma de
+    // comprobar a mano que las cuentas cuadran.
+    var sinClasificar = recs.filter(function(r){ return !String(r.formato||"").trim(); }).length;
+    html.push('<span class="chip">SIN CLASIFICAR <b>'+sinClasificar+'</b> · '+(total?Math.round(sinClasificar/total*100):0)+'%</span>');
+    // Clasificaciones que NO existen en la lista. Se pintan en alarma y se puede pulsar para
+    // corregirlas: son exactamente las que descuadran los recuentos.
     var extraKeys = Object.keys(counts).filter(function(k){ return categories.indexOf(k)===-1; }).sort();
+    var totalExtra = 0;
     extraKeys.forEach(function(k){
+      totalExtra += counts[k];
       var pct2 = total ? Math.round(counts[k]/total*100) : 0;
-      html.push('<span class="chip extra">'+escapeHtml(k)+' <b>'+counts[k]+'</b> · '+pct2+'%</span>');
+      html.push('<button type="button" class="chip extra" id="chipInvalido_'+escapeHtml(k.replace(/[^A-Za-z0-9]/g,""))+'"' +
+        ' data-formato-invalido="1" title="Esta clasificación NO existe en tu lista — pulsa para corregirla">' +
+        '⚠ '+escapeHtml(k)+' <b>'+counts[k]+'</b> · '+pct2+'%</button>');
     });
+    // La comprobación que permite confiar en el resto: la suma tiene que dar el total.
+    var sumaCategorias = categories.reduce(function(n,k){ return n + (counts[k]||0); }, 0);
+    var suma = sumaCategorias + sinClasificar + totalExtra;
+    html.push('<span class="chip' + (suma === total ? '' : ' extra') + '" title="' +
+      (suma === total
+        ? 'Las cifras cuadran: ' + sumaCategorias + ' clasificados + ' + sinClasificar + ' sin clasificar' +
+          (totalExtra ? ' + ' + totalExtra + ' con clasificación inválida' : '') + ' = ' + total
+        : 'ATENCIÓN: el reparto suma ' + suma + ' y el total es ' + total) +
+      '">TOTAL <b>'+total+'</b>' + (suma === total ? ' ✓' : ' ✗ suma ' + suma) + '</span>');
     chipsEl.innerHTML = html.join("");
+    Array.prototype.forEach.call(chipsEl.querySelectorAll("[data-formato-invalido]"), function(b){
+      b.addEventListener("click", abrirRepararFormatos);
+    });
     refreshFinalDocCount();
     renderPaceEstimate(recs);
   }
@@ -6297,6 +6404,29 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     problems.forEach(function(p){ p.wraps.forEach(markError); });
     return {ok:false, problems:problems};
   }
+  // Aviso de formato inválido: dice lo que se escribió, por qué no vale, y ofrece las categorías
+  // más parecidas para elegir de un clic. Nunca "guarda igual": la clasificación fantasma no existe.
+  function avisarFormatoInvalido(escrito, sugerencias, recId){
+    var cats = categoriasFormato();
+    var msg = "\"" + escrito + "\" no es una clasificación de tu lista, así que NO se guardó como formato. " +
+      "El radicado quedó SIN CLASIFICAR." +
+      (sugerencias && sugerencias.length ? " ¿Querías decir " + sugerencias.join(" o ") + "?" : "") +
+      " Las clasificaciones válidas son: " + cats.join(", ") + ". Puedes cambiarlas en Ajustes → Clasificación.";
+    if(sugerencias && sugerencias.length === 1){
+      showDataSafetyBanner(msg, "warn", "Poner " + sugerencias[0], function(){
+        var r = state.records.filter(function(x){ return x.id === recId; })[0];
+        if(!r){ toast("Ese radicado ya no está"); return; }
+        r.formato = sugerencias[0];
+        r.modificadoEn = Date.now();
+        save(); renderAll();
+        toast("Radicado " + r.radicado + " quedó como " + sugerencias[0]);
+      });
+    } else {
+      showDataSafetyBanner(msg, "warn");
+    }
+    var el = document.getElementById("cc_formato");
+    if(el) el.focus();
+  }
   function warnMissing(result){
     var imperativeMsgs = result.problems.filter(function(p){ return p.isImperative; }).map(function(p){ return p.message; });
     var otherMsgs = result.problems.filter(function(p){ return !p.isImperative; }).map(function(p){ return p.message; });
@@ -6340,9 +6470,32 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // verdad en esta pantalla (ver "LA FOTO DEL FORMULARIO"). Lo que no tocó se deja como está
     // guardado -- si la otra ventana lo adelantó, volcarlo desde aquí lo borraría.
     var refrescadas = 0;
+    // EL FORMATO ES EL ÚNICO CAMPO CON LISTA CERRADA. Si lo escrito no corresponde a ninguna
+    // categoría configurada, NO se escribe en el radicado: se deja el que tenía y se marca el aviso.
+    // Es la única forma de garantizar que no nazcan clasificaciones fantasma ("DEVOL", "AGEND").
+    formatoInvalidoPendiente = null;
+    var elFmt = document.getElementById("cc_formato");
+    if(elFmt && campoTocadoAMano("cc_formato")){
+      var resFmt = resolverFormato(elFmt.value);
+      if(!resFmt.ok){
+        formatoInvalidoPendiente = resFmt;
+        elFmt.value = rec.formato || "";       // se devuelve a lo último válido que tenía
+        if(fotoFormulario) fotoFormulario.cc_formato = elFmt.value;
+        // El aviso sale AQUÍ, donde se detecta. Da igual quién estuviera leyendo el formulario --
+        // el botón Guardar, el autoguardado o el guardado al cambiar de casilla: el primero que
+        // pase por aquí avisa. Antes se avisaba solo desde el botón, y como el guardado por casilla
+        // llega primero y ya había devuelto el valor, el aviso no salía nunca: la clasificación
+        // inventada se descartaba EN SILENCIO, que es justo lo que no puede pasar.
+        (function(inv, idRec){
+          setTimeout(function(){ avisarFormatoInvalido(inv.escrito, (inv.sugerencias||[]).slice(0,3), idRec); }, 0);
+        })(resFmt, rec.id);
+        markError("wrap_formato");
+      }
+    }
     CAMPOS_FORMULARIO.forEach(function(c){
       var el = document.getElementById(c.input);
       if(!el) return;
+      if(c.input === "cc_formato" && formatoInvalidoPendiente) return; // no se escribe lo inválido
       var enPantalla = c.limpiar(el.value);
       if(campoTocadoAMano(c.input)){ rec[c.campo] = enPantalla; return; }
       var guardado = rec[c.campo] == null ? "" : String(rec[c.campo]);
@@ -6506,7 +6659,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // el marcado en rojo se hace DESPUÉS de renderAll(), no antes, si no, renderCapture() lo borra
       // de inmediato y el campo se ve como si nada estuviera mal (aunque el aviso grande sí salga).
       save(); renderAll();
-      if(imperative.length){
+      if(formatoInvalidoPendiente){
+        // El aviso ya lo lanzó readCaptureIntoRecord (ver ahí). Aquí solo se evita el "guardado"
+        // en verde, que contradiría el aviso rojo que acaba de salir.
+        formatoInvalidoPendiente = null;
+      } else if(imperative.length){
         imperative.forEach(function(v){ v.wraps.forEach(markError); });
         warnImperative(imperative);
       } else {
@@ -6976,6 +7133,116 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       }
     });
     return {total:registros.length, problemas:problemas};
+  }
+
+  // ---------- REPARAR CLASIFICACIONES QUE NO EXISTEN ----------
+  // Todo lo que se guardó antes de la regla estricta puede llevar un formato inventado ("DEV",
+  // "DEVOL", "AGEND"). Mientras eso esté ahí, los recuentos NO pueden cuadrar. Esta ventana los
+  // agrupa por el texto exacto que tienen y permite corregir todo un grupo de un clic.
+  function radicadosConFormatoInvalido(){
+    return state.records.filter(function(r){
+      var f = String(r.formato || "").trim();
+      return f && !formatoEsConocido(f);
+    });
+  }
+  function gruposFormatoInvalido(){
+    var porTexto = {};
+    radicadosConFormatoInvalido().forEach(function(r){
+      var f = String(r.formato).trim();
+      (porTexto[f] = porTexto[f] || []).push(r);
+    });
+    return Object.keys(porTexto).sort().map(function(t){
+      var r = resolverFormato(t);
+      // Si el texto resuelve solo ("AGEND" -> AGENDAMIENTO, "DEV" -> DEVUELTO), esa ES la respuesta,
+      // no una sugerencia entre varias. Antes se perdía y el grupo se quedaba sin propuesta.
+      var sug = (r.ok && r.valor) ? [r.valor] : (r.sugerencias || []).slice(0, 3);
+      return {texto:t, registros:porTexto[t], sugerencias:sug, seguro:!!(r.ok && r.valor)};
+    });
+  }
+  function renderRepararFormatos(){
+    var panel = document.getElementById("repararFormatosPanel");
+    var cuenta = document.getElementById("repararFormatosCuenta");
+    var resumen = document.getElementById("repararFormatosResumen");
+    if(!panel) return;
+    var grupos = gruposFormatoInvalido();
+    var total = grupos.reduce(function(n,g){ return n + g.registros.length; }, 0);
+    resumen.innerHTML =
+      '<div class="ws-stat' + (total ? ' alerta' : ' bien') + '"><b>' + total + '</b><span>radicados</span></div>' +
+      '<div class="ws-stat' + (grupos.length ? ' alerta' : ' bien') + '"><b>' + grupos.length + '</b><span>textos distintos</span></div>';
+    if(!grupos.length){
+      cuenta.textContent = "Todo en orden";
+      panel.innerHTML = '<div class="preflight-ok">Ningún radicado tiene una clasificación inventada. Los recuentos cuadran: cada radicado está sin clasificar o en una de tus categorías.</div>';
+      return;
+    }
+    cuenta.textContent = total + " radicado(s) con " + grupos.length + " texto(s) que no existen";
+    var cats = categoriasFormato();
+    panel.innerHTML = grupos.map(function(g, i){
+      var ejemplos = g.registros.slice(0,4).map(function(r){ return r.radicado; }).join(", ");
+      // Sin una propuesta fiable NO se preselecciona nada. Dejar marcada la primera categoría de la
+      // lista hacía que un clic distraído convirtiera "DEVOL" en T1 -- un dato equivocado y en
+      // silencio, que es peor que el problema que se venía a arreglar.
+      var hayPropuesta = g.sugerencias.length > 0;
+      var opciones = (hayPropuesta ? "" : '<option value="__" selected>— elige la clasificación —</option>') +
+        cats.map(function(c){
+          return '<option value="' + escapeHtml(c) + '"' +
+            (hayPropuesta && g.sugerencias[0] === c ? ' selected' : '') + '>' + escapeHtml(c) + '</option>';
+        }).join("");
+      return '<div class="preflight-item grave">' +
+        '<div class="pf-head"><span class="pf-rad">' + escapeHtml(g.texto) + '</span>' +
+        '<span class="pf-nombre">' + g.registros.length + ' radicado(s)</span></div>' +
+        '<ul><li>Ejemplos: ' + escapeHtml(ejemplos) + (g.registros.length > 4 ? ', …' : '') + '</li>' +
+        (g.sugerencias.length ? '<li>Se parece a: <b>' + escapeHtml(g.sugerencias.join(", ")) + '</b></li>' : '') +
+        '</ul>' +
+        '<div class="toolbar" style="margin-top:8px;gap:8px;">' +
+          '<select data-reparar-sel="' + i + '">' + opciones + '</select>' +
+          '<button class="btn small" data-reparar-aplicar="' + i + '" type="button">Aplicar a los ' + g.registros.length + '</button>' +
+          '<button class="btn ghost small" data-reparar-vaciar="' + i + '" type="button">Dejarlos sin clasificar</button>' +
+        '</div></div>';
+    }).join("");
+  }
+  function aplicarReparacion(indice, valor){
+    var grupos = gruposFormatoInvalido();
+    var g = grupos[indice];
+    if(!g) return;
+    if(valor === "__"){ toast("Elige primero la clasificación correcta para \"" + g.texto + "\""); return; }
+    crearPuntoDeRestauracion("antes de reparar la clasificación \"" + g.texto + "\"", true);
+    g.registros.forEach(function(r){
+      r.formato = valor;
+      r.modificadoEn = Date.now();
+    });
+    save(); renderAll(); renderRepararFormatos(); refrescarAvisoFormatosInvalidos();
+    toast(g.registros.length + " radicado(s) que decían \"" + g.texto + "\" quedaron como " +
+          (valor ? valor : "sin clasificar"));
+  }
+  document.getElementById("repararFormatosPanel").addEventListener("click", function(e){
+    var ap = e.target.closest("button[data-reparar-aplicar]");
+    if(ap){
+      var i = parseInt(ap.getAttribute("data-reparar-aplicar"), 10);
+      var sel = document.querySelector('select[data-reparar-sel="' + i + '"]');
+      aplicarReparacion(i, sel ? sel.value : "");
+      return;
+    }
+    var va = e.target.closest("button[data-reparar-vaciar]");
+    if(va) aplicarReparacion(parseInt(va.getAttribute("data-reparar-vaciar"), 10), "");
+  });
+  document.getElementById("repararFormatosClose").addEventListener("click", function(){
+    document.getElementById("repararFormatosDialog").close();
+  });
+  function abrirRepararFormatos(){
+    renderRepararFormatos();
+    document.getElementById("repararFormatosDialog").showModal();
+  }
+  // Aviso permanente mientras queden clasificaciones inventadas: sin esto, la persona no tiene forma
+  // de saber POR QUÉ sus cuentas no cuadran.
+  function refrescarAvisoFormatosInvalidos(){
+    var grupos = gruposFormatoInvalido();
+    if(!grupos.length) return;
+    var total = grupos.reduce(function(n,g){ return n + g.registros.length; }, 0);
+    showDataSafetyBanner(
+      total + " radicado(s) tienen una clasificación que NO existe en tu lista (" +
+      grupos.map(function(g){ return '"' + g.texto + '"'; }).join(", ") +
+      "). Por eso los recuentos no cuadran. Se pueden corregir todos de una vez.",
+      "warn", "Corregir clasificaciones", abrirRepararFormatos);
   }
 
   // ---------- la ventana de "Revisar masiva terminada" ----------
