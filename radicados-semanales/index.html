@@ -1147,6 +1147,34 @@
                 <div class="insights" id="ccInsights"></div>
               </div>
 
+              <!-- TIPO DE DOCUMENTO, a la vista y corregible.
+                   Antes este dato solo entraba por la tira de Fénix y quedaba dentro del plegable
+                   "Ver los campos separados", de solo lectura: si la tira venía corta o Fénix no lo
+                   traía, la columna TIPO DE DOCUMENTO de la masiva salía vacía y no había manera de
+                   arreglarlo desde la app. Y como el 95% son cédulas de ciudadanía, el ojo se
+                   acostumbra y los pocos que NO lo son (permiso por protección temporal, cédula de
+                   extranjería, pasaporte) son justo los que se pasan por alto.
+                   Se escribe TAL CUAL lo entrega Fénix -- comprobado contra los archivos reales:
+                   ahí ya vienen "CEDULA DE CIUDADANIA", "Permiso por protección temporal",
+                   "PASAPORTE". No se traduce ni se abrevia: lo que dice Fénix es lo que va. -->
+              <div id="wrap_tipoId">
+                <label for="cc_tipoId">Tipo de documento<span class="required-mark" id="req_tipoId" hidden>*</span></label>
+                <input id="cc_tipoId" list="tipoDocList" placeholder="lo llena la tira de Fénix" autocomplete="off">
+                <datalist id="tipoDocList">
+                  <option value="CEDULA DE CIUDADANIA"></option>
+                  <option value="CEDULA DE EXTRANJERIA"></option>
+                  <option value="Permiso por protección temporal"></option>
+                  <option value="PASAPORTE"></option>
+                  <option value="TARJETA DE IDENTIDAD"></option>
+                  <option value="NIT"></option>
+                </datalist>
+                <div class="field-hint">Sale de la tira de Fénix. La lista son solo sugerencias: puedes escribir cualquier otro, y va a la masiva tal cual.</div>
+              </div>
+              <div id="wrap_idNum">
+                <label for="cc_idNum">N.° documento<span class="required-mark" id="req_idNum" hidden>*</span></label>
+                <input id="cc_idNum" placeholder="lo llena la tira de Fénix" autocomplete="off">
+              </div>
+
               <div id="wrap_res">
                 <div class="res-label-row">
                   <label for="cc_res">Res.<span class="required-mark" id="req_res" hidden>*</span></label>
@@ -2934,7 +2962,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     {input:"cc_formato",         campo:"formato",         limpiar:function(v){ return normalizeFormatoInput(v); }},
     {input:"cc_res",             campo:"res",             limpiar:function(v){ return cleanSpaces(v); }},
     {input:"cc_comentario",      campo:"comentario",      limpiar:function(v){ return cleanSpaces(v); }},
-    {input:"cc_fechaRes",        campo:"fechaRes",        limpiar:function(v){ return normalizeDate(cleanSpaces(v)); }}
+    {input:"cc_fechaRes",        campo:"fechaRes",        limpiar:function(v){ return normalizeDate(cleanSpaces(v)); }},
+    // Se guardan TAL CUAL se escriben: el tipo de documento va a la masiva sin traducir.
+    {input:"cc_tipoId",          campo:"tipoId",          limpiar:function(v){ return cleanSpaces(v); }},
+    {input:"cc_idNum",           campo:"idNum",           limpiar:function(v){ return cleanSpaces(v); }}
   ];
   // La línea de Fénix va aparte: no es una casilla más, de ella se derivan comparendo, código,
   // placa, medio, fechas... Si no se tocó, no se vuelve a interpretar (podría pisar lo que la otra
@@ -5011,6 +5042,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
      titulo:"En la casilla de correo/dirección no puede haber un número de comparendo",
      texto:"Un número largo ahí es un comparendo pegado en el campo equivocado — el error exacto que devolvió la jefatura. La dirección física sí es válida (no todo es correo).",
      donde:"Revisión previa de la masiva"},
+    {id:"R18", grupo:"Destinatario", tipo:"aviso", param:null,
+     titulo:"El TIPO DE DOCUMENTO va tal cual lo entrega Fénix — nunca se asume cédula",
+     texto:"No todo el mundo tiene cédula de ciudadanía. En una masiva real de 267 filas había una cédula de extranjería y un permiso por protección temporal; en otra hoja de trabajo, además, un pasaporte. Fénix ya entrega el texto exacto que va en la masiva (\"CEDULA DE CIUDADANIA\", \"Permiso por protección temporal\", \"PASAPORTE\"), así que se copia sin traducir ni abreviar. Si un radicado lleva número de documento pero no dice de qué tipo es (o al revés), se avisa: comprobado contra 385 filas ya entregadas, esas dos casillas siempre van juntas o las dos vacías — vacías solo en la petición oscura, que no lleva documento.",
+     donde:"Al guardar y en la revisión previa"},
     {id:"R17", grupo:"Agendamientos", tipo:"estructural", param:null,
      titulo:"La plantilla de Agendamientos se revisa antes de entregarse",
      texto:"Se comprueba sobre la fila que se va a escribir: nombre, documento, correo, comparendo, placa, medio, fechas, quién agenda y el FORMATO (AGENDAR CON/SIN PRUEBAS). Nunca bloquea, pero avisa de lo que saldría vacío.",
@@ -6598,6 +6633,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("cc_res").value = rec.res;
     document.getElementById("cc_comentario").value = rec.comentario;
     document.getElementById("cc_fechaRes").value = rec.fechaRes;
+    document.getElementById("cc_tipoId").value = rec.tipoId || "";
+    document.getElementById("cc_idNum").value = rec.idNum || "";
     document.getElementById("cc_comparendo").value = rec.comparendoRaw || "";
     // Foto de lo que se acaba de pintar: es la referencia para saber, de aquí en adelante, qué
     // casillas tocó la persona y cuáles no (ver "LA FOTO DEL FORMULARIO").
@@ -6896,6 +6933,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         rec.comparendoRaw = raw;
         var parsed = parseComparendoLine(raw);
         Object.keys(parsed).forEach(function(k){ rec[k] = parsed[k]; });
+        // La tira acaba de reescribir tipoId/idNum. Si en este MISMO guardado la persona además
+        // corrigió esas dos casillas a mano, su corrección manda: si no, se descartaría en silencio
+        // justo lo que vino a arreglar (el tipo de documento de quien no tiene cédula).
+        [["cc_tipoId","tipoId"], ["cc_idNum","idNum"]].forEach(function(par){
+          if(!campoTocadoAMano(par[0])) return;
+          var elDoc = document.getElementById(par[0]);
+          if(elDoc) rec[par[1]] = cleanSpaces(elDoc.value);
+        });
       }else{
         var guardadoRaw = rec.comparendoRaw == null ? "" : String(rec.comparendoRaw);
         if(guardadoRaw !== String(cpEl.value||"")){
@@ -8288,6 +8333,20 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         if(!esOscura) hallazgos.push({grave:true, texto:"No tiene nombre de destinatario."});
       } else if(!pareceNombrePersona(destinatario)){
         hallazgos.push({grave:true, texto:"El destinatario es \"" + destinatario + "\", que no parece el nombre de una persona — casi seguro las columnas se corrieron al importar y el nombre real se perdió. Verifícalo contra tu fuente antes de entregar."});
+      }
+      // R18. El documento del infractor: tipo y número van juntos o no van.
+      // Calibrado contra 385 filas ya entregadas (dos masivas reales): en ninguna hay una con
+      // número sin tipo ni al revés. Las únicas vacías son las peticiones oscuras, que no llevan
+      // documento -- por eso las dos vacías NO se avisan. Esta comprobación existe porque el 95% de
+      // los documentos son cédulas de ciudadanía: el ojo se acostumbra, y los pocos que no lo son
+      // (permiso por protección temporal, cédula de extranjería, pasaporte) son justo los que se
+      // pasan por alto. Nunca se rellena por cuenta propia: se avisa para que lo mire una persona.
+      var tipoDoc = String(r.tipoId||"").trim();
+      var numDoc  = String(r.idNum||"").trim();
+      if(numDoc && !tipoDoc){
+        hallazgos.push({regla:"R18", grave:true, campo:"tipoId", texto:"Tiene número de documento (" + numDoc + ") pero no dice DE QUÉ TIPO. En la masiva, la columna TIPO DE DOCUMENTO saldría vacía. Míralo en Fénix: no todos tienen cédula de ciudadanía."});
+      }else if(tipoDoc && !numDoc){
+        hallazgos.push({regla:"R18", grave:true, campo:"idNum", texto:"Dice el tipo de documento (" + tipoDoc + ") pero no trae el número."});
       }
       // Las fechas base: si aquí quedó un correo o cualquier cosa que no sea una fecha, es la misma
       // señal de corrimiento, vista desde el otro lado.
