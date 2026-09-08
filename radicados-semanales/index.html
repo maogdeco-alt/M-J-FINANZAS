@@ -1434,7 +1434,11 @@
   </div>
   <div class="ws-foot">
     <span class="hint">Las reglas de fondo (las marcadas <b>estructural</b>) no tienen parámetro
-      editable: son las que sostienen la entrega y no se pueden aflojar desde aquí.</span>
+      editable: son las que sostienen la entrega y no se pueden aflojar desde aquí.<br>
+      <!-- La versión, a la vista. Sirve para saber en un vistazo si el navegador está mostrando la
+           app recién publicada o una copia vieja guardada: cuando algo "no aparece donde siempre
+           estuvo", lo primero que hay que poder descartar es estar mirando una versión anterior. -->
+      Versión de la app: <b id="versionApp">—</b></span>
     <div class="toolbar">
       <button class="btn ghost" id="reglasRestaurarBtn" type="button">Volver a las reglas originales</button>
       <button class="btn ghost" id="reglasClose" type="button">Cerrar</button>
@@ -7524,6 +7528,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // reinterpreten por cuenta ajena. El aviso de firma es lo que hace cumplir esa última parte:
   // si una actualización toca una regla, se ve al abrir esta ventana.
   // ============================================================
+  // Se sube a mano en cada publicación. No se calcula solo a propósito: si se generara con la fecha
+  // del navegador diría siempre "hoy" y no distinguiría una versión de otra, que es justo para lo
+  // que sirve.
+  var VERSION_APP = "2026-09-08 · reglas";
   var TIPO_REGLA_TEXTO = {
     estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
     imperativa:  "Imperativa — la app avisa y hay que resolverlo",
@@ -7648,6 +7656,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     panel.innerHTML = html;
     cuenta.textContent = REGLAS.length + " reglas — " + editables + " con parámetro ajustable";
     resumen.textContent = "Firma actual " + firmaDeLasReglas();
+    var vs = document.getElementById("versionApp");
+    if(vs) vs.textContent = VERSION_APP;
 
     // 3) La bitácora, más reciente primero.
     var bit = leerBitacoraReglas().slice().reverse();
