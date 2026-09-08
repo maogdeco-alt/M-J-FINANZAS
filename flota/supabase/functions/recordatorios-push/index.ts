@@ -58,7 +58,7 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // queda funcionando; no hace falta que Mao copie ni pegue la pública en
 // ningún lado.
 const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY") ||
-  "BDiqcwFXAc3DZJV9az92qsmspSrWd2Ul8YTLIk5tS-WyirbjJXGGRS_ag0tHXT4IixlJ9tJCFXWKRq2FSdpn2wk";
+  "BHh44mX41cbz1BthpATnI_waMTVuoze_SdxVWR15PLepKDMuJ107bI5yUbNaN1tBruV0njKHS91ksLRPu6SNMhQ";
 const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") || "";
 const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") || "mailto:soporte@maog.app";
 const APP_URL = Deno.env.get("APP_URL") || "";
@@ -66,7 +66,8 @@ const APP_URL = Deno.env.get("APP_URL") || "";
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 type Moto = { id: string; canon?: number };
-type Conductor = { id: string; nombre: string; motoId?: string; estado?: string };
+type Exencion = { fecha: string; motivo: string; nota?: string };
+type Conductor = { id: string; nombre: string; motoId?: string; estado?: string; pagoExento?: Exencion[] };
 type Pago = { condId?: string; fecha: string };
 type Fijo = { id: string; nombre: string; dia?: number; pagadoMes?: string };
 type DeudaPersonal = {
@@ -97,9 +98,14 @@ function pendientesMotos(estado: Estado, incluirConductoresSinPago: boolean): st
   const hoy = todayISO();
   const motoById = (id?: string) => motos.find((m) => m.id === id);
   const esActivo = (c: Conductor) => (c.estado || "Activo") === "Activo" && !!c.motoId && !!motoById(c.motoId);
+  // Un conductor marcado "no aplica hoy" (pico y placa, taller) no debe
+  // sonar — mismo criterio que usa la app misma (conductorPendienteHoy en
+  // index.html) para no avisarle de un pago que hoy no correspondía.
+  const exentoHoy = (c: Conductor) => (c.pagoExento || []).some((e) => e.fecha === hoy);
   return conductores
     .filter(esActivo)
     .filter((c) => !pagos.some((p) => p.condId === c.id && p.fecha === hoy))
+    .filter((c) => !exentoHoy(c))
     .map((c) => `el pago de ${c.nombre}`);
 }
 
