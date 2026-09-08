@@ -91,8 +91,21 @@
   .data-safety-banner .dsb-title{font-weight:700;color:var(--stamp);}
   .data-safety-banner .dsb-msg{color:var(--ink);font-size:0.9rem;margin-top:2px;}
 
-  .save-status{font-size:0.78rem;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:5px;}
-  .save-status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none;}
+  /* ANCHO FIJO, A PROPÓSITO. El texto de este letrero cambia de largo según el estado
+     ("Sincronizando…", "Guardado 12:34:56", "✓ Guardado y sincronizado con la nube 12:34:56",
+     "⚠ Guardado local — sin conexión al servidor"). Con ancho libre, esa fila del encabezado pasaba
+     de una línea a dos y de dos a una, y el encabezado entero cambiaba de alto 59 px.
+     Consecuencia real, medida: al pulsar un botón del encabezado justo después de escribir en una
+     casilla, el guardado por casilla cambiaba el estado, el botón SALTABA entre el mousedown y el
+     mouseup, y el clic se perdía -- el navegador solo dispara "click" si los dos caen en el mismo
+     elemento. Es decir: "Descargar masiva" no respondía al primer clic. Con ancho fijo el
+     encabezado no puede cambiar de alto y el botón no se mueve. El texto completo queda en el
+     title (se ve al pasar el cursor), así que no se pierde ninguna información. */
+  .save-status{font-size:0.78rem;color:var(--muted);white-space:nowrap;display:inline-block;
+               width:13.5rem;flex:0 0 auto;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;}
+  .save-status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);
+                       display:inline-block;margin-right:5px;vertical-align:middle;flex:none;}
+  @media (max-width:900px){ .save-status{width:9rem;} }
   .save-status.error{color:var(--stamp);font-weight:700;}
   .save-status.error::before{background:var(--stamp);}
   .save-status.warn{color:var(--warn);font-weight:700;}
@@ -701,6 +714,13 @@
   .install-app-btn:hover{filter:brightness(1.08);}
   .install-app-btn[hidden]{display:none;} /* el atributo hidden nativo pierde contra el display:inline-flex de .btn sin esta regla */
   @media (max-width:640px){ .install-app-btn{padding:9px 12px;} .install-app-btn .btn-label{display:none;} }
+
+  /* ---------- Alerta inmediata ---------- */
+  .alerta-item{border-left:4px solid var(--warn);background:var(--warn-soft);border-radius:8px;
+               padding:10px 12px;margin:8px 0;font-size:.9rem;line-height:1.5;}
+  .alerta-item.grave{border-left-color:var(--stamp);background:var(--stamp-soft);}
+  .alerta-item .regla{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800;
+                      font-size:.75rem;letter-spacing:.03em;opacity:.75;margin-right:6px;}
 
   /* ---------- Reglas ---------- */
   .reglas-btn svg{width:16px;height:16px;flex:none;}
@@ -1476,6 +1496,42 @@
       <button class="btn ghost" id="reglasRestaurarBtn" type="button">Volver a las reglas originales</button>
       <button class="btn ghost" id="reglasClose" type="button">Cerrar</button>
     </div>
+  </div>
+</dialog>
+
+<!-- ============================================================================================
+     Dialog: ALERTA INMEDIATA — las reglas se comprueban AL GUARDAR, no al final de la sesión.
+
+     Pedido textual: "el sistema tiene que estar diseñado para botar las alertas inmediatamente y NO
+     dejar avanzar al usuario, o hasta que corrija o hasta que confirme la anomalía. PARA ESO ES QUE
+     ES EL SISTEMA, PARA CORREGIR INMEDIATAMENTE, NO LLEGAR A FINAL DE SESIÓN A CORREGIR".
+
+     Antes, estas mismas reglas solo se veían al generar la masiva: al final del día, con 170
+     radicados encima y la memoria fría, revisar otra vez era doble trabajo y una vía directa al
+     error. Ahora el MISMO motor de reglas (hallazgosDeRegistro, no una copia) corre al guardar cada
+     radicado, y hay dos únicas salidas: corregirlo ahí mismo, o confirmar la anomalía a conciencia.
+
+     Lo que NUNCA hace: bloquear el guardado. Guardar es sagrado -- lo escrito se guarda siempre,
+     pase o no pase las reglas. Lo que se detiene es AVANZAR al siguiente radicado.
+
+     Lo confirmado queda anotado en el propio radicado, con fecha y quién, y la revisión previa de
+     la masiva ya no vuelve a preguntarlo: lo muestra como confirmado. Ese es el fin del doble
+     trabajo -- lo resuelto al capturar queda resuelto.
+============================================================================================= -->
+<dialog id="alertaInmediataDialog" aria-labelledby="alertaInmediataTitle">
+  <div class="panel-head">
+    <h2 id="alertaInmediataTitle">Revisa antes de seguir</h2>
+  </div>
+  <div class="panel-body">
+    <p class="hint" id="alertaInmediataIntro">Este radicado tiene algo que no cuadra con las reglas.</p>
+    <div id="alertaInmediataLista"></div>
+    <p class="hint">Si es un caso legítimo (pasa: una petición oscura sin comparendo, un ciudadano
+      que radica dos veces por lo mismo), confírmalo y queda anotado: no te lo vuelve a preguntar al
+      generar la masiva.</p>
+  </div>
+  <div class="import-actions">
+    <button class="btn primary" id="alertaInmediataCorregir" type="button">Corregir ahora</button>
+    <button class="btn ghost" id="alertaInmediataConfirmar" type="button">Confirmo la anomalía y sigo</button>
   </div>
 </dialog>
 
@@ -4489,6 +4545,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var el = document.getElementById("saveStatus");
     if(!el) return;
     clearTimeout(saveStatusTimer);
+    // El letrero es de ancho fijo (ver .save-status en el CSS y por qué). Para que no se pierda
+    // nada de lo que dice, el texto completo se deja siempre en el title.
+    setTimeout(function(){ try{ el.title = el.textContent || ""; }catch(e){} }, 0);
     if(status === "ok"){
       // Guardado LOCAL, en este navegador -- todavía no confirmado en la nube (eso es "cloudok",
       // más abajo). Se usa justo después de escribir algo, antes de que la subida a la nube (que
@@ -5042,6 +5101,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
      titulo:"En la casilla de correo/dirección no puede haber un número de comparendo",
      texto:"Un número largo ahí es un comparendo pegado en el campo equivocado — el error exacto que devolvió la jefatura. La dirección física sí es válida (no todo es correo).",
      donde:"Revisión previa de la masiva"},
+    {id:"R19", grupo:"Comparendo", tipo:"imperativa", param:null,
+     titulo:"La línea de Fénix va COMPLETA — un número suelto no basta",
+     texto:"De la línea pegada salen el código de infracción, el medio, el estado, las fechas, el documento y el nombre del infractor. Si en esa casilla queda solo el número del comparendo, todas esas columnas de la masiva saldrían vacías. Comprobado contra 375 filas ya entregadas: no hay ni una con comparendo y la línea sin desglosar. Se avisa AL GUARDAR, no al final. Solo aplica cuando la tira se pegó en la casilla: al revisar una masiva terminada que viene de fuera, con menos columnas, no se inventa el problema.",
+     donde:"Al guardar un radicado"},
     {id:"R18", grupo:"Destinatario", tipo:"aviso", param:null,
      titulo:"El TIPO DE DOCUMENTO va tal cual lo entrega Fénix — nunca se asume cédula",
      texto:"No todo el mundo tiene cédula de ciudadanía. En una masiva real de 267 filas había una cédula de extranjería y un permiso por protección temporal; en otra hoja de trabajo, además, un pasaporte. Fénix ya entrega el texto exacto que va en la masiva (\"CEDULA DE CIUDADANIA\", \"Permiso por protección temporal\", \"PASAPORTE\"), así que se copia sin traducir ni abreviar. Si un radicado lleva número de documento pero no dice de qué tipo es (o al revés), se avisa: comprobado contra 385 filas ya entregadas, esas dos casillas siempre van juntas o las dos vacías — vacías solo en la petición oscura, que no lleva documento.",
@@ -6290,8 +6353,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var item = e.target.closest(".queue-item[data-id]");
     if(item){
       var newId = item.getAttribute("data-id");
-      if(newId !== state.activeId) commitCurrentEdits();
-      selectRecord(newId);
+      if(newId === state.activeId){ selectRecord(newId); return; }
+      // Saltar a otro radicado desde la lista TAMBIÉN es avanzar: si el que se deja atrás tiene
+      // algo sin resolver, se avisa aquí y no al final del día. Lo escrito ya quedó guardado por
+      // commitCurrentEdits() -- lo único que espera es el salto.
+      var anterior = state.records.find(function(r){ return r.id === state.activeId; });
+      commitCurrentEdits();
+      var saltar = function(){ selectRecord(newId); };
+      // noFrenar = true: se salta igual y el aviso queda a la vista, con "Volver y corregir".
+      if(!anterior || gateDeReglas(anterior, saltar, true)) saltar();
     }
   });
 
@@ -6861,6 +6931,109 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var firstInput = firstWrap && document.querySelector("#"+firstWrap+" input, #"+firstWrap+" select, #"+firstWrap+" textarea");
     if(firstInput) firstInput.focus();
   }
+  // ============================================================
+  // ALERTA INMEDIATA: las reglas se comprueban AL GUARDAR (ver #alertaInmediataDialog)
+  // ------------------------------------------------------------
+  // Usa EL MISMO motor que la revisión previa de la masiva (hallazgosDeRegistro). No es una copia
+  // ni un resumen: si una regla cambia en la sección Reglas, cambia en los dos sitios a la vez.
+  // Una regla escrita dos veces termina discrepando consigo misma -- ya pasó antes en esta app y
+  // costó una revisión entera.
+  // ============================================================
+  // Clave estable de un hallazgo, para recordar que ya se confirmó. Se construye con el TEXTO
+  // completo a propósito: si los datos cambian, el texto cambia, la clave cambia y se vuelve a
+  // preguntar. Una confirmación vale para la situación que se confirmó, no para siempre.
+  function claveHallazgo(h){
+    var base = String(h.regla || "") + "|" + String(h.texto || "");
+    var n = 5381;
+    for(var i = 0; i < base.length; i++){ n = ((n * 33) ^ base.charCodeAt(i)) >>> 0; }
+    return "h" + n;
+  }
+  function hallazgosPendientesDe(rec){
+    if(!rec) return [];
+    var todos = [];
+    try{ todos = hallazgosDeRegistro(rec, indiceDeRepetidos()) || []; }
+    catch(e){ todos = []; }
+    var confirmadas = rec.anomaliasConfirmadas || {};
+    return todos.filter(function(h){ return !confirmadas[claveHallazgo(h)]; });
+  }
+  // La casilla donde está el problema, para dejar el cursor ahí al pulsar "Corregir ahora".
+  var CAMPO_A_INPUT = {
+    comparendo:"cc_comparendo", formato:"cc_formato", res:"cc_res", fechaRes:"cc_fechaRes",
+    tipoId:"cc_tipoId", idNum:"cc_idNum", direccion:"cc_direccion", nombre:"cc_nombre",
+    fechaRadicacion:"cc_fechaRadicacion", fechaAsignacion:"cc_fechaAsignacion"
+  };
+  var alertaPendiente = null; // {rec, hallazgos, seguir, volverA}
+  // Devuelve true si se puede seguir; si no, abre el diálogo y llama a "seguir" cuando la persona
+  // confirme. NUNCA impide guardar: para cuando esto corre, save() ya se hizo.
+  //
+  // noFrenar: el salto YA se hizo y el aviso es de un radicado que se quedó atrás. Se usa al saltar
+  // desde la lista. Bloquear ahí sería peor que no avisar: si el salto se cancela y no se nota, se
+  // sigue escribiendo en el expediente que se creía haber dejado -- otra forma de que el dato acabe
+  // donde no es. Así que se salta igual, el aviso sale con el nombre del radicado que quedó
+  // pendiente, y "Corregir ahora" devuelve a ÉL. Los botones de avanzar (Guardar y siguiente,
+  // Siguiente, Anterior) sí frenan de verdad: ahí la intención es "ya terminé con este".
+  function gateDeReglas(rec, seguir, noFrenar){
+    var pend = hallazgosPendientesDe(rec);
+    if(!pend.length) return true;
+    alertaPendiente = {rec:rec, hallazgos:pend, seguir:noFrenar ? null : seguir,
+                       volverA: noFrenar ? rec.id : null};
+    var lista = document.getElementById("alertaInmediataLista");
+    var graves = pend.filter(function(h){ return h.grave; }).length;
+    document.getElementById("alertaInmediataIntro").textContent =
+      "Radicado " + (rec.radicado || "") + ": " + pend.length + " cosa(s) por revisar" +
+      (graves ? " — " + graves + " de ellas saldrían mal en la masiva." : ".");
+    lista.innerHTML = pend.map(function(h){
+      return '<div class="alerta-item' + (h.grave ? " grave" : "") + '">' +
+             (h.regla ? '<span class="regla">' + escapeHtml(h.regla) + "</span>" : "") +
+             escapeHtml(h.texto) + "</div>";
+    }).join("");
+    document.getElementById("alertaInmediataCorregir").textContent =
+      noFrenar ? "Volver y corregir" : "Corregir ahora";
+    var dlg = document.getElementById("alertaInmediataDialog");
+    if(!dlg.open) dlg.showModal();
+    return !!noFrenar;   // con noFrenar el salto continúa; el aviso queda a la vista
+  }
+  // Cerrar el aviso con Esc o desde fuera NO deja nada a medias: la acción pendiente se descarta
+  // (no se avanza) y el radicado sigue exactamente como estaba, guardado.
+  document.getElementById("alertaInmediataDialog").addEventListener("close", function(){
+    alertaPendiente = null;
+  });
+  document.getElementById("alertaInmediataCorregir").addEventListener("click", function(){
+    var a = alertaPendiente;
+    document.getElementById("alertaInmediataDialog").close();
+    alertaPendiente = null;
+    if(!a) return;
+    var conCampo = a.hallazgos.filter(function(h){ return h.campo && CAMPO_A_INPUT[h.campo]; })[0];
+    var destino = conCampo ? CAMPO_A_INPUT[conCampo.campo] : "cc_comparendo";
+    // Si el aviso era de un radicado que quedó atrás (salto desde la lista), se vuelve A ÉL.
+    if(a.volverA && a.volverA !== state.activeId){
+      selectRecord(a.volverA, destino);
+      return;
+    }
+    var el = document.getElementById(destino);
+    if(el){ try{ el.focus(); el.scrollIntoView({block:"center"}); }catch(e){} }
+  });
+  document.getElementById("alertaInmediataConfirmar").addEventListener("click", function(){
+    var a = alertaPendiente;
+    document.getElementById("alertaInmediataDialog").close();
+    alertaPendiente = null;
+    if(!a) return;
+    // Queda anotado EN EL RADICADO: qué se confirmó, cuándo y quién. Así la revisión previa de la
+    // masiva no lo vuelve a preguntar -- que era justo la doble revisión que sobraba.
+    var rec = a.rec;
+    if(!rec.anomaliasConfirmadas) rec.anomaliasConfirmadas = {};
+    a.hallazgos.forEach(function(h){
+      rec.anomaliasConfirmadas[claveHallazgo(h)] = {
+        cuando: new Date().toISOString(),
+        quien: state.profile.activeUser || "",
+        regla: h.regla || "",
+        texto: h.texto || ""
+      };
+    });
+    save();
+    if(typeof a.seguir === "function") a.seguir();
+  });
+
   function commitCurrentEdits(){
     if(state.activeId && document.getElementById("captureForm").style.display !== "none"){
       var rec = readCaptureIntoRecord();
@@ -7105,6 +7278,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // Vigilancia permanente de datos repetidos: se revisa DESPUÉS de guardar, nunca antes, para
       // que la alarma no pueda costarle a nadie el avance que acaba de escribir.
       vigilarRepetidosDe(rec);
+      // "Guardar" a secas NO abre la alerta, a propósito. Es el botón de "lo dejo a medias y sigo
+      // luego": un radicado se llena por partes, y saltar un aviso en cada guardado intermedio
+      // entrenaría a cerrarlo sin leerlo -- que es como se pierde una alarma de verdad.
+      // El freno vive en TODAS las salidas hacia otro radicado (Guardar y siguiente, Siguiente,
+      // Anterior y saltar desde la lista): ahí es donde el dato deja de estar delante de los ojos,
+      // y es lo que se pidió: "NO dejar avanzar al usuario hasta que corrija o confirme".
     });
   });
   document.getElementById("cc_saveNext").addEventListener("click", function(){
@@ -7137,9 +7316,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         });
       }
       if(imperative.length) warnImperative(imperative);
-      else toast("Radicado " + rec.radicado + " guardado");
-      selectRecord(next.id, "cc_formato");
-      renderStats();
+      // EL FRENO. Ya está guardado: lo que se detiene es el avance al siguiente radicado, no el
+      // guardado. Si hay algo que no cuadra, se corrige aquí o se confirma la anomalía -- las dos
+      // únicas salidas. Nada de llegar al final del día a revisarlo otra vez.
+      var avanzar = function(){
+        if(!imperative.length) toast("Radicado " + rec.radicado + " guardado");
+        selectRecord(next.id, "cc_formato");
+        renderStats();
+      };
+      if(gateDeReglas(rec, avanzar)) avanzar();
     });
   });
   document.getElementById("cc_prev").addEventListener("click", function(){
@@ -7151,7 +7336,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     save(); renderQueue(); renderStats(); renderAgendamientos();
     if(imperativePrev.length) warnImperative(imperativePrev);
     var prevRec = findAdjacent(rec, -1);
-    if(prevRec) selectRecord(prevRec.id);
+    var irAtras = function(){ if(prevRec) selectRecord(prevRec.id); };
+    if(gateDeReglas(rec, irAtras)) irAtras();
   });
   document.getElementById("cc_next").addEventListener("click", function(){
     var rec = readCaptureIntoRecord();
@@ -7166,8 +7352,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(!check.ok){ warnMissing(check); return; }
       if(imperativeNext.length) warnImperative(imperativeNext);
       var nextRec = findAdjacent(rec, 1);
-      if(nextRec) selectRecord(nextRec.id);
-      else toast("No hay más radicados en esta vista");
+      var irAdelante = function(){
+        if(nextRec) selectRecord(nextRec.id);
+        else toast("No hay más radicados en esta vista");
+      };
+      if(gateDeReglas(rec, irAdelante)) irAdelante();
     });
   });
   document.getElementById("captureForm").addEventListener("keydown", function(e){
@@ -7691,7 +7880,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se sube a mano en cada publicación. No se calcula solo a propósito: si se generara con la fecha
   // del navegador diría siempre "hoy" y no distinguiría una versión de otra, que es justo para lo
   // que sirve.
-  var VERSION_APP = "2026-09-08 · reglas + tipo de documento";
+  var VERSION_APP = "2026-09-08 · alertas inmediatas";
   var TIPO_REGLA_TEXTO = {
     estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
     imperativa:  "Imperativa — la app avisa y hay que resolverlo",
@@ -8334,6 +8523,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       } else if(!pareceNombrePersona(destinatario)){
         hallazgos.push({grave:true, texto:"El destinatario es \"" + destinatario + "\", que no parece el nombre de una persona — casi seguro las columnas se corrieron al importar y el nombre real se perdió. Verifícalo contra tu fuente antes de entregar."});
       }
+      // R19. La línea de Fénix, a medio pegar. Es el caso reportado: en la casilla quedó solo
+      // "110010000000" -- el número y nada más -- y el radicado se dio por bueno. De esa línea salen
+      // ocho columnas de la masiva; sin ella, salen todas vacías.
+      // Calibrado: en 375 filas ya entregadas con comparendo, NINGUNA tiene el medio, el código y el
+      // estado vacíos a la vez. Cero falsos positivos.
+      var hayComp = !!String(r.comparendoCompleto||"").trim();
+      var sinDesglose = !String(r.cod||"").trim() && !String(r.medio||"").trim() && !String(r.estado||"").trim();
+      // Solo cuando la tira SE PEGÓ de verdad en la casilla (hay comparendoRaw). Al revisar una
+      // masiva TERMINADA que se carga desde fuera, el archivo puede traer solo unas columnas y no
+      // el medio/código/estado: ahí la ausencia no significa que nadie pegara la línea, y avisar
+      // sería inventarse un problema en cada fila. Esa revisión tiene sus propias comprobaciones.
+      var seIntentoPegar = !!String(r.comparendoRaw||"").trim();
+      if(hayComp && sinDesglose && seIntentoPegar){
+        hallazgos.push({regla:"R19", grave:true, campo:"comparendo", texto:"En la casilla del comparendo quedó solo el número, sin el resto de la línea de Fénix. Así saldrían VACÍAS las columnas de código de infracción, medio, estado, fechas, documento y nombre del infractor. Vuelve a copiar la línea completa."});
+      }
       // R18. El documento del infractor: tipo y número van juntos o no van.
       // Calibrado contra 385 filas ya entregadas (dos masivas reales): en ninguna hay una con
       // número sin tipo ni al revés. Las únicas vacías son las peticiones oscuras, que no llevan
@@ -8415,13 +8619,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         "El formato dice \"" + String(r.formato||"").trim() + "\", que no es ninguna de tus categorías. " +
         "Este radicado NO va a salir en la masiva. Ábrelo y elige el formato correcto de la lista."}]});
     });
+    var confirmadosAntes = 0;
     elegibles.forEach(function(r){
-      var hallazgos = hallazgosDeRegistro(r, repetidosPorId);
+      var todos = hallazgosDeRegistro(r, repetidosPorId);
+      if(!todos.length) return;
+      // FIN DEL DOBLE TRABAJO. Lo que ya se miró y se confirmó al capturar el radicado no se vuelve
+      // a preguntar aquí: se cuenta aparte y se deja de exigir. Revisar dos veces lo mismo, al
+      // final del día y con 170 radicados encima, es la vía directa al error que se quiere evitar.
+      var yaConfirmados = r.anomaliasConfirmadas || {};
+      var hallazgos = todos.filter(function(h){ return !yaConfirmados[claveHallazgo(h)]; });
+      confirmadosAntes += (todos.length - hallazgos.length);
       if(hallazgos.length){
         problemas.push({rec:r, hallazgos:hallazgos, grave: hallazgos.some(function(h){ return h.grave; })});
       }
     });
-    return {total: elegibles.length, problemas: problemas};
+    return {total: elegibles.length, problemas: problemas, confirmadosAntes: confirmadosAntes};
   }
 
   // Muestra la revisión y solo continúa (onProceed) si la persona lo confirma. Si no hay ningún
