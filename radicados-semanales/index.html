@@ -745,6 +745,23 @@
   .regla-sinparam{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);
                   font-size:.82rem;color:var(--muted);}
   .reglas-grupo{margin:18px 0 4px;font-weight:800;letter-spacing:.02em;}
+  .reglas-filtros{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px;width:100%;}
+  .reglas-filtros input[type=search]{flex:1 1 260px;min-width:180px;}
+  .reglas-solo{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);white-space:nowrap;}
+  .reglas-momento{margin:20px 0 6px;padding-bottom:6px;border-bottom:2px solid var(--border);}
+  .reglas-momento b{font-size:1rem;}
+  .reglas-momento span{display:block;font-size:.82rem;color:var(--muted);font-weight:400;margin-top:2px;}
+  .regla-resumen{font-size:.95rem;line-height:1.45;margin:2px 0 0;}
+  .regla-efecto{font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+                border-radius:999px;padding:2px 9px;flex:none;border:1px solid transparent;}
+  .regla-efecto.estructural{background:var(--accent-soft);color:var(--accent-2);}
+  .regla-efecto.imperativa{background:var(--stamp-soft);color:var(--stamp);}
+  .regla-efecto.aviso{background:var(--warn-soft);color:var(--warn);}
+  .regla-detalle{margin-top:8px;}
+  .regla-detalle summary{cursor:pointer;font-size:.82rem;color:var(--muted);}
+  .regla-detalle summary:hover{color:var(--ink);}
+  .regla-detalle .cuerpo{margin-top:6px;padding-left:10px;border-left:2px solid var(--border);}
+  .reglas-vacio{padding:16px;color:var(--muted);}
   .reglas-origen{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:0 0 12px;
                  font-size:.88rem;line-height:1.5;background:var(--surface-2);}
   .reglas-origen.ok{border-color:var(--ok);background:var(--ok-soft);}
@@ -1468,10 +1485,13 @@
     <div class="ws-stats" id="reglasResumen"></div>
   </div>
   <div class="ws-tools">
-    <span class="hint">Esto es <b>todo</b> lo que la app comprueba, tal como lo ejecuta. No es un
-      resumen ni un manual aparte: es la misma lista que corre por dentro. El texto y el sentido de
-      cada regla no se tocan; lo editable es el <b>parámetro</b> (las clasificaciones o valores a los
-      que se aplica), y cualquier cambio pide <b>doble verificación</b> y queda anotado con fecha.</span>
+    <span class="hint">Esto es <b>todo</b> lo que la app comprueba, tal como lo ejecuta. Están
+      ordenadas por <b>cuándo te afectan</b>. Lo editable es a qué clasificaciones se aplica cada
+      una; cualquier cambio pide <b>doble verificación</b> y queda anotado con fecha.</span>
+    <div class="reglas-filtros">
+      <input id="reglasBuscar" type="search" placeholder="Buscar una regla (por ejemplo: resolución, placa, T10…)" autocomplete="off">
+      <label class="reglas-solo"><input type="checkbox" id="reglasSoloEditables"> Solo las que puedo cambiar</label>
+    </div>
   </div>
   <div class="ws-body una-columna">
     <div class="ws-list">
@@ -1493,6 +1513,7 @@
            estuvo", lo primero que hay que poder descartar es estar mirando una versión anterior. -->
       Versión de la app: <b id="versionApp">—</b></span>
     <div class="toolbar">
+      <button class="btn ghost" id="reglasCopiarBtn" type="button">Copiar las reglas</button>
       <button class="btn ghost" id="reglasRestaurarBtn" type="button">Volver a las reglas originales</button>
       <button class="btn ghost" id="reglasClose" type="button">Cerrar</button>
     </div>
@@ -5037,79 +5058,98 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
   // Cada regla: qué dice, de qué tipo es y qué parámetro usa. "param" es lo único editable.
   var REGLAS = [
-    {id:"R01", grupo:"Clasificación", tipo:"estructural", param:null,
+    {id:"R01", grupo:"Clasificación", cuando:"captura", resumen:"El Formato solo acepta una clasificación de tu lista. Lo que no esté en ella no se guarda.",
+     tipo:"estructural", param:null,
      titulo:"El Formato solo puede ser una clasificación de la lista",
      texto:"Un radicado está SIN CLASIFICAR o tiene exactamente una de las clasificaciones configuradas en Ajustes → Clasificación. No se puede guardar un texto inventado (\"DEV\", \"DEVOL\", \"AGEND\"). Si lo escrito es el principio de una sola clasificación, se completa; si no corresponde a ninguna, no se guarda y se avisa.",
      donde:"Al guardar un radicado"},
-    {id:"R02", grupo:"Masiva definitiva", tipo:"estructural", param:"formatosFueraDeLaMasiva",
+    {id:"R02", grupo:"Masiva definitiva", cuando:"masiva", resumen:"DEVUELTO y AGENDAMIENTO nunca salen en la masiva definitiva.",
+     tipo:"estructural", param:"formatosFueraDeLaMasiva",
      titulo:"Estas clasificaciones NUNCA entran en la masiva definitiva",
      texto:"La masiva que se entrega lleva solo los radicados clasificados con una plantilla de respuesta. Las devoluciones y los agendamientos van por otro camino y no aparecen ahí.",
      donde:"Al generar la masiva definitiva"},
-    {id:"R03", grupo:"Masiva definitiva", tipo:"estructural", param:null,
+    {id:"R03", grupo:"Masiva definitiva", cuando:"masiva", resumen:"Un formato que no existe queda FUERA de la masiva — pero te lo muestra en grande.",
+     tipo:"estructural", param:null,
      titulo:"Un formato desconocido no entra en la masiva, pero se avisa",
      texto:"Si un radicado quedó con un formato que no es ninguna clasificación, no entra en la masiva — pero la revisión previa lo muestra en primer lugar y en grande, para que no desaparezca en silencio.",
      donde:"Revisión previa de la masiva"},
-    {id:"R04", grupo:"Comparendo", tipo:"aviso", param:"formatosSinComparendo",
+    {id:"R04", grupo:"Comparendo", cuando:"captura", resumen:"Estas clasificaciones pueden ir SIN comparendo. Todas las demás lo exigen.",
+     tipo:"aviso", param:"formatosSinComparendo",
      titulo:"Estas clasificaciones pueden ir SIN número de comparendo",
      texto:"El resto de clasificaciones sí lo exigen: sin comparendo la fila saldría prácticamente vacía. La petición oscura (T10) es el caso legítimo sin comparendo.",
-     donde:"Revisión previa de la masiva"},
-    {id:"R05", grupo:"Resolución", tipo:"imperativa", param:"formatosSinResolucion",
+     donde:"Al guardar y en la revisión previa"},
+    {id:"R05", grupo:"Resolución", cuando:"captura", resumen:"Estas clasificaciones NO llevan resolución.",
+     tipo:"imperativa", param:"formatosSinResolucion",
      titulo:"Estas clasificaciones NO llevan resolución",
      texto:"Si un radicado con una de estas clasificaciones tiene Res. o Fecha res., se avisa: o el formato está mal o esos datos sobran.",
      donde:"Al guardar un radicado"},
-    {id:"R06", grupo:"Resolución", tipo:"imperativa", param:"formatosConResolucionObligatoria",
+    {id:"R06", grupo:"Resolución", cuando:"captura", resumen:"Estas clasificaciones SIEMPRE llevan resolución.",
+     tipo:"imperativa", param:"formatosConResolucionObligatoria",
      titulo:"Estas clasificaciones SIEMPRE llevan resolución",
      texto:"No pueden quedar sin Res. ni Fecha res. Se avisa al guardar y otra vez antes de entregar.",
      donde:"Al guardar y en la revisión previa"},
-    {id:"R07", grupo:"Comparendo", tipo:"imperativa", param:"formatosManualObligatorio",
+    {id:"R07", grupo:"Comparendo", cuando:"captura", resumen:"Estas clasificaciones son siempre comparendo MANUAL (el medio dice COMPARENDERA).",
+     tipo:"imperativa", param:"formatosManualObligatorio",
      titulo:"Estas clasificaciones son siempre comparendo MANUAL",
      texto:"El MEDIO de la línea de Fénix debe decir COMPARENDERA. Si dice otra cosa, o el formato está mal o la línea pegada no corresponde.",
      donde:"Al guardar un radicado"},
-    {id:"R08", grupo:"Comparendo", tipo:"imperativa", param:"formatosElectronicoObligatorio",
+    {id:"R08", grupo:"Comparendo", cuando:"captura", resumen:"Estas clasificaciones son siempre comparendo ELECTRÓNICO (el medio NO dice COMPARENDERA).",
+     tipo:"imperativa", param:"formatosElectronicoObligatorio",
      titulo:"Estas clasificaciones son siempre comparendo ELECTRÓNICO",
      texto:"El MEDIO de la línea de Fénix NO puede decir COMPARENDERA.",
      donde:"Al guardar un radicado"},
-    {id:"R09", grupo:"Devolución", tipo:"imperativa", param:"codigosQueObliganDevuelto",
+    {id:"R09", grupo:"Devolución", cuando:"captura", resumen:"Con estos códigos de infracción, la clasificación tiene que ser DEVUELTO.",
+     tipo:"imperativa", param:"codigosQueObliganDevuelto",
      titulo:"Estos códigos de infracción obligan a DEVUELTO",
      texto:"Si el código de infracción de la línea de Fénix es uno de estos, la clasificación tiene que ser DEVUELTO.",
      donde:"Al guardar un radicado"},
-    {id:"R10", grupo:"Devolución", tipo:"imperativa", param:"estadoValidoComparendo",
+    {id:"R10", grupo:"Devolución", cuando:"captura", resumen:"Un comparendo que no esté en este estado obliga a DEVUELTO.",
+     tipo:"imperativa", param:"estadoValidoComparendo",
      titulo:"Un comparendo que no esté en este estado obliga a DEVUELTO",
      texto:"No se responde por cargue masivo un comparendo que no está vigente.",
      donde:"Al guardar un radicado"},
-    {id:"R11", grupo:"Agendamientos", tipo:"imperativa", param:"formatosQueExigenPlaca",
+    {id:"R11", grupo:"Agendamientos", cuando:"captura", resumen:"Estas clasificaciones exigen la PLACA (hay que pegar la línea hasta el final).",
+     tipo:"imperativa", param:"formatosQueExigenPlaca",
      titulo:"Estas clasificaciones exigen la PLACA",
      texto:"Para el agendamiento hay que pegar la línea de Fénix completa HASTA LA PLACA (la masiva solo necesita hasta el nombre del infractor).",
      donde:"Al guardar un radicado"},
-    {id:"R12", grupo:"Datos únicos", tipo:"imperativa", param:"gravedadRadicadoRepetido",
+    {id:"R12", grupo:"Datos únicos", cuando:"captura", resumen:"El mismo número de radicado no puede aparecer dos veces.",
+     tipo:"imperativa", param:"gravedadRadicadoRepetido",
      titulo:"El RADICADO no puede repetirse",
      texto:"Cada radicado es un expediente distinto. Comprobado contra una masiva real ya entregada: no se repite ni una vez en 267 filas.",
      donde:"Al guardar, en la revisión previa y en el panel de repetidos"},
-    {id:"R13", grupo:"Datos únicos", tipo:"aviso", param:"gravedadComparendoRepetido",
+    {id:"R13", grupo:"Datos únicos", cuando:"captura", resumen:"Comparendo repetido: te avisa, pero es normal — confirmas y sigues.",
+     tipo:"aviso", param:"gravedadComparendoRepetido",
      titulo:"El COMPARENDO repetido es un aviso, no un error",
      texto:"Es normal que se repita: un mismo ciudadano radica varias veces por el mismo comparendo. En una masiva real había 8 comparendos compartidos por varios radicados. Se avisa para confirmar que no se copió al expediente equivocado, pero no bloquea.",
      donde:"Al guardar, en la revisión previa y en el panel de repetidos"},
-    {id:"R14", grupo:"Datos únicos", tipo:"aviso", param:"gravedadResolucionRepetida",
+    {id:"R14", grupo:"Datos únicos", cuando:"captura", resumen:"Resolución repetida: te avisa, pero es normal — confirmas y sigues.",
+     tipo:"aviso", param:"gravedadResolucionRepetida",
      titulo:"La RESOLUCIÓN repetida es un aviso, no un error",
      texto:"Varios radicados del mismo ciudadano se resuelven con la misma resolución. En una masiva real había 7 resoluciones compartidas.",
      donde:"Al guardar, en la revisión previa y en el panel de repetidos"},
-    {id:"R15", grupo:"Destinatario", tipo:"aviso", param:null,
+    {id:"R15", grupo:"Destinatario", cuando:"masiva", resumen:"El destinatario tiene que parecer el nombre de una persona, no una fecha ni un número.",
+     tipo:"aviso", param:null,
      titulo:"El destinatario tiene que parecer el nombre de una persona",
      texto:"Si en esa casilla hay una fecha o un número, casi seguro las columnas se corrieron al importar. La petición oscura (T10) es la excepción: va legítimamente sin nombre, solo con radicado y correo.",
      donde:"Revisión previa de la masiva"},
-    {id:"R16", grupo:"Notificación", tipo:"aviso", param:null,
+    {id:"R16", grupo:"Notificación", cuando:"masiva", resumen:"En la casilla de correo/dirección no puede haber un número de comparendo.",
+     tipo:"aviso", param:null,
      titulo:"En la casilla de correo/dirección no puede haber un número de comparendo",
      texto:"Un número largo ahí es un comparendo pegado en el campo equivocado — el error exacto que devolvió la jefatura. La dirección física sí es válida (no todo es correo).",
      donde:"Revisión previa de la masiva"},
-    {id:"R19", grupo:"Comparendo", tipo:"imperativa", param:null,
+    {id:"R19", grupo:"Comparendo", cuando:"captura", resumen:"La línea de Fénix va completa: solo el número del comparendo no basta.",
+     tipo:"imperativa", param:null,
      titulo:"La línea de Fénix va COMPLETA — un número suelto no basta",
      texto:"De la línea pegada salen el código de infracción, el medio, el estado, las fechas, el documento y el nombre del infractor. Si en esa casilla queda solo el número del comparendo, todas esas columnas de la masiva saldrían vacías. Comprobado contra 375 filas ya entregadas: no hay ni una con comparendo y la línea sin desglosar. Se avisa AL GUARDAR, no al final. Solo aplica cuando la tira se pegó en la casilla: al revisar una masiva terminada que viene de fuera, con menos columnas, no se inventa el problema.",
      donde:"Al guardar un radicado"},
-    {id:"R18", grupo:"Destinatario", tipo:"aviso", param:null,
+    {id:"R18", grupo:"Destinatario", cuando:"captura", resumen:"Tipo y número de documento van juntos. Nunca se asume cédula de ciudadanía.",
+     tipo:"aviso", param:null,
      titulo:"El TIPO DE DOCUMENTO va tal cual lo entrega Fénix — nunca se asume cédula",
      texto:"No todo el mundo tiene cédula de ciudadanía. En una masiva real de 267 filas había una cédula de extranjería y un permiso por protección temporal; en otra hoja de trabajo, además, un pasaporte. Fénix ya entrega el texto exacto que va en la masiva (\"CEDULA DE CIUDADANIA\", \"Permiso por protección temporal\", \"PASAPORTE\"), así que se copia sin traducir ni abreviar. Si un radicado lleva número de documento pero no dice de qué tipo es (o al revés), se avisa: comprobado contra 385 filas ya entregadas, esas dos casillas siempre van juntas o las dos vacías — vacías solo en la petición oscura, que no lleva documento.",
      donde:"Al guardar y en la revisión previa"},
-    {id:"R17", grupo:"Agendamientos", tipo:"estructural", param:null,
+    {id:"R17", grupo:"Agendamientos", cuando:"agenda", resumen:"La plantilla de Agendamientos se revisa antes de bajarla.",
+     tipo:"estructural", param:null,
      titulo:"La plantilla de Agendamientos se revisa antes de entregarse",
      texto:"Se comprueba sobre la fila que se va a escribir: nombre, documento, correo, comparendo, placa, medio, fechas, quién agenda y el FORMATO (AGENDAR CON/SIN PRUEBAS). Nunca bloquea, pero avisa de lo que saldría vacío.",
      donde:"Al generar la plantilla de Agendamientos"}
@@ -7880,7 +7920,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se sube a mano en cada publicación. No se calcula solo a propósito: si se generara con la fecha
   // del navegador diría siempre "hoy" y no distinguiría una versión de otra, que es justo para lo
   // que sirve.
-  var VERSION_APP = "2026-09-08 · alertas inmediatas";
+  var VERSION_APP = "2026-09-08 · reglas claras + alertas inmediatas";
   var TIPO_REGLA_TEXTO = {
     estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
     imperativa:  "Imperativa — la app avisa y hay que resolverlo",
@@ -7992,23 +8032,50 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       aviso.innerHTML = "";
     }
 
-    // 2) Las reglas, agrupadas como se leen.
-    var grupos = [];
-    REGLAS.forEach(function(r){ if(grupos.indexOf(r.grupo) === -1) grupos.push(r.grupo); });
+    // 2) Las reglas, ordenadas por CUÁNDO te afectan -- que es como se buscan de verdad
+    // ("esto me saltó al guardar" / "esto me saltó al generar la masiva"), no por categoría
+    // gramatical. Delante va la idea en una línea; el porqué y la letra pequeña quedan plegados,
+    // para que la lista se pueda recorrer de un vistazo en vez de ser un muro de texto.
+    var MOMENTOS = [
+      {clave:"captura", titulo:"Mientras trabajas un radicado",
+       sub:"Saltan al guardar y al pasar al siguiente. Son las que te paran en el momento."},
+      {clave:"masiva", titulo:"Al generar la masiva definitiva",
+       sub:"Se comprueban sobre la fila que se va a entregar, antes de bajar el archivo."},
+      {clave:"agenda", titulo:"Al generar la plantilla de Agendamientos",
+       sub:"Se comprueban sobre la fila que se va a escribir en la plantilla."}
+    ];
+    var EFECTO = {
+      estructural: {etq:"La app lo hace sola", ayuda:"No te pregunta nada: la app lo cumple por su cuenta."},
+      imperativa:  {etq:"Te para en rojo",     ayuda:"Te detiene al pasar al siguiente radicado. Corriges o confirmas."},
+      aviso:       {etq:"Te para en amarillo", ayuda:"Suele ser un caso legítimo: lo confirmas y sigues."}
+    };
+    var busca = normalizaTexto((document.getElementById("reglasBuscar") || {}).value || "");
+    var soloEditables = !!(document.getElementById("reglasSoloEditables") || {}).checked;
+    function pasaFiltro(r){
+      if(soloEditables && !r.param) return false;
+      if(!busca) return true;
+      var heno = normalizaTexto([r.id, r.titulo, r.resumen, r.texto, r.donde,
+                                 (r.param ? valorParamComoTexto(r.param) : "")].join(" "));
+      return heno.indexOf(busca) !== -1;
+    }
+    var visibles = REGLAS.filter(pasaFiltro);
     var editables = REGLAS.filter(function(r){ return !!r.param; }).length;
     var html = "";
-    grupos.forEach(function(g){
-      html += '<div class="reglas-grupo">' + escapeHtml(g) + "</div>";
-      REGLAS.filter(function(r){ return r.grupo === g; }).forEach(function(r){
+    MOMENTOS.forEach(function(m){
+      var delMomento = visibles.filter(function(r){ return r.cuando === m.clave; });
+      if(!delMomento.length) return;
+      html += '<div class="reglas-momento"><b>' + escapeHtml(m.titulo) + " · " + delMomento.length +
+              "</b><span>" + escapeHtml(m.sub) + "</span></div>";
+      delMomento.forEach(function(r){
+        var ef = EFECTO[r.tipo] || {etq:r.tipo, ayuda:""};
         html += '<div class="regla-card ' + escapeHtml(r.tipo) + '">' +
                   '<div class="regla-top">' +
                     '<span class="regla-id">' + escapeHtml(r.id) + "</span>" +
                     '<span class="regla-titulo">' + escapeHtml(r.titulo) + "</span>" +
-                    '<span class="regla-tipo" title="' + escapeHtml(TIPO_REGLA_TEXTO[r.tipo] || "") + '">' +
-                      escapeHtml(r.tipo) + "</span>" +
+                    '<span class="regla-efecto ' + escapeHtml(r.tipo) + '" title="' +
+                      escapeHtml(ef.ayuda) + '">' + escapeHtml(ef.etq) + "</span>" +
                   "</div>" +
-                  '<p class="regla-texto">' + escapeHtml(r.texto) + "</p>" +
-                  '<p class="regla-donde">Se aplica: ' + escapeHtml(r.donde) + "</p>";
+                  '<p class="regla-resumen">' + escapeHtml(r.resumen || r.titulo) + "</p>";
         if(r.param){
           var v = reglasParams[r.param];
           var trozos = Array.isArray(v)
@@ -8016,17 +8083,28 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
                         : '<span class="regla-valor">(ninguna)</span>')
             : '<span class="regla-valor">' + escapeHtml(String(v)) + "</span>";
           html += '<div class="regla-param">' +
+                    "<span>Se aplica a:</span>" +
                     '<span class="valores">' + trozos + "</span>" +
-                    '<button class="btn ghost" type="button" data-regla-editar="' + escapeHtml(r.id) + '">Ajustar</button>' +
+                    '<button class="btn ghost" type="button" data-regla-editar="' + escapeHtml(r.id) +
+                      '">Cambiar</button>' +
                   "</div>";
-        }else{
-          html += '<div class="regla-sinparam">Esta regla no tiene nada configurable: es de fondo.</div>';
         }
+        html += '<details class="regla-detalle"><summary>Por qué existe y dónde se aplica</summary>' +
+                '<div class="cuerpo"><p class="regla-texto">' + escapeHtml(r.texto) + "</p>" +
+                '<p class="regla-donde">Se aplica: ' + escapeHtml(r.donde) + " · " +
+                escapeHtml(ef.ayuda) + "</p>" +
+                (r.param ? "" : '<p class="regla-donde">Esta regla no tiene nada configurable: es de fondo.</p>') +
+                "</div></details>";
         html += "</div>";
       });
     });
+    if(!visibles.length){
+      html = '<div class="reglas-vacio">Ninguna regla coincide con lo que buscas.</div>';
+    }
     panel.innerHTML = html;
-    cuenta.textContent = REGLAS.length + " reglas — " + editables + " con parámetro ajustable";
+    cuenta.textContent = visibles.length === REGLAS.length
+      ? REGLAS.length + " reglas — " + editables + " se pueden cambiar"
+      : visibles.length + " de " + REGLAS.length + " reglas";
     resumen.textContent = "Firma actual " + firmaDeLasReglas();
     var vs = document.getElementById("versionApp");
     if(vs) vs.textContent = VERSION_APP;
@@ -8052,8 +8130,50 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     renderReglas();
     document.getElementById("reglasDialog").showModal();
   }
+  document.getElementById("reglasBuscar").addEventListener("input", renderReglas);
+  document.getElementById("reglasSoloEditables").addEventListener("change", renderReglas);
   var btnReglas = document.getElementById("reglasBtn");
   if(btnReglas) btnReglas.addEventListener("click", abrirReglas);
+  // Sacar las reglas en texto. Sirve para hablarlas con quien haga falta -- la jefatura, los
+  // ingenieros -- sin depender de que abran la app, y para poder discutir un cambio sobre papel
+  // ANTES de tocarlo. Sale exactamente lo que la app ejecuta, con sus parámetros actuales.
+  function reglasComoTexto(){
+    var l = ["REGLAS DE LA APP — Área de Masivas",
+             "Versión " + VERSION_APP + " · firma " + firmaDeLasReglas(),
+             "Origen: " + (reglasArea.disponible === true
+                ? "reglas compartidas del área" + (reglasArea.actualizadoPor ? " (último ajuste: " + reglasArea.actualizadoPor + ")" : "")
+                : "copia local de este computador"),
+             ""];
+    ["captura","masiva","agenda"].forEach(function(m){
+      var titulo = m === "captura" ? "MIENTRAS TRABAJAS UN RADICADO"
+                 : m === "masiva"  ? "AL GENERAR LA MASIVA DEFINITIVA"
+                                   : "AL GENERAR LA PLANTILLA DE AGENDAMIENTOS";
+      var delMomento = REGLAS.filter(function(r){ return r.cuando === m; });
+      if(!delMomento.length) return;
+      l.push(titulo); l.push("");
+      delMomento.forEach(function(r){
+        l.push("  " + r.id + " — " + r.titulo);
+        l.push("     " + (r.resumen || ""));
+        if(r.param) l.push("     Se aplica a: " + valorParamComoTexto(r.param));
+        l.push("     Se aplica: " + r.donde);
+        l.push("     " + r.texto);
+        l.push("");
+      });
+    });
+    var bit = leerBitacoraReglas();
+    l.push("BITÁCORA DE CAMBIOS (" + bit.length + ")"); l.push("");
+    if(!bit.length) l.push("  Sin cambios: están tal como se configuraron.");
+    bit.slice().reverse().forEach(function(b){
+      l.push("  " + (b.cuando || "") + " · " + (b.quien || ""));
+      l.push("     " + (b.regla || "") + " — " + (b.que || ""));
+      if(b.antes !== undefined) l.push("     Antes: " + b.antes + "  →  Después: " + b.despues);
+    });
+    return l.join("\n");
+  }
+  document.getElementById("reglasCopiarBtn").addEventListener("click", function(){
+    copyOrShowManually(reglasComoTexto(), "Reglas copiadas — pégalas donde las necesites",
+                       "Reglas de la app (" + REGLAS.length + ")");
+  });
   document.getElementById("reglasClose").addEventListener("click", function(){
     document.getElementById("reglasDialog").close();
   });
