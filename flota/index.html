@@ -169,7 +169,13 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .hero-hoy .eyebrow2{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--acento-2)}
 .hero-hoy.mora .eyebrow2{color:var(--rojo)}
 .hero-hoy.due .eyebrow2{color:var(--ambar)}
-.hero-hoy .titular{font-family:var(--disp);font-weight:600;font-size:27px;letter-spacing:-.015em;margin:9px 0 5px;line-height:1.22;text-wrap:balance;display:flex;align-items:center;gap:10px}
+/* flex-wrap:wrap es la parte que faltaba — sin ella, una frase larga
+   con nombre+monto+placa (p.ej. "Ana Ruiz debe $40.000 de la XYZ999")
+   se trataba como una sola fila rígida que no cabía en un celular
+   angosto, y la fila entera se salía de la pantalla. Con wrap, el
+   texto se acomoda en varias líneas como cualquier párrafo normal —
+   el caso simple (ícono + "Todo al día") se ve exactamente igual. */
+.hero-hoy .titular{font-family:var(--disp);font-weight:600;font-size:27px;letter-spacing:-.015em;margin:9px 0 5px;line-height:1.22;text-wrap:balance;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .hero-hoy .titular .icono{width:24px;height:24px;color:var(--verde);flex:0 0 24px}
 .hero-hoy .sub{font-size:12.5px;color:var(--gris2);font-weight:500}
 
@@ -405,7 +411,14 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
 .card h3{font-weight:700;font-size:18px;margin:0 0 3px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .card h3 .icono{width:17px;height:17px;color:var(--acento);flex:0 0 17px}
 .card .meta{font-size:12.5px;color:var(--gris);font-weight:500}
-.card .figs{display:flex;gap:20px;margin-top:14px;padding-top:14px;border-top:1px solid var(--linea)}
+/* flex-wrap:wrap — con 4 cifras (Recaudado/Gastos/Abonado/Utilidad, el
+   caso de una moto financiada) en un celular angosto, sin esto se
+   apretujaban todas en una sola fila y la etiqueta más larga
+   ("Utilidad neta") partía en dos líneas de forma fea. Con wrap,
+   cuando no caben todas en una fila pasan solas a la siguiente —
+   se ve bien tanto con 3 cifras como con 4, en cualquier ancho. */
+.card .figs{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px;padding-top:14px;border-top:1px solid var(--linea)}
+.card .fig{flex:1 1 90px}
 .card .fig .k{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);font-weight:700}
 .card .fig .v{font-family:var(--mono);font-size:16px;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500}
 .card .acts{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
@@ -981,6 +994,12 @@ h2::before{content:'';display:inline-block;width:12px;height:1px;background:var(
             <h2>Resumen</h2>
             <div id="kpis"></div>
           </div>
+        </div>
+
+        <div class="section hidden" id="pendientesHoyBox">
+          <h2>Pendientes de hoy</h2>
+          <p class="sub" style="margin:-4px 0 12px">Conductores activos que todavía no han pagado hoy. Márquelo aquí mismo. Se puede posponer el aviso hasta 3 veces — a la cuarta, hay que resolverlo.</p>
+          <div class="grid2" id="pendientesHoy"></div>
         </div>
 
         <div class="section">
@@ -2397,12 +2416,55 @@ const duenos = () => duenosObj().map(d=>d.nombre);
 
 const esActivo = c => (c.estado || 'Activo') === 'Activo' && c.motoId && !!motoById(c.motoId);
 
+/* Días que NO cuentan como "debía pagar" — pico y placa, taller, o
+   cualquier otro motivo por el que la moto no trabajó ese día. Se
+   acumulan en pagoExento a lo largo de toda la vida del conductor
+   (no solo hoy), así que un día marcado hace tres semanas sigue sin
+   contar para siempre en la cuenta de "días esperados". */
+const diasExentosConductor = c => (c.pagoExento||[]).length;
 function estadoConductor(c){
   const canon = (motoById(c.motoId)||{}).canon || 0;
-  const dias = (esActivo(c) && c.inicio) ? Math.max(dayDiff(c.inicio, todayISO())+1, 0) : 0;
+  const diasActivo = (esActivo(c) && c.inicio) ? Math.max(dayDiff(c.inicio, todayISO())+1, 0) : 0;
+  const dias = Math.max(diasActivo - diasExentosConductor(c), 0);
   const esperado = dias * canon;
   const pagado = S.pagos.filter(p=>p.condId===c.id).reduce((a,p)=>a+p.valor,0);
   return { dias, esperado, pagado, saldo: pagado - esperado, canon };
+}
+/* El recordatorio nocturno de "¿ya pagó?" — la parte que Mao pidió
+   después de que se le olvidara anotar un pago real. Un conductor
+   está "pendiente hoy" si está activo, hoy no se le registró ningún
+   pago, y hoy no está marcado como exento (pico y placa / taller). */
+const pagoDeHoy = c => S.pagos.some(p=>p.condId===c.id && p.fecha===todayISO());
+const exentoHoy = c => (c.pagoExento||[]).some(e=>e.fecha===todayISO());
+const conductorPendienteHoy = c => esActivo(c) && !pagoDeHoy(c) && !exentoHoy(c);
+/* Máximo 3 veces se puede "posponer" el aviso de un mismo pendiente —
+   a la cuarta, ese botón desaparece y solo quedan las formas reales de
+   resolverlo (pagar/abonar, o marcar que no aplica). Mismo límite para
+   el pago nocturno de un conductor (aquí abajo) y para los créditos de
+   Cuentas personales (más adelante, en renderDeudas) — un solo número
+   para toda la app, no una regla distinta en cada lado. El contador se
+   limpia solo en cuanto el pendiente se resuelve, así que siempre
+   cuenta el pendiente actual, nunca toda la historia. */
+const MAX_POSPONER_AVISO = 3;
+function marcarPendienteAbierto(c){
+  if(!c.pagoAlertaDesde) c.pagoAlertaDesde = todayISO();
+}
+function limpiarPendiente(c){
+  c.pagoPospuestos = 0; c.pagoAlertaDesde = '';
+}
+async function posponerAvisoConductor(id){
+  const c = S.conductores.find(x=>x.id===id); if(!c) return;
+  marcarPendienteAbierto(c);
+  c.pagoPospuestos = Math.min((c.pagoPospuestos||0) + 1, MAX_POSPONER_AVISO);
+  await save(); renderAll();
+}
+async function marcarExentoHoy(id, motivo, nota){
+  const c = S.conductores.find(x=>x.id===id); if(!c) return;
+  if(!Array.isArray(c.pagoExento)) c.pagoExento = [];
+  c.pagoExento.push({ fecha: todayISO(), motivo, nota: (nota||'').trim() });
+  limpiarPendiente(c);
+  await save(); renderAll();
+  toast(`${c.nombre}: hoy no aplica (${motivo}).`);
 }
 const enRango = (f, a, b) => f && (!a || f >= a) && (!b || f <= b);
 const ingresos   = (a,b) => S.pagos.filter(p=>enRango(p.fecha,a,b)).reduce((x,p)=>x+p.valor,0);
@@ -2481,7 +2543,7 @@ function renderAll(){
   aplicarColor();
   aplicarPlantillaUI();
   renderSelects(); renderKPIs(); renderAvisos(); renderCuentas(); renderPropietarios();
-  renderCondStatus(); renderChart();
+  renderCondStatus(); renderPendientesHoy(); renderChart();
   renderPagos(); renderGastos(); renderMotos(); renderCond();
   renderProductos(); renderClientes(); renderResumenFlex();
   renderCuentasPersonales(); renderMetas(); renderFijos(); renderDeudas(); renderHoyPersonal();
@@ -2900,6 +2962,91 @@ function renderPropietarios(){
   $('propList').innerHTML = `<div class="ledger-wrap"><table class="ledger">
     <thead><tr><th>Dueño</th><th class="hide-s num">Motos</th><th class="num">Recaudado</th>
     <th class="num">Gastos</th><th class="num">Utilidad</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+/* "Pendientes de hoy" — el recordatorio nocturno que Mao pidió después
+   de que se le olvidara anotar un pago real: cada conductor activo que
+   hoy no ha pagado, resuelto AQUÍ MISMO, sin ir hasta Pagos. Máximo 3
+   veces se puede posponer un mismo pendiente — a la cuarta, el botón
+   de posponer desaparece y solo quedan "Ya pagó" o "No aplica hoy"
+   (pico y placa, taller). Si pasan más de 3 días sin marcar ninguna de
+   las dos, la tarjeta se pone en rojo como advertencia fuerte. */
+function renderPendientesHoy(){
+  const box = $('pendientesHoy'); if(!box || !esMotos()) return;
+  const activos = S.conductores.filter(esActivo);
+  // Reconciliar primero: si ya se resolvió (pagó, o quedó exento hoy)
+  // pero le quedó pegado el contador/fecha de un pendiente anterior,
+  // se limpia — así el PRÓXIMO pendiente que le aparezca a este
+  // conductor empieza de cero, sin heredar el conteo de uno ya resuelto.
+  let huboLimpieza = false;
+  activos.forEach(c=>{
+    if(!conductorPendienteHoy(c) && (c.pagoAlertaDesde || c.pagoPospuestos)){
+      limpiarPendiente(c); huboLimpieza = true;
+    }
+  });
+  if(huboLimpieza) save();
+
+  const pendientes = activos.filter(conductorPendienteHoy);
+  setHidden('pendientesHoyBox', !pendientes.length);
+  if(!pendientes.length){ box.innerHTML = ''; return; } // limpiar: si no, quedan tarjetas viejas escondidas pero seguían en el DOM
+
+  box.innerHTML = pendientes.map(c=>{
+    marcarPendienteAbierto(c);
+    const m = motoById(c.motoId);
+    const pospuestos = c.pagoPospuestos||0;
+    const puedePosponer = pospuestos < MAX_POSPONER_AVISO;
+    const diasPendiente = c.pagoAlertaDesde ? Math.max(dayDiff(c.pagoAlertaDesde, todayISO()), 0) : 0;
+    const escalado = !puedePosponer || diasPendiente > 3;
+    return `<div class="card" data-pend-cond="${c.id}">
+      <h3><span class="icono">${ICONS.conductores}</span> ${esc(c.nombre)}</h3>
+      <div class="meta">${m?esc(m.placa):'Sin moto'} · ${money(m?m.canon:0)}/día</div>
+      ${escalado ? `<div style="margin-top:6px"><span class="tag mora">⚠️ ${diasPendiente>0?`Lleva ${diasPendiente} día${diasPendiente===1?'':'s'} sin resolver`:'Hay que resolver esto ya'}</span></div>` : ''}
+      <div class="acts" style="margin-top:10px">
+        <button class="btn sm" data-pend-pago="${c.id}"><span class="icono">${ICONS.check}</span> Ya pagó</button>
+        <button class="btn ghost sm" data-pend-exento-abrir="${c.id}">No aplica hoy</button>
+        ${puedePosponer ? `<button class="btn ghost sm" data-pend-posponer="${c.id}">Recordarme después${pospuestos?` (${pospuestos}/${MAX_POSPONER_AVISO})`:''}</button>` : ''}
+      </div>
+      <div class="hidden" data-pend-exento-box="${c.id}" style="margin-top:10px">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gris);display:block;margin-bottom:5px">¿Por qué no aplica hoy?</label>
+        <select data-pend-exento-motivo="${c.id}" style="margin-bottom:6px;display:block">
+          <option>Pico y placa</option>
+          <option>Taller</option>
+          <option>Otro</option>
+        </select>
+        <input type="text" placeholder="Nota (opcional)" data-pend-exento-nota="${c.id}" style="margin-bottom:6px;display:block">
+        <button type="button" class="linkbtn" data-pend-exento-confirmar="${c.id}">Confirmar</button> · <button type="button" class="linkbtn" data-pend-exento-cancelar="${c.id}">Cancelar</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('#pendientesHoy [data-pend-pago]').forEach(b=>b.addEventListener('click', ()=>irAPagarConductor(b.dataset.pendPago)));
+  document.querySelectorAll('#pendientesHoy [data-pend-posponer]').forEach(b=>b.addEventListener('click', ()=>posponerAvisoConductor(b.dataset.pendPosponer)));
+  document.querySelectorAll('#pendientesHoy [data-pend-exento-abrir]').forEach(b=>b.addEventListener('click', ()=>{
+    const caja = document.querySelector(`#pendientesHoy [data-pend-exento-box="${b.dataset.pendExentoAbrir}"]`);
+    if(caja) caja.classList.remove('hidden');
+  }));
+  document.querySelectorAll('#pendientesHoy [data-pend-exento-cancelar]').forEach(b=>b.addEventListener('click', ()=>{
+    const caja = document.querySelector(`#pendientesHoy [data-pend-exento-box="${b.dataset.pendExentoCancelar}"]`);
+    if(caja) caja.classList.add('hidden');
+  }));
+  document.querySelectorAll('#pendientesHoy [data-pend-exento-confirmar]').forEach(b=>b.addEventListener('click', ()=>{
+    const id = b.dataset.pendExentoConfirmar;
+    const motivo = document.querySelector(`#pendientesHoy [data-pend-exento-motivo="${id}"]`).value;
+    const nota = document.querySelector(`#pendientesHoy [data-pend-exento-nota="${id}"]`).value;
+    marcarExentoHoy(id, motivo, nota);
+  }));
+}
+/* Atajo desde "Pendientes de hoy": salta directo a Pagos con el
+   conductor y la fecha de hoy ya elegidos, y 1 día (no 7, que es lo
+   que trae por defecto el formulario) — esto es anotar el pago de
+   ESTA noche, no una liquidación semanal. Reusa el mismo formulario
+   de siempre; no hay una segunda forma de registrar un pago. */
+function irAPagarConductor(condId){
+  go('pagos');
+  $('qCond').value = condId;
+  $('qDias').value = 1;
+  $('qFecha').value = todayISO();
+  $('qCond').dispatchEvent(new Event('change'));
+  $('qValor').focus();
 }
 function renderCondStatus(){
   if(!S.conductores.length){
@@ -3690,9 +3837,20 @@ function renderDeudas(){
     // hasta entonces — sigue contando como deuda real (no se toca el
     // saldo ni las cuotas), solo se calla el aviso una temporada.
     const pospuesta = !saldada && !!d.posponerHasta && d.posponerHasta >= hoy;
+    // Mismo límite que en el aviso nocturno de conductores: 3 veces se
+    // puede posponer, a la cuarta el botón desaparece y solo quedan
+    // "Abonar" o "Ya no debo esto" — no queda de otra que resolverlo.
+    const puedePosponer = (d.posponerVeces||0) < MAX_POSPONER_AVISO;
+    const agotado = !saldada && !abonadoEsteMes && !puedePosponer;
+    // OJO con el orden: si ya está pospuesto (aunque sea el 3º y último
+    // permitido), mientras esa fecha no llegue se muestra como pospuesto
+    // normal — la advertencia fuerte de "agotado" es para cuando ESE
+    // plazo ya se venció y no queda ningún pospuesto más por usar, no
+    // para asustar de una vez apenas se usa el tercero.
     const estado = saldada
       ? `<span class="tag ok">✅ Crédito saldado</span>`
       : pospuesta ? `<span class="tag">⏸️ Pospuesto hasta ${fmtDate(d.posponerHasta)}</span>`
+      : agotado ? `<span class="tag mora">⚠️ Ya se pospuso ${MAX_POSPONER_AVISO} veces — hay que resolverlo</span>`
       : (abonadoEsteMes ? `<span class="tag ok">Al día este mes</span>` : `<span class="tag due">Pendiente este mes</span>`);
     return `<div class="card">
       <h3><span class="icono">${ICONS.fijos}</span> ${esc(d.nombre)}</h3>
@@ -3706,9 +3864,9 @@ function renderDeudas(){
       <div class="acts">
         ${saldada ? '' : `<button class="btn ghost sm" data-abonar-deuda="${d.id}">${abonadoEsteMes ? 'Desmarcar' : '<span class="icono">'+ICONS.check+'</span> Abonar esta cuota'}</button>`}
         ${saldada ? '' : `<button class="btn ghost sm" data-saldar-deuda="${d.id}">Ya no debo esto</button>`}
-        ${saldada ? '' : (pospuesta
+        ${saldada ? '' : pospuesta
           ? `<button class="btn ghost sm" data-quitar-posponer="${d.id}">Quitar posponer</button>`
-          : `<button class="btn ghost sm" data-posponer-deuda="${d.id}"><span class="icono">${ICONS.calendario}</span> Posponer</button>`)}
+          : (puedePosponer ? `<button class="btn ghost sm" data-posponer-deuda="${d.id}"><span class="icono">${ICONS.calendario}</span> Posponer${d.posponerVeces?` (${d.posponerVeces}/${MAX_POSPONER_AVISO})`:''}</button>` : '')}
         <button class="btn ghost sm" data-editar-deuda="${d.id}"><span class="icono">${ICONS.lapiz}</span> Editar</button>
         <button class="btn ghost sm" data-del-deuda="${d.id}"><span class="icono">${ICONS.trash}</span> Eliminar</button>
       </div>
@@ -4585,7 +4743,7 @@ $('dbSave').addEventListener('click', async ()=>{
     toast(`${nombre} actualizado`);
     return;
   }
-  S.deudas.push({ id:uid(), ...datos, abonadoMes:'', gastoId:'', posponerHasta:'', creadoPor:quien() });
+  S.deudas.push({ id:uid(), ...datos, abonadoMes:'', gastoId:'', posponerHasta:'', posponerVeces:0, creadoPor:quien() });
   await save(); renderAll();
   ['dbNombre','dbEntidad','dbSaldo','dbCuota','dbCuotasTotal','dbCuotasPagadas','dbDia'].forEach(i=>$(i).value='');
   $('dbRecordatorio').checked = false; $('dbCuenta').value = '';
@@ -4674,7 +4832,7 @@ $('cSave').addEventListener('click', async ()=>{
     toast(`${nombre} actualizado`);
     return;
   }
-  S.conductores.push({ id:uid(), ...datos, creadoPor:quien() });
+  S.conductores.push({ id:uid(), ...datos, pagoPospuestos:0, pagoAlertaDesde:'', pagoExento:[], creadoPor:quien() });
   await save(); renderAll();
   ['cNombre','cCedula','cTel','cDep','cLic','cParq','cRef','cDir','cCiudad','cCorreo','cEmer']
     .forEach(i=>$(i).value='');
@@ -4895,7 +5053,7 @@ document.addEventListener('click', async e=>{
       if(d.gastoId){ S.gastos = S.gastos.filter(g=>g.id!==d.gastoId); }
       d.saldo = (d.saldo||0) + montoRevertir;
       d.cuotasPagadas = Math.max(0, (d.cuotasPagadas||0) - 1);
-      d.abonadoMes = ''; d.gastoId = '';
+      d.abonadoMes = ''; d.gastoId = ''; d.posponerVeces = 0;
       await save(); renderAll();
       toast('Se quitó el abono de este mes');
       return;
@@ -4909,7 +5067,7 @@ document.addEventListener('click', async e=>{
     if(cuota === null) return;
     d.saldo = Math.max(0, (d.saldo||0) - cuota);
     d.cuotasPagadas = (d.cuotasPagadas||0) + 1;
-    d.abonadoMes = mesActual; d.gastoId = ''; d.posponerHasta = '';
+    d.abonadoMes = mesActual; d.gastoId = ''; d.posponerHasta = ''; d.posponerVeces = 0;
     if(cuota > 0){
       const gasto = { id:uid(), fecha:todayISO(), cat:'💳 Abono a crédito', desc:d.nombre, valor:cuota,
         cargo:'Empresa', cuentaId:d.cuentaId||null, pagadoPor:'', reparto:'', recuperado:false,
@@ -4935,7 +5093,7 @@ document.addEventListener('click', async e=>{
       `"${d.nombre}" va a quedar marcado como saldado del todo. Esto NO agrega ningún gasto nuevo — úselo cuando ya terminó de pagarlo por su cuenta, o cuando el crédito ya no aplica. Si todavía debe una parte, mejor use "Abonar esta cuota".`))) return;
     d.saldo = 0;
     if(d.cuotasTotal) d.cuotasPagadas = d.cuotasTotal;
-    d.posponerHasta = '';
+    d.posponerHasta = ''; d.posponerVeces = 0;
     await save(); renderAll();
     toast(`"${d.nombre}" quedó marcado como saldado`);
     return;
@@ -4946,15 +5104,20 @@ document.addEventListener('click', async e=>{
     // marcarlo pagado ni tocar el saldo — sigue contando en las
     // cuentas como lo que es, una deuda real, solo que la app deja de
     // insistir con eso hasta que la persona diga que ya puede verlo
-    // de nuevo.
+    // de nuevo. Máximo 3 veces (mismo límite que el aviso de
+    // conductores) — a la cuarta este botón ya ni aparece en la
+    // tarjeta, pero se revisa aquí también por si acaso.
     const d = S.deudas.find(x=>x.id===t.dataset.posponerDeuda);
     if(!d || deudaSaldada(d)) return;
+    if((d.posponerVeces||0) >= MAX_POSPONER_AVISO)
+      return toast(`Ya se pospuso ${MAX_POSPONER_AVISO} veces — hay que abonarlo o marcarlo saldado.`, true);
     const sugerida = sumarDias(todayISO(), 7);
     const fecha = await pedirFecha(`Posponer "${d.nombre}"`,
       'La deuda sigue contando igual — solo dejamos de avisarle hasta esta fecha. Después, si sigue sin pagarse, vuelve a aparecer.',
       '¿Hasta cuándo posponer?', sugerida);
     if(!fecha) return;
     d.posponerHasta = fecha;
+    d.posponerVeces = (d.posponerVeces||0) + 1;
     await save(); renderAll();
     toast(`"${d.nombre}" no va a avisar hasta el ${fmtDate(fecha)}`);
     return;
