@@ -725,6 +725,10 @@
   .regla-sinparam{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);
                   font-size:.82rem;color:var(--muted);}
   .reglas-grupo{margin:18px 0 4px;font-weight:800;letter-spacing:.02em;}
+  .reglas-origen{border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:0 0 12px;
+                 font-size:.88rem;line-height:1.5;background:var(--surface-2);}
+  .reglas-origen.ok{border-color:var(--ok);background:var(--ok-soft);}
+  .reglas-origen.mal{border:2px solid var(--warn);background:var(--warn-soft);}
   .reglas-firma-mal{border:2px solid var(--stamp);border-radius:10px;padding:12px 14px;margin:0 0 12px;
                     background:var(--stamp-soft);}
   .bitacora-fila{border-bottom:1px solid var(--border);padding:8px 2px;font-size:.85rem;}
@@ -1423,6 +1427,7 @@
   </div>
   <div class="ws-body una-columna">
     <div class="ws-list">
+      <div id="reglasOrigen" class="reglas-origen">Comprobando de dónde vienen las reglas…</div>
       <div id="reglasFirmaAviso" hidden></div>
       <div class="ws-listhead" id="reglasCuenta">—</div>
       <div id="reglasPanel"></div>
@@ -3188,7 +3193,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // corriendo con las reglas por defecto y descartando en silencio los ajustes de la usuaria --
       // que es exactamente el fallo del que nace esta sección. Lo detectó la prueba, no la lectura.
       cargarReglasParams();
-      revisarFirmaDeLasReglasAlEntrar();
+      // Y encima, las del ÁREA: mandan sobre la copia de este computador. La comprobación de firma
+      // espera a que lleguen -- si se hiciera antes, compararía contra la copia vieja de aquí y
+      // avisaría (o callaría) por lo que no es.
+      traerReglasDelArea().then(function(){ revisarFirmaDeLasReglasAlEntrar(); renderAll(); });
       var recovered = recoverLegacyFlatDataInto();
 
       // Comparación contra la memoria persistente de este navegador: si la última vez que se
@@ -3256,6 +3264,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       load(); loadSettings(); loadHistory();
       reconciliarCopias(); // ¿la copia de seguridad va por delante del almacenamiento principal?
       setTimeout(refrescarAvisoFormatosInvalidos, 1200);
+      // Sin nube no hay reglas del área: se sigue con la copia de este computador, y la ventana de
+      // Reglas lo dice. Nunca se trabaja sin reglas.
+      cargarReglasParams();
+      reglasArea.disponible = false;
+      reglasArea.motivo = "No hubo conexión con el servidor al entrar: se están usando las reglas guardadas en este computador.";
       var recovered = recoverLegacyFlatDataInto(); // aunque falle la nube, no se pierde lo que hay en este navegador
       lastKnownSafeCount = state.records.length;
       lastKnownCloudActualizado = null; // no se pudo leer la nube -- sin marca de tiempo con qué comparar todavía
@@ -4802,29 +4815,131 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     gravedadComparendoRepetido:       "aviso",
     gravedadResolucionRepetida:       "aviso"
   };
+  // ------------------------------------------------------------
+  // DÓNDE VIVEN LAS REGLAS: en el ÁREA, no en cada navegador.
+  //
+  // La app es del área de Masivas y la usan cuatro personas. Las reglas con las que se arma la
+  // masiva no son una preferencia de cada quien: son las reglas del área, y tienen que ser las
+  // mismas en los cuatro computadores. Si cada navegador guardara las suyas, cuatro personas
+  // podrían estar aplicando reglas distintas sin que nadie lo notara -- que es justo el descuadre
+  // que se quiere evitar.
+  //
+  // Por eso la fuente de verdad es UNA SOLA FILA compartida en la nube (tabla reglas_masivas, ver
+  // supabase/migrations/0002_reglas_masivas.sql). Lo que se guarda en este navegador es solo una
+  // copia para poder trabajar sin conexión; en cuanto hay conexión, manda la del área.
+  //
+  // Si esa tabla todavía no está instalada, la app NO se rompe: sigue con las reglas de fábrica y
+  // lo dice con todas las letras en la ventana de Reglas, para que nadie crea que sus ajustes
+  // llegaron a las demás cuando no llegaron.
+  // ------------------------------------------------------------
   var REGLAS_PARAMS_KEY = "radicados_reglas_params_v1";
   var REGLAS_BITACORA_KEY = "radicados_reglas_bitacora_v1";
   var REGLAS_FIRMA_KEY = "radicados_reglas_firma_v1";
-  function reglasParamsKeyFor(e){ return REGLAS_PARAMS_KEY + "::" + e; }
-  function reglasBitacoraKeyFor(e){ return REGLAS_BITACORA_KEY + "::" + e; }
-  function reglasFirmaKeyFor(e){ return REGLAS_FIRMA_KEY + "::" + e; }
+  // Sin el correo de nadie: son del área, no de una persona. La copia local es una caché del área.
+  function reglasParamsKey(){ return REGLAS_PARAMS_KEY + "::area"; }
+  function reglasBitacoraKey(){ return REGLAS_BITACORA_KEY + "::area"; }
+  function reglasFirmaKey(){ return REGLAS_FIRMA_KEY + "::area"; }
   var reglasParams = JSON.parse(JSON.stringify(REGLAS_PARAMS_DEFAULT));
+  var reglasBitacora = [];
+  // disponible: null = todavía no se ha mirado · true = las reglas vienen del área · false = esta
+  // app está trabajando con una copia local porque no pudo leer las del área (y hay que decirlo).
+  var reglasArea = {disponible:null, motivo:"", actualizado:"", actualizadoPor:""};
+
   function cargarReglasParams(){
     reglasParams = JSON.parse(JSON.stringify(REGLAS_PARAMS_DEFAULT));
-    if(!state.profile.activeUser) return;
+    reglasBitacora = [];
     try{
-      var raw = localStorage.getItem(reglasParamsKeyFor(state.profile.activeUser));
-      if(!raw) return;
-      var guardado = JSON.parse(raw);
-      Object.keys(REGLAS_PARAMS_DEFAULT).forEach(function(k){
-        if(guardado[k] !== undefined) reglasParams[k] = guardado[k];
-      });
+      var raw = localStorage.getItem(reglasParamsKey());
+      if(raw){
+        var guardado = JSON.parse(raw);
+        Object.keys(REGLAS_PARAMS_DEFAULT).forEach(function(k){
+          if(guardado[k] !== undefined) reglasParams[k] = guardado[k];
+        });
+      }
+      var rawB = localStorage.getItem(reglasBitacoraKey());
+      if(rawB){
+        var b = JSON.parse(rawB);
+        if(Array.isArray(b)) reglasBitacora = b;
+      }
     }catch(e){}
   }
+  // Guarda la copia local. No es la fuente de verdad: solo permite seguir trabajando sin conexión.
   function guardarReglasParams(){
-    if(!state.profile.activeUser) return;
-    try{ localStorage.setItem(reglasParamsKeyFor(state.profile.activeUser), JSON.stringify(reglasParams)); }catch(e){}
-    idbSet(reglasParamsKeyFor(state.profile.activeUser), reglasParams);
+    try{ localStorage.setItem(reglasParamsKey(), JSON.stringify(reglasParams)); }catch(e){}
+    try{ localStorage.setItem(reglasBitacoraKey(), JSON.stringify(reglasBitacora)); }catch(e){}
+    idbSet(reglasParamsKey(), reglasParams);
+    idbSet(reglasBitacoraKey(), reglasBitacora);
+  }
+  // Trae las reglas del área. Lo que venga de la nube MANDA sobre la copia local: si otra de las
+  // cuatro personas ajustó una regla, este computador tiene que quedar igual, no conservar la suya.
+  function traerReglasDelArea(){
+    if(!supaSession || !supaConfig) {
+      reglasArea.disponible = false;
+      reglasArea.motivo = "Sin sesión en el servidor: se están usando las reglas guardadas en este computador.";
+      return Promise.resolve(false);
+    }
+    return supaFetch("/rest/v1/reglas_masivas?id=eq.masivas&select=params,bitacora,firma,actualizado,actualizado_por")
+      .then(function(rows){
+        var fila = rows && rows[0];
+        if(!fila) throw new Error("La tabla de reglas del área está vacía.");
+        var p = fila.params || {};
+        // Se parte SIEMPRE de los valores de fábrica y encima se pone lo del área. Así, si el área
+        // no tiene definido un parámetro (por ejemplo porque la regla es nueva en esta versión de la
+        // app), ese parámetro queda en su valor original en vez de quedar indefinido.
+        reglasParams = JSON.parse(JSON.stringify(REGLAS_PARAMS_DEFAULT));
+        Object.keys(REGLAS_PARAMS_DEFAULT).forEach(function(k){
+          if(p[k] !== undefined) reglasParams[k] = p[k];
+        });
+        reglasBitacora = Array.isArray(fila.bitacora) ? fila.bitacora : [];
+        reglasArea.disponible = true;
+        reglasArea.motivo = "";
+        reglasArea.actualizado = fila.actualizado || "";
+        reglasArea.actualizadoPor = fila.actualizado_por || "";
+        guardarReglasParams();   // la copia local queda igual a la del área
+        return true;
+      })
+      .catch(function(err){
+        reglasArea.disponible = false;
+        // 404 / PGRST205: la tabla no existe todavía -- falta correr la migración 0002. Se dice tal
+        // cual, porque el arreglo es concreto y no tiene nada que ver con la app.
+        var faltaTabla = err && (err.status === 404 ||
+          (err.data && String(err.data.code || "") === "PGRST205") ||
+          /reglas_masivas/.test(String(err.message || "")));
+        reglasArea.motivo = faltaTabla
+          ? "Las reglas compartidas del área todavía no están instaladas en el servidor. Cada computador está usando su propia copia."
+          : "No se pudieron leer las reglas del área (" + ((err && err.message) || "sin conexión") + "). Se están usando las guardadas en este computador.";
+        return false;
+      });
+  }
+  // Publica un cambio de reglas para las cuatro. Devuelve true solo si de verdad llegó al área:
+  // si falla, quien hizo el cambio TIENE que enterarse, porque si no creería que las demás ya están
+  // trabajando con la regla nueva cuando no es así.
+  function publicarReglasDelArea(){
+    if(!supaSession || !supaConfig) return Promise.resolve(false);
+    var cuerpo = {
+      params: reglasParams,
+      bitacora: reglasBitacora,
+      firma: firmaDeLasReglas(),
+      actualizado: new Date().toISOString(),
+      actualizado_por: state.profile.activeUser || ""
+    };
+    return supaFetch("/rest/v1/reglas_masivas?id=eq.masivas", {
+      method: "PATCH",
+      headers: {"Prefer": "return=representation"},
+      body: JSON.stringify(cuerpo)
+    }).then(function(rows){
+      var fila = rows && rows[0];
+      reglasArea.disponible = true;
+      reglasArea.motivo = "";
+      reglasArea.actualizado = (fila && fila.actualizado) || cuerpo.actualizado;
+      reglasArea.actualizadoPor = (fila && fila.actualizado_por) || cuerpo.actualizado_por;
+      return true;
+    }).catch(function(err){
+      reglasArea.disponible = false;
+      reglasArea.motivo = "El cambio quedó guardado en ESTE computador, pero NO se pudo enviar al área (" +
+                          ((err && err.message) || "sin conexión") + "). Las demás personas siguen con la regla anterior.";
+      return false;
+    });
   }
   function paramEnLista(clave, valor){
     var l = reglasParams[clave] || [];
@@ -7547,30 +7662,25 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   };
   var PARAMS_GRAVEDAD = { gravedadRadicadoRepetido:1, gravedadComparendoRepetido:1, gravedadResolucionRepetida:1 };
 
+  // La bitácora es del ÁREA: la misma para las cuatro, y cada entrada dice quién hizo el cambio.
   function leerBitacoraReglas(){
-    if(!state.profile.activeUser) return [];
-    try{
-      var raw = localStorage.getItem(reglasBitacoraKeyFor(state.profile.activeUser));
-      var l = raw ? JSON.parse(raw) : [];
-      return Array.isArray(l) ? l : [];
-    }catch(e){ return []; }
+    return Array.isArray(reglasBitacora) ? reglasBitacora : [];
   }
   // Solo se AÑADE. No hay ninguna función que borre entradas: si se pudiera borrar la bitácora, no
   // serviría para lo que se pidió.
   function anotarEnBitacora(entrada){
-    if(!state.profile.activeUser) return;
-    var l = leerBitacoraReglas();
-    l.push(entrada);
-    try{ localStorage.setItem(reglasBitacoraKeyFor(state.profile.activeUser), JSON.stringify(l)); }catch(e){}
-    idbSet(reglasBitacoraKeyFor(state.profile.activeUser), l);
+    reglasBitacora = leerBitacoraReglas().concat([entrada]);
+    try{ localStorage.setItem(reglasBitacoraKey(), JSON.stringify(reglasBitacora)); }catch(e){}
+    idbSet(reglasBitacoraKey(), reglasBitacora);
   }
+  // La firma SÍ es de este computador: es "lo último que yo vi". Así, cuando otra de las cuatro
+  // ajusta una regla, a las demás les salta el aviso al entrar -- que es exactamente lo que se
+  // quiere que pase. No sirve compartirla: entonces nadie se enteraría del cambio de nadie.
   function guardarFirmaDeLasReglas(){
-    if(!state.profile.activeUser) return;
-    try{ localStorage.setItem(reglasFirmaKeyFor(state.profile.activeUser), firmaDeLasReglas()); }catch(e){}
+    try{ localStorage.setItem(reglasFirmaKey(), firmaDeLasReglas()); }catch(e){}
   }
   function firmaGuardada(){
-    if(!state.profile.activeUser) return "";
-    try{ return localStorage.getItem(reglasFirmaKeyFor(state.profile.activeUser)) || ""; }catch(e){ return ""; }
+    try{ return localStorage.getItem(reglasFirmaKey()) || ""; }catch(e){ return ""; }
   }
   // ¿Las reglas cambiaron sin pasar por aquí? Devuelve true solo cuando ya había una firma anotada
   // antes (la primera vez no hay con qué comparar y no se alarma por nada).
@@ -7587,9 +7697,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(!state.profile.activeUser) return;
     if(!firmaGuardada()){ guardarFirmaDeLasReglas(); return; }
     if(!reglasCambiaronSinAnotar()) return;
-    showDataSafetyBanner(
-      "Las reglas que aplica la app CAMBIARON y ese cambio no está en la bitácora. Revísalas antes de entregar nada.",
-      "warn", "Ver las reglas", abrirReglas);
+    // Dos casos distintos, y conviene no confundirlos:
+    //  - Otra de las cuatro ajustó una regla: es normal, pero hay que enterarse y saber quién.
+    //  - Las reglas cambiaron sin que nadie las ajuste (una actualización de la app las tocó): eso
+    //    es lo grave, y es lo que esta comprobación existe para que no pase desapercibido.
+    var quien = reglasArea.actualizadoPor;
+    var msg = quien && quien !== state.profile.activeUser
+      ? "Las reglas del área las ajustó " + quien + ". Este computador ya está trabajando con las nuevas: revísalas antes de entregar nada."
+      : "Las reglas que aplica la app CAMBIARON y ese cambio no está en la bitácora. Revísalas antes de entregar nada.";
+    showDataSafetyBanner(msg, "warn", "Ver las reglas", abrirReglas);
   }
   function valorParamComoTexto(clave){
     var v = reglasParams[clave];
@@ -7602,6 +7718,28 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var resumen = document.getElementById("reglasResumen");
     var aviso = document.getElementById("reglasFirmaAviso");
     if(!panel) return;
+
+    // 0) De dónde salen las reglas que se están aplicando. Es lo primero que hay que poder ver:
+    // una regla ajustada que no llegó a las demás es peor que no haberla ajustado.
+    var est = document.getElementById("reglasOrigen");
+    if(est){
+      if(reglasArea.disponible === true){
+        est.className = "reglas-origen ok";
+        est.innerHTML = "<b>Reglas del área de Masivas</b> — las mismas para las cuatro personas. " +
+          (reglasArea.actualizadoPor
+            ? "Último ajuste: " + escapeHtml(reglasArea.actualizadoPor) +
+              (reglasArea.actualizado ? " · " + escapeHtml(new Date(reglasArea.actualizado).toLocaleString("es-CO")) : "")
+            : "Sin ajustes: están tal como se configuraron.");
+      }else if(reglasArea.disponible === false){
+        est.className = "reglas-origen mal";
+        est.innerHTML = "<b>Atención: estas reglas son solo de este computador.</b><br>" +
+          escapeHtml(reglasArea.motivo || "") +
+          "<br>Lo que ajustes aquí NO les llega a las otras tres personas mientras siga así.";
+      }else{
+        est.className = "reglas-origen";
+        est.textContent = "Comprobando de dónde vienen las reglas…";
+      }
+    }
 
     // 1) El aviso de firma, arriba del todo y en rojo.
     if(reglasCambiaronSinAnotar()){
@@ -7826,8 +7964,22 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     cambioReglaPendiente = null;
     renderReglas();
     renderAll();
-    toast(c.esRestaurar ? "Las reglas volvieron a su valor original."
-                        : "Regla " + c.regla.id + " ajustada y anotada en la bitácora.");
+    // Publicar al área es parte del cambio, no un extra. Si no llega, quien lo hizo tiene que
+    // enterarse ahora mismo: creer que las otras tres ya trabajan con la regla nueva cuando no es
+    // así es peor que no haberla cambiado.
+    publicarReglasDelArea().then(function(llego){
+      renderReglas();
+      if(llego){
+        toast(c.esRestaurar
+          ? "Las reglas del área volvieron a su valor original. Las cuatro personas las verán al entrar."
+          : "Regla " + c.regla.id + " ajustada para toda el área y anotada en la bitácora.");
+      }else{
+        showDataSafetyBanner(
+          "El cambio de la regla " + (c.esRestaurar ? "(restauración)" : c.regla.id) +
+          " quedó guardado en ESTE computador, pero no se pudo enviar al área. Las otras personas siguen con la regla anterior.",
+          "warn", "Ver las reglas", abrirReglas);
+      }
+    });
   });
   document.getElementById("reglaCambioCancel").addEventListener("click", function(){
     document.getElementById("reglaCambioDialog").close();

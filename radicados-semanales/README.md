@@ -25,13 +25,24 @@ final.
    (Si el panel de Supabase se rompe con un error raro de `removeChild`,
    ábrelo en una ventana de incógnito e inténtalo de nuevo — es un bug del
    navegador con el panel de Supabase, no de este script.)
-3. En **Authentication → Providers → Email**, confirma que el login por
+3. **SQL Editor → New query** → pega todo el contenido de
+   `supabase/migrations/0002_reglas_masivas.sql` → **Run**.
+   Esto crea las **reglas compartidas del área de Masivas**: una sola fila
+   que leen y escriben las cuatro personas, para que las reglas con las que
+   se arma la masiva sean las mismas en los cuatro computadores.
+
+   Si te saltas este paso la app funciona igual, pero cada computador usa
+   su propia copia de las reglas y lo que ajuste una persona no les llega
+   a las demás. La app lo dice en la ventana **Reglas**: si arriba sale un
+   recuadro amarillo que dice "estas reglas son solo de este computador",
+   es que falta correr este archivo.
+4. En **Authentication → Providers → Email**, confirma que el login por
    correo esté activo (viene así por defecto). Si quieres que la gente
    pueda entrar apenas se registre, sin tener que confirmar el correo
    primero, apaga "Confirm email" ahí mismo. Si lo dejas activo, después de
    registrarse van a tener que abrir un correo de confirmación antes de
    poder entrar por primera vez.
-4. En **Authentication → URL Configuration**, agrega la URL donde vas a
+5. En **Authentication → URL Configuration**, agrega la URL donde vas a
    publicar la app (la de Netlify, ver abajo) en *Site URL* y en
    *Redirect URLs*.
 
@@ -47,7 +58,7 @@ final.
 2. En "Base directory" pon `radicados-semanales`.
 3. Deja "Build command" vacío y "Publish directory" en `.` (ya está indicado en `netlify.toml`).
 4. Despliega. Cada vez que se actualice esta carpeta en GitHub, Netlify vuelve a publicar sola.
-5. Copia la URL que te dé Netlify y agrégala en Supabase (paso 1.4).
+5. Copia la URL que te dé Netlify y agrégala en Supabase (paso 1.5).
 
 ## 3. Conectar la app a tu proyecto de Supabase
 
@@ -115,6 +126,13 @@ navegador, sino uno propio de la app.
 - **Cada persona solo ve sus propios radicados.** La base de datos está
   configurada con seguridad a nivel de fila (RLS), así que ni siquiera
   con el enlace de otro usuario se puede ver su información.
+- **La única excepción, a propósito: las reglas.** La app es del área de
+  Masivas y la usan cuatro personas; las reglas con las que se arma la
+  masiva son del área, no de cada quien, así que viven en una sola fila
+  compartida. Cualquiera de las cuatro puede ajustarlas, pero cada cambio
+  pasa por doble verificación, queda anotado en la bitácora con el correo
+  de quien lo hizo, y a las demás les sale un aviso la próxima vez que
+  entren. Se ve todo en la ventana **Reglas**.
 - **Solo se aceptan correos `@gmail.com`** — es una regla explícita del
   proyecto, tanto en la pantalla de registro como en el servidor.
 - El Excel oficial de tu Secretaría **nunca se toca ni se modifica** — esta
