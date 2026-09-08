@@ -1,6 +1,6 @@
 # Radicados Semanales
 
-App interna de la Secretaría de Movilidad de Bogotá para clasificar radicados semanales de comparendos y generar el documento final en Excel (formato MASIVA, 27 columnas).
+App interna del **área de Masivas** de la Secretaría de Movilidad de Bogotá para clasificar radicados semanales de comparendos y generar el documento final en Excel (formato MASIVA, 27 columnas). La usan las cuatro personas del área.
 
 ## Qué es
 

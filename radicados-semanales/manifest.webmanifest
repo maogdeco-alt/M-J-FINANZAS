@@ -1,7 +1,7 @@
 {
-  "name": "MASIVOS SISTEMA — Radicados Semanales",
+  "name": "Radicados Semanales — Área de Masivas",
   "short_name": "MASIVOS",
-  "description": "Sistema de gestión de radicados semanales de comparendos — Secretaría de Movilidad de Bogotá.",
+  "description": "Sistema de gestión de radicados semanales de comparendos del área de Masivas — Secretaría de Movilidad de Bogotá.",
   "id": "/",
   "start_url": "./index.html",
   "scope": "./",
