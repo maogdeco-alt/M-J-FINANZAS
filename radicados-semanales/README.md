@@ -21,28 +21,32 @@ final.
    **separado** del que uses para otras apps — este maneja datos de
    personas (nombres, cédulas), así que conviene mantenerlo aparte.
 2. **SQL Editor → New query** → pega todo el contenido de
-   `supabase/migrations/0001_init.sql` → **Run**.
+   `supabase/instalar_todo.sql` → **Run**. Ese archivo lo deja todo
+   instalado de una vez: las cuentas, el trabajo de cada persona y las
+   **reglas compartidas del área de Masivas**.
+
+   Se puede correr aunque ya lo hayas hecho antes: no borra nada, no
+   duplica nada y no toca los radicados guardados.
+
    (Si el panel de Supabase se rompe con un error raro de `removeChild`,
    ábrelo en una ventana de incógnito e inténtalo de nuevo — es un bug del
    navegador con el panel de Supabase, no de este script.)
-3. **SQL Editor → New query** → pega todo el contenido de
-   `supabase/migrations/0002_reglas_masivas.sql` → **Run**.
-   Esto crea las **reglas compartidas del área de Masivas**: una sola fila
-   que leen y escriben las cuatro personas, para que las reglas con las que
-   se arma la masiva sean las mismas en los cuatro computadores.
 
-   Si te saltas este paso la app funciona igual, pero cada computador usa
-   su propia copia de las reglas y lo que ajuste una persona no les llega
+   Los archivos por separado siguen en `supabase/migrations/` por si
+   alguna vez hace falta mirar qué trajo cada cambio.
+
+   Si te saltas la parte de las reglas, la app funciona igual, pero cada
+   computador usa su propia copia y lo que ajuste una persona no les llega
    a las demás. La app lo dice en la ventana **Reglas**: si arriba sale un
    recuadro amarillo que dice "estas reglas son solo de este computador",
    es que falta correr este archivo.
-4. En **Authentication → Providers → Email**, confirma que el login por
+3. En **Authentication → Providers → Email**, confirma que el login por
    correo esté activo (viene así por defecto). Si quieres que la gente
    pueda entrar apenas se registre, sin tener que confirmar el correo
    primero, apaga "Confirm email" ahí mismo. Si lo dejas activo, después de
    registrarse van a tener que abrir un correo de confirmación antes de
    poder entrar por primera vez.
-5. En **Authentication → URL Configuration**, agrega la URL donde vas a
+4. En **Authentication → URL Configuration**, agrega la URL donde vas a
    publicar la app (la de Netlify, ver abajo) en *Site URL* y en
    *Redirect URLs*.
 
@@ -58,7 +62,7 @@ final.
 2. En "Base directory" pon `radicados-semanales`.
 3. Deja "Build command" vacío y "Publish directory" en `.` (ya está indicado en `netlify.toml`).
 4. Despliega. Cada vez que se actualice esta carpeta en GitHub, Netlify vuelve a publicar sola.
-5. Copia la URL que te dé Netlify y agrégala en Supabase (paso 1.5).
+5. Copia la URL que te dé Netlify y agrégala en Supabase (paso 1.4).
 
 ## 3. Conectar la app a tu proyecto de Supabase
 
