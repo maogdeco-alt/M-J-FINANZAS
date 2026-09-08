@@ -38,7 +38,11 @@
     --surface-2:#e9f3ee;
     --border:#d6e6dd;
     --ink:#132621;
-    --muted:#5d7669;
+    /* Medido sobre los CUATRO fondos donde se usa de verdad -- blanco, fondo general, panel
+       tintado y fila seleccionada -- porque el peor caso es la fila seleccionada, que es la
+       más tintada. Con #5d7669 quedaba en 4.37 ahí y la norma pide 4.5.
+       Ahora: 5.44 / 5.02 / 4.80 / 4.57. A la vista es el mismo gris verdoso. */
+    --muted:#576f63;
     --accent:#0f7a4d;
     --accent-2:#0b5c3a;
     --accent-ink:#ffffff;
@@ -49,6 +53,12 @@
     --ok-soft:#e1f5ec;
     --warn:#9c6b12;
     --warn-soft:#f7edd9;
+    /* Los dos de arriba son para PINTAR (puntos, barras, bordes): ahí el color vivo es lo que se
+       quiere y el contraste de texto no aplica. Estos dos son para ESCRIBIR sobre el fondo suave
+       correspondiente, donde el vivo se queda en 2.97 y 3.99 y la norma pide 4.5. Medido, no
+       supuesto: con estos quedan en 4.58 y 4.59. */
+    --ok-text:#247b53;
+    --warn-text:#906211;
     --shadow: 0 1px 2px rgba(13,40,30,0.06), 0 8px 24px rgba(13,40,30,0.08);
     --radius: 12px;
   }
@@ -58,6 +68,7 @@
       --ink:#eaf3ee; --muted:#9db8ab; --accent:#4fcf95; --accent-2:#7fe0b0; --accent-ink:#08150f;
       --accent-soft:#1c3a2c; --stamp:#e2685c; --stamp-soft:#3a211d;
       --ok:#6fe0ac; --ok-soft:#173325; --warn:#e0b45c; --warn-soft:#3a300f;
+      --ok-text:#6fe0ac; --warn-text:#e0b45c;  /* en oscuro los vivos ya cumplen: 8.42 y 6.74 */
       --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 28px rgba(0,0,0,0.4);
     }
   }
@@ -66,6 +77,7 @@
     --ink:#eaf3ee; --muted:#9db8ab; --accent:#4fcf95; --accent-2:#7fe0b0; --accent-ink:#08150f;
     --accent-soft:#1c3a2c; --stamp:#e2685c; --stamp-soft:#3a211d;
     --ok:#6fe0ac; --ok-soft:#173325; --warn:#e0b45c; --warn-soft:#3a300f;
+    --ok-text:#6fe0ac; --warn-text:#e0b45c;  /* en oscuro los vivos ya cumplen: 8.42 y 6.74 */
     --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 28px rgba(0,0,0,0.4);
   }
 
@@ -242,7 +254,7 @@
   .navbtn{display:inline-flex;align-items:center;gap:7px;background:var(--surface);
     border:1px solid var(--border);border-radius:9px;padding:8px 13px;font:inherit;
     font-size:0.86rem;font-weight:600;color:var(--ink);cursor:pointer;}
-  .navbtn:hover{background:var(--surface-2);border-color:var(--rule-strong,var(--border));}
+  .navbtn:hover{background:var(--surface-2);border-color:var(--border);}
   .navbtn svg{color:var(--muted);flex:none;}
   .navbtn.primario{background:var(--accent);border-color:var(--accent);color:var(--accent-ink,#fff);}
   .navbtn.primario svg{color:currentColor;}
@@ -420,8 +432,8 @@
   .at-arrow{color:var(--accent);font-weight:700;font-size:0.86rem;white-space:nowrap;}
   @media (max-width:520px){ .at-sub{display:none;} }
   .pill.set{background:var(--accent-soft);color:var(--accent);border-color:transparent;}
-  .pill.pend{background:var(--warn-soft);color:var(--warn);border-color:transparent;}
-  .pill.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent;}
+  .pill.pend{background:var(--warn-soft);color:var(--warn-text);border-color:transparent;}
+  .pill.ok{background:var(--ok-soft);color:var(--ok-text);border-color:transparent;}
   .pill.danger{background:var(--stamp-soft);color:var(--stamp);border-color:transparent;}
 
   footer.note{margin-top:28px;color:var(--muted);font-size:0.88rem;line-height:1.65;}
@@ -581,7 +593,11 @@
      fuera del panel. Es la lista que más se mira en toda la app. */
   .queue-item .qi-radicado{display:block;font-variant-numeric:tabular-nums;font-weight:700;font-size:0.86rem;}
   .queue-item .qi-name{display:block;font-size:0.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
-  .queue-item .qi-del{border:none;background:transparent;color:var(--muted);cursor:pointer;padding:2px 4px;font-size:0.8rem;line-height:1;flex:none;}
+  .queue-item .qi-del{border:none;background:transparent;color:var(--muted);cursor:pointer;
+                      /* 24x24 mínimo: es el botón que BORRA un radicado. Pequeño se falla el
+                         tiro, y fallarlo aquí sale caro. No cambia de sitio ni de función. */
+                      min-width:24px;min-height:24px;display:inline-flex;align-items:center;
+                      justify-content:center;padding:2px 4px;font-size:0.8rem;line-height:1;flex:none;}
   .queue-item .qi-del:hover{color:var(--stamp);}
   .queue-item.prioritario{background:var(--stamp-soft);border-color:var(--stamp);}
   .queue-item.prioritario.active{background:var(--stamp-soft);border-color:var(--stamp);box-shadow:0 0 0 2px var(--stamp) inset;}
@@ -612,7 +628,14 @@
   /* Dos columnas para los campos cortos (Formato/Dirección, Res./Fecha res.) -- el pegado del
      comparendo y el Comentario ocupan las dos columnas (.full). Pensado para que el formulario quepa
      en pantalla de computador sin tener que bajar tanto el cursor. */
-  .work-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;}
+  /* minmax(0,1fr), NO 1fr a secas. Con "1fr" el ancho mínimo de cada columna es su contenido,
+     y la línea de Fénix es una tira larguísima sin espacios: al pegarla, la columna se estiraba
+     para caber entera y dejaba a la otra en 90 px. Medido a 150% de zoom: las columnas pasaban
+     de 249/249 a 441/90, la casilla de Dirección quedaba inservible y el formulario se salía
+     32 px de su caja. Con minmax(0,...) la columna puede encogerse y el contenido largo se
+     queda dentro de su casilla, que es donde tiene que estar. */
+  .work-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 16px;}
+  .work-fields > div{min-width:0;}
   .work-fields > .full{grid-column:1 / -1;}
   .work-fields .formato-field input{font-weight:700;}
   /* Desplegable de sugerencias de Formato CONSTRUIDO A MANO (en vez de <datalist> nativo) -- a
@@ -644,9 +667,13 @@
   html.es-flotante .formato-dropdown .fd-item{padding:4px 8px;font-size:0.78rem;}
   /* El botón de SIMIT comparte fila con su label (ver .res-label-row) en vez de quedar en su propia
      línea entre el label y el campo -- una fila menos de alto en uno de los campos más usados. */
-  .res-label-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px;}
+  /* Que se envuelva y que el botón pueda encogerse: en una columna estrecha (150% de zoom) el
+     botón de SIMIT se salía 191 px de su caja y quedaba medio cortado. Medido. */
+  .res-label-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+                 margin-bottom:6px;flex-wrap:wrap;min-width:0;}
+  .res-label-row > *{min-width:0;max-width:100%;}
   .res-label-row label{margin-bottom:0;}
-  .simit-btn{margin-left:8px;padding:3px 11px;font-size:0.76rem;border-radius:999px;background:var(--accent-soft);border-color:transparent;color:var(--accent);vertical-align:middle;text-decoration:none;}
+  .simit-btn{margin-left:0;padding:3px 11px;font-size:0.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:999px;background:var(--accent-soft);border-color:transparent;color:var(--accent);vertical-align:middle;text-decoration:none;}
   .simit-btn:hover{background:var(--accent);color:var(--accent-ink);filter:none;}
   .simit-btn:disabled{background:var(--surface-2);color:var(--muted);cursor:default;opacity:0.7;}
   .simit-btn:disabled:hover{background:var(--surface-2);color:var(--muted);}
@@ -745,9 +772,17 @@
   .regla-sinparam{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);
                   font-size:.82rem;color:var(--muted);}
   .reglas-grupo{margin:18px 0 4px;font-weight:800;letter-spacing:.02em;}
+  /* Bandas del porcentaje: misma señal que la barra, con colores que se leen en los dos temas. */
+  #statPct[data-banda="1"]{color:var(--stamp);}
+  #statPct[data-banda="2"],
+  #statPct[data-banda="3"]{color:var(--warn-text);}
+  #statPct[data-banda="4"]{color:var(--ok-text);}
+  #statPct[data-banda="5"]{color:var(--accent);}
+
   .reglas-filtros{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px;width:100%;}
   .reglas-filtros input[type=search]{flex:1 1 260px;min-width:180px;}
-  .reglas-solo{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);white-space:nowrap;}
+  .reglas-solo input[type=checkbox]{width:18px;height:18px;flex:none;cursor:pointer;}
+  .reglas-solo{display:flex;align-items:center;gap:6px;min-height:24px;font-size:.85rem;color:var(--muted);white-space:nowrap;}
   .reglas-momento{margin:20px 0 6px;padding-bottom:6px;border-bottom:2px solid var(--border);}
   .reglas-momento b{font-size:1rem;}
   .reglas-momento span{display:block;font-size:.82rem;color:var(--muted);font-weight:400;margin-top:2px;}
@@ -756,7 +791,7 @@
                 border-radius:999px;padding:2px 9px;flex:none;border:1px solid transparent;}
   .regla-efecto.estructural{background:var(--accent-soft);color:var(--accent-2);}
   .regla-efecto.imperativa{background:var(--stamp-soft);color:var(--stamp);}
-  .regla-efecto.aviso{background:var(--warn-soft);color:var(--warn);}
+  .regla-efecto.aviso{background:var(--warn-soft);color:var(--warn-text);}
   .regla-detalle{margin-top:8px;}
   .regla-detalle summary{cursor:pointer;font-size:.82rem;color:var(--muted);}
   .regla-detalle summary:hover{color:var(--ink);}
@@ -872,7 +907,7 @@
   .ws-seccion>h4{margin:0 0 8px;font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;
     color:var(--muted);font-weight:700;}
   .ws-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 16px;margin:0;}
-  .ws-campos dt{font-size:0.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
+  .ws-campos dt{font-size:0.75rem;   /* 11.2px quedaba por debajo de lo cómodo de leer */text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
   .ws-campos dd{margin:1px 0 0;font-weight:600;font-size:0.86rem;overflow-wrap:anywhere;}
   .ws-linea{border:0;border-top:1px solid var(--border);margin:16px 0 0;}
   .ws-acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
@@ -919,7 +954,7 @@
   .account-info{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-size:0.88rem;display:flex;flex-direction:column;gap:6px;}
   .account-info .ai-row{display:flex;justify-content:space-between;gap:10px;color:var(--muted);}
   .account-info .ai-row b{color:var(--ink);font-weight:600;}
-  .account-info .ai-row .ok-dot{color:var(--ok);font-weight:700;}
+  .account-info .ai-row .ok-dot{color:var(--ok-text);font-weight:700;}
   .account-info .ai-row .warn-dot{color:var(--stamp);font-weight:700;}
 
   .report-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0;}
@@ -5175,7 +5210,6 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(plantilla.indexOf("SIN RES") !== -1) return false;
     return true;
   }
-  function hasComparendo(r){ return !!r.comparendoCompleto; }
 
   // ============================================================
   // ALARMA DE DATOS REPETIDOS (radicado, comparendo, resolución)
@@ -5370,7 +5404,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     fill.style.width = pct + "%";
     // Same 5-band color scale as the conditional formatting on REVISION MANUAL!A1.
     fill.style.background = pct < 25 ? "#b3261e" : pct < 50 ? "#c07a1a" : pct < 75 ? "#9c6b12" : pct < 95 ? "#4fa578" : "#0f7a4d";
-    document.getElementById("statPct").style.color = fill.style.background;
+    // El NÚMERO no copia el color de la barra: en tema oscuro ese verde intermedio se queda en 3.00
+    // de contraste y la norma pide 4.5. Conserva la misma señal (la banda) pero pintada con los
+    // colores del tema, que cumplen en claro y en oscuro. La barra sigue con los colores del Excel.
+    document.getElementById("statPct").style.color = "";
+    document.getElementById("statPct").dataset.banda =
+      pct < 25 ? "1" : pct < 50 ? "2" : pct < 75 ? "3" : pct < 95 ? "4" : "5";
 
     // Espejo de REVISION MANUAL filas A5:A10 (COUNTIF(FORMATO)/total), pero con categorías editables desde Ajustes.
     var categories = (state.settings && state.settings.formatCategories) || DEFAULT_SETTINGS.formatCategories;
@@ -5538,44 +5577,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }).join("");
   }
 
-  // Formulario de edición DENTRO de la ventana de Agendamientos. Antes había que salir al Paso 2,
-  // buscar el radicado y volver -- en una revisión de la mañana con veinte agendamientos, eso es
-  // justo lo que hace que se dejen a medias. Son los campos que de verdad se tocan aquí; para
-  // cualquier otra cosa sigue estando el botón "Abrir en el Paso 2".
-  function formularioAgendaInline(rec){
-    function campo(id, etiqueta, valor, placeholder){
-      return '<div><label for="'+id+'">'+escapeHtml(etiqueta)+'</label>' +
-             '<input id="'+id+'" value="'+escapeHtml(valor||"")+'" placeholder="'+escapeHtml(placeholder||"")+'"></div>';
-    }
-    var opciones = AGENDA_FORMATOS.map(function(o){
-      return '<option value="'+escapeHtml(o)+'"'+(rec.agendaFormato===o?' selected':'')+'>'+escapeHtml(o)+'</option>';
-    }).join("");
-    return '<div class="ai-edit">' +
-      '<div class="ai-edit-grid">' +
-        campo("ae_direccion", "Correo o dirección", rec.direccion, "correo o dirección de notificación") +
-        campo("ae_placa", "Placa", rec.placa, "ej. ABC123") +
-        // La columna FORMATO de la plantilla que se entrega: la decide la abogada caso por caso.
-        '<div><label for="ae_agendaFormato">Formato de la plantilla</label>' +
-        '<select id="ae_agendaFormato"><option value="">(sin elegir)</option>' + opciones + '</select></div>' +
-        campo("ae_comentario", "Comentario", rec.comentario, "notas de esta solicitud") +
-      '</div>' +
-      '<div style="margin-top:10px;">' +
-        '<label for="ae_comparendo">Línea completa del comparendo (hasta la Placa)</label>' +
-        '<textarea id="ae_comparendo" rows="2" placeholder="Pega aquí la línea copiada de Fénix">'+escapeHtml(rec.comparendoRaw||"")+'</textarea>' +
-        '<div class="field-hint">Al pegarla se recalculan solos el término, la placa y los datos del infractor.</div>' +
-      '</div>' +
-      '<div class="ai-actions" style="margin-top:10px;">' +
-        '<button class="btn primary small" data-agendaguardar="'+rec.id+'" type="button">Guardar cambios</button>' +
-        '<button class="btn ghost small" data-agendacancelar="1" type="button">Cancelar</button>' +
-      '</div></div>';
-  }
-  // ============================================================
-  // HISTORIAL DE RADICADOS — la memoria completa
-  // ------------------------------------------------------------
-  // Hasta ahora, lo que le pasó a un radicado estaba repartido en tres sitios que no se hablaban:
-  // la lista viva, los registros de cada semana cerrada, y la papelera. Para responder "¿qué pasó
-  // con este radicado?" meses después había que abrir los tres y comparar a mano. Esto los une.
-  //
+
   // Traduce la clasificación de un radicado a lo que REALMENTE le ocurrió, en palabras.
   function queLePaso(rec){
     var f = (rec.formato||"").trim().toUpperCase();
@@ -7920,7 +7922,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se sube a mano en cada publicación. No se calcula solo a propósito: si se generara con la fecha
   // del navegador diría siempre "hoy" y no distinguiría una versión de otra, que es justo para lo
   // que sirve.
-  var VERSION_APP = "2026-09-08 · reglas claras + alertas inmediatas";
+  var VERSION_APP = "2026-09-09 · auditoría integral";
   var TIPO_REGLA_TEXTO = {
     estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
     imperativa:  "Imperativa — la app avisa y hay que resolverlo",
@@ -8547,9 +8549,6 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       "que ya estaba. Antes de importar quedó un punto de restauración, por si quieres deshacerlo.", "warn");
   });
 
-  function esDevuelto(rec){
-    return normalizeFormatoInput(rec.formato).toUpperCase() === "DEVUELTO";
-  }
   function finalDocEligible(){
     // Mismo criterio que "completo" en toda la app: Formato lleno (igual que tu Excel original) --
     // EXCEPTO Formato = AGENDAMIENTO (vive aparte, en la ventana "Agendamientos") y Formato =
@@ -9265,7 +9264,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
           "y cerrar sin ese archivo habría hecho que perdieras la semana entera. " +
           "Descarga el respaldo (.json) del Paso 3 ahora mismo; con él a salvo puedes liberar espacio " +
           "y volver a intentarlo.", "error", "Descargar respaldo ahora", function(){
-            var b = document.getElementById("backupBtn") || document.getElementById("downloadJsonBtn");
+            var b = document.getElementById("downloadJsonBtn");
             if(b) b.click();
           });
         toast("Semana NO cerrada — no se pudo archivar. Tus radicados siguen intactos.", "warn");
