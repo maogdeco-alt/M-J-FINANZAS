@@ -702,6 +702,37 @@
   .install-app-btn[hidden]{display:none;} /* el atributo hidden nativo pierde contra el display:inline-flex de .btn sin esta regla */
   @media (max-width:640px){ .install-app-btn{padding:9px 12px;} .install-app-btn .btn-label{display:none;} }
 
+  /* ---------- Reglas ---------- */
+  .reglas-btn svg{width:16px;height:16px;flex:none;}
+  @media (max-width:900px){ .reglas-btn .btn-label{display:none;} }
+  .regla-card{border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin:10px 0;background:var(--surface);}
+  .regla-card.estructural{border-left:4px solid var(--accent);}
+  .regla-card.imperativa{border-left:4px solid var(--stamp);}
+  .regla-card.aviso{border-left:4px solid var(--warn);}
+  .regla-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .regla-id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800;font-size:.86rem;
+            letter-spacing:.03em;color:var(--muted);flex:none;}
+  .regla-titulo{font-weight:700;flex:1 1 240px;min-width:0;}
+  .regla-tipo{font-size:.7rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+              border-radius:999px;padding:2px 8px;border:1px solid var(--border);color:var(--muted);flex:none;}
+  .regla-texto{margin:6px 0 0;color:var(--muted);font-size:.9rem;line-height:1.5;}
+  .regla-donde{margin:6px 0 0;font-size:.8rem;color:var(--muted);opacity:.85;}
+  .regla-param{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);
+               display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .regla-param .valores{display:flex;gap:6px;flex-wrap:wrap;flex:1 1 200px;min-width:0;}
+  .regla-valor{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;font-weight:700;
+               border:1px solid var(--border);border-radius:999px;padding:3px 10px;background:var(--bg);}
+  .regla-sinparam{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);
+                  font-size:.82rem;color:var(--muted);}
+  .reglas-grupo{margin:18px 0 4px;font-weight:800;letter-spacing:.02em;}
+  .reglas-firma-mal{border:2px solid var(--stamp);border-radius:10px;padding:12px 14px;margin:0 0 12px;
+                    background:var(--stamp-soft);}
+  .bitacora-fila{border-bottom:1px solid var(--border);padding:8px 2px;font-size:.85rem;}
+  .bitacora-fila:last-child{border-bottom:0;}
+  .bitacora-fecha{color:var(--muted);font-size:.78rem;}
+  #reglaCambioConfirmInput{width:100%;max-width:320px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+                           font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+
   /* Objetivos de toque más grandes en pantallas táctiles (celular/tablet) — evita que un botón
      pequeño en el dedo se sienta impreciso o "no responda" a la primera. */
   @media (hover:none) and (pointer:coarse){
@@ -943,6 +974,13 @@
       <button class="icon-btn" id="themeToggleBtn" type="button" title="Cambiar entre tema claro y oscuro" aria-label="Cambiar entre tema claro y oscuro">
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 13.6A9 9 0 1 1 10.9 3.2a7.2 7.2 0 0 0 10.1 10.4z"/></svg>
+      </button>
+      <!-- Las reglas, a un clic y con nombre propio. Van fuera de Ajustes a propósito: Ajustes es lo
+           que se configura, y esto es lo que la app OBLIGA. Mezclarlas daría a entender que una
+           regla es una preferencia más. -->
+      <button class="btn reglas-btn" id="reglasBtn" type="button" title="Ver las reglas que la app aplica y su bitácora de cambios">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M5 7h14M7 7l-3 6h6zM17 7l-3 6h6zM8 21h8"/></svg>
+        <span class="btn-label">Reglas</span>
       </button>
       <button class="user-badge" id="userBadge" type="button" title="Cambiar de usuario">
         <span class="avatar" id="userAvatar" aria-hidden="true">—</span>
@@ -1349,6 +1387,81 @@
     <div class="toolbar">
       <button class="btn ghost" id="repararFormatosClose" type="button">Cerrar</button>
     </div>
+  </div>
+</dialog>
+
+<!-- ============================================================================================
+     Dialog: REGLAS — la sección donde viven, a la vista, todas las reglas que la app aplica.
+
+     Nace de un reclamo exacto: "iniciamos la app con unas reglas muy claras que se respetaban, sin
+     embargo, a medida de las actualizaciones has descalibrado totalmente la app". Y de la condición
+     que se puso: las reglas son inalterables e inamovibles; se puede agregar, eliminar o ajustar
+     alguna, pero con DOBLE VERIFICACIÓN, y no existe ningún escenario en el que se reinterpreten
+     por cuenta ajena.
+
+     Cómo se cumple eso técnicamente, y no solo de palabra:
+       1. Lo que se muestra aquí NO es un documento: es el array REGLAS y el objeto reglasParams que
+          la app ejecuta. Si la pantalla dice una cosa, la app hace esa cosa; no pueden separarse.
+       2. Cada cambio pasa por dos actos distintos (revisar el "antes → después" y escribir el
+          identificador de la regla). No hay atajo de un clic.
+       3. Cada cambio queda anotado con fecha en la bitácora, que no se puede borrar desde aquí.
+       4. Al entrar se compara la FIRMA de las reglas con la última firma anotada. Si las reglas
+          cambiaron sin que haya un cambio en la bitácora -- por ejemplo porque una actualización de
+          la app las tocó -- sale un aviso rojo arriba del todo. Esa es la garantía de que una
+          reinterpretación silenciosa no puede pasar desapercibida.
+============================================================================================= -->
+<dialog id="reglasDialog" class="workspace" aria-labelledby="reglasTitle">
+  <div class="ws-head">
+    <div><span class="step">Reglas</span><h2 id="reglasTitle">Reglas de la app</h2></div>
+    <div class="ws-stats" id="reglasResumen"></div>
+  </div>
+  <div class="ws-tools">
+    <span class="hint">Esto es <b>todo</b> lo que la app comprueba, tal como lo ejecuta. No es un
+      resumen ni un manual aparte: es la misma lista que corre por dentro. El texto y el sentido de
+      cada regla no se tocan; lo editable es el <b>parámetro</b> (las clasificaciones o valores a los
+      que se aplica), y cualquier cambio pide <b>doble verificación</b> y queda anotado con fecha.</span>
+  </div>
+  <div class="ws-body una-columna">
+    <div class="ws-list">
+      <div id="reglasFirmaAviso" hidden></div>
+      <div class="ws-listhead" id="reglasCuenta">—</div>
+      <div id="reglasPanel"></div>
+      <div id="reglasBitacoraBloque">
+        <div class="ws-listhead">Bitácora de cambios</div>
+        <div id="reglasBitacora"></div>
+      </div>
+    </div>
+  </div>
+  <div class="ws-foot">
+    <span class="hint">Las reglas de fondo (las marcadas <b>estructural</b>) no tienen parámetro
+      editable: son las que sostienen la entrega y no se pueden aflojar desde aquí.</span>
+    <div class="toolbar">
+      <button class="btn ghost" id="reglasRestaurarBtn" type="button">Volver a las reglas originales</button>
+      <button class="btn ghost" id="reglasClose" type="button">Cerrar</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Dialog: DOBLE VERIFICACIÓN de un cambio de regla.
+     Paso 1: se ve exactamente qué regla y qué cambia (antes → después).
+     Paso 2: hay que escribir el identificador de la regla. Dos actos distintos y deliberados, para
+     que ningún cambio de regla pueda ocurrir por un clic de más. -->
+<dialog id="reglaCambioDialog" aria-labelledby="reglaCambioTitle">
+  <div class="panel-head"><h2 id="reglaCambioTitle">Verificación 1 de 2</h2></div>
+  <div class="panel-body">
+    <p class="hint" id="reglaCambioIntro">Vas a cambiar una regla de la app. Revisa que sea exactamente lo que quieres.</p>
+    <div class="settings-section" id="reglaCambioResumen"></div>
+    <div id="reglaCambioPaso2" hidden>
+      <p class="hint">Para confirmar, escribe el identificador de la regla —
+        <b id="reglaCambioIdEsperado">R00</b> — tal cual.</p>
+      <input id="reglaCambioConfirmInput" type="text" autocomplete="off" placeholder="Escribe el identificador de la regla">
+      <p class="hint" id="reglaCambioError" style="color:var(--stamp);" hidden>No coincide con el identificador de la regla.</p>
+    </div>
+  </div>
+  <div class="import-actions">
+    <button class="btn ghost" id="reglaCambioCancel" type="button">Cancelar</button>
+    <button class="btn primary" id="reglaCambioNext" type="button">Continuar a la verificación 2</button>
+    <button class="btn primary" id="reglaCambioConfirm" type="button" hidden>Confirmar el cambio</button>
   </div>
 </dialog>
 
@@ -3065,6 +3178,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // arreglo: la comprobación existía y no se ejecutaba nunca.
       reconciliarCopias(); // ¿la copia de seguridad va por delante del almacenamiento principal?
       setTimeout(refrescarAvisoFormatosInvalidos, 1200); // ¿hay clasificaciones inventadas de antes?
+      // Las REGLAS se cargan aquí, FUERA del if/else, por el mismo motivo que reconciliarCopias():
+      // cuando la nube trae datos no se llama a loadSettings(), así que dejar la carga solamente
+      // dentro de esa función la apagaba justo en el caso normal. El resultado habría sido la app
+      // corriendo con las reglas por defecto y descartando en silencio los ajustes de la usuaria --
+      // que es exactamente el fallo del que nace esta sección. Lo detectó la prueba, no la lectura.
+      cargarReglasParams();
+      revisarFirmaDeLasReglasAlEntrar();
       var recovered = recoverLegacyFlatDataInto();
 
       // Comparación contra la memoria persistente de este navegador: si la última vez que se
@@ -3261,6 +3381,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // en la llave vieja (instalaciones de antes de este arreglo), se adopta una sola vez y de una vez
   // se limpia la llave vieja, para no perder ajustes ya configurados ni dejarla dando vueltas.
   function loadSettings(){
+    // Las reglas se cargan junto con los Ajustes, por la misma cuenta y en el mismo momento: si los
+    // Ajustes de esta persona ya están cargados pero sus reglas todavía no, la app estaría
+    // comprobando con las reglas de otra sesión.
+    cargarReglasParams();
     if(!state.profile.activeUser){ state.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS)); applyRequiredMarkers(); refreshFormatoDatalist(); return; }
     var key = settingsKeyFor(state.profile.activeUser);
     try{
@@ -3281,6 +3405,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }
     applyRequiredMarkers();
     refreshFormatoDatalist();
+    revisarFirmaDeLasReglasAlEntrar();
   }
   // skipCloud: ver la nota junto a save() -- mismo motivo: reflejar en este navegador lo que se
   // acaba de traer de la nube (por ejemplo, justo al iniciar sesión) no debería, de paso, disparar
@@ -4627,12 +4752,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // - T10 / "Petición oscura": NO. Puede no tener un comparendo real; es válido entregarlo así.
   // - El formato marcado como "Excepción por formato" en Ajustes (T6 por defecto): NO.
   // - DEVUELTO y AGENDAMIENTO: no aplican, no entran al documento final.
+  // R04 + R02: lee del registro de reglas, no de una lista suelta.
   function comparendoEsObligatorio(formato){
     var f = String(formato||"").trim().toUpperCase();
-    if(f === "T10") return false;
+    if(paramEnLista("formatosSinComparendo", f)) return false;
     var exento = ((state.settings && state.settings.exemptFormato) || "").trim().toUpperCase();
     if(exento && f === exento) return false;
-    if(f === "DEVUELTO" || f === "AGENDAMIENTO") return false;
+    if(paramEnLista("formatosFueraDeLaMasiva", f)) return false;
     return true;
   }
   // ¿Este formato exige número de resolución? Se deduce de la PLANTILLA que le corresponde en
@@ -4644,11 +4770,149 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se comprueban las dos vías: la lista explícita y, además, cualquier formato cuya plantilla
   // configurada en Ajustes diga "SIN RES.", para que un formato nuevo con esa característica quede
   // cubierto solo, sin tener que acordarse de tocar esta lista.
-  var FORMATOS_SIN_RESOLUCION = ["T10", "T6"];
+  // ============================================================
+  // REGISTRO DE REGLAS  —  la ÚNICA fuente de verdad
+  // ------------------------------------------------------------
+  // Todas las reglas de negocio viven aquí, con su identificador, su texto en español y el
+  // parámetro que usan. La pantalla "Reglas" muestra EXACTAMENTE esta lista y estos parámetros: no
+  // es un documento aparte que se pueda despegar del código, es lo que la app ejecuta.
+  //
+  // Por qué existe: las reglas se fueron descalibrando actualización tras actualización sin que la
+  // usuaria pudiera verlo (formatos aceptados a medio escribir, devoluciones colándose en la
+  // masiva, duplicados marcados como graves cuando son normales). Con el registro a la vista, una
+  // regla mal puesta se detecta leyéndola, no cuando ya falló una entrega.
+  //
+  // Los parámetros son lo editable; el texto y el sentido de cada regla, no. Cualquier cambio pasa
+  // por DOBLE CONFIRMACIÓN y queda anotado en la bitácora (ver cambiarParametroDeRegla).
+  var REGLAS_PARAMS_DEFAULT = {
+    formatosSinComparendo:            ["T10"],
+    formatosSinResolucion:            ["T6", "T10"],
+    formatosConResolucionObligatoria: ["T1", "T5", "T11", "T14"],
+    formatosManualObligatorio:        ["T1"],
+    formatosElectronicoObligatorio:   ["T14"],
+    codigosQueObliganDevuelto:        ["F", "D12"],
+    estadoValidoComparendo:           "VIGENTE",
+    formatosFueraDeLaMasiva:          ["DEVUELTO", "AGENDAMIENTO"],
+    formatosQueExigenPlaca:           ["AGENDAMIENTO"],
+    gravedadRadicadoRepetido:         "grave",
+    gravedadComparendoRepetido:       "aviso",
+    gravedadResolucionRepetida:       "aviso"
+  };
+  var REGLAS_PARAMS_KEY = "radicados_reglas_params_v1";
+  var REGLAS_BITACORA_KEY = "radicados_reglas_bitacora_v1";
+  var REGLAS_FIRMA_KEY = "radicados_reglas_firma_v1";
+  function reglasParamsKeyFor(e){ return REGLAS_PARAMS_KEY + "::" + e; }
+  function reglasBitacoraKeyFor(e){ return REGLAS_BITACORA_KEY + "::" + e; }
+  function reglasFirmaKeyFor(e){ return REGLAS_FIRMA_KEY + "::" + e; }
+  var reglasParams = JSON.parse(JSON.stringify(REGLAS_PARAMS_DEFAULT));
+  function cargarReglasParams(){
+    reglasParams = JSON.parse(JSON.stringify(REGLAS_PARAMS_DEFAULT));
+    if(!state.profile.activeUser) return;
+    try{
+      var raw = localStorage.getItem(reglasParamsKeyFor(state.profile.activeUser));
+      if(!raw) return;
+      var guardado = JSON.parse(raw);
+      Object.keys(REGLAS_PARAMS_DEFAULT).forEach(function(k){
+        if(guardado[k] !== undefined) reglasParams[k] = guardado[k];
+      });
+    }catch(e){}
+  }
+  function guardarReglasParams(){
+    if(!state.profile.activeUser) return;
+    try{ localStorage.setItem(reglasParamsKeyFor(state.profile.activeUser), JSON.stringify(reglasParams)); }catch(e){}
+    idbSet(reglasParamsKeyFor(state.profile.activeUser), reglasParams);
+  }
+  function paramEnLista(clave, valor){
+    var l = reglasParams[clave] || [];
+    return l.map(function(x){ return normalizaTexto(x); }).indexOf(normalizaTexto(valor)) !== -1;
+  }
+  // Cada regla: qué dice, de qué tipo es y qué parámetro usa. "param" es lo único editable.
+  var REGLAS = [
+    {id:"R01", grupo:"Clasificación", tipo:"estructural", param:null,
+     titulo:"El Formato solo puede ser una clasificación de la lista",
+     texto:"Un radicado está SIN CLASIFICAR o tiene exactamente una de las clasificaciones configuradas en Ajustes → Clasificación. No se puede guardar un texto inventado (\"DEV\", \"DEVOL\", \"AGEND\"). Si lo escrito es el principio de una sola clasificación, se completa; si no corresponde a ninguna, no se guarda y se avisa.",
+     donde:"Al guardar un radicado"},
+    {id:"R02", grupo:"Masiva definitiva", tipo:"estructural", param:"formatosFueraDeLaMasiva",
+     titulo:"Estas clasificaciones NUNCA entran en la masiva definitiva",
+     texto:"La masiva que se entrega lleva solo los radicados clasificados con una plantilla de respuesta. Las devoluciones y los agendamientos van por otro camino y no aparecen ahí.",
+     donde:"Al generar la masiva definitiva"},
+    {id:"R03", grupo:"Masiva definitiva", tipo:"estructural", param:null,
+     titulo:"Un formato desconocido no entra en la masiva, pero se avisa",
+     texto:"Si un radicado quedó con un formato que no es ninguna clasificación, no entra en la masiva — pero la revisión previa lo muestra en primer lugar y en grande, para que no desaparezca en silencio.",
+     donde:"Revisión previa de la masiva"},
+    {id:"R04", grupo:"Comparendo", tipo:"aviso", param:"formatosSinComparendo",
+     titulo:"Estas clasificaciones pueden ir SIN número de comparendo",
+     texto:"El resto de clasificaciones sí lo exigen: sin comparendo la fila saldría prácticamente vacía. La petición oscura (T10) es el caso legítimo sin comparendo.",
+     donde:"Revisión previa de la masiva"},
+    {id:"R05", grupo:"Resolución", tipo:"imperativa", param:"formatosSinResolucion",
+     titulo:"Estas clasificaciones NO llevan resolución",
+     texto:"Si un radicado con una de estas clasificaciones tiene Res. o Fecha res., se avisa: o el formato está mal o esos datos sobran.",
+     donde:"Al guardar un radicado"},
+    {id:"R06", grupo:"Resolución", tipo:"imperativa", param:"formatosConResolucionObligatoria",
+     titulo:"Estas clasificaciones SIEMPRE llevan resolución",
+     texto:"No pueden quedar sin Res. ni Fecha res. Se avisa al guardar y otra vez antes de entregar.",
+     donde:"Al guardar y en la revisión previa"},
+    {id:"R07", grupo:"Comparendo", tipo:"imperativa", param:"formatosManualObligatorio",
+     titulo:"Estas clasificaciones son siempre comparendo MANUAL",
+     texto:"El MEDIO de la línea de Fénix debe decir COMPARENDERA. Si dice otra cosa, o el formato está mal o la línea pegada no corresponde.",
+     donde:"Al guardar un radicado"},
+    {id:"R08", grupo:"Comparendo", tipo:"imperativa", param:"formatosElectronicoObligatorio",
+     titulo:"Estas clasificaciones son siempre comparendo ELECTRÓNICO",
+     texto:"El MEDIO de la línea de Fénix NO puede decir COMPARENDERA.",
+     donde:"Al guardar un radicado"},
+    {id:"R09", grupo:"Devolución", tipo:"imperativa", param:"codigosQueObliganDevuelto",
+     titulo:"Estos códigos de infracción obligan a DEVUELTO",
+     texto:"Si el código de infracción de la línea de Fénix es uno de estos, la clasificación tiene que ser DEVUELTO.",
+     donde:"Al guardar un radicado"},
+    {id:"R10", grupo:"Devolución", tipo:"imperativa", param:"estadoValidoComparendo",
+     titulo:"Un comparendo que no esté en este estado obliga a DEVUELTO",
+     texto:"No se responde por cargue masivo un comparendo que no está vigente.",
+     donde:"Al guardar un radicado"},
+    {id:"R11", grupo:"Agendamientos", tipo:"imperativa", param:"formatosQueExigenPlaca",
+     titulo:"Estas clasificaciones exigen la PLACA",
+     texto:"Para el agendamiento hay que pegar la línea de Fénix completa HASTA LA PLACA (la masiva solo necesita hasta el nombre del infractor).",
+     donde:"Al guardar un radicado"},
+    {id:"R12", grupo:"Datos únicos", tipo:"imperativa", param:"gravedadRadicadoRepetido",
+     titulo:"El RADICADO no puede repetirse",
+     texto:"Cada radicado es un expediente distinto. Comprobado contra una masiva real ya entregada: no se repite ni una vez en 267 filas.",
+     donde:"Al guardar, en la revisión previa y en el panel de repetidos"},
+    {id:"R13", grupo:"Datos únicos", tipo:"aviso", param:"gravedadComparendoRepetido",
+     titulo:"El COMPARENDO repetido es un aviso, no un error",
+     texto:"Es normal que se repita: un mismo ciudadano radica varias veces por el mismo comparendo. En una masiva real había 8 comparendos compartidos por varios radicados. Se avisa para confirmar que no se copió al expediente equivocado, pero no bloquea.",
+     donde:"Al guardar, en la revisión previa y en el panel de repetidos"},
+    {id:"R14", grupo:"Datos únicos", tipo:"aviso", param:"gravedadResolucionRepetida",
+     titulo:"La RESOLUCIÓN repetida es un aviso, no un error",
+     texto:"Varios radicados del mismo ciudadano se resuelven con la misma resolución. En una masiva real había 7 resoluciones compartidas.",
+     donde:"Al guardar, en la revisión previa y en el panel de repetidos"},
+    {id:"R15", grupo:"Destinatario", tipo:"aviso", param:null,
+     titulo:"El destinatario tiene que parecer el nombre de una persona",
+     texto:"Si en esa casilla hay una fecha o un número, casi seguro las columnas se corrieron al importar. La petición oscura (T10) es la excepción: va legítimamente sin nombre, solo con radicado y correo.",
+     donde:"Revisión previa de la masiva"},
+    {id:"R16", grupo:"Notificación", tipo:"aviso", param:null,
+     titulo:"En la casilla de correo/dirección no puede haber un número de comparendo",
+     texto:"Un número largo ahí es un comparendo pegado en el campo equivocado — el error exacto que devolvió la jefatura. La dirección física sí es válida (no todo es correo).",
+     donde:"Revisión previa de la masiva"},
+    {id:"R17", grupo:"Agendamientos", tipo:"estructural", param:null,
+     titulo:"La plantilla de Agendamientos se revisa antes de entregarse",
+     texto:"Se comprueba sobre la fila que se va a escribir: nombre, documento, correo, comparendo, placa, medio, fechas, quién agenda y el FORMATO (AGENDAR CON/SIN PRUEBAS). Nunca bloquea, pero avisa de lo que saldría vacío.",
+     donde:"Al generar la plantilla de Agendamientos"}
+  ];
+  // Firma del estado actual de las reglas. Sirve para detectar que las reglas CAMBIARON sin pasar
+  // por la bitácora -- por ejemplo, porque una actualización de la app las tocó. Es la garantía de
+  // que nadie (ni yo) puede reinterpretarlas por su cuenta sin que se note.
+  function firmaDeLasReglas(){
+    var base = REGLAS.map(function(r){
+      return r.id + "|" + r.tipo + "|" + r.titulo + "|" + (r.param ? JSON.stringify(reglasParams[r.param]) : "-");
+    }).join("\n");
+    var h = 5381;
+    for(var i = 0; i < base.length; i++){ h = ((h * 33) ^ base.charCodeAt(i)) >>> 0; }
+    return String(h) + "-" + base.length;
+  }
+  var FORMATOS_SIN_RESOLUCION = ["T10", "T6"]; // compatibilidad: la fuente real es reglasParams
   function resolucionEsEsperada(formato){
     var f = String(formato||"").trim().toUpperCase();
     if(!/^T\d+$/.test(f)) return false;
-    if(FORMATOS_SIN_RESOLUCION.indexOf(f) !== -1) return false;
+    if(paramEnLista("formatosSinResolucion", f)) return false;   // R05
     var dict = (state.settings && state.settings.formatToPlantilla) || DEFAULT_SETTINGS.formatToPlantilla;
     var plantilla = String(dict[f] || "").toUpperCase();
     if(plantilla.indexOf("SIN RES") !== -1) return false;
@@ -4676,14 +4940,18 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // (una persona con cinco radicados del comparendo 38948629) y todas se resuelven con la MISMA
   // resolución. Marcarlo como GRAVE convertía 20 filas correctas en 34 alarmas que bloqueaban la
   // entrega. Se sigue avisando -- para eso se pidió la alarma -- pero como AVISO, no como error.
+  // R12/R13/R14 — la gravedad sale del registro de reglas, no está escrita aquí.
   var CAMPOS_UNICOS = [
-    {clave:"radicado",           etiqueta:"radicado",   grave:true,
+    {clave:"radicado",           etiqueta:"radicado",   regla:"R12", paramGrave:"gravedadRadicadoRepetido",
      norm:function(r){ return String(r.radicado||"").replace(/\s+/g,""); }},
-    {clave:"comparendoCompleto", etiqueta:"comparendo", grave:false,
+    {clave:"comparendoCompleto", etiqueta:"comparendo", regla:"R13", paramGrave:"gravedadComparendoRepetido",
      norm:function(r){ return String(r.comparendoCompleto||"").replace(/\s+/g,""); }},
-    {clave:"res",                etiqueta:"resolución", grave:false,
+    {clave:"res",                etiqueta:"resolución", regla:"R14", paramGrave:"gravedadResolucionRepetida",
      norm:function(r){ return String(r.res||"").replace(/\s+/g,"").toUpperCase(); }}
   ];
+  function campoUnicoEsGrave(campo){
+    return String(reglasParams[campo.paramGrave] || "").toLowerCase() === "grave";
+  }
   // Confirmaciones aceptadas por la usuaria: "sí, este comparendo repetido es correcto".
   // Se guardan por valor concreto, no por registro, para que valgan mientras el dato no cambie.
   var REPETIDOS_OK_KEY = "radicados_repetidos_ok_v1";
@@ -4721,7 +4989,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         if(!incluirAceptados && repetidoYaAceptado(campo.clave, v)) return;
         grupos.push({
           clave: campo.clave, etiqueta: campo.etiqueta, valor: v,
-          grave: !!campo.grave,
+          grave: campoUnicoEsGrave(campo),
           registros: porValor[v],
           aceptado: repetidoYaAceptado(campo.clave, v)
         });
@@ -6316,35 +6584,36 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // pegado, el aviso de "falta el comparendo" (más abajo) ya cubre ese caso sin duplicar el mensaje.
     if(rec.medio){
       var tipoVal = deriveTipoComparendo(rec.medio);
-      if(formatoVal === "T1" && tipoVal !== "MANUAL"){
-        violations.push({wraps:["wrap_formato","wrap_comparendo"], message:"T1 es imperativamente comparendo Manual, pero MEDIO no dice COMPARENDERA — revisa el Formato o la línea pegada."});
+      if(paramEnLista("formatosManualObligatorio", formatoVal) && tipoVal !== "MANUAL"){   // R07
+        violations.push({regla:"R07", wraps:["wrap_formato","wrap_comparendo"], message:formatoVal + " es imperativamente comparendo Manual, pero MEDIO no dice COMPARENDERA — revisa el Formato o la línea pegada."});
       }
-      if(formatoVal === "T14" && tipoVal !== "ELECTRONICO"){
-        violations.push({wraps:["wrap_formato","wrap_comparendo"], message:"T14 es imperativamente comparendo Electrónico, pero MEDIO dice COMPARENDERA — revisa el Formato o la línea pegada."});
+      if(paramEnLista("formatosElectronicoObligatorio", formatoVal) && tipoVal !== "ELECTRONICO"){  // R08
+        violations.push({regla:"R08", wraps:["wrap_formato","wrap_comparendo"], message:formatoVal + " es imperativamente comparendo Electrónico, pero MEDIO dice COMPARENDERA — revisa el Formato o la línea pegada."});
       }
     }
-    if((codVal === "F" || codVal === "D12") && formatoVal !== "DEVUELTO"){
-      violations.push({wraps:["wrap_comparendo","wrap_formato"], message:"Código de infracción " + codVal + " es imperativamente DEVUELTO — corrige el Formato."});
+    if(paramEnLista("codigosQueObliganDevuelto", codVal) && formatoVal !== "DEVUELTO"){   // R09
+      violations.push({regla:"R09", wraps:["wrap_comparendo","wrap_formato"], message:"Código de infracción " + codVal + " es imperativamente DEVUELTO — corrige el Formato."});
     }
     var estadoVal = (rec.estado||"").trim().toUpperCase();
-    if(estadoVal && estadoVal !== "VIGENTE" && formatoVal !== "DEVUELTO"){
-      violations.push({wraps:["wrap_comparendo","wrap_formato"], message:"Estado " + rec.estado.trim() + " (no VIGENTE) es imperativamente DEVUELTO — corrige el Formato."});
+    var estadoOk = normalizaTexto(reglasParams.estadoValidoComparendo || "VIGENTE");
+    if(estadoVal && normalizaTexto(estadoVal) !== estadoOk && formatoVal !== "DEVUELTO"){   // R10
+      violations.push({regla:"R10", wraps:["wrap_comparendo","wrap_formato"], message:"Estado " + rec.estado.trim() + " (no " + (reglasParams.estadoValidoComparendo||"VIGENTE") + ") es imperativamente DEVUELTO — corrige el Formato."});
     }
 
     // Resolución: T6 nunca debe tenerla; T1, T5, T11 y T14 siempre deben tenerla.
     var tieneRes = !!((rec.res||"").trim() || (rec.fechaRes||"").trim());
-    if(formatoVal === "T6" && tieneRes){
-      violations.push({wraps:["wrap_formato","wrap_res"], message:"T6 no debe tener Resolución (ni Res. ni Fecha res.) — revisa el Formato o borra esos datos."});
+    if(paramEnLista("formatosSinResolucion", formatoVal) && tieneRes){   // R05
+      violations.push({regla:"R05", wraps:["wrap_formato","wrap_res"], message:formatoVal + " no debe tener Resolución (ni Res. ni Fecha res.) — revisa el Formato o borra esos datos."});
     }
-    if(["T1","T5","T11","T14"].indexOf(formatoVal) !== -1 && !tieneRes){
-      violations.push({wraps:["wrap_formato","wrap_res"], message:formatoVal + " requiere Resolución (Res. y/o Fecha res.) — no puede quedar sin diligenciar."});
+    if(paramEnLista("formatosConResolucionObligatoria", formatoVal) && !tieneRes){   // R06
+      violations.push({regla:"R06", wraps:["wrap_formato","wrap_res"], message:formatoVal + " requiere Resolución (Res. y/o Fecha res.) — no puede quedar sin diligenciar."});
     }
 
     // AGENDAMIENTO necesita la Placa -- a diferencia de la masiva (que solo pega la línea de Fénix
     // hasta el nombre del infractor), para Agendamiento hay que pegarla completa HASTA LA PLACA,
     // porque la ventana de Agendamientos la muestra y la necesita.
-    if(formatoVal === "AGENDAMIENTO" && !(rec.placa||"").trim()){
-      violations.push({wraps:["wrap_formato","wrap_comparendo"], message:"AGENDAMIENTO requiere la Placa — pega la línea de Fénix completa HASTA LA PLACA (a diferencia de la masiva, que solo llega hasta el nombre del infractor)."});
+    if(paramEnLista("formatosQueExigenPlaca", formatoVal) && !(rec.placa||"").trim()){   // R11
+      violations.push({regla:"R11", wraps:["wrap_formato","wrap_comparendo"], message:formatoVal + " requiere la Placa — pega la línea de Fénix completa HASTA LA PLACA (a diferencia de la masiva, que solo llega hasta el nombre del infractor)."});
     }
 
     // NOTA: la brecha entre fecha de radicación y fecha de asignación (ambas de ORFEO) YA NO
@@ -7121,7 +7390,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       Object.keys(porValor[c.clave]).forEach(function(v){
         var grupo = porValor[c.clave][v];
         if(grupo.length < 2) return;
-        var g = {etiqueta:c.etiqueta, valor:v, grave:!!c.grave, registros:grupo};
+        var g = {etiqueta:c.etiqueta, valor:v, grave:campoUnicoEsGrave(c), registros:grupo};
         grupo.forEach(function(r){ (repetidosPorId[r.id] = repetidosPorId[r.id] || []).push(g); });
       });
     });
@@ -7244,6 +7513,332 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       "). Por eso los recuentos no cuadran. Se pueden corregir todos de una vez.",
       "warn", "Corregir clasificaciones", abrirRepararFormatos);
   }
+
+  // ============================================================
+  // LA VENTANA DE REGLAS  (ver #reglasDialog)
+  // ------------------------------------------------------------
+  // Muestra el registro REGLAS tal cual, deja ajustar los parámetros con doble verificación, anota
+  // cada cambio en una bitácora que no se borra desde aquí, y avisa si las reglas cambiaron sin
+  // quedar anotadas. La condición que se puso fue clara: las reglas son inalterables e inamovibles,
+  // se puede ajustar alguna pero con doble verificación, y no hay ningún escenario en el que se
+  // reinterpreten por cuenta ajena. El aviso de firma es lo que hace cumplir esa última parte:
+  // si una actualización toca una regla, se ve al abrir esta ventana.
+  // ============================================================
+  var TIPO_REGLA_TEXTO = {
+    estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
+    imperativa:  "Imperativa — la app avisa y hay que resolverlo",
+    aviso:       "Aviso — se señala para confirmar, nunca bloquea"
+  };
+  // Los parámetros que son una LISTA de clasificaciones se editan marcando/desmarcando
+  // clasificaciones reales: así un parámetro no puede acabar con un texto inventado, que es
+  // exactamente el problema que tenían los formatos.
+  var PARAMS_LISTA_DE_FORMATOS = {
+    formatosSinComparendo:1, formatosSinResolucion:1, formatosConResolucionObligatoria:1,
+    formatosManualObligatorio:1, formatosElectronicoObligatorio:1,
+    formatosFueraDeLaMasiva:1, formatosQueExigenPlaca:1
+  };
+  var PARAMS_GRAVEDAD = { gravedadRadicadoRepetido:1, gravedadComparendoRepetido:1, gravedadResolucionRepetida:1 };
+
+  function leerBitacoraReglas(){
+    if(!state.profile.activeUser) return [];
+    try{
+      var raw = localStorage.getItem(reglasBitacoraKeyFor(state.profile.activeUser));
+      var l = raw ? JSON.parse(raw) : [];
+      return Array.isArray(l) ? l : [];
+    }catch(e){ return []; }
+  }
+  // Solo se AÑADE. No hay ninguna función que borre entradas: si se pudiera borrar la bitácora, no
+  // serviría para lo que se pidió.
+  function anotarEnBitacora(entrada){
+    if(!state.profile.activeUser) return;
+    var l = leerBitacoraReglas();
+    l.push(entrada);
+    try{ localStorage.setItem(reglasBitacoraKeyFor(state.profile.activeUser), JSON.stringify(l)); }catch(e){}
+    idbSet(reglasBitacoraKeyFor(state.profile.activeUser), l);
+  }
+  function guardarFirmaDeLasReglas(){
+    if(!state.profile.activeUser) return;
+    try{ localStorage.setItem(reglasFirmaKeyFor(state.profile.activeUser), firmaDeLasReglas()); }catch(e){}
+  }
+  function firmaGuardada(){
+    if(!state.profile.activeUser) return "";
+    try{ return localStorage.getItem(reglasFirmaKeyFor(state.profile.activeUser)) || ""; }catch(e){ return ""; }
+  }
+  // ¿Las reglas cambiaron sin pasar por aquí? Devuelve true solo cuando ya había una firma anotada
+  // antes (la primera vez no hay con qué comparar y no se alarma por nada).
+  function reglasCambiaronSinAnotar(){
+    var previa = firmaGuardada();
+    return !!previa && previa !== firmaDeLasReglas();
+  }
+  // Se ejecuta al entrar, con los Ajustes ya cargados. La primera vez solo deja anotada la firma
+  // (no hay con qué comparar). A partir de ahí, si las reglas no coinciden con la última firma
+  // anotada, se avisa en la barra de arriba -- no en un rincón -- y el botón lleva a la ventana de
+  // Reglas para verlo. Esto es lo que impide que una actualización de la app cambie una regla en
+  // silencio: no se puede tocar el registro sin que este aviso salte al siguiente inicio.
+  function revisarFirmaDeLasReglasAlEntrar(){
+    if(!state.profile.activeUser) return;
+    if(!firmaGuardada()){ guardarFirmaDeLasReglas(); return; }
+    if(!reglasCambiaronSinAnotar()) return;
+    showDataSafetyBanner(
+      "Las reglas que aplica la app CAMBIARON y ese cambio no está en la bitácora. Revísalas antes de entregar nada.",
+      "warn", "Ver las reglas", abrirReglas);
+  }
+  function valorParamComoTexto(clave){
+    var v = reglasParams[clave];
+    if(Array.isArray(v)) return v.length ? v.join(", ") : "(ninguna)";
+    return String(v === undefined || v === "" ? "(vacío)" : v);
+  }
+  function renderReglas(){
+    var panel = document.getElementById("reglasPanel");
+    var cuenta = document.getElementById("reglasCuenta");
+    var resumen = document.getElementById("reglasResumen");
+    var aviso = document.getElementById("reglasFirmaAviso");
+    if(!panel) return;
+
+    // 1) El aviso de firma, arriba del todo y en rojo.
+    if(reglasCambiaronSinAnotar()){
+      aviso.hidden = false;
+      aviso.className = "reglas-firma-mal";
+      aviso.innerHTML =
+        "<b>Las reglas cambiaron y ese cambio NO está en la bitácora.</b><br>" +
+        "Puede ser una actualización de la app que tocó una regla. Revisa la lista de abajo antes de " +
+        "entregar nada. Cuando la hayas revisado y estés de acuerdo con lo que dice, pulsa el botón " +
+        "para dejar constancia de que la revisaste tú.<br>" +
+        '<div class="import-actions" style="margin-top:10px;">' +
+        '<button class="btn" id="reglasAceptarFirmaBtn" type="button">Ya revisé las reglas: dejar constancia</button>' +
+        "</div>";
+    }else{
+      aviso.hidden = true;
+      aviso.innerHTML = "";
+    }
+
+    // 2) Las reglas, agrupadas como se leen.
+    var grupos = [];
+    REGLAS.forEach(function(r){ if(grupos.indexOf(r.grupo) === -1) grupos.push(r.grupo); });
+    var editables = REGLAS.filter(function(r){ return !!r.param; }).length;
+    var html = "";
+    grupos.forEach(function(g){
+      html += '<div class="reglas-grupo">' + escapeHtml(g) + "</div>";
+      REGLAS.filter(function(r){ return r.grupo === g; }).forEach(function(r){
+        html += '<div class="regla-card ' + escapeHtml(r.tipo) + '">' +
+                  '<div class="regla-top">' +
+                    '<span class="regla-id">' + escapeHtml(r.id) + "</span>" +
+                    '<span class="regla-titulo">' + escapeHtml(r.titulo) + "</span>" +
+                    '<span class="regla-tipo" title="' + escapeHtml(TIPO_REGLA_TEXTO[r.tipo] || "") + '">' +
+                      escapeHtml(r.tipo) + "</span>" +
+                  "</div>" +
+                  '<p class="regla-texto">' + escapeHtml(r.texto) + "</p>" +
+                  '<p class="regla-donde">Se aplica: ' + escapeHtml(r.donde) + "</p>";
+        if(r.param){
+          var v = reglasParams[r.param];
+          var trozos = Array.isArray(v)
+            ? (v.length ? v.map(function(x){ return '<span class="regla-valor">' + escapeHtml(x) + "</span>"; }).join("")
+                        : '<span class="regla-valor">(ninguna)</span>')
+            : '<span class="regla-valor">' + escapeHtml(String(v)) + "</span>";
+          html += '<div class="regla-param">' +
+                    '<span class="valores">' + trozos + "</span>" +
+                    '<button class="btn ghost" type="button" data-regla-editar="' + escapeHtml(r.id) + '">Ajustar</button>' +
+                  "</div>";
+        }else{
+          html += '<div class="regla-sinparam">Esta regla no tiene nada configurable: es de fondo.</div>';
+        }
+        html += "</div>";
+      });
+    });
+    panel.innerHTML = html;
+    cuenta.textContent = REGLAS.length + " reglas — " + editables + " con parámetro ajustable";
+    resumen.textContent = "Firma actual " + firmaDeLasReglas();
+
+    // 3) La bitácora, más reciente primero.
+    var bit = leerBitacoraReglas().slice().reverse();
+    var cont = document.getElementById("reglasBitacora");
+    if(!bit.length){
+      cont.innerHTML = '<p class="hint">Todavía no se ha cambiado ninguna regla. Están tal como se configuraron.</p>';
+    }else{
+      cont.innerHTML = bit.map(function(b){
+        return '<div class="bitacora-fila">' +
+                 '<div class="bitacora-fecha">' + escapeHtml(b.cuando || "") + " · " + escapeHtml(b.quien || "") + "</div>" +
+                 "<div><b>" + escapeHtml(b.regla || "") + "</b> — " + escapeHtml(b.que || "") + "</div>" +
+                 (b.antes !== undefined
+                   ? "<div>Antes: <b>" + escapeHtml(String(b.antes)) + "</b> → Después: <b>" + escapeHtml(String(b.despues)) + "</b></div>"
+                   : "") +
+               "</div>";
+      }).join("");
+    }
+  }
+  function abrirReglas(){
+    renderReglas();
+    document.getElementById("reglasDialog").showModal();
+  }
+  var btnReglas = document.getElementById("reglasBtn");
+  if(btnReglas) btnReglas.addEventListener("click", abrirReglas);
+  document.getElementById("reglasClose").addEventListener("click", function(){
+    document.getElementById("reglasDialog").close();
+  });
+  document.getElementById("reglasFirmaAviso").addEventListener("click", function(e){
+    if(!e.target.closest("#reglasAceptarFirmaBtn")) return;
+    anotarEnBitacora({cuando:new Date().toLocaleString("es-CO"),
+                      quien:state.profile.activeUser || "",
+                      regla:"—", que:"Revisión de las reglas tras detectarse un cambio no anotado (firma " + firmaDeLasReglas() + ")"});
+    guardarFirmaDeLasReglas();
+    renderReglas();
+    toast("Queda constancia de que revisaste las reglas.");
+  });
+
+  // ---------- el cambio de un parámetro, con DOBLE VERIFICACIÓN ----------
+  var cambioReglaPendiente = null;  // {regla, antes, despues, descripcion}
+  document.getElementById("reglasPanel").addEventListener("click", function(e){
+    var b = e.target.closest("button[data-regla-editar]");
+    if(!b) return;
+    var id = b.getAttribute("data-regla-editar");
+    var regla = REGLAS.filter(function(r){ return r.id === id; })[0];
+    if(regla) pedirNuevoValorDeRegla(regla);
+  });
+  // Primer paso de la edición: se recoge el valor NUEVO. Para las listas de clasificaciones se
+  // eligen entre las que existen de verdad -- no se escribe texto libre -- para que un parámetro no
+  // pueda quedar apuntando a una clasificación que no existe.
+  function pedirNuevoValorDeRegla(regla){
+    var actual = reglasParams[regla.param];
+    var nuevo;
+    if(PARAMS_LISTA_DE_FORMATOS[regla.param]){
+      var cats = categoriasFormato();
+      var elegido = [];
+      // Se marca/desmarca con una lista de casillas dentro del propio diálogo de verificación.
+      var marcas = cats.map(function(c){
+        var puesto = (actual || []).map(function(x){ return normalizaTexto(x); }).indexOf(normalizaTexto(c)) !== -1;
+        if(puesto) elegido.push(c);
+        return {cat:c, puesto:puesto};
+      });
+      abrirVerificacionDeRegla(regla, actual, null, marcas);
+      return;
+    }
+    if(PARAMS_GRAVEDAD[regla.param]){
+      nuevo = String(actual) === "grave" ? "aviso" : "grave";
+      abrirVerificacionDeRegla(regla, actual, nuevo, null);
+      return;
+    }
+    // Texto simple (hoy solo estadoValidoComparendo).
+    abrirVerificacionDeRegla(regla, actual, null, null, true);
+  }
+  function abrirVerificacionDeRegla(regla, antes, despues, marcas, esTexto){
+    var dlg = document.getElementById("reglaCambioDialog");
+    var caja = document.getElementById("reglaCambioResumen");
+    document.getElementById("reglaCambioTitle").textContent = "Verificación 1 de 2";
+    document.getElementById("reglaCambioPaso2").hidden = true;
+    document.getElementById("reglaCambioNext").hidden = false;
+    document.getElementById("reglaCambioConfirm").hidden = true;
+    document.getElementById("reglaCambioError").hidden = true;
+    document.getElementById("reglaCambioConfirmInput").value = "";
+    document.getElementById("reglaCambioIdEsperado").textContent = regla.id;
+
+    var html = "<h3>" + escapeHtml(regla.id) + " · " + escapeHtml(regla.titulo) + "</h3>" +
+               '<p class="hint">' + escapeHtml(regla.texto) + "</p>";
+    if(marcas){
+      html += '<p class="hint">Marca las clasificaciones a las que se aplica esta regla:</p>' +
+              '<div id="reglaCambioMarcas" style="display:flex;flex-wrap:wrap;gap:10px;">' +
+              marcas.map(function(m){
+                return '<label style="display:flex;align-items:center;gap:6px;">' +
+                       '<input type="checkbox" data-regla-cat="' + escapeHtml(m.cat) + '"' + (m.puesto ? " checked" : "") + ">" +
+                       escapeHtml(m.cat) + "</label>";
+              }).join("") + "</div>";
+    }else if(esTexto){
+      html += '<p class="hint">Valor actual: <b>' + escapeHtml(String(antes)) + "</b></p>" +
+              '<input id="reglaCambioTexto" type="text" value="' + escapeHtml(String(antes)) + '">';
+    }else{
+      html += '<p class="hint">Este cambio deja la regla así:</p>' +
+              "<p>Antes: <b>" + escapeHtml(String(antes)) + "</b> → Después: <b>" + escapeHtml(String(despues)) + "</b></p>";
+    }
+    caja.innerHTML = html;
+    cambioReglaPendiente = {regla:regla, antes:antes, despues:despues, marcas:!!marcas, esTexto:!!esTexto};
+    dlg.showModal();
+  }
+  // Al pulsar "Continuar", se congela el valor nuevo y se pasa a la segunda verificación. Aquí ya no
+  // se puede cambiar el valor: lo que se confirma después es exactamente lo que se vio.
+  document.getElementById("reglaCambioNext").addEventListener("click", function(){
+    if(!cambioReglaPendiente) return;
+    var c = cambioReglaPendiente;
+    if(c.marcas){
+      c.despues = [].slice.call(document.querySelectorAll("#reglaCambioMarcas input[data-regla-cat]"))
+        .filter(function(i){ return i.checked; })
+        .map(function(i){ return i.getAttribute("data-regla-cat"); });
+    }else if(c.esTexto){
+      var t = document.getElementById("reglaCambioTexto");
+      c.despues = cleanSpaces((t && t.value) || "").toUpperCase();
+    }
+    var antesTxt = Array.isArray(c.antes) ? (c.antes.length ? c.antes.join(", ") : "(ninguna)") : String(c.antes);
+    var despuesTxt = Array.isArray(c.despues) ? (c.despues.length ? c.despues.join(", ") : "(ninguna)") : String(c.despues);
+    if(antesTxt === despuesTxt){
+      toast("No cambiaste nada en la regla " + c.regla.id + ".");
+      document.getElementById("reglaCambioDialog").close();
+      cambioReglaPendiente = null;
+      return;
+    }
+    c.antesTxt = antesTxt; c.despuesTxt = despuesTxt;
+    document.getElementById("reglaCambioTitle").textContent = "Verificación 2 de 2";
+    document.getElementById("reglaCambioResumen").innerHTML =
+      "<h3>" + escapeHtml(c.regla.id) + " · " + escapeHtml(c.regla.titulo) + "</h3>" +
+      "<p>Antes: <b>" + escapeHtml(antesTxt) + "</b></p>" +
+      "<p>Después: <b>" + escapeHtml(despuesTxt) + "</b></p>" +
+      '<p class="hint">Este cambio afecta a ' + escapeHtml(c.regla.donde.toLowerCase()) +
+      ", y a todo lo que se entregue a partir de ahora.</p>";
+    document.getElementById("reglaCambioPaso2").hidden = false;
+    document.getElementById("reglaCambioNext").hidden = true;
+    document.getElementById("reglaCambioConfirm").hidden = false;
+    document.getElementById("reglaCambioConfirmInput").focus();
+  });
+  document.getElementById("reglaCambioConfirm").addEventListener("click", function(){
+    if(!cambioReglaPendiente) return;
+    var c = cambioReglaPendiente;
+    var escrito = cleanSpaces(document.getElementById("reglaCambioConfirmInput").value || "").toUpperCase();
+    if(escrito !== c.regla.id){
+      document.getElementById("reglaCambioError").hidden = false;
+      return;
+    }
+    if(c.esRestaurar){
+      // Volver TODAS las reglas a su valor original: un solo camino, la misma doble verificación.
+      reglasParams = JSON.parse(JSON.stringify(REGLAS_PARAMS_DEFAULT));
+      guardarReglasParams();
+      anotarEnBitacora({cuando:new Date().toLocaleString("es-CO"),
+                        quien:state.profile.activeUser || "",
+                        regla:"Todas las reglas", que:"Se restauraron los valores originales",
+                        antes:c.antesTxt, despues:c.despuesTxt});
+    }else{
+      reglasParams[c.regla.param] = c.despues;
+      guardarReglasParams();
+      anotarEnBitacora({cuando:new Date().toLocaleString("es-CO"),
+                        quien:state.profile.activeUser || "",
+                        regla:c.regla.id + " — " + c.regla.titulo,
+                        que:"Se ajustó el parámetro de la regla",
+                        antes:c.antesTxt, despues:c.despuesTxt});
+    }
+    guardarFirmaDeLasReglas();
+    document.getElementById("reglaCambioDialog").close();
+    cambioReglaPendiente = null;
+    renderReglas();
+    renderAll();
+    toast(c.esRestaurar ? "Las reglas volvieron a su valor original."
+                        : "Regla " + c.regla.id + " ajustada y anotada en la bitácora.");
+  });
+  document.getElementById("reglaCambioCancel").addEventListener("click", function(){
+    document.getElementById("reglaCambioDialog").close();
+    cambioReglaPendiente = null;
+  });
+  document.getElementById("reglaCambioConfirmInput").addEventListener("input", function(){
+    document.getElementById("reglaCambioError").hidden = true;
+  });
+  // Volver a las reglas originales pasa por la MISMA doble verificación y queda anotado igual.
+  document.getElementById("reglasRestaurarBtn").addEventListener("click", function(){
+    var antes = Object.keys(REGLAS_PARAMS_DEFAULT).map(function(k){
+      return k + "=" + valorParamComoTexto(k);
+    }).join(" · ");
+    abrirVerificacionDeRegla(
+      {id:"R00", param:null, titulo:"Volver TODAS las reglas a su valor original",
+       texto:"Deshace cualquier ajuste hecho desde esta ventana y deja las " + REGLAS.length +
+             " reglas exactamente como venían configuradas.",
+       donde:"todas las reglas"},
+      antes, "(los valores originales)", null);
+    cambioReglaPendiente.esRestaurar = true;
+  });
 
   // ---------- la ventana de "Revisar masiva terminada" ----------
   var masivaCargada = null;   // {registros, avisos}
@@ -7445,8 +8040,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // DEVUELTO (no se le entrega nada a la entidad de un radicado que se devolvió -- no aplica al
     // documento final). Ninguno de los dos es parte del mismo documento final que el resto de
     // clasificaciones.
-    return state.records.filter(function(r){
-      return isDone(r) && !esAgendamiento(r) && !esDevuelto(r) && formatoEsConocido(r.formato);
+    return state.records.filter(function(r){   // R02 + R03
+      return isDone(r) && !paramEnLista("formatosFueraDeLaMasiva", normalizeFormatoInput(r.formato))
+             && formatoEsConocido(r.formato);
     }).sort(function(a,b){ return (a.order||0)-(b.order||0); });
   }
   // Radicados que la persona dio por clasificados pero cuyo formato NO corresponde a ninguna
@@ -7455,7 +8051,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // en grande para que se corrijan.
   function finalDocFormatoDesconocido(){
     return state.records.filter(function(r){
-      return isDone(r) && !esAgendamiento(r) && !esDevuelto(r) && !formatoEsConocido(r.formato);
+      return isDone(r) && !paramEnLista("formatosFueraDeLaMasiva", normalizeFormatoInput(r.formato))
+             && !formatoEsConocido(r.formato);
     }).sort(function(a,b){ return (a.order||0)-(b.order||0); });
   }
 
