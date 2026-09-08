@@ -1,0 +1,39 @@
+# Sitio de Netlify para MA|OG · Control de flota.
+#
+# Al crear el sitio en Netlify, cuando conectes este repositorio de GitHub,
+# en "Build settings" pon:
+#   Base directory:     flota
+#   Build command:       (vacío — no hay nada que compilar)
+#   Publish directory:   flota
+#
+# Con eso, Netlify sirve flota/index.html como la página principal del sitio,
+# y vuelve a publicar solo automáticamente cada vez que este repositorio
+# reciba un cambio en la rama conectada. No hace falta subir archivos a mano.
+
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# CRÍTICO: el service worker (sw.js) es el archivo que decide si el navegador
+# se entera de que hay una versión nueva de la app. Si el navegador se queda
+# con una copia vieja de ESTE archivo en su caché, nunca llega a comparar
+# bytes con el de verdad y jamás descubre que hay algo nuevo — así se suba
+# lo que se suba, la persona sigue viendo la app de hace semanas, con sus
+# datos viejos y sus bugs ya corregidos, como si nada hubiera cambiado.
+# Por eso este archivo, y solo este, NUNCA se debe cachear.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
