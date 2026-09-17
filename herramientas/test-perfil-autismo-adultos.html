@@ -67,16 +67,6 @@
   .biblio{font-size:.8rem;color:var(--texto-sec);margin-top:6px;}
   .biblio li{margin-bottom:6px;}
 
-  .datos-informe{
-    display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;
-  }
-  .datos-informe label{
-    font-size:.82rem;color:var(--texto-sec);display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px;
-  }
-  .datos-informe input{
-    font-family:inherit;font-size:.92rem;padding:9px 10px;border:1px solid var(--borde);border-radius:6px;
-  }
-
   .progreso{
     position:sticky;top:0;background:var(--fondo);padding:12px 0;z-index:5;
     border-bottom:1px solid var(--borde);margin-top:24px;
@@ -279,19 +269,6 @@
     la vida, no en un episodio puntual ni en cómo te gustaría comportarte.
   </div>
 
-  <section class="bloque no-imprimir">
-    <h2><span class="n">2</span>Datos del informe (opcional)</h2>
-    <p>Estos datos solo se usan para encabezar tu informe descargable. No se envían ni se almacenan en ningún servidor.</p>
-    <div class="datos-informe">
-      <label>Nombre
-        <input type="text" id="campo-nombre" placeholder="Opcional">
-      </label>
-      <label>Fecha
-        <input type="text" id="campo-fecha" readonly>
-      </label>
-    </div>
-  </section>
-
   <div class="progreso no-imprimir">
     <div class="barra"><div id="barra-fill"></div></div>
     <div class="contador"><span id="contador">0</span> de <span id="total-preguntas"></span> reactivos respondidos</div>
@@ -441,9 +418,6 @@
 
   document.getElementById('total-preguntas').textContent = preguntas.length;
 
-  const hoy = new Date();
-  document.getElementById('campo-fecha').value = hoy.toLocaleDateString('es-CO', { year:'numeric', month:'long', day:'numeric' });
-
   let contadorGlobal = 0;
   dominios.forEach(d => {
     const items = preguntas
@@ -570,9 +544,8 @@
     document.getElementById('camuflaje-num').textContent = puntajeCamuflaje;
     document.getElementById('camuflaje-texto').textContent = bandaCamuflaje(puntajeCamuflaje);
 
-    const nombre = document.getElementById('campo-nombre').value.trim();
-    const fecha = document.getElementById('campo-fecha').value;
-    document.getElementById('informe-meta').textContent = nombre ? `${nombre} · ${fecha}` : fecha;
+    const fecha = new Date().toLocaleDateString('es', { year:'numeric', month:'long', day:'numeric' });
+    document.getElementById('informe-meta').textContent = fecha;
 
     const tabla = document.getElementById('tabla-dsm');
     tabla.innerHTML = dominiosAB.map(d => {
