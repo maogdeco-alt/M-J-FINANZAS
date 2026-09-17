@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario de autoexploración — rasgos de Asperger/autismo en adultos</title>
+<style>
+  :root{
+    --papel:#faf7f2;
+    --hueso:#f1ebe1;
+    --negro:#241f1a;
+    --rosa-suave:#f0ded9;
+    --acento:#7d5a50;
+    --acento-2:#a8836f;
+    --borde:#e2d6c7;
+    --ok:#5c7a5e;
+    --alerta:#b5654a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter Tight',system-ui,-apple-system,sans-serif;
+    background:var(--papel);
+    color:var(--negro);
+    line-height:1.55;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:32px 20px 80px;}
+  header h1{font-size:1.5rem;margin-bottom:6px;}
+  header p{color:#5a5049;font-size:.95rem;}
+  .aviso{
+    background:var(--hueso);
+    border:1px solid var(--borde);
+    border-left:4px solid var(--acento);
+    border-radius:10px;
+    padding:16px 18px;
+    margin:20px 0 28px;
+    font-size:.92rem;
+  }
+  .aviso strong{display:block;margin-bottom:4px;}
+  .progreso{
+    position:sticky; top:0; background:var(--papel);
+    padding:10px 0; z-index:5; border-bottom:1px solid var(--borde);
+    margin-bottom:20px;
+  }
+  .barra{height:6px;background:var(--hueso);border-radius:4px;overflow:hidden;}
+  .barra > div{height:100%;background:var(--acento);width:0%;transition:width .2s;}
+  .contador{font-size:.8rem;color:#7a7066;margin-top:6px;}
+  .pregunta{
+    background:#fff;
+    border:1px solid var(--borde);
+    border-radius:14px;
+    padding:20px 20px 16px;
+    margin-bottom:16px;
+  }
+  .pregunta .num{font-size:.78rem;color:var(--acento-2);font-weight:600;letter-spacing:.02em;}
+  .pregunta h3{font-size:1.02rem;margin:6px 0 14px;font-weight:600;}
+  .dimension{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#9a8f82;margin-bottom:2px;}
+  .opciones{display:flex;flex-direction:column;gap:8px;}
+  .opciones label{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;border:1px solid var(--borde);border-radius:10px;
+    cursor:pointer;font-size:.92rem;transition:background .15s,border-color .15s;
+  }
+  .opciones label:hover{background:var(--rosa-suave);}
+  .opciones input{accent-color:var(--acento);}
+  .opciones label.marcada{background:var(--rosa-suave);border-color:var(--acento-2);}
+  .acciones{display:flex;justify-content:center;margin-top:24px;}
+  button{
+    background:var(--negro);color:#fff;border:none;border-radius:999px;
+    padding:14px 32px;font-size:.98rem;font-weight:600;cursor:pointer;
+    font-family:inherit;
+  }
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  button.secundario{background:transparent;color:var(--negro);border:1px solid var(--borde);}
+  #resultado{display:none;}
+  .tarjeta-resultado{
+    background:#fff;border:1px solid var(--borde);border-radius:16px;
+    padding:28px 24px;margin-top:10px;
+  }
+  .etiqueta-perfil{
+    display:inline-block;padding:6px 14px;border-radius:999px;
+    font-size:.85rem;font-weight:700;margin-bottom:14px;
+  }
+  .puntaje{font-size:2.4rem;font-weight:700;margin:6px 0 2px;}
+  .puntaje span{font-size:1rem;font-weight:500;color:#7a7066;}
+  .barra-resultado{height:10px;border-radius:6px;background:var(--hueso);overflow:hidden;margin:14px 0 6px;}
+  .barra-resultado > div{height:100%;border-radius:6px;}
+  .desglose{margin-top:20px;}
+  .desglose h4{font-size:.85rem;text-transform:uppercase;letter-spacing:.04em;color:#7a7066;margin-bottom:10px;}
+  .fila-dim{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 0;font-size:.9rem;border-bottom:1px solid var(--hueso);}
+  .mini-barra{flex:1;height:6px;background:var(--hueso);border-radius:4px;margin:0 10px;overflow:hidden;}
+  .mini-barra > div{height:100%;background:var(--acento-2);}
+  .siguiente-paso{
+    background:var(--hueso);border-radius:12px;padding:16px 18px;margin-top:22px;font-size:.9rem;
+  }
+  footer.legal{font-size:.78rem;color:#9a8f82;margin-top:26px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Cuestionario de autoexploración: rasgos de Asperger/autismo en adultos</h1>
+    <p>Una guía orientativa para conocerte mejor. No es un diagnóstico.</p>
+  </header>
+
+  <div class="aviso">
+    <strong>Antes de empezar</strong>
+    Esta herramienta NO es un instrumento clínico ni sustituye una evaluación
+    profesional. El diagnóstico de autismo/Asperger solo puede darlo un
+    psicólogo o psiquiatra especializado, mediante entrevista y pruebas
+    validadas. Este cuestionario solo busca darte un panorama personal para
+    que decidas, con esa información, si quieres profundizar con un
+    profesional. Respóndelo pensando en cómo eres normalmente, no en cómo te
+    gustaría ser.
+  </div>
+
+  <div class="progreso">
+    <div class="barra"><div id="barra-fill"></div></div>
+    <div class="contador"><span id="contador">0</span> de <span id="total-preguntas"></span> preguntas respondidas</div>
+  </div>
+
+  <form id="formulario"></form>
+
+  <div class="acciones">
+    <button id="btn-ver-resultado" disabled>Ver mi perfil</button>
+  </div>
+
+  <div id="resultado">
+    <div class="tarjeta-resultado">
+      <span id="etiqueta-perfil" class="etiqueta-perfil"></span>
+      <div class="puntaje"><span id="puntaje-num"></span> <span>/ 100</span></div>
+      <div class="barra-resultado"><div id="barra-resultado-fill"></div></div>
+      <p id="texto-perfil"></p>
+
+      <div class="desglose">
+        <h4>Por área</h4>
+        <div id="lista-dimensiones"></div>
+      </div>
+
+      <div class="siguiente-paso" id="siguiente-paso"></div>
+    </div>
+
+    <div class="acciones" style="margin-top:20px;">
+      <button class="secundario" id="btn-reiniciar">Volver a responder</button>
+    </div>
+
+    <footer class="legal">
+      Resultado generado localmente en tu navegador. No se envía ni se
+      guarda en ningún servidor. Este contenido tiene fines educativos y de
+      autoconocimiento, no constituye consejo médico ni diagnóstico.
+    </footer>
+  </div>
+
+</div>
+
+<script>
+(function(){
+
+  // Cada pregunta pertenece a una dimensión. La clave "invertida" marca
+  // preguntas redactadas al revés (estar de acuerdo indica MENOS rasgos),
+  // para reducir el sesgo de aquiescencia.
+  const preguntas = [
+    { dim:"Comunicación social", texto:"Me resulta difícil saber cuándo es mi turno de hablar en una conversación grupal.", inv:false },
+    { dim:"Comunicación social", texto:"Prefiero comunicarme por escrito (mensajes, correo) que por teléfono o en persona.", inv:false },
+    { dim:"Comunicación social", texto:"Suelo notar con facilidad si alguien está aburrido o incómodo mientras le hablo.", inv:true },
+    { dim:"Comunicación social", texto:"A menudo la gente me dice que hablo demasiado sobre un tema que me interesa, sin notar que el otro ya perdió el interés.", inv:false },
+    { dim:"Comunicación social", texto:"Me cuesta iniciar una conversación con alguien que no conozco, aunque quiera hacerlo.", inv:false },
+
+    { dim:"Lenguaje no verbal", texto:"Me cuesta interpretar el tono de voz, el sarcasmo o las expresiones faciales de otras personas.", inv:false },
+    { dim:"Lenguaje no verbal", texto:"Mantener contacto visual mientras converso me resulta incómodo o cansador.", inv:false },
+    { dim:"Lenguaje no verbal", texto:"Suelo tomar literalmente frases que otros dicen en broma o en sentido figurado.", inv:false },
+    { dim:"Lenguaje no verbal", texto:"Leo con facilidad el lenguaje corporal de las personas a mi alrededor.", inv:true },
+
+    { dim:"Rutinas y flexibilidad", texto:"Un cambio inesperado en mis planes me genera una incomodidad desproporcionada al tamaño del cambio.", inv:false },
+    { dim:"Rutinas y flexibilidad", texto:"Tengo rutinas diarias muy definidas y me altero si algo me obliga a romperlas.", inv:false },
+    { dim:"Rutinas y flexibilidad", texto:"Me adapto con facilidad cuando los planes cambian de último momento.", inv:true },
+    { dim:"Rutinas y flexibilidad", texto:"Necesito que las cosas se hagan de una manera específica, incluso en tareas pequeñas.", inv:false },
+
+    { dim:"Intereses específicos", texto:"Tengo uno o varios temas que me apasionan profundamente y sobre los que podría hablar horas.", inv:false },
+    { dim:"Intereses específicos", texto:"Paso mucho tiempo aprendiendo datos muy detallados sobre temas que me interesan, más de lo que la mayoría de la gente consideraría 'normal'.", inv:false },
+    { dim:"Intereses específicos", texto:"Mis intereses cambian con frecuencia y no me obsesiono con ninguno en particular.", inv:true },
+
+    { dim:"Sensibilidad sensorial", texto:"Ciertos sonidos, luces, texturas u olores me resultan insoportables o abrumadores, aunque a otros no les molesten.", inv:false },
+    { dim:"Sensibilidad sensorial", texto:"Los ambientes ruidosos o con mucha gente me agotan mucho más rápido que a la mayoría.", inv:false },
+    { dim:"Sensibilidad sensorial", texto:"Soy indiferente a estímulos como ruido, luz o texturas; no me afectan de forma especial.", inv:true },
+
+    { dim:"Vida social y energía", texto:"Después de socializar, necesito tiempo a solas para 'recargar', incluso si disfruté el momento.", inv:false },
+    { dim:"Vida social y energía", texto:"Siento que tengo que 'actuar' o esforzarme conscientemente para parecer socialmente normal frente a otros.", inv:false },
+    { dim:"Vida social y energía", texto:"Prefiero actividades en solitario o con una sola persona, más que en grupos grandes.", inv:false },
+    { dim:"Vida social y energía", texto:"Disfruto genuinamente de estar rodeado de mucha gente durante horas.", inv:true },
+
+    { dim:"Regulación emocional", texto:"Cuando me abruma una situación, puedo tener una reacción intensa (bloqueo, llanto, enojo repentino) que a otros les parece desproporcionada.", inv:false },
+    { dim:"Regulación emocional", texto:"Me cuesta identificar y poner en palabras lo que estoy sintiendo en el momento.", inv:false }
+  ];
+
+  const dimensiones = [...new Set(preguntas.map(p => p.dim))];
+
+  const escala = [
+    { valor:0, texto:"Totalmente en desacuerdo" },
+    { valor:1, texto:"En desacuerdo" },
+    { valor:2, texto:"Neutral / depende de la situación" },
+    { valor:3, texto:"De acuerdo" },
+    { valor:4, texto:"Totalmente de acuerdo" }
+  ];
+
+  const respuestas = new Array(preguntas.length).fill(null);
+
+  const form = document.getElementById('formulario');
+  const contador = document.getElementById('contador');
+  const barraFill = document.getElementById('barra-fill');
+  const btnVer = document.getElementById('btn-ver-resultado');
+
+  document.getElementById('total-preguntas').textContent = preguntas.length;
+
+  preguntas.forEach((p, i) => {
+    const bloque = document.createElement('div');
+    bloque.className = 'pregunta';
+    bloque.innerHTML = `
+      <div class="dimension">${p.dim}</div>
+      <div class="num">Pregunta ${i + 1} de ${preguntas.length}</div>
+      <h3>${p.texto}</h3>
+      <div class="opciones" data-index="${i}">
+        ${escala.map(op => `
+          <label>
+            <input type="radio" name="p${i}" value="${op.valor}">
+            ${op.texto}
+          </label>
+        `).join('')}
+      </div>
+    `;
+    form.appendChild(bloque);
+  });
+
+  form.addEventListener('change', (e) => {
+    if (e.target.name && e.target.name.startsWith('p')) {
+      const idx = parseInt(e.target.name.slice(1), 10);
+      respuestas[idx] = parseInt(e.target.value, 10);
+
+      const contenedor = e.target.closest('.opciones');
+      contenedor.querySelectorAll('label').forEach(l => l.classList.remove('marcada'));
+      e.target.closest('label').classList.add('marcada');
+
+      actualizarProgreso();
+    }
+  });
+
+  function actualizarProgreso(){
+    const respondidas = respuestas.filter(r => r !== null).length;
+    contador.textContent = respondidas;
+    barraFill.style.width = (respondidas / preguntas.length * 100) + '%';
+    btnVer.disabled = respondidas < preguntas.length;
+  }
+
+  btnVer.addEventListener('click', () => {
+    calcularResultado();
+    document.getElementById('resultado').style.display = 'block';
+    btnVer.parentElement.style.display = 'none';
+    document.getElementById('resultado').scrollIntoView({ behavior:'smooth' });
+  });
+
+  document.getElementById('btn-reiniciar').addEventListener('click', () => {
+    respuestas.fill(null);
+    form.reset();
+    form.querySelectorAll('label').forEach(l => l.classList.remove('marcada'));
+    actualizarProgreso();
+    document.getElementById('resultado').style.display = 'none';
+    btnVer.parentElement.style.display = 'flex';
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+
+  function calcularResultado(){
+    // Normaliza cada respuesta a 0-4 puntos "hacia más rasgos",
+    // invirtiendo las preguntas marcadas como inv:true.
+    let totalPuntos = 0;
+    const maxPorDimension = {};
+    const puntosPorDimension = {};
+    dimensiones.forEach(d => { maxPorDimension[d] = 0; puntosPorDimension[d] = 0; });
+
+    preguntas.forEach((p, i) => {
+      const crudo = respuestas[i];
+      const ajustado = p.inv ? (4 - crudo) : crudo;
+      totalPuntos += ajustado;
+      puntosPorDimension[p.dim] += ajustado;
+      maxPorDimension[p.dim] += 4;
+    });
+
+    const maxTotal = preguntas.length * 4;
+    const puntajeFinal = Math.round((totalPuntos / maxTotal) * 100);
+
+    let perfil, color, descripcion;
+    if (puntajeFinal < 30) {
+      perfil = "Pocos rasgos indicados";
+      color = "var(--ok)";
+      descripcion = "Tus respuestas muestran pocos patrones asociados típicamente al espectro autista en adultos. Esto no descarta que tengas rasgos puntuales en alguna área — revisa el desglose por debajo — pero en conjunto tu perfil se aleja del patrón que suele motivar una evaluación clínica.";
+    } else if (puntajeFinal < 55) {
+      perfil = "Algunos rasgos presentes";
+      color = "#c9a227";
+      descripcion = "Tus respuestas muestran algunos rasgos asociados al espectro autista, concentrados en ciertas áreas más que en otras (mira el desglose). Esto es común y no implica por sí solo un diagnóstico: muchas personas neurotípicas también puntúan en este rango en una o dos dimensiones. Si estos rasgos te generan malestar o dificultad en tu día a día, puede valer la pena conversarlo con un profesional.";
+    } else if (puntajeFinal < 75) {
+      perfil = "Rasgos notorios";
+      color = "#c9702f";
+      descripcion = "Tus respuestas reflejan un número considerable de rasgos asociados al espectro autista, presentes en varias áreas de tu vida. Esto no es un diagnóstico, pero sí es una señal razonable para buscar una evaluación con un profesional de salud mental especializado en autismo en adultos, que pueda mirar tu historia completa.";
+    } else {
+      perfil = "Rasgos muy marcados";
+      color = "#b5654a";
+      descripcion = "Tus respuestas muestran un patrón fuerte y consistente de rasgos asociados al espectro autista en múltiples áreas. Te recomendamos buscar una evaluación formal con un psicólogo o psiquiatra especializado en autismo en adultos. Un diagnóstico (si aplica) puede abrirte acceso a herramientas, adaptaciones y una mejor comprensión de ti mismo/a — muchas personas describen ese proceso como liberador, independientemente del resultado.";
+    }
+
+    document.getElementById('etiqueta-perfil').textContent = perfil;
+    document.getElementById('etiqueta-perfil').style.background = color;
+    document.getElementById('etiqueta-perfil').style.color = "#fff";
+    document.getElementById('puntaje-num').textContent = puntajeFinal;
+    document.getElementById('texto-perfil').textContent = descripcion;
+
+    const barraResultado = document.getElementById('barra-resultado-fill');
+    barraResultado.style.width = puntajeFinal + '%';
+    barraResultado.style.background = color;
+
+    const lista = document.getElementById('lista-dimensiones');
+    lista.innerHTML = dimensiones.map(d => {
+      const pct = Math.round((puntosPorDimension[d] / maxPorDimension[d]) * 100);
+      return `
+        <div class="fila-dim">
+          <span style="min-width:170px;">${d}</span>
+          <div class="mini-barra"><div style="width:${pct}%;"></div></div>
+          <span style="min-width:38px;text-align:right;">${pct}%</span>
+        </div>
+      `;
+    }).join('');
+
+    const siguientePaso = document.getElementById('siguiente-paso');
+    siguientePaso.innerHTML = `
+      <strong>¿Qué hacer con este resultado?</strong><br>
+      Este puntaje es un punto de partida para la reflexión personal, no una
+      etiqueta. Si sientes que estos rasgos te han generado dificultades
+      reales (en el trabajo, en tus relaciones o en tu bienestar), el
+      siguiente paso útil es buscar una cita con un psicólogo clínico o
+      psiquiatra con experiencia en autismo en adultos, y compartirle este
+      resultado como guía de conversación — no como diagnóstico.
+    `;
+  }
+
+  actualizarProgreso();
+})();
+</script>
+</body>
+</html>
