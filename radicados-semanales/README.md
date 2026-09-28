@@ -141,6 +141,22 @@ navegador, sino uno propio de la app.
   proyecto, tanto en la pantalla de registro como en el servidor.
 - El Excel oficial de tu Secretaría **nunca se toca ni se modifica** — esta
   app solo genera un archivo nuevo con el formato de la plantilla MASIVA.
+- **La línea de Fénix se revisa al momento de pegarla.** Si llega sin
+  columnas (copiada de un PDF o de un correo), cortada antes del final, o
+  con las columnas corridas, se avisa ahí mismo y se dice qué columna trae
+  qué. Si la línea trae la dirección del infractor antes de la placa, la
+  app las separa sola: en la columna PLACA va la placa.
+- **Que la FECHA DE NOTIFICACIÓN venga vacía no es un error.** Hay
+  comparendos sin notificar todavía; la app no lo marca como problema en
+  ningún momento y, para contar el término, usa la fecha de imposición
+  diciendo que lo hizo. Está escrito como regla (R23) en la ventana
+  **Reglas**.
+- **En un AGENDAMIENTO se pregunta "¿el ciudadano pidió pruebas?"** con un
+  SÍ o un NO de un clic, tanto en el Paso 2 como en la ventana de
+  Agendamientos. Esa respuesta es la columna FORMATO de la plantilla que se
+  entrega (`AGENDAR CON PRUEBAS` / `AGENDAR SIN PRUEBAS`).
+- **Los Excel salen con cuadrícula**, con la fila de títulos en negrita y
+  congelada. Las fechas siguen siendo fechas de verdad, no texto.
 
 ## Protocolo de seguridad de la información (léelo con todo el equipo)
 
@@ -204,3 +220,11 @@ app — no afectan en nada la lógica de negocio ni los datos:
 - `manifest.webmanifest`: nombre, colores e íconos que usa el sistema operativo al instalarla.
 - `sw.js`: Service Worker mínimo, solo para que el navegador la ofrezca como instalable y cargue el "cascarón" de la app aunque se abra sin conexión. Va "primero la red" a propósito — nunca sirve una versión vieja cacheada mientras haya internet, así que un redeploy nuevo siempre se ve reflejado de inmediato.
 - `icons/`: el ícono de la app (el mismo pin verde de siempre) en los tamaños que exige cada plataforma, incluida la variante "maskable" que necesita Android.
+
+### Pruebas
+
+En `../pruebas/` hay un banco de pruebas automáticas que maneja la app por la
+interfaz de verdad (Playwright + Chromium) contra un servidor de mentira que
+hace de Supabase — **nunca toca la base real**. Comprueba los arreglos nuevos
+y, sobre todo, que los anteriores sigan funcionando. Cómo correrlo, en
+`pruebas/LEEME.md`.

@@ -555,6 +555,12 @@
   html.es-flotante .work-fields{gap:2px 10px;max-width:none;}
   html.es-flotante .work-fields > div,
   html.es-flotante .work-fields > .full{margin-bottom:0;}
+  /* La pregunta de "¿pidió pruebas?" también en la ventana flotante: más apretada, pero entera y
+     con los dos botones cómodos de pulsar -- se responde con el mismo clic que en la pantalla grande. */
+  html.es-flotante .pregunta-si-no{padding:4px 8px;gap:4px 8px;}
+  html.es-flotante .pregunta-si-no .psn-label{font-size:0.72rem;}
+  html.es-flotante .pregunta-si-no .psn-ops label{padding:2px 11px;font-size:0.74rem;min-height:26px;}
+  html.es-flotante .pregunta-si-no .field-hint{font-size:0.62rem;}
   html.es-flotante .insights{margin-top:2px;gap:3px;}
   html.es-flotante .insight-chip{font-size:0.62rem;padding:1px 6px;}
   html.es-flotante .breakdown-details{margin-top:1px;}
@@ -642,6 +648,23 @@
   .work-fields > div{min-width:0;}
   .work-fields > .full{grid-column:1 / -1;}
   .work-fields .formato-field input{font-weight:700;}
+  /* Pregunta de SÍ o NO. Se ve como una pregunta, no como un campo más: la idea es que se
+     responda de un clic mientras se clasifica, sin abrir otra ventana. Los dos botones son
+     grandes a propósito -- se usan 170 veces por semana. */
+  .pregunta-si-no{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;
+    border:1.5px solid var(--accent);border-radius:10px;background:var(--accent-soft);padding:9px 13px;}
+  .pregunta-si-no[hidden]{display:none;}
+  .pregunta-si-no .psn-label{font-weight:800;font-size:0.92rem;color:var(--accent-2);}
+  .pregunta-si-no .psn-ops{display:flex;gap:8px;}
+  .pregunta-si-no .psn-ops label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    border:1.5px solid var(--border);border-radius:999px;background:var(--surface);
+    padding:5px 15px;font-weight:700;font-size:0.92rem;margin:0;min-height:34px;}
+  .pregunta-si-no .psn-ops label:hover{border-color:var(--accent);}
+  .pregunta-si-no .psn-ops label:has(input:checked){border-color:var(--accent);background:var(--accent);color:#fff;}
+  .pregunta-si-no .psn-ops input{accent-color:var(--accent);margin:0;}
+  .pregunta-si-no .field-hint{flex:1 1 100%;margin:0;}
+  .pregunta-si-no.sin-responder{border-color:var(--warn);background:var(--warn-soft);}
+  .pregunta-si-no.sin-responder .psn-label{color:var(--warn-text);}
   /* Desplegable de sugerencias de Formato CONSTRUIDO A MANO (en vez de <datalist> nativo) -- a
      propósito: el desplegable nativo de <datalist>/<select> no se muestra de forma confiable dentro
      de un <iframe> montado adentro de una ventana Picture-in-Picture de documento (confirmado con
@@ -760,6 +783,7 @@
   .regla-card.estructural{border-left:4px solid var(--accent);}
   .regla-card.imperativa{border-left:4px solid var(--stamp);}
   .regla-card.aviso{border-left:4px solid var(--warn);}
+  .regla-card.excepcion{border-left:4px solid var(--ok);}
   .regla-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
   .regla-id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800;font-size:.86rem;
             letter-spacing:.03em;color:var(--muted);flex:none;}
@@ -796,6 +820,7 @@
   .regla-efecto.estructural{background:var(--accent-soft);color:var(--accent-2);}
   .regla-efecto.imperativa{background:var(--stamp-soft);color:var(--stamp);}
   .regla-efecto.aviso{background:var(--warn-soft);color:var(--warn-text);}
+  .regla-efecto.excepcion{background:var(--ok-soft);color:var(--ok-text);}
   .regla-detalle{margin-top:8px;}
   .regla-detalle summary{cursor:pointer;font-size:.82rem;color:var(--muted);}
   .regla-detalle summary:hover{color:var(--ink);}
@@ -1221,6 +1246,22 @@
                   <div class="breakdown" id="cc_breakdown"></div>
                 </details>
                 <div class="insights" id="ccInsights"></div>
+              </div>
+
+              <!-- ¿PIDIÓ PRUEBAS? — pregunta de SÍ o NO, pedida por la usuaria.
+                   Solo aparece cuando el Formato es AGENDAMIENTO, que es el único caso en que
+                   importa. La respuesta es EXACTAMENTE lo que va en la columna FORMATO de la
+                   plantilla oficial de agendamientos: SÍ = "AGENDAR CON PRUEBAS", NO = "AGENDAR
+                   SIN PRUEBAS". No es un dato nuevo ni paralelo: es la misma casilla que ya existía
+                   en la ventana de Agendamientos, preguntada aquí, en el momento de clasificar,
+                   para no tener que volver sobre cada radicado al final. -->
+              <div class="full pregunta-si-no" id="wrap_pruebas" hidden>
+                <span class="psn-label">¿El ciudadano pidió pruebas?</span>
+                <div class="psn-ops">
+                  <label><input type="radio" id="cc_pruebasSi" name="cc_pruebas" value="SI"> SÍ</label>
+                  <label><input type="radio" name="cc_pruebas" value="NO"> NO</label>
+                </div>
+                <div class="field-hint" id="cc_pruebasEco">Es la columna FORMATO de la plantilla de Agendamientos.</div>
               </div>
 
               <!-- TIPO DE DOCUMENTO, a la vista y corregible.
@@ -2318,6 +2359,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     {k:"notificacion", label:"Fecha notif."}, {k:"curso", label:"Tiene curso"}, {k:"medio", label:"Medio imposición"},
     {k:"estado", label:"Estado comparendo"}, {k:"f8", label:"Motivo cierre"}, {k:"f9", label:"Proceso GC (No.)"}, {k:"f10", label:"Proceso GC (Estado)"},
     {k:"tipoId", label:"Tipo documento"}, {k:"idNum", label:"No. documento"}, {k:"nombreF", label:"Nombre infractor"},
+    // Dirección del infractor. En algunas consultas de Fénix esta columna viene ANTES de la placa
+    // y en otras no viene. Se muestra aparte para que se vea de una que la placa es la placa y la
+    // dirección es la dirección -- era justo lo que se estaba mezclando. Ninguna regla depende de
+    // ella y NO se escribe en ningún archivo que se entregue.
+    {k:"direccionF", label:"Dirección infractor"},
     // Campo adicional, ÚTIL sobre todo para prórrogas -- nunca obligatorio, ninguna regla depende de él.
     {k:"placa", label:"Placa"}
   ];
@@ -4669,9 +4715,27 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
   // Colapsa espacios/tabs repetidos (típico al pegar de otro sistema) a uno solo y recorta los extremos.
   // No toca saltos de línea, para no destruir un comentario de varias líneas escrito a propósito.
+  // Caracteres INVISIBLES que se cuelan al copiar y pegar desde Fénix, desde un PDF o desde un
+  // correo: espacio de ancho cero, marcas de dirección de texto, guion suave, BOM. NO son espacios
+  // para el navegador (\s no los reconoce), así que sobrevivían a toda la limpieza y llegaban
+  // intactos al Excel que se entrega: la casilla se ve "con un espacio de más" o el nombre se ve
+  // partido, y no hay forma de verlo en pantalla porque el carácter no se dibuja. Se quitan, no se
+  // convierten en espacio: no representan nada.
+  var INVISIBLES = /[​-‏‪-‮⁠­﻿]/g;
   function cleanSpaces(v){
     if(v == null) return v;
-    return String(v).replace(/[^\S\n]+/g, " ").trim();
+    return String(v).replace(INVISIBLES, "").replace(/[^\S\n]+/g, " ").trim();
+  }
+  // Limpieza para una CASILLA DE UN ARCHIVO QUE SE ENTREGA. Hace lo mismo que cleanSpaces() y
+  // además convierte los saltos de línea en un espacio. cleanSpaces() los respeta a propósito
+  // (el Comentario es un campo de varias líneas y ahí sí tienen sentido), pero en una casilla de
+  // la masiva o de la plantilla de agendamientos un salto de línea pegado sin querer se ve como
+  // una fila partida en dos en el archivo que recibe la jefatura. Las fechas se dejan pasar tal
+  // cual: son fechas de verdad, no texto.
+  function celdaLimpia(v){
+    if(v instanceof Date) return v;
+    if(v == null) return v;
+    return String(v).replace(INVISIBLES, "").replace(/\s+/g, " ").trim();
   }
 
   // T10 y "PETICION OSCURA" son EL MISMO Formato -- "PETICION OSCURA" es solo un alias que se
@@ -5187,6 +5251,31 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
      titulo:"El TIPO DE DOCUMENTO va tal cual lo entrega Fénix — nunca se asume cédula",
      texto:"No todo el mundo tiene cédula de ciudadanía. En una masiva real de 267 filas había una cédula de extranjería y un permiso por protección temporal; en otra hoja de trabajo, además, un pasaporte. Fénix ya entrega el texto exacto que va en la masiva (\"CEDULA DE CIUDADANIA\", \"Permiso por protección temporal\", \"PASAPORTE\"), así que se copia sin traducir ni abreviar. Si un radicado lleva número de documento pero no dice de qué tipo es (o al revés), se avisa: comprobado contra 385 filas ya entregadas, esas dos casillas siempre van juntas o las dos vacías — vacías solo en la petición oscura, que no lleva documento.",
      donde:"Al guardar y en la revisión previa"},
+    {id:"R20", grupo:"Comparendo", cuando:"captura", resumen:"La línea de Fénix se pega COMO COLUMNAS. Si todo cae en una sola casilla, se avisa.",
+     tipo:"imperativa", param:null,
+     titulo:"La línea de Fénix tiene que llegar partida en columnas",
+     texto:"Fénix entrega la línea con un tabulador entre cada dato, y de ahí salen catorce campos. Cuando se copia desde una vista que no conserva los tabuladores (un PDF, un correo, una captura), todo cae en la primera casilla: el número de comparendo queda con la línea entera pegada detrás y las demás columnas de la masiva salen vacías. Se avisa AL MOMENTO de pegarla, no al final del día.",
+     donde:"Al pegar la línea y al guardar"},
+    {id:"R21", grupo:"Comparendo", cuando:"captura", resumen:"La línea de Fénix va completa: si llegó cortada, se avisa y se dice qué falta.",
+     tipo:"imperativa", param:null,
+     titulo:"La línea de Fénix va completa — una tira a medio copiar se avisa",
+     texto:"De la línea salen ocho columnas de la masiva. Si llega cortada antes del final, se pierden el tipo y el número de documento del infractor y su nombre, y esas casillas se entregan vacías sin que nada lo diga. La app cuenta las columnas que llegaron y avisa cuántas son y cuáles faltan. Para la masiva la línea va hasta el nombre del infractor; para AGENDAMIENTO, hasta la placa.",
+     donde:"Al pegar la línea y al guardar"},
+    {id:"R22", grupo:"Comparendo", cuando:"captura", resumen:"Cada dato de la línea tiene que tener la forma de lo que dice ser.",
+     tipo:"imperativa", param:null,
+     titulo:"Cada dato de la línea, en su casilla y con su forma",
+     texto:"Una columna corrida no se ve: el dato está, solo que en el lugar de otro, y la fila se entrega igual. Por eso se comprueba la FORMA de lo que llegó: las fechas de imposición y notificación tienen que ser fechas, el número de documento un número, el tipo de documento un texto (no una fecha ni una cifra), el estado del comparendo un estado y la placa una placa. Lo que no cuadre se dice con el valor exacto que llegó, para poder compararlo contra Fénix sin adivinar.",
+     donde:"Al pegar la línea y al guardar"},
+    {id:"R23", grupo:"Comparendo", cuando:"captura", resumen:"Una FECHA DE NOTIFICACIÓN vacía NO es un error. Nunca se marca como problema.",
+     tipo:"excepcion", param:null,
+     titulo:"La fecha de notificación puede venir vacía — es normal",
+     texto:"Hay comparendos que todavía no se han notificado, y en Fénix esa casilla sale en blanco. Es perfectamente común y no significa que la línea se haya copiado mal ni que falte nada. La app NO la marca como problema en ningún momento: ni al pegar la línea, ni al guardar, ni al generar la masiva, ni en la plantilla de Agendamientos. Para contar el término, cuando no hay notificación se cuenta desde la fecha de imposición, y se dice cuál de las dos se usó. Lo único que sí se revisa es que, SI viene una fecha, sea una fecha de verdad (R22).",
+     donde:"En todas las revisiones"},
+    {id:"R24", grupo:"Agendamientos", cuando:"captura", resumen:"En un AGENDAMIENTO hay que responder si el ciudadano pidió pruebas.",
+     tipo:"imperativa", param:null,
+     titulo:"¿El ciudadano pidió pruebas? — se responde al clasificar, no al final",
+     texto:"La plantilla oficial de agendamientos tiene una columna FORMATO que solo admite dos valores: AGENDAR CON PRUEBAS o AGENDAR SIN PRUEBAS (comprobado contra el archivo real de la entidad, 751 filas). No lo decide la app: lo decide la abogada caso por caso. Por eso, apenas un radicado se clasifica como AGENDAMIENTO, aparece la pregunta de SÍ o NO en el Paso 2 y se responde de un clic; la misma pregunta está en la ventana de Agendamientos. Si se deja sin responder, esa columna se entregaría vacía, así que se avisa al pasar al siguiente radicado.",
+     donde:"Al guardar un AGENDAMIENTO y al generar la plantilla"},
     {id:"R17", grupo:"Agendamientos", cuando:"agenda", resumen:"La plantilla de Agendamientos se revisa antes de bajarla.",
      tipo:"estructural", param:null,
      titulo:"La plantilla de Agendamientos se revisa antes de entregarse",
@@ -5853,20 +5942,33 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       : info.dias + " de " + info.umbral + " días hábiles (" + (info.tipo === "MANUAL" ? "manual" : "electrónico") + ")");
     var corto = comparendoCorto(r);
     var esDup = corto && dupActual(corto) > 1;
-    var opciones = AGENDA_FORMATOS.map(function(o){
-      return '<option value="'+escapeHtml(o)+'"'+(r.agendaFormato===o?' selected':'')+'>'+escapeHtml(o)+'</option>';
-    }).join("");
+    // La MISMA pregunta de SÍ o NO que en el Paso 2, con la misma casilla detrás (agendaFormato).
+    // Antes esto era un desplegable con dos frases largas ("AGENDAR CON PRUEBAS" / "AGENDAR SIN
+    // PRUEBAS") que había que leer y abrir; la pregunta se responde de un clic y dice, debajo,
+    // exactamente lo que va a quedar escrito en la columna FORMATO del archivo que se entrega.
+    var respPruebas = respuestaPruebas(r);
+    var preguntaPruebas =
+      '<div class="pregunta-si-no' + (respPruebas ? '' : ' sin-responder') + '" id="ae_pruebasWrap">' +
+        '<span class="psn-label">¿El ciudadano pidió pruebas?</span>' +
+        '<div class="psn-ops">' +
+          '<label><input type="radio" name="ae_pruebas" value="SI"' + (respPruebas==="SI"?' checked':'') + '> SÍ</label>' +
+          '<label><input type="radio" name="ae_pruebas" value="NO"' + (respPruebas==="NO"?' checked':'') + '> NO</label>' +
+        '</div>' +
+        '<div class="field-hint">' + (respPruebas
+          ? 'La columna FORMATO de la plantilla va a decir “' + escapeHtml(formatoPorPruebas(respPruebas)) + '”.'
+          : 'Sin responder, la columna FORMATO de la plantilla saldría VACÍA.') + '</div>' +
+      '</div>';
     cont.innerHTML = '<div class="ws-detail-inner">' +
       '<h3>' + escapeHtml(r.radicado) + '</h3>' +
       '<div class="d-nombre">' + escapeHtml(r.nombreF || r.nombre || "(sin nombre)") + '</div>' +
       (info.vencido && !r.agendado ? '<div class="ws-aviso">Este agendamiento quedó FUERA de término — ' + escapeHtml(margenTxt) + '.</div>' : '') +
       (esDup ? '<div class="ws-aviso">El comparendo ' + escapeHtml(corto) + ' aparece en más de un agendamiento. Revisa que no esté duplicado.</div>' : '') +
-      (!r.agendaFormato ? '<div class="ws-aviso">Falta elegir el Formato de la plantilla: esa casilla saldría vacía en el archivo que entregas.</div>' : '') +
+      (!r.agendaFormato ? '<div class="ws-aviso">Falta responder si el ciudadano pidió pruebas: la columna FORMATO saldría vacía en el archivo que entregas.</div>' : '') +
 
       '<div class="ws-seccion"><h4>Término para solicitar audiencia</h4><dl class="ws-campos">' +
         campo("Estado", info.dias === null ? "Sin fechas para calcular" : (info.vencido ? "FUERA DE TÉRMINO" : "Dentro de término")) +
         campo("Días", termino) + campo("Margen", margenTxt) +
-        campo("Fecha base", formatDateEs(r.notificacion || r.imposicion) + (r.notificacion ? " (notificación)" : (r.imposicion ? " (imposición)" : ""))) +
+        campo("Fecha base", formatDateEs(r.notificacion || r.imposicion) + (r.notificacion ? " (notificación)" : (r.imposicion ? " (imposición — en Fénix no hay notificación, y es normal)" : ""))) +
         campo("Radicación", formatDateEs(r.fechaRadicacion)) +
       '</dl></div>' +
 
@@ -5881,10 +5983,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       '<div class="ws-campos" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));">' +
         '<div><label for="ae_direccion">Correo o dirección</label><input id="ae_direccion" value="'+escapeHtml(r.direccion||"")+'" placeholder="correo de notificación"></div>' +
         '<div><label for="ae_placa">Placa</label><input id="ae_placa" value="'+escapeHtml(r.placa||"")+'" placeholder="ej. ABC123"></div>' +
-        '<div><label for="ae_agendaFormato">Formato de la plantilla</label>' +
-          '<select id="ae_agendaFormato"><option value="">(sin elegir)</option>' + opciones + '</select></div>' +
         '<div><label for="ae_comentario">Comentario</label><input id="ae_comentario" value="'+escapeHtml(r.comentario||"")+'" placeholder="notas de esta solicitud"></div>' +
       '</div>' +
+      preguntaPruebas +
       '<div style="margin-top:10px;"><label for="ae_comparendo">Línea completa del comparendo (hasta la Placa)</label>' +
         '<textarea id="ae_comparendo" rows="2" placeholder="Pega aquí la línea copiada de Fénix">'+escapeHtml(r.comparendoRaw||"")+'</textarea>' +
         '<div class="field-hint">Al pegarla se recalculan solos el término, la placa y los datos del infractor.</div></div>' +
@@ -5995,6 +6096,29 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var f = e.target.closest("[data-histsel]");
     if(f){ state.historialSel = f.getAttribute("data-histsel"); renderHistorial(); }
   });
+  // La respuesta de "¿pidió pruebas?" se guarda EN EL ACTO, sin esperar a "Guardar cambios": es un
+  // clic, y un clic que no se guarda es un dato perdido. A propósito NO se vuelve a pintar el panel
+  // entero -- eso borraría lo que se estuviera escribiendo en Correo/Placa/Comentario justo al lado.
+  document.getElementById("agendaDetalle").addEventListener("change", function(e){
+    var input = e.target.closest('input[name="ae_pruebas"]');
+    if(!input) return;
+    var rec = state.records.find(function(r){ return r.id === state.agendaSel; });
+    if(!rec) return;
+    rec.agendaFormato = formatoPorPruebas(input.value);
+    rec.modificadoEn = Date.now();
+    save();
+    var wrap = document.getElementById("ae_pruebasWrap");
+    if(wrap){
+      wrap.classList.remove("sin-responder");
+      var hint = wrap.querySelector(".field-hint");
+      if(hint) hint.textContent = "La columna FORMATO de la plantilla va a decir “" + rec.agendaFormato + "”.";
+    }
+    // La fila de la lista de la izquierda decía "· falta el formato": se le quita ahí mismo, sin
+    // repintar la lista entera (repintarla arrastraría consigo el panel de la derecha).
+    var fila = document.querySelector('.ws-row[data-agsel="' + rec.id + '"] .r-sub');
+    if(fila) fila.textContent = String(fila.textContent).replace(" · falta el formato", "");
+    refreshAgendaDocCount();
+  });
   document.getElementById("agendaDetalle").addEventListener("click", function(e){
     var toggleBtn = e.target.closest("button[data-toggleagendado]");
     if(toggleBtn){
@@ -6015,7 +6139,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(grec){
         grec.direccion  = cleanSpaces(document.getElementById("ae_direccion").value);
         grec.comentario = cleanSpaces(document.getElementById("ae_comentario").value);
-        grec.agendaFormato = document.getElementById("ae_agendaFormato").value;
+        var elPruebas = document.querySelector('#agendaDetalle input[name="ae_pruebas"]:checked');
+        grec.agendaFormato = elPruebas ? formatoPorPruebas(elPruebas.value) : "";
         var raw = document.getElementById("ae_comparendo").value; // sin limpiar: los tabs son el separador
         if(raw.trim()){
           grec.comparendoRaw = raw;
@@ -6069,7 +6194,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // cleanSpaces() como red de seguridad final: limpia también radicados capturados antes de este ajuste.
     return [r.radicado, r.direccion, r.fechaRadicacion, r.fechaAsignacion, r.nombre, r.formato, r.comentario,
       r.res, r.fechaRes, "", "", "", r.comparendoCompleto, r.cod, r.imposicion, r.notificacion, r.curso, r.medio,
-      r.estado, r.f8, r.f9, r.f10, r.tipoId, r.idNum, r.nombreF].map(cleanSpaces);
+      r.estado, r.f8, r.f9, r.f10, r.tipoId, r.idNum, r.nombreF].map(celdaLimpia);
   }
   function toTSV(records){
     return rowsToTSV(EXPORT_HEADERS, records.map(recordToRow25));
@@ -6412,12 +6537,52 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   });
 
   // ---------- capture card (Paso 2 fast entry) ----------
+  // ¿Esto tiene forma de PLACA colombiana? Se usa para no confundir la placa con lo que venga a su
+  // lado en la línea de Fénix. Cubre las formas que existen: carro (ABC123), moto (ABC12D / ABC12),
+  // remolque y algunas oficiales (AB1234), y la forma invertida que aparece en vehículos antiguos
+  // (123ABC). Se ignoran espacios y guiones porque Fénix las entrega de las dos maneras.
+  function pareceMatricula(v){
+    var s = String(v||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[\s.\-]/g,"");
+    if(!s || s.length < 5 || s.length > 7) return false;
+    return /^[A-Z]{3}[0-9]{2,3}[A-Z]?$/.test(s) || /^[A-Z]{2}[0-9]{4}$/.test(s) || /^[0-9]{3}[A-Z]{3}$/.test(s);
+  }
+  // LA COLA DE LA LÍNEA DE FÉNIX -- el error que hizo que en la plantilla de agendamientos saliera
+  // la DIRECCIÓN donde debía ir la PLACA.
+  //
+  // Las trece primeras columnas de la línea están siempre en el mismo orden. El final NO: según la
+  // consulta de Fénix, detrás del nombre del infractor puede venir solo la placa, o puede venir
+  // primero la dirección del infractor y la placa de última ("en la tira que copio y pego, en la
+  // parte final va la placa"). Leer la columna 14 a ciegas daba por buena la dirección como si
+  // fuera la placa, y así se entregaba: la columna PLACA de la plantilla con una dirección dentro.
+  //
+  // Ahora la cola se lee por lo que ES, no por dónde cae: de todo lo que venga del nombre en
+  // adelante se toma como placa lo ÚLTIMO que tenga forma de placa, y lo demás se guarda aparte
+  // como dirección del infractor (que no va en ningún archivo, pero así no se pierde ni estorba).
+  // Si nada de la cola tiene forma de placa, NO se inventa nada: se deja tal cual venía (columna
+  // 14) y la revisión de la tira lo avisa en rojo. Corregir en silencio sería el otro error.
   function parseComparendoLine(text){
     var parts = String(text||"").split("\t"); // el tab separa las columnas; se limpia CADA parte después de separar, nunca antes
     var keys = ["comparendoCompleto","cod","imposicion","notificacion","curso","medio","estado","f8","f9","f10","tipoId","idNum","nombreF","placa"];
     var out = {};
     keys.forEach(function(k,i){ out[k] = cleanSpaces(parts[i]||""); });
+    out.direccionF = "";
+    var cola = parts.slice(13).map(cleanSpaces).filter(function(s){ return s !== ""; });
+    var iPlaca = -1;
+    for(var i = cola.length - 1; i >= 0; i--){ if(pareceMatricula(cola[i])){ iPlaca = i; break; } }
+    if(iPlaca !== -1){
+      out.placa = cola[iPlaca];
+      out.direccionF = cola.filter(function(v, j){ return j !== iPlaca; }).join(" ");
+    }
     return out;
+  }
+  // Cuántas columnas trajo de verdad la línea pegada. Sirve para avisar de una tira a medio copiar
+  // sin tener que volver a partirla en cada sitio donde haga falta saberlo.
+  function columnasDeLaTira(raw){
+    var s = String(raw == null ? "" : raw);
+    if(!s.trim()) return 0;
+    var parts = s.split("\t");
+    while(parts.length && !String(parts[parts.length-1]).trim()) parts.pop();
+    return parts.length;
   }
   function renderBreakdown(parsed){
     var el = document.getElementById("cc_breakdown");
@@ -6633,10 +6798,33 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
     var chips = [];
     var formatoNorm = normalizeFormatoInput(formato).toUpperCase();
+    // La pregunta de "¿pidió pruebas?" aparece y desaparece según lo que se escriba en Formato,
+    // sin tener que guardar antes: se ve en cuanto se teclea AGENDAMIENTO.
+    pintarPreguntaPruebas(state.records.find(function(r){ return r.id === state.activeId; }));
 
     // Avisos que antes solo salían DESPUÉS de guardar (checkImperativeRules) -- se repiten aquí, en
     // vivo, apenas se pega la línea o se escribe el Formato, para enterarse al momento y no gastar
     // un guardado completo solo para descubrirlo. Siguen sin bloquear nada, es el mismo espíritu.
+    // LA TIRA DE FÉNIX, EN VIVO. El mismo motor que usan el aviso al guardar y las dos revisiones
+    // previas (revisarTiraDeFenix), corriendo sobre lo que hay AHORA MISMO en la casilla. Es el
+    // "advertir al momento" que faltaba: si la tira se pegó mal, se ve mientras se pega, no cuando
+    // la jefatura devuelve el archivo. No bloquea nada aquí -- de frenar ya se encarga el aviso al
+    // pasar al siguiente radicado.
+    var tiraRaw = document.getElementById("cc_comparendo").value;
+    if(String(tiraRaw||"").trim()){
+      var recTira = {};
+      Object.keys(parsed).forEach(function(k){ recTira[k] = parsed[k]; });
+      recTira.comparendoRaw = tiraRaw;
+      recTira.formato = formato;
+      revisarTiraDeFenix(recTira).forEach(function(h){
+        chips.push({cls:"alert", text:"⚠ " + h.regla + " · " + h.texto.split(".")[0] + "."});
+      });
+      // La línea traía la dirección del infractor delante de la placa y la app las separó sola.
+      // Se dice: corregir en silencio es lo que hace que un error vuelva sin que nadie se entere.
+      if(parsed.direccionF){
+        chips.push({cls:"", text:"✓ La línea traía dirección y placa: se tomó “" + parsed.placa + "” como placa"});
+      }
+    }
     var codVal = (parsed.cod||"").trim().toUpperCase();
     if((codVal === "F" || codVal === "D12") && formatoNorm !== "DEVUELTO"){
       chips.push({cls:"alert", text:"⚠ Código " + codVal + " -- debería ser DEVUELTO"});
@@ -6651,12 +6839,18 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
     // Término en días hábiles: Notificación (del comparendo pegado) → Fecha de radicación (dato base),
     // igual que la calculadora de G1:I3 de tu Excel pero calculado automáticamente por caso.
+    // Si NO hay fecha de notificación, se cuenta desde la imposición y se dice cuál se usó. Una
+    // notificación vacía es un caso NORMAL (regla R23): hay comparendos sin notificar todavía. No
+    // se marca como problema en ningún sitio — antes simplemente no salía nada y parecía un fallo.
     var notifDate = parseDMY(normalizeDate(parsed.notificacion));
+    var impDate = parseDMY(normalizeDate(parsed.imposicion));
+    var baseDate = notifDate || impDate;
     var radDate = parseDMY(normalizeDate(fechaRadicacion));
-    if(notifDate && radDate){
-      var start = new Date(notifDate.getFullYear(), notifDate.getMonth(), notifDate.getDate()+1);
+    if(baseDate && radDate){
+      var start = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate()+1);
       var dias = countBusinessDays(start, radDate);
-      if(dias !== null) chips.push({cls:"", text:"🕐 " + dias + " días hábiles (notificación → radicación)"});
+      if(dias !== null) chips.push({cls:"", text:"🕐 " + dias + " días hábiles (" +
+        (notifDate ? "notificación" : "imposición — sin notificación en Fénix, es normal") + " → radicación)"});
     }
 
     if(res) chips.push({cls:"", text:"✓ Con resolución previa"});
@@ -6719,6 +6913,61 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(target) target.focus();
   }
 
+  // ============================================================
+  // ¿EL CIUDADANO PIDIÓ PRUEBAS?  (SÍ / NO)
+  // ------------------------------------------------------------
+  // Pedido textual de la usuaria: "agregar una pregunta de SI O NO en la sección de agendamiento
+  // preguntando si el usuario PIDIO O NO PIDIO PRUEBAS, y esta informacion debe aparecer reflejada
+  // en el documento final que genere el agendamiento".
+  //
+  // No se inventa un dato nuevo: la plantilla oficial de agendamientos YA tiene esa columna, se
+  // llama FORMATO y solo admite dos valores ("AGENDAR CON PRUEBAS" / "AGENDAR SIN PRUEBAS",
+  // comprobado contra el archivo real de 751 filas de la entidad). Lo que faltaba era preguntarlo
+  // de frente y en el momento de clasificar, en vez de tener que abrir la ventana de Agendamientos
+  // radicado por radicado al final. La respuesta SÍ/NO es exactamente ese valor: una sola casilla,
+  // una sola fuente, y lo que se responda aquí es literalmente lo que sale en el archivo.
+  var PRUEBAS_SI = "AGENDAR CON PRUEBAS";
+  var PRUEBAS_NO = "AGENDAR SIN PRUEBAS";
+  function respuestaPruebas(rec){
+    var v = String((rec && rec.agendaFormato) || "").trim().toUpperCase();
+    if(v === PRUEBAS_SI) return "SI";
+    if(v === PRUEBAS_NO) return "NO";
+    return "";
+  }
+  function formatoPorPruebas(resp){
+    return resp === "SI" ? PRUEBAS_SI : (resp === "NO" ? PRUEBAS_NO : "");
+  }
+  function pintarPreguntaPruebas(rec){
+    var wrap = document.getElementById("wrap_pruebas");
+    if(!wrap) return;
+    var el = document.getElementById("cc_formato");
+    var fmt = normalizeFormatoInput(el ? el.value : ((rec && rec.formato) || "")).toUpperCase();
+    var aplica = !!rec && fmt === "AGENDAMIENTO";
+    wrap.hidden = !aplica;
+    var resp = respuestaPruebas(rec);
+    Array.prototype.forEach.call(wrap.querySelectorAll('input[name="cc_pruebas"]'), function(i){
+      i.checked = (i.value === resp);
+    });
+    wrap.classList.toggle("sin-responder", aplica && !resp);
+    var eco = document.getElementById("cc_pruebasEco");
+    if(eco){
+      eco.textContent = resp
+        ? "En la plantilla de Agendamientos, la columna FORMATO va a decir “" + formatoPorPruebas(resp) + "”."
+        : "Sin responder, la columna FORMATO de la plantilla de Agendamientos saldría VACÍA.";
+    }
+  }
+  document.getElementById("wrap_pruebas").addEventListener("change", function(e){
+    var input = e.target.closest('input[name="cc_pruebas"]');
+    if(!input) return;
+    var rec = state.records.find(function(r){ return r.id === state.activeId; });
+    if(!rec) return;
+    rec.agendaFormato = formatoPorPruebas(input.value);
+    rec.modificadoEn = Date.now();
+    save();
+    pintarPreguntaPruebas(rec);
+    renderAgendamientos();
+  });
+
   function renderCapture(){
     var rec = state.records.find(function(r){ return r.id===state.activeId; });
     var empty = document.getElementById("captureEmpty");
@@ -6752,6 +7001,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("cc_tipoId").value = rec.tipoId || "";
     document.getElementById("cc_idNum").value = rec.idNum || "";
     document.getElementById("cc_comparendo").value = rec.comparendoRaw || "";
+    pintarPreguntaPruebas(rec);
     // Foto de lo que se acaba de pintar: es la referencia para saber, de aquí en adelante, qué
     // casillas tocó la persona y cuáles no (ver "LA FOTO DEL FORMULARIO").
     tomarFotoFormulario();
@@ -7005,7 +7255,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // La casilla donde está el problema, para dejar el cursor ahí al pulsar "Corregir ahora".
   var CAMPO_A_INPUT = {
     comparendo:"cc_comparendo", formato:"cc_formato", res:"cc_res", fechaRes:"cc_fechaRes",
-    tipoId:"cc_tipoId", idNum:"cc_idNum", direccion:"cc_direccion", nombre:"cc_nombre",
+    tipoId:"cc_tipoId", idNum:"cc_idNum", direccion:"cc_direccion", nombre:"cc_nombre", pruebas:"cc_pruebasSi",
     fechaRadicacion:"cc_fechaRadicacion", fechaAsignacion:"cc_fechaAsignacion"
   };
   var alertaPendiente = null; // {rec, hallazgos, seguir, volverA}
@@ -7487,6 +7737,184 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     toast(okMsg);
   }
 
+  // ============================================================
+  // LA CUADRÍCULA DEL EXCEL  —  "al generar la masiva NO hay cuadrícula de fondo que separe y
+  // organice la información"
+  // ------------------------------------------------------------
+  // POR QUÉ HACE FALTA ESTO Y NO BASTA CON PEDÍRSELO A LA LIBRERÍA. La versión de SheetJS que
+  // viene incrustada en esta página (la comunitaria, la única que se puede empotrar aquí sin
+  // depender de internet ni de una licencia) SÍ sabe leer estilos, pero al ESCRIBIR los descarta:
+  // los bordes, las negritas y los rellenos que se le pongan a una celda no llegan al archivo.
+  // Por eso la masiva salía sin una sola línea, como un bloque de texto.
+  //
+  // Lo que se hace aquí es añadir la cuadrícula DESPUÉS, sobre el archivo ya escrito. Un .xlsx es
+  // un ZIP con varios XML dentro; SheetJS lo escribe sin comprimir, así que se puede abrir, cambiar
+  // dos de esos XML y volver a cerrarlo sin necesidad de ninguna librería más:
+  //   · en xl/styles.xml se AÑADE un borde fino, una negrita y un relleno claro, y se duplica cada
+  //     estilo que ya existía sumándole el borde (duplicar en vez de reemplazar es lo que hace que
+  //     las FECHAS sigan siendo fechas: conservan su formato original tal cual);
+  //   · en la hoja se apunta cada celda a su estilo nuevo, y la fila de títulos al de encabezado.
+  //
+  // NADA DE ESTO TOCA LOS DATOS: ni un valor, ni una fecha, ni el orden de las columnas. Solo el
+  // aspecto. Y si cualquier cosa saliera distinta de lo previsto (otra versión de la librería, un
+  // ZIP comprimido, un XML con otra forma), la función devuelve null y se descarga EL ARCHIVO DE
+  // SIEMPRE, sin cuadrícula pero íntegro. Nunca se entrega un archivo a medio construir.
+  // ============================================================
+  var CRC_TABLA = (function(){
+    var t = new Int32Array(256);
+    for(var n = 0; n < 256; n++){
+      var c = n;
+      for(var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[n] = c;
+    }
+    return t;
+  })();
+  function crc32De(bytes){
+    var c = -1;
+    for(var i = 0; i < bytes.length; i++) c = CRC_TABLA[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ -1) >>> 0;
+  }
+  // Abre el ZIP y devuelve sus archivos. Solo acepta entradas SIN comprimir (que es como las
+  // escribe SheetJS); si encuentra una comprimida, se rinde y devuelve null a propósito.
+  function abrirZip(buf){
+    var b = new Uint8Array(buf), dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
+    var eocd = -1;
+    for(var i = b.length - 22; i >= 0 && i >= b.length - 65558; i--){
+      if(dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+    }
+    if(eocd < 0) return null;
+    var nEnt = dv.getUint16(eocd + 10, true), cdIni = dv.getUint32(eocd + 16, true);
+    var p = cdIni, salida = [];
+    for(var e = 0; e < nEnt; e++){
+      if(dv.getUint32(p, true) !== 0x02014b50) return null;
+      var metodo = dv.getUint16(p + 10, true);
+      var nLen = dv.getUint16(p + 28, true), xLen = dv.getUint16(p + 30, true), cLen = dv.getUint16(p + 32, true);
+      var tam = dv.getUint32(p + 24, true), off = dv.getUint32(p + 42, true);
+      if(metodo !== 0) return null; // comprimida: aquí no se descomprime nada
+      var nombre = new TextDecoder("utf-8").decode(b.subarray(p + 46, p + 46 + nLen));
+      if(dv.getUint32(off, true) !== 0x04034b50) return null;
+      var lnLen = dv.getUint16(off + 26, true), lxLen = dv.getUint16(off + 28, true);
+      var ini = off + 30 + lnLen + lxLen;
+      salida.push({nombre:nombre, datos:b.subarray(ini, ini + tam)});
+      p += 46 + nLen + xLen + cLen;
+    }
+    return salida;
+  }
+  // Vuelve a cerrar el ZIP, todo sin comprimir. Las fechas del ZIP se dejan en cero: Excel no las
+  // mira y así el archivo es idéntico cada vez que se genera con los mismos datos.
+  function cerrarZip(entradas){
+    var codificador = new TextEncoder();
+    var piezas = [], central = [], desplazamiento = 0;
+    entradas.forEach(function(en){
+      var nombre = codificador.encode(en.nombre), crc = crc32De(en.datos), tam = en.datos.length;
+      var lh = new Uint8Array(30 + nombre.length), dvl = new DataView(lh.buffer);
+      dvl.setUint32(0, 0x04034b50, true); dvl.setUint16(4, 20, true);
+      dvl.setUint32(14, crc, true); dvl.setUint32(18, tam, true); dvl.setUint32(22, tam, true);
+      dvl.setUint16(26, nombre.length, true);
+      lh.set(nombre, 30);
+      piezas.push(lh, en.datos);
+      var ch = new Uint8Array(46 + nombre.length), dvc = new DataView(ch.buffer);
+      dvc.setUint32(0, 0x02014b50, true); dvc.setUint16(4, 20, true); dvc.setUint16(6, 20, true);
+      dvc.setUint32(16, crc, true); dvc.setUint32(20, tam, true); dvc.setUint32(24, tam, true);
+      dvc.setUint16(28, nombre.length, true); dvc.setUint32(42, desplazamiento, true);
+      ch.set(nombre, 46);
+      central.push(ch);
+      desplazamiento += lh.length + tam;
+    });
+    var tamCentral = central.reduce(function(a, c){ return a + c.length; }, 0);
+    var fin = new Uint8Array(22), dvf = new DataView(fin.buffer);
+    dvf.setUint32(0, 0x06054b50, true);
+    dvf.setUint16(8, entradas.length, true); dvf.setUint16(10, entradas.length, true);
+    dvf.setUint32(12, tamCentral, true); dvf.setUint32(16, desplazamiento, true);
+    var total = desplazamiento + tamCentral + 22, salida = new Uint8Array(total), q = 0;
+    piezas.forEach(function(x){ salida.set(x, q); q += x.length; });
+    central.forEach(function(x){ salida.set(x, q); q += x.length; });
+    salida.set(fin, q);
+    return salida;
+  }
+  function ponerRejillaAlXlsx(buf){
+    try{
+      var entradas = abrirZip(buf);
+      if(!entradas) return null;
+      var dec = new TextDecoder("utf-8"), enc = new TextEncoder();
+      var iEstilos = -1, iHoja = -1;
+      entradas.forEach(function(en, i){
+        if(en.nombre === "xl/styles.xml") iEstilos = i;
+        if(en.nombre === "xl/worksheets/sheet1.xml") iHoja = i;
+      });
+      if(iEstilos < 0 || iHoja < 0) return null;
+      var estilos = dec.decode(entradas[iEstilos].datos);
+
+      // --- bordes, fuente y relleno nuevos, añadidos a los que ya había ---
+      var mBordes = /<borders count="(\d+)">([\s\S]*?)<\/borders>/.exec(estilos);
+      var mFuentes = /<fonts count="(\d+)"([^>]*)>([\s\S]*?)<\/fonts>/.exec(estilos);
+      var mRellenos = /<fills count="(\d+)">([\s\S]*?)<\/fills>/.exec(estilos);
+      var mXfs = /<cellXfs count="(\d+)">([\s\S]*?)<\/cellXfs>/.exec(estilos);
+      if(!mBordes || !mFuentes || !mRellenos || !mXfs) return null;
+
+      var idBorde = parseInt(mBordes[1], 10);
+      var borde = '<border><left style="thin"><color rgb="FFBFCFC6"/></left>' +
+                  '<right style="thin"><color rgb="FFBFCFC6"/></right>' +
+                  '<top style="thin"><color rgb="FFBFCFC6"/></top>' +
+                  '<bottom style="thin"><color rgb="FFBFCFC6"/></bottom><diagonal/></border>';
+      estilos = estilos.replace(mBordes[0],
+        '<borders count="' + (idBorde + 1) + '">' + mBordes[2] + borde + '</borders>');
+
+      var idFuente = parseInt(mFuentes[1], 10);
+      var fuente = '<font><b/><sz val="11"/><color rgb="FF14532D"/><name val="Calibri"/><family val="2"/></font>';
+      estilos = estilos.replace(mFuentes[0],
+        '<fonts count="' + (idFuente + 1) + '"' + mFuentes[2] + '>' + mFuentes[3] + fuente + '</fonts>');
+
+      var idRelleno = parseInt(mRellenos[1], 10);
+      var relleno = '<fill><patternFill patternType="solid"><fgColor rgb="FFDCEDE3"/><bgColor indexed="64"/></patternFill></fill>';
+      estilos = estilos.replace(mRellenos[0],
+        '<fills count="' + (idRelleno + 1) + '">' + mRellenos[2] + relleno + '</fills>');
+
+      // --- se DUPLICA cada estilo existente sumándole el borde (así las fechas no pierden el suyo) ---
+      var listaXfs = mXfs[2].match(/<xf\b[\s\S]*?(?:\/>|<\/xf>)/g) || [];
+      var base = parseInt(mXfs[1], 10);
+      if(!listaXfs.length || listaXfs.length !== base) return null;
+      var conBorde = listaXfs.map(function(xf){
+        var x = xf.replace(/\sborderId="\d+"/, ' borderId="' + idBorde + '"');
+        if(x.indexOf('borderId=') === -1) x = x.replace(/^<xf/, '<xf borderId="' + idBorde + '"');
+        if(x.indexOf('applyBorder=') === -1) x = x.replace(/^<xf/, '<xf applyBorder="1"');
+        return x;
+      });
+      var xfCabecera = '<xf numFmtId="0" fontId="' + idFuente + '" fillId="' + idRelleno + '" borderId="' + idBorde +
+        '" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1">' +
+        '<alignment vertical="center" wrapText="1"/></xf>';
+      var idCabecera = base * 2;
+      estilos = estilos.replace(mXfs[0], '<cellXfs count="' + (base * 2 + 1) + '">' +
+        mXfs[2] + conBorde.join("") + xfCabecera + '</cellXfs>');
+
+      // --- cada celda de la hoja apunta a su estilo nuevo ---
+      var hoja = dec.decode(entradas[iHoja].datos);
+      hoja = hoja.replace(/<row\b([^>]*)>([\s\S]*?)<\/row>/g, function(todo, atrs, dentro){
+        var r = /\br="(\d+)"/.exec(atrs);
+        var esCabecera = !!r && r[1] === "1";
+        var nuevo = dentro.replace(/<c\b([^>]*?)(\/?)>/g, function(cel, catrs, cierre){
+          var s = /\bs="(\d+)"/.exec(catrs);
+          var idx = esCabecera ? idCabecera : (s ? base + parseInt(s[1], 10) : base);
+          var na = s ? catrs.replace(/\bs="\d+"/, 's="' + idx + '"') : catrs + ' s="' + idx + '"';
+          return "<c" + na + cierre + ">";
+        });
+        return "<row" + atrs + ">" + nuevo + "</row>";
+      });
+      // La fila de títulos se congela: al bajar por 170 filas se sigue viendo qué columna es cada
+      // cual. Si la hoja no trae el bloque de vistas donde va, se deja sin congelar y ya.
+      hoja = hoja.replace(/<sheetViews>[\s\S]*?<\/sheetViews>/,
+        '<sheetViews><sheetView workbookViewId="0">' +
+        '<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>' +
+        '<selection pane="bottomLeft" activeCell="A2" sqref="A2"/></sheetView></sheetViews>');
+
+      entradas[iEstilos] = {nombre:"xl/styles.xml", datos:enc.encode(estilos)};
+      entradas[iHoja] = {nombre:"xl/worksheets/sheet1.xml", datos:enc.encode(hoja)};
+      return cerrarZip(entradas);
+    }catch(e){
+      return null; // pase lo que pase, se entrega el archivo normal
+    }
+  }
+
   // Descarga un .xlsx real (formato binario de Excel — abre con doble clic, columnas correctas,
   // acentos y ñ perfectos) usando la librería SheetJS incluida en este mismo archivo.
   function downloadExcel(filenameBase, headers, rows2d, okMsg){
@@ -7506,8 +7934,19 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       ws["!cols"] = headers.map(function(h){ return {wch: Math.min(38, Math.max(11, String(h).length + 2))}; });
       var wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Datos");
-      XLSX.writeFile(wb, filenameBase + ".xlsx");
-      toast(okMsg + " en Excel (.xlsx)");
+      // Se escribe SIN comprimir (así lo hace la librería por defecto) porque es lo que permite
+      // abrir el archivo y dibujarle la cuadrícula justo después. Si eso fallara por lo que sea,
+      // se descarga el archivo tal cual salió: con los mismos datos, solo que sin las líneas.
+      var bruto = XLSX.write(wb, {type:"array", bookType:"xlsx", compression:false});
+      var conRejilla = ponerRejillaAlXlsx(bruto);
+      var blob = new Blob([conRejilla || new Uint8Array(bruto)],
+        {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = filenameBase + ".xlsx";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast(okMsg + " en Excel (.xlsx)" + (conRejilla ? " con cuadrícula" : " (sin cuadrícula: la librería devolvió un archivo inesperado)"));
     }catch(err){
       toast("No se pudo generar el Excel (" + (err&&err.message||"error") + "). Usa \"Copiar\" como alternativa.");
     }
@@ -7926,7 +8365,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se sube a mano en cada publicación. No se calcula solo a propósito: si se generara con la fecha
   // del navegador diría siempre "hoy" y no distinguiría una versión de otra, que es justo para lo
   // que sirve.
-  var VERSION_APP = "2026-09-09 · flotante revisada";
+  var VERSION_APP = "2026-09-28 · tira de Fénix, cuadrícula y pruebas";
   var TIPO_REGLA_TEXTO = {
     estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
     imperativa:  "Imperativa — la app avisa y hay que resolverlo",
@@ -8053,7 +8492,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var EFECTO = {
       estructural: {etq:"La app lo hace sola", ayuda:"No te pregunta nada: la app lo cumple por su cuenta."},
       imperativa:  {etq:"Te para en rojo",     ayuda:"Te detiene al pasar al siguiente radicado. Corriges o confirmas."},
-      aviso:       {etq:"Te para en amarillo", ayuda:"Suele ser un caso legítimo: lo confirmas y sigues."}
+      aviso:       {etq:"Te para en amarillo", ayuda:"Suele ser un caso legítimo: lo confirmas y sigues."},
+      excepcion:   {etq:"Nunca es un error",   ayuda:"Es un caso normal y previsto: la app no lo marca como problema en ningún momento."}
     };
     var busca = normalizaTexto((document.getElementById("reglasBuscar") || {}).value || "");
     var soloEditables = !!(document.getElementById("reglasSoloEditables") || {}).checked;
@@ -8622,6 +9062,104 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // y la de una masiva TERMINADA FUERA de la app que se carga para auditarla. Está aparte a
   // propósito: una regla escrita dos veces termina discrepando consigo misma -- ya pasó con la del
   // comparendo, y las nueve alarmas falsas que salieron de eso costaron una revisión entera.
+  // ============================================================
+  // LA TIRA DE FÉNIX, REVISADA POR DENTRO  (R20, R21, R22 — y la excepción R23)
+  // ------------------------------------------------------------
+  // El caso que lo motivó, en palabras de la usuaria: "en MUCHAS ocasiones se copia mal la
+  // información de la línea completa de Fénix y en la masiva queda mal diligenciada. NI SE ADVIERTE
+  // EN NINGÚN LADO DE LA APP QUE SE COPIÓ MAL LA TIRA, NI TAMPOCO AL GENERAR LA MASIVA". Era cierto:
+  // lo único que había era R19, y R19 solo ve el caso extremo (en la casilla quedó el número y nada
+  // más). Una tira copiada a medias, o con las columnas corridas una posición, entraba entera sin
+  // una sola objeción y se entregaba así.
+  //
+  // Aquí se revisa la tira por tres caminos distintos, porque son tres averías distintas:
+  //   R20  la tira no llegó partida en columnas (se copió de un PDF, de un correo, de una captura)
+  //   R21  la tira llegó cortada antes del final (faltan documento y/o nombre del infractor)
+  //   R22  la tira llegó completa pero un dato no tiene la forma de lo que dice ser (columna corrida)
+  //
+  // Y una cosa que NO se revisa nunca, a propósito (R23): que la FECHA DE NOTIFICACIÓN venga
+  // vacía. Hay comparendos sin notificar y esa casilla sale en blanco en Fénix: es normal, no es
+  // un error, y marcarlo sería enseñar a ignorar los avisos. Solo se comprueba que, SI trae algo,
+  // ese algo sea una fecha.
+  //
+  // Solo corre cuando la tira SE PEGÓ de verdad en la app (hay comparendoRaw). Al auditar una
+  // masiva terminada que viene de fuera no hay tira que revisar, y aquí no se inventa ninguna.
+  function revisarTiraDeFenix(r){
+    var out = [];
+    var raw = String(r.comparendoRaw == null ? "" : r.comparendoRaw);
+    if(!raw.trim()) return out;
+    var n = columnasDeLaTira(raw);
+    var formato = (r.formato||"").trim().toUpperCase();
+
+    // ---- R20: todo cayó en una sola casilla ----
+    if(n <= 1){
+      var suelto = cleanSpaces(raw);
+      if(/\s/.test(suelto)){
+        out.push({regla:"R20", grave:true, campo:"comparendo", texto:
+          "La línea de Fénix se pegó SIN columnas: todo quedó junto en una sola casilla (\"" +
+          suelto.slice(0,70) + (suelto.length > 70 ? "…" : "") + "\"). Así no se reparte en el código de " +
+          "infracción, el medio, el estado, las fechas, el tipo y número de documento ni el nombre del " +
+          "infractor: esas columnas de la masiva saldrían vacías. Vuelve a copiarla seleccionando la FILA " +
+          "en la tabla de Fénix, no el texto de una vista de impresión."});
+      }
+      // Si es solo el número suelto, de eso ya avisa R19; no se repite aquí.
+      return out;
+    }
+
+    // ---- R21: la tira llegó cortada ----
+    var faltantes = [];
+    if(!String(r.tipoId||"").trim())   faltantes.push("el tipo de documento");
+    if(!String(r.idNum||"").trim())    faltantes.push("el número de documento");
+    if(!String(r.nombreF||"").trim())  faltantes.push("el nombre del infractor");
+    if(n < 13 && faltantes.length){
+      out.push({regla:"R21", grave:true, campo:"comparendo", texto:
+        "La línea de Fénix llegó CORTADA: trae " + n + " columna" + (n===1?"":"s") + " de las 14 que tiene " +
+        "completa, y por eso falta " + faltantes.join(", ") + ". Esas casillas se entregarían vacías en la " +
+        "masiva sin que nada lo dijera. Vuelve a copiar la línea hasta el final" +
+        (paramEnLista("formatosQueExigenPlaca", formato) ? " (para " + formato + ", hasta la placa)." : " (hasta el nombre del infractor).")});
+    }
+
+    // ---- R22: cada dato con la forma de lo que dice ser ----
+    // Una columna corrida no se ve a simple vista: el dato está, solo que en el lugar de otro.
+    function raro(valor, etiqueta, motivo, campoUI){
+      var v = String(valor);
+      out.push({regla:"R22", grave:true, campo:campoUI || "comparendo", texto:
+        "En la columna “" + etiqueta + "” de la línea de Fénix llegó \"" + v.slice(0,40) + (v.length>40?"…":"") +
+        "\", que " + motivo + ". Casi siempre significa que las columnas se corrieron al copiar y que los " +
+        "demás datos también están desplazados. Compáralo contra Fénix antes de seguir."});
+    }
+    var comp = cleanSpaces(r.comparendoCompleto);
+    if(comp && /[^\d\s]/.test(comp))                 raro(comp, "No. Comparendo", "no es un número");
+    var imp = cleanSpaces(r.imposicion);
+    if(imp && !pareceFecha(imp))                     raro(imp, "Fecha de imposición", "no es una fecha");
+    // R23: la fecha de notificación VACÍA no se toca. Solo se mira si trae algo.
+    var notif = cleanSpaces(r.notificacion);
+    if(notif && !pareceFecha(notif))                 raro(notif, "Fecha de notificación", "no es una fecha");
+    var curso = cleanSpaces(r.curso);
+    if(curso && pareceFecha(curso))                  raro(curso, "Tiene curso", "es una fecha");
+    var est = cleanSpaces(r.estado);
+    if(est && pareceFecha(est))                      raro(est, "Estado del comparendo", "es una fecha");
+    var tdoc = cleanSpaces(r.tipoId);
+    if(tdoc && (pareceFecha(tdoc) || /^[\d\s.,\/-]+$/.test(tdoc)))
+      raro(tdoc, "Tipo de documento", "no es un tipo de documento", "tipoId");
+    var ndoc = cleanSpaces(r.idNum);
+    if(ndoc && (pareceFecha(ndoc) || ndoc.replace(/[\s.\-]/g,"").length > 15))
+      raro(ndoc, "No. de documento", "no es un número de documento", "idNum");
+    // La placa. Con la tira ya reacomodada (ver parseComparendoLine), si aquí sigue habiendo algo
+    // que no tiene forma de placa es porque en la línea NO venía ninguna: se dice, con el valor
+    // exacto, en vez de entregarlo como si fuera la placa. Es el defecto que se reportó: en la
+    // columna PLACA de la plantilla de agendamientos salía la dirección del infractor.
+    var placa = cleanSpaces(r.placa);
+    if(placa && !pareceMatricula(placa)){
+      out.push({regla:"R22", grave: !!paramEnLista("formatosQueExigenPlaca", formato), campo:"comparendo", texto:
+        "En la columna “Placa” quedó \"" + placa.slice(0,40) + (placa.length>40?"…":"") + "\", que no tiene " +
+        "forma de placa. En la línea de Fénix la placa va de última; si antes de ella viene la dirección del " +
+        "infractor, la app ya la separa sola. Que aquí siga habiendo otra cosa quiere decir que en esta línea " +
+        "no venía la placa: escríbela a mano en Agendamientos o vuelve a copiar la línea completa."});
+    }
+    return out;
+  }
+
   function hallazgosDeRegistro(r, repetidosPorId){
     var hallazgos = [];
     var formato = (r.formato||"").trim().toUpperCase();
@@ -8658,9 +9196,20 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // el medio/código/estado: ahí la ausencia no significa que nadie pegara la línea, y avisar
       // sería inventarse un problema en cada fila. Esa revisión tiene sus propias comprobaciones.
       var seIntentoPegar = !!String(r.comparendoRaw||"").trim();
-      if(hayComp && sinDesglose && seIntentoPegar){
+      // Si lo que quedó en la casilla no es "el número y nada más" sino la línea entera sin partir
+      // en columnas, el aviso correcto es el de R20 (dice qué pasó y cómo copiarla bien), no este.
+      // Sin esta condición salían los dos a la vez y el de R19 decía algo que no era cierto.
+      var soloElNumero = !/\s/.test(cleanSpaces(r.comparendoCompleto||""));
+      if(hayComp && sinDesglose && seIntentoPegar && soloElNumero){
         hallazgos.push({regla:"R19", grave:true, campo:"comparendo", texto:"En la casilla del comparendo quedó solo el número, sin el resto de la línea de Fénix. Así saldrían VACÍAS las columnas de código de infracción, medio, estado, fechas, documento y nombre del infractor. Vuelve a copiar la línea completa."});
       }
+      // R24. Un AGENDAMIENTO sin responder si el ciudadano pidió pruebas: esa respuesta ES la
+      // columna FORMATO de la plantilla que se entrega, y sin ella sale vacía.
+      if(normalizeFormatoInput(r.formato).toUpperCase() === "AGENDAMIENTO" && !String(r.agendaFormato||"").trim()){
+        hallazgos.push({regla:"R24", grave:true, campo:"pruebas", texto:"Falta responder si el ciudadano PIDIÓ PRUEBAS. Es la columna FORMATO de la plantilla de agendamientos (AGENDAR CON PRUEBAS / AGENDAR SIN PRUEBAS) y se entregaría vacía. Respóndelo con el SÍ o el NO que aparece en el Paso 2."});
+      }
+      // R20 / R21 / R22: la tira de Fénix, revisada por dentro. Ver revisarTiraDeFenix().
+      revisarTiraDeFenix(r).forEach(function(h){ hallazgos.push(h); });
       // R18. El documento del infractor: tipo y número van juntos o no van.
       // Calibrado contra 385 filas ya entregadas (dos masivas reales): en ninguna hay una con
       // número sin tipo ni al revés. Las únicas vacías son las peticiones oscuras, que no llevan
@@ -8701,6 +9250,17 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       }
       if(!String(r.direccion||"").trim()){
         hallazgos.push({grave:false, texto:"No tiene correo ni dirección de notificación."});
+      }
+      // UN ESPACIO DENTRO DEL CORREO. Copiar y pegar arrastra espacios que no se ven (sobre todo
+      // el "espacio duro" de las páginas web, que no es la tecla de espacio y sobrevive a todo).
+      // En una dirección física un espacio es normal; dentro de un correo NO existe: ese correo
+      // no le llega a nadie, y en la masiva entregada se ve como "persona @gmail.com". No se
+      // corrige sola -- se dice, porque quitar un espacio de un correo es cambiar un dato.
+      var dirTxt = String(r.direccion||"").trim();
+      if(/@/.test(dirTxt) && /\s/.test(dirTxt)){
+        hallazgos.push({grave:true, campo:"direccion", texto:"El correo \"" + dirTxt +
+          "\" tiene un ESPACIO adentro. Un correo no puede llevar espacios: así escrito no le llega " +
+          "al ciudadano y en la masiva se entrega ese espacio. Casi siempre viene de copiar y pegar. Quítalo."});
       }
       // Resolución: los formatos T casi siempre la llevan. Se avisa, nunca se bloquea.
       if(resolucionEsEsperada(formato) && !String(r.res||"").trim()){
@@ -8919,7 +9479,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       formatDateEs(rec.fechaAsignacion), asignadosA, rec.estado, rec.medio, formatDateEs(rec.imposicion),
       corto, rec.cod, formatDateEs(rec.notificacion), rec.res, formatDateEs(rec.fechaRes), anexo, plantilla,
       usuario, rec.tipoId, rec.idNum, "", "", "", ""
-    ].map(cleanSpaces);
+    ].map(celdaLimpia);
   }
 
   // ---------- documento aparte para Agendamientos (NUNCA se mezcla con la masiva) ----------
@@ -8939,12 +9499,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     "MEDIO DE SOLICITUD", "FECHA DE COMPARENDO", "CÓDIGO DE INFRACCIÓN", "FECHA APELACION",
     "AGENDADO POR", "FECHA DIGITACION", "FORMATO"
   ];
-  // Los dos únicos valores que admite la columna FORMATO de la plantilla, tomados del archivo real
-  // ya diligenciado que entregó la usuaria (751 filas: 555 "AGENDAR SIN PRUEBAS" y 195 "AGENDAR
-  // CON PRUEBAS"). NO es la clasificación interna de la app ("AGENDAMIENTO"): es un criterio que
-  // decide la abogada caso por caso, según si la solicitud viene con pruebas. Por eso se guarda en
-  // el propio radicado (rec.agendaFormato) y se elige a mano en la ventana de Agendamientos.
-  var AGENDA_FORMATOS = ["AGENDAR SIN PRUEBAS", "AGENDAR CON PRUEBAS"];
+  // Los dos únicos valores que admite la columna FORMATO de esta plantilla (PRUEBAS_SI y
+  // PRUEBAS_NO, definidos junto a la pregunta de SÍ/NO) están tomados del archivo real ya
+  // diligenciado que entregó la usuaria: 751 filas, 555 "AGENDAR SIN PRUEBAS" y 195 "AGENDAR CON
+  // PRUEBAS". NO es la clasificación interna de la app ("AGENDAMIENTO"): es un criterio que decide
+  // la abogada caso por caso, y por eso se le pregunta de frente: "¿el ciudadano pidió pruebas?".
   // Convierte una fecha del expediente en un Date de verdad, para que Excel la guarde como fecha.
   // Si no se puede interpretar, se devuelve cadena vacía en vez de inventar una.
   function comoFecha(valor){
@@ -8982,7 +9541,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       agendadoPor,                          // AGENDADO POR
       hoySinHora(),                         // FECHA DIGITACION      (el día en que se genera el archivo)
       rec.agendaFormato || ""               // FORMATO: "AGENDAR CON/SIN PRUEBAS", elegido por la abogada
-    ].map(function(v){ return v instanceof Date ? v : cleanSpaces(v); });
+    ].map(celdaLimpia);
   }
 
   // Detalle interno (24 columnas). NO es lo que se entrega: es la copia de control, con ambas
@@ -9009,7 +9568,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       info.dias === null ? "" : info.dias, info.umbral === null ? "" : info.umbral, margen,
       info.dias === null ? "SIN FECHAS" : (info.vencido ? "FUERA DE TÉRMINO" : "DENTRO DE TÉRMINO"),
       rec.agendado ? "SI" : "NO", rec.comentario
-    ].map(cleanSpaces);
+    ].map(celdaLimpia);
   }
   function refreshAgendaDocCount(){
     var n = agendamientoList().length;

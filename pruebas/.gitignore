@@ -1,0 +1,7 @@
+sitio/
+sheetjs.js
+rejilla.js
+__pycache__/
+*.xlsx
+*.png
+*.log
