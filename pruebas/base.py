@@ -60,11 +60,18 @@ def ir_a(pag, radicado):
     cerrar_alerta(pag)
     pag.wait_for_timeout(300)
 
-def ir_a_compacto(pag, radicado, vueltas=12):
-    """En la ventana flotante la cola no se ve: se navega con "Siguiente", como ahí mismo."""
+def ir_a_compacto(pag, radicado, vueltas=20):
+    """En la ventana flotante la cola no se ve: se navega con "Siguiente", como ahí mismo.
+    Si el filtro dejó la ventana vacía, primero se usa la salida ("Ver todos los radicados")."""
+    if pag.locator("#captureEmptyVerTodos").count() and pag.locator("#captureEmptyVerTodos").is_visible():
+        pag.click("#captureEmptyVerTodos"); pag.wait_for_timeout(600); cerrar_alerta(pag)
     for _ in range(vueltas):
         if radicado in pag.locator("#cc_radicadoLabel").inner_text(): return True
-        pag.click("#cc_next"); pag.wait_for_timeout(350); cerrar_alerta(pag)
+        # hacia adelante mientras se pueda; al llegar al final, hacia atrás. Es exactamente lo
+        # que puede hacer una persona en esa ventana: no hay cola ni buscador.
+        boton = "#cc_next" if not pag.locator("#cc_next").is_disabled() else "#cc_prev"
+        if pag.locator(boton).is_disabled(): break
+        pag.click(boton); pag.wait_for_timeout(350); confirmar_nombre(pag); cerrar_alerta(pag)
     return radicado in pag.locator("#cc_radicadoLabel").inner_text()
 
 def pegar_tira(pag, tira):

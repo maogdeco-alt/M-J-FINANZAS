@@ -2,6 +2,7 @@ sitio/
 sheetjs.js
 rejilla.js
 __pycache__/
+.corriendo/
 *.xlsx
 *.png
 *.log

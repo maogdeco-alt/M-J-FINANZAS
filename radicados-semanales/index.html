@@ -557,6 +557,10 @@
   html.es-flotante .work-fields > .full{margin-bottom:0;}
   /* La pregunta de "¿pidió pruebas?" también en la ventana flotante: más apretada, pero entera y
      con los dos botones cómodos de pulsar -- se responde con el mismo clic que en la pantalla grande. */
+  /* El aviso de regla rota va igual de visible en la ventana flotante: es lo que no se puede perder. */
+  html.es-flotante .aviso-imperativas{padding:5px 9px;margin-top:4px;}
+  html.es-flotante .aviso-imperativas b{font-size:0.72rem;margin-bottom:2px;}
+  html.es-flotante .aviso-imperativas li{font-size:0.7rem;line-height:1.35;}
   html.es-flotante .pregunta-si-no{padding:4px 8px;gap:4px 8px;}
   html.es-flotante .pregunta-si-no .psn-label{font-size:0.72rem;}
   html.es-flotante .pregunta-si-no .psn-ops label{padding:2px 11px;font-size:0.74rem;min-height:26px;}
@@ -665,6 +669,22 @@
   .pregunta-si-no .field-hint{flex:1 1 100%;margin:0;}
   .pregunta-si-no.sin-responder{border-color:var(--warn);background:var(--warn-soft);}
   .pregunta-si-no.sin-responder .psn-label{color:var(--warn-text);}
+  /* El aviso de regla imperativa rota: fijo, no un mensaje que se va solo. */
+  .aviso-imperativas{border:1.5px solid var(--stamp);border-left-width:5px;border-radius:9px;
+    background:var(--stamp-soft);padding:10px 13px;margin-top:8px;}
+  .aviso-imperativas[hidden]{display:none;}
+  .aviso-imperativas b{display:block;color:var(--stamp);font-size:0.86rem;margin-bottom:5px;}
+  .aviso-imperativas ul{margin:0;padding-left:19px;}
+  .aviso-imperativas li{font-size:0.85rem;line-height:1.45;margin-bottom:3px;}
+  .aviso-imperativas .ai-regla{font-weight:800;font-variant-numeric:tabular-nums;margin-right:5px;}
+  /* Lo ya confirmado, en la revisión previa: informativo, no alarma. */
+  .preflight-confirmados{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;}
+  .preflight-confirmados h4{margin:0 0 4px;font-size:0.9rem;color:var(--warn-text);}
+  .preflight-confirmados > p{margin:0 0 10px;font-size:0.82rem;color:var(--muted);}
+  .preflight-confirmados .pfc-item{border:1px solid var(--border);border-left:4px solid var(--warn);
+    border-radius:8px;padding:9px 12px;margin-bottom:7px;background:var(--surface);}
+  .preflight-confirmados .pfc-item ul{margin:5px 0 8px;padding-left:18px;}
+  .preflight-confirmados .pfc-item li{font-size:0.83rem;line-height:1.45;}
   /* Desplegable de sugerencias de Formato CONSTRUIDO A MANO (en vez de <datalist> nativo) -- a
      propósito: el desplegable nativo de <datalist>/<select> no se muestra de forma confiable dentro
      de un <iframe> montado adentro de una ventana Picture-in-Picture de documento (confirmado con
@@ -1193,6 +1213,14 @@
           <div class="capture-empty" id="captureEmpty">
             <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
             <div id="captureEmptyText">Importa radicados en el Paso 1 para empezar a completarlos aquí.</div>
+            <!-- CALLEJÓN SIN SALIDA DE LA VENTANA FLOTANTE, encontrado en auditoría.
+                 Cuando el filtro no deja ningún radicado a la vista (lo normal en cuanto se
+                 terminan los pendientes), aquí salía "Cambia a «Todos» o ajusta la búsqueda" —
+                 y en la ventana flotante NO existe ninguna de las dos cosas: ni pestañas, ni
+                 buscador, ni cola, ni Anterior/Siguiente. La ventana se quedaba inservible hasta
+                 ir a la pestaña principal a cambiar el filtro. Este botón es la salida, y sirve
+                 igual en las dos ventanas. -->
+            <button class="btn small" id="captureEmptyVerTodos" type="button" hidden>Ver todos los radicados</button>
           </div>
 
           <div id="captureForm" style="display:none;">
@@ -1304,6 +1332,14 @@
               <div class="full" id="wrap_comentario"><label for="cc_comentario">Comentario<span class="required-mark" id="req_comentario" hidden>*</span></label><textarea id="cc_comentario" rows="2" style="font-family:inherit;"></textarea></div>
             </div>
             <p class="field-hint" id="requiredSummary" style="margin-top:2px;"></p>
+
+            <!-- REGLAS IMPERATIVAS ROTAS, DICHAS DE FORMA QUE NO SE PUEDAN PERDER.
+                 Antes esto se avisaba con un mensaje pasajero (un "toast"). En la auditoría se
+                 comprobó que el siguiente mensaje que saliera -- por ejemplo el recordatorio de
+                 respaldo, que sale solo -- lo borraba en un segundo: quedaba el campo en rojo sin
+                 una sola palabra que dijera por qué. Ahora queda escrito aquí, fijo, debajo del
+                 formulario, y no se va hasta que el radicado deje de romper la regla. -->
+            <div id="avisoImperativas" class="aviso-imperativas" hidden></div>
 
             <div class="cc-actions">
               <button class="btn danger small" id="cc_delete" type="button">Borrar radicado</button>
@@ -3736,7 +3772,17 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
                 : en.graves + ' problema(s) grave(s) detectados.')
             : 'Sin problemas graves.') +
           (en.conHallazgos ? ' ' + en.conHallazgos + ' radicado(s) con algo por revisar.' : '') +
-        '</li></ul>' + detalle + '</div>';
+        '</li>' +
+        (en.confirmadasAntes ? '<li>' + en.confirmadasAntes + ' anomalía(s) confirmadas durante la semana, incluidas en esta entrega.</li>' : '') +
+        '</ul>' + detalle +
+        (en.detalleConfirmadas && en.detalleConfirmadas.length
+          ? '<details style="margin-top:6px;"><summary style="cursor:pointer;font-size:0.82rem;">Ver las anomalías confirmadas</summary><ul>' +
+            en.detalleConfirmadas.map(function(d){
+              return '<li><b>' + escapeHtml(d.radicado) + '</b> — ' + escapeHtml(d.nombre||"") + ': ' +
+                     escapeHtml((d.motivos||[]).join(" · ")) + '</li>';
+            }).join("") + '</ul></details>'
+          : '') +
+        '</div>';
     }).join("");
   }
   document.getElementById("entregasRefrescar").addEventListener("click", renderEntregas);
@@ -4986,6 +5032,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // R04 + R02: lee del registro de reglas, no de una lista suelta.
   function comparendoEsObligatorio(formato){
     var f = String(formato||"").trim().toUpperCase();
+    // Sin clasificación todavía no hay nada que exigir. Antes devolvía "sí" para el formato vacío
+    // y el aviso salía redactado como "el formato  sí lo exige", con el hueco a la vista.
+    if(!f) return false;
     if(paramEnLista("formatosSinComparendo", f)) return false;
     var exento = ((state.settings && state.settings.exemptFormato) || "").trim().toUpperCase();
     if(exento && f === exento) return false;
@@ -5185,37 +5234,37 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
      tipo:"imperativa", param:"formatosSinResolucion",
      titulo:"Estas clasificaciones NO llevan resolución",
      texto:"Si un radicado con una de estas clasificaciones tiene Res. o Fecha res., se avisa: o el formato está mal o esos datos sobran.",
-     donde:"Al guardar un radicado"},
+     donde:"Al guardar, al pasar al siguiente y en la revisión previa de lo que se entrega"},
     {id:"R06", grupo:"Resolución", cuando:"captura", resumen:"Estas clasificaciones SIEMPRE llevan resolución.",
      tipo:"imperativa", param:"formatosConResolucionObligatoria",
      titulo:"Estas clasificaciones SIEMPRE llevan resolución",
      texto:"No pueden quedar sin Res. ni Fecha res. Se avisa al guardar y otra vez antes de entregar.",
-     donde:"Al guardar y en la revisión previa"},
+     donde:"Al guardar, al pasar al siguiente y en la revisión previa de lo que se entrega"},
     {id:"R07", grupo:"Comparendo", cuando:"captura", resumen:"Estas clasificaciones son siempre comparendo MANUAL (el medio dice COMPARENDERA).",
      tipo:"imperativa", param:"formatosManualObligatorio",
      titulo:"Estas clasificaciones son siempre comparendo MANUAL",
      texto:"El MEDIO de la línea de Fénix debe decir COMPARENDERA. Si dice otra cosa, o el formato está mal o la línea pegada no corresponde.",
-     donde:"Al guardar un radicado"},
+     donde:"Al guardar, al pasar al siguiente y en la revisión previa de lo que se entrega"},
     {id:"R08", grupo:"Comparendo", cuando:"captura", resumen:"Estas clasificaciones son siempre comparendo ELECTRÓNICO (el medio NO dice COMPARENDERA).",
      tipo:"imperativa", param:"formatosElectronicoObligatorio",
      titulo:"Estas clasificaciones son siempre comparendo ELECTRÓNICO",
      texto:"El MEDIO de la línea de Fénix NO puede decir COMPARENDERA.",
-     donde:"Al guardar un radicado"},
+     donde:"Al guardar, al pasar al siguiente y en la revisión previa de lo que se entrega"},
     {id:"R09", grupo:"Devolución", cuando:"captura", resumen:"Con estos códigos de infracción, la clasificación tiene que ser DEVUELTO.",
      tipo:"imperativa", param:"codigosQueObliganDevuelto",
      titulo:"Estos códigos de infracción obligan a DEVUELTO",
      texto:"Si el código de infracción de la línea de Fénix es uno de estos, la clasificación tiene que ser DEVUELTO.",
-     donde:"Al guardar un radicado"},
+     donde:"Al guardar, al pasar al siguiente y en la revisión previa de lo que se entrega"},
     {id:"R10", grupo:"Devolución", cuando:"captura", resumen:"Un comparendo que no esté en este estado obliga a DEVUELTO.",
      tipo:"imperativa", param:"estadoValidoComparendo",
      titulo:"Un comparendo que no esté en este estado obliga a DEVUELTO",
      texto:"No se responde por cargue masivo un comparendo que no está vigente.",
-     donde:"Al guardar un radicado"},
+     donde:"Al guardar, al pasar al siguiente y en la revisión previa de lo que se entrega"},
     {id:"R11", grupo:"Agendamientos", cuando:"captura", resumen:"Estas clasificaciones exigen la PLACA (hay que pegar la línea hasta el final).",
      tipo:"imperativa", param:"formatosQueExigenPlaca",
      titulo:"Estas clasificaciones exigen la PLACA",
      texto:"Para el agendamiento hay que pegar la línea de Fénix completa HASTA LA PLACA (la masiva solo necesita hasta el nombre del infractor).",
-     donde:"Al guardar un radicado"},
+     donde:"Al guardar, al pasar al siguiente y en la revisión previa de lo que se entrega"},
     {id:"R12", grupo:"Datos únicos", cuando:"captura", resumen:"El mismo número de radicado no puede aparecer dos veces.",
      tipo:"imperativa", param:"gravedadRadicadoRepetido",
      titulo:"El RADICADO no puede repetirse",
@@ -5276,6 +5325,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
      titulo:"¿El ciudadano pidió pruebas? — se responde al clasificar, no al final",
      texto:"La plantilla oficial de agendamientos tiene una columna FORMATO que solo admite dos valores: AGENDAR CON PRUEBAS o AGENDAR SIN PRUEBAS (comprobado contra el archivo real de la entidad, 751 filas). No lo decide la app: lo decide la abogada caso por caso. Por eso, apenas un radicado se clasifica como AGENDAMIENTO, aparece la pregunta de SÍ o NO en el Paso 2 y se responde de un clic; la misma pregunta está en la ventana de Agendamientos. Si se deja sin responder, esa columna se entregaría vacía, así que se avisa al pasar al siguiente radicado.",
      donde:"Al guardar un AGENDAMIENTO y al generar la plantilla"},
+    {id:"R25", grupo:"Fechas", cuando:"masiva", resumen:"Una fecha que la app no entiende saldría VACÍA en el archivo: se avisa antes.",
+     tipo:"imperativa", param:null,
+     titulo:"Una fecha que no se entiende no puede salir en blanco sin avisar",
+     texto:"Las columnas de fecha del archivo que se entrega se escriben convirtiendo lo que hay guardado a fecha. Cuando lo guardado no se puede entender como fecha (un dedazo, un texto, un número de Excel suelto), esa conversión devuelve vacío: la casilla tenía un dato y el archivo sale en blanco. Antes eso pasaba en silencio. Ahora se revisa la fecha de la resolución, la de imposición y la de notificación, y se dice cuál es y qué trae, para escribirla como dd/mm/aaaa antes de entregar. Las de radicación y asignación ya se revisaban.",
+     donde:"Al guardar y en la revisión previa de lo que se entrega"},
     {id:"R17", grupo:"Agendamientos", cuando:"agenda", resumen:"La plantilla de Agendamientos se revisa antes de bajarla.",
      tipo:"estructural", param:null,
      titulo:"La plantilla de Agendamientos se revisa antes de entregarse",
@@ -6815,7 +6869,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var recTira = {};
       Object.keys(parsed).forEach(function(k){ recTira[k] = parsed[k]; });
       recTira.comparendoRaw = tiraRaw;
-      recTira.formato = formato;
+      recTira.formato = formatoNorm;   // normalizado: "agend" tiene que pesar igual que "AGENDAMIENTO"
       revisarTiraDeFenix(recTira).forEach(function(h){
         chips.push({cls:"alert", text:"⚠ " + h.regla + " · " + h.texto.split(".")[0] + "."});
       });
@@ -6968,16 +7022,52 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     renderAgendamientos();
   });
 
+  // Las reglas imperativas que este radicado está rompiendo AHORA MISMO, escritas de forma fija
+  // debajo del formulario. Se vuelve a pintar cada vez que se dibuja el radicado (que es en cada
+  // guardado), así que aparece sola cuando algo se rompe y desaparece sola cuando se arregla.
+  function pintarAvisoImperativas(rec){
+    var caja = document.getElementById("avisoImperativas");
+    if(!caja) return;
+    var v = [];
+    try{ v = rec ? (checkImperativeRules(rec) || []) : []; }catch(e){ v = []; }
+    if(!v.length){ caja.hidden = true; caja.innerHTML = ""; return; }
+    caja.hidden = false;
+    caja.innerHTML = "<b>" + (v.length === 1 ? "Este radicado rompe una regla obligatoria:"
+                                             : "Este radicado rompe " + v.length + " reglas obligatorias:") + "</b><ul>" +
+      v.map(function(x){
+        return "<li>" + (x.regla ? '<span class="ai-regla">' + escapeHtml(x.regla) + "</span> " : "") +
+               escapeHtml(x.message) + "</li>";
+      }).join("") + "</ul>";
+  }
+
+  // La salida del callejón: quita el filtro y vuelve a dejar todos los radicados a la vista.
+  // Se hace aquí, sin depender de las pestañas, porque en la ventana flotante no existen.
+  document.getElementById("captureEmptyVerTodos").addEventListener("click", function(){
+    state.filter = "all";
+    Array.prototype.forEach.call(document.querySelectorAll("#filterTabs button"), function(b){
+      b.classList.toggle("active", b.getAttribute("data-filter") === "all");
+    });
+    var busc = document.getElementById("searchBox");
+    if(busc && busc.value){ busc.value = ""; busc.dispatchEvent(new Event("input", {bubbles:true})); }
+    renderQueue();
+    var lista = visibleList();
+    if(lista.length) selectRecord(lista[0].id); else renderCapture();
+  });
+
   function renderCapture(){
     var rec = state.records.find(function(r){ return r.id===state.activeId; });
     var empty = document.getElementById("captureEmpty");
     var form = document.getElementById("captureForm");
     if(!rec){
       fotoFormulario = null;
+      pintarAvisoImperativas(null);
       empty.style.display = "block"; form.style.display = "none";
-      document.getElementById("captureEmptyText").textContent = state.records.length
-        ? "No hay radicados en este filtro. Cambia a “Todos” o ajusta la búsqueda."
+      var hayOcultos = state.records.length > 0;
+      document.getElementById("captureEmptyText").textContent = hayOcultos
+        ? "No hay radicados en este filtro, pero sí tienes " + state.records.length + " en la lista."
         : "Importa radicados en el Paso 1 para empezar a completarlos aquí.";
+      var btnTodos = document.getElementById("captureEmptyVerTodos");
+      if(btnTodos) btnTodos.hidden = !hayOcultos;
       return;
     }
     empty.style.display = "none"; form.style.display = "block";
@@ -7002,6 +7092,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("cc_idNum").value = rec.idNum || "";
     document.getElementById("cc_comparendo").value = rec.comparendoRaw || "";
     pintarPreguntaPruebas(rec);
+    pintarAvisoImperativas(rec);
     // Foto de lo que se acaba de pintar: es la referencia para saber, de aquí en adelante, qué
     // casillas tocó la persona y cuáles no (ver "LA FOTO DEL FORMULARIO").
     tomarFotoFormulario();
@@ -7268,7 +7359,24 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // donde no es. Así que se salta igual, el aviso sale con el nombre del radicado que quedó
   // pendiente, y "Corregir ahora" devuelve a ÉL. Los botones de avanzar (Guardar y siguiente,
   // Siguiente, Anterior) sí frenan de verdad: ahí la intención es "ya terminé con este".
+  // ¿Se trabajó ESTE radicado, o solo está importado y esperando turno? Un radicado recién
+  // importado trae únicamente los datos base (radicado, fechas, nombre del solicitante): que no
+  // tenga comparendo ni correo no es una anomalía, es que todavía no le ha llegado el turno.
+  function seTrabajoEsteRadicado(rec){
+    if(!rec) return false;
+    return ["formato","comparendoRaw","comparendoCompleto","direccion","res","fechaRes",
+            "comentario","tipoId","idNum","agendaFormato"].some(function(k){
+      return !!String(rec[k] == null ? "" : rec[k]).trim();
+    });
+  }
   function gateDeReglas(rec, seguir, noFrenar){
+    // MEDIDO EN AUDITORÍA: recorriendo ocho radicados recién importados, el aviso saltaba en 15 de
+    // 16 saltos, siempre para decir lo mismo -- "no tiene comparendo", "no tiene correo" --. Claro
+    // que no los tienen: no se han trabajado. Un aviso que sale siempre deja de ser un aviso y
+    // enseña a cerrarlo sin leerlo, que es justo como se pierde la alarma que sí importaba.
+    // Un radicado sin empezar NUNCA puede colarse en la masiva (sin clasificación no es elegible),
+    // así que callar aquí no deja pasar nada: solo deja de gritar donde no hay nada que gritar.
+    if(!seTrabajoEsteRadicado(rec)) return true;
     var pend = hallazgosPendientesDe(rec);
     if(!pend.length) return true;
     alertaPendiente = {rec:rec, hallazgos:pend, seguir:noFrenar ? null : seguir,
@@ -7630,7 +7738,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var imperativePrev = checkImperativeRules(rec);
     if(imperativePrev.length){ imperativePrev.forEach(function(v){ v.wraps.forEach(markError); }); }
     save(); renderQueue(); renderStats(); renderAgendamientos();
-    if(imperativePrev.length) warnImperative(imperativePrev);
+    // El aviso ya no se lanza aquí como mensaje pasajero: las reglas imperativas entran ahora en
+    // el motor de reglas, así que el diálogo de abajo (gateDeReglas) las lista una por una y no se
+    // las puede llevar por delante el siguiente mensaje que salga. Se mantiene el marcado en rojo.
     var prevRec = findAdjacent(rec, -1);
     var irAtras = function(){ if(prevRec) selectRecord(prevRec.id); };
     if(gateDeReglas(rec, irAtras)) irAtras();
@@ -8365,7 +8475,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se sube a mano en cada publicación. No se calcula solo a propósito: si se generara con la fecha
   // del navegador diría siempre "hoy" y no distinguiría una versión de otra, que es justo para lo
   // que sirve.
-  var VERSION_APP = "2026-09-28 · tira de Fénix, cuadrícula y pruebas";
+  var VERSION_APP = "2026-09-29 · auditoría: reglas imperativas al entregar";
   var TIPO_REGLA_TEXTO = {
     estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
     imperativa:  "Imperativa — la app avisa y hay que resolverlo",
@@ -9113,8 +9223,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(!String(r.nombreF||"").trim())  faltantes.push("el nombre del infractor");
     if(n < 13 && faltantes.length){
       out.push({regla:"R21", grave:true, campo:"comparendo", texto:
-        "La línea de Fénix llegó CORTADA: trae " + n + " columna" + (n===1?"":"s") + " de las 14 que tiene " +
-        "completa, y por eso falta " + faltantes.join(", ") + ". Esas casillas se entregarían vacías en la " +
+        "La línea de Fénix llegó CORTADA: trae solo " + n + " columna" + (n===1?"":"s") + " (una línea completa " +
+        "trae 14, o 15 si Fénix incluye la dirección del infractor), y por eso falta " +
+        faltantes.join(", ") + ". Esas casillas se entregarían vacías en la " +
         "masiva sin que nada lo dijera. Vuelve a copiar la línea hasta el final" +
         (paramEnLista("formatosQueExigenPlaca", formato) ? " (para " + formato + ", hasta la placa)." : " (hasta el nombre del infractor).")});
     }
@@ -9164,6 +9275,36 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var hallazgos = [];
     var formato = (r.formato||"").trim().toUpperCase();
     repetidosPorId = repetidosPorId || {};
+      // ============================================================
+      // LAS REGLAS IMPERATIVAS, TAMBIÉN AQUÍ  (R05 a R11 y la plantilla resuelta)
+      // ------------------------------------------------------------
+      // AGUJERO ENCONTRADO EN AUDITORÍA, Y ERA EL GRAVE. Las reglas imperativas vivían SOLO en
+      // checkImperativeRules(), y a esa función solo la llamaban los botones de guardar y de
+      // navegar. La revisión previa de la masiva NO las miraba, y la de una masiva terminada que
+      // se carga de fuera, tampoco.
+      //
+      // Comprobado con una prueba: un radicado con código de infracción F y estado CERRADO -- que
+      // por R09 y R10 es imperativamente DEVUELTO -- se guardó con el botón "Guardar" (que a
+      // propósito no bloquea, para no perder avance), la revisión previa NI SIQUIERA SE ABRIÓ, y
+      // la fila se entregó como T14. Eso es exactamente la clase de inconsistencia por la que se
+      // devuelve una base.
+      //
+      // Ahora las reglas imperativas se comprueban en el MISMO motor que todo lo demás, así que
+      // las ven las tres revisiones y también el aviso al pasar al siguiente radicado. No se
+      // duplican con el aviso de los botones: cuando una regla imperativa está rota,
+      // validateAdvance() ya frena antes y este motor no llega a correr en esa ruta.
+      (function(){
+        var imperativas = [];
+        try{ imperativas = checkImperativeRules(r) || []; }catch(e){ imperativas = []; }
+        imperativas.forEach(function(v){
+          hallazgos.push({
+            regla: v.regla || null,
+            grave: true,
+            campo: String((v.wraps && v.wraps[0]) || "").replace("wrap_", "") || "formato",
+            texto: v.message
+          });
+        });
+      })();
       // Falta el comparendo. Solo es grave en los formatos que SÍ lo exigen: una "Petición oscura"
       // (T10) puede ir legítimamente sin comparendo, y marcarla en rojo cada semana no protege de
       // nada -- solo entrena a saltarse la revisión, que es peor que no tenerla.
@@ -9233,6 +9374,25 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
           hallazgos.push({grave:true, texto:etiqueta + " es \"" + v + "\", que no es una fecha — señal de que las columnas se corrieron al importar este radicado."});
         }
       });
+      // UNA FECHA QUE NO SE ENTIENDE SALE VACÍA, Y ANTES NO LO DECÍA NADIE.
+      // Hallazgo de auditoría: las columnas de fecha de la masiva se escriben con formatDateEs(),
+      // que cuando no logra entender lo que hay devuelve CADENA VACÍA. Es decir: la casilla tenía
+      // un dato, el archivo entregado sale en blanco, y ni la pantalla ni la revisión previa
+      // decían una palabra. Se avisa por cada fecha que vaya al archivo y no se entienda.
+      // La de imposición y la de notificación solo se miran aquí cuando NO hubo tira pegada: si la
+      // hubo, de eso ya avisa R22 con un mensaje mejor (dice que las columnas se corrieron).
+      var huboTira = !!String(r.comparendoRaw||"").trim();
+      [["fechaRes", "La fecha de la resolución", true],
+       ["imposicion", "La fecha de imposición", !huboTira],
+       ["notificacion", "La fecha de notificación", !huboTira]].forEach(function(par){
+        if(!par[2]) return;
+        var v = String(r[par[0]]||"").trim();
+        if(v && !pareceFecha(v)){
+          hallazgos.push({grave:true, campo:par[0], texto:par[1] + " dice \"" + v + "\", que no se entiende como fecha. " +
+            "En el archivo que entregas esa casilla saldría VACÍA, con el dato perdido y sin que nada lo dijera. " +
+            "Escríbela como dd/mm/aaaa."});
+        }
+      });
       // La casilla del correo con un número largo adentro = casi seguro un comparendo pegado en el
       // campo equivocado (el error exacto que se reportó desde la jefatura).
       if(pareceNumeroDeComparendo(r.direccion)){
@@ -9256,8 +9416,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // En una dirección física un espacio es normal; dentro de un correo NO existe: ese correo
       // no le llega a nadie, y en la masiva entregada se ve como "persona @gmail.com". No se
       // corrige sola -- se dice, porque quitar un espacio de un correo es cambiar un dato.
+      // Solo cuando lo escrito ES un correo y nada más: si se le quitan los espacios queda un
+      // correo válido de una sola pieza. Una dirección física que lleve una arroba suelta no
+      // entra aquí -- avisar de eso sería inventar un problema (auditoría: falso positivo posible).
       var dirTxt = String(r.direccion||"").trim();
-      if(/@/.test(dirTxt) && /\s/.test(dirTxt)){
+      var dirSinEspacios = dirTxt.replace(/\s+/g, "");
+      var esCorreoConEspacios = /\s/.test(dirTxt) && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(dirSinEspacios);
+      if(esCorreoConEspacios){
         hallazgos.push({grave:true, campo:"direccion", texto:"El correo \"" + dirTxt +
           "\" tiene un ESPACIO adentro. Un correo no puede llevar espacios: así escrito no le llega " +
           "al ciudadano y en la masiva se entrega ese espacio. Casi siempre viene de copiar y pegar. Quítalo."});
@@ -9303,6 +9468,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         "Este radicado NO va a salir en la masiva. Ábrelo y elige el formato correcto de la lista."}]});
     });
     var confirmadosAntes = 0;
+    var confirmados = [];   // qué se confirmó, en qué radicado -- para poder verlo antes de entregar
     elegibles.forEach(function(r){
       var todos = hallazgosDeRegistro(r, repetidosPorId);
       if(!todos.length) return;
@@ -9311,12 +9477,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // final del día y con 170 radicados encima, es la vía directa al error que se quiere evitar.
       var yaConfirmados = r.anomaliasConfirmadas || {};
       var hallazgos = todos.filter(function(h){ return !yaConfirmados[claveHallazgo(h)]; });
-      confirmadosAntes += (todos.length - hallazgos.length);
+      var yaVistos = todos.filter(function(h){ return !!yaConfirmados[claveHallazgo(h)]; });
+      confirmadosAntes += yaVistos.length;
+      if(yaVistos.length) confirmados.push({rec:r, hallazgos:yaVistos});
       if(hallazgos.length){
         problemas.push({rec:r, hallazgos:hallazgos, grave: hallazgos.some(function(h){ return h.grave; })});
       }
     });
-    return {total: elegibles.length, problemas: problemas, confirmadosAntes: confirmadosAntes};
+    return {total: elegibles.length, problemas: problemas,
+            confirmadosAntes: confirmadosAntes, confirmados: confirmados};
   }
 
   // Muestra la revisión y solo continúa (onProceed) si la persona lo confirma. Si no hay ningún
@@ -9362,12 +9531,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function conRevisionPrevia(onProceed){
     var informe = auditarDocumentoFinal();
     pendingPreflightEsAgenda = false;
-    if(!informe.problemas.length){ registrarEntrega(false); onProceed(); return; }
+    // ANTES: si no quedaba ningún hallazgo NUEVO, el archivo se descargaba en silencio -- aunque
+    // la base llevara dentro veinte anomalías que se confirmaron durante la semana. Ese número se
+    // calculaba y no se mostraba en ninguna parte. Ahora, si la base lleva anomalías confirmadas,
+    // la revisión se abre igual para decirlo: se firma sabiendo qué se firma.
+    if(!informe.problemas.length && !informe.confirmadosAntes){ registrarEntrega(false); onProceed(); return; }
     var graves = informe.problemas.filter(function(p){ return p.grave; }).length;
-    document.getElementById("preflightResumen").textContent =
-      "De " + informe.total + " radicado(s) que entrarían al documento final, " + informe.problemas.length +
-      " tiene(n) algo por revisar" + (graves ? " — " + graves + " con un problema GRAVE que saldría mal en la base que entregas." : ".") +
-      " Revísalos antes de enviar; puedes cancelar, corregirlos en el Paso 2, y volver a generar.";
+    var notaConfirmados = informe.confirmadosAntes
+      ? " Además, esta base lleva " + informe.confirmadosAntes + " anomalía(s) que ya confirmaste durante la semana: van listadas abajo y SÍ salen en el archivo."
+      : "";
+    document.getElementById("preflightResumen").textContent = informe.problemas.length
+      ? ("De " + informe.total + " radicado(s) que entrarían al documento final, " + informe.problemas.length +
+         " tiene(n) algo por revisar" + (graves ? " — " + graves + " con un problema GRAVE que saldría mal en la base que entregas." : ".") +
+         " Revísalos antes de enviar; puedes cancelar, corregirlos en el Paso 2, y volver a generar." + notaConfirmados)
+      : ((informe.total === 1 ? "El radicado que entra al documento final está en regla."
+                              : "Los " + informe.total + " radicados que entran al documento final están en regla.") + notaConfirmados);
     // Cada fila trae su botón para IR A CORREGIRLA. Antes la revisión decía qué estaba mal pero
     // dejaba a la persona buscando el radicado a mano en una lista de doscientos: "no deja subsanar
     // cada radicado". Ahora se abre en el Paso 2, con el cursor puesto en la casilla del problema.
@@ -9383,7 +9561,22 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
           ' data-preflight-campo="' + escapeHtml(campoDelHallazgo(p.hallazgos)) + '" type="button">' +
           'Abrir y corregir este radicado</button>' +
         '</div></div>';
-    }).join("");
+    }).join("") +
+    // Lo ya confirmado, aparte y en tono distinto: no es algo que haya que corregir otra vez, es
+    // la lista de lo que se decidió dejar pasar. Va al final para que no estorbe lo urgente.
+    (informe.confirmados.length
+      ? '<div class="preflight-confirmados"><h4>Anomalías que ya confirmaste (' + informe.confirmadosAntes + ')</h4>' +
+        '<p>No se vuelven a preguntar, pero salen en el archivo. Si alguna ya no debería ir así, abre ese radicado y corrígela.</p>' +
+        informe.confirmados.map(function(p){
+          return '<div class="pfc-item"><span class="pf-rad">' + escapeHtml(p.rec.radicado) + '</span>' +
+            '<ul>' + p.hallazgos.map(function(h){
+              return '<li>' + (h.regla ? escapeHtml(h.regla) + " · " : "") + escapeHtml(h.texto) + '</li>';
+            }).join("") + '</ul>' +
+            '<button class="btn small ghost" data-preflight-corregir="' + escapeHtml(p.rec.id) + '"' +
+            ' data-preflight-campo="' + escapeHtml(campoDelHallazgo(p.hallazgos)) + '" type="button">Abrir este radicado</button>' +
+          '</div>';
+        }).join("") + '</div>'
+      : "");
     pendingPreflightProceed = onProceed;
     document.getElementById("preflightDialog").showModal();
   }
@@ -9401,6 +9594,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       p.hallazgos.forEach(function(h){ lineas.push("    " + (h.grave ? "• GRAVE: " : "• ") + h.texto); });
       lineas.push("");
     });
+    // Lo confirmado durante la semana va en el mismo papel: es parte de lo que se entregó.
+    if(!esAgenda && informe.confirmados && informe.confirmados.length){
+      lineas.push("ANOMALÍAS YA CONFIRMADAS, INCLUIDAS EN ESTA ENTREGA (" + informe.confirmadosAntes + ")", "");
+      informe.confirmados.forEach(function(p){
+        lineas.push("[CONFIRMADA] " + p.rec.radicado + " — " + (p.rec.nombreF || p.rec.nombre || "(sin nombre)") + " — " + (p.rec.formato||""));
+        p.hallazgos.forEach(function(h){ lineas.push("    • " + (h.regla ? h.regla + " · " : "") + h.texto); });
+        lineas.push("");
+      });
+    }
     return lineas.join("\n");
   }
   document.getElementById("preflightCancel").addEventListener("click", function(){
@@ -9446,6 +9648,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       detalleGraves: graves.map(function(p){
         return { radicado: p.rec.radicado, nombre: p.rec.nombreF || p.rec.nombre || "",
                  motivos: p.hallazgos.filter(function(h){ return h.grave; }).map(function(h){ return h.texto; }) };
+      }),
+      // Las anomalías confirmadas durante la semana también son parte de lo que se entregó, y
+      // esta constancia es justo el papel con el que se responde si preguntan. Faltaban.
+      confirmadasAntes: informe.confirmadosAntes,
+      detalleConfirmadas: (informe.confirmados || []).map(function(p){
+        return { radicado: p.rec.radicado, nombre: p.rec.nombreF || p.rec.nombre || "",
+                 motivos: p.hallazgos.map(function(h){ return h.texto; }) };
       })
     };
     try{

@@ -32,6 +32,11 @@ No se edita nunca `pruebas/sitio/index_test.html` a mano: es un archivo generado
 | `t4_masiva.py` | Que no se cuelen espacios ni caracteres invisibles en la masiva, y que salga con cuadrícula. |
 | `t5_regresion.py` | Que siga intacto lo de antes: las 24 reglas, las imperativas, que DEVUELTO y AGENDAMIENTO no entren en la masiva, y que todas las ventanas abran. |
 | `t6_flotante.py` | Que todo lo anterior funcione y **se guarde** igual en la ventana flotante. |
+| `t7_imperativas.py` | Que las reglas imperativas se vuelvan a mirar **al entregar**, que el aviso quede fijo en pantalla, y que una fecha ilegible no salga en blanco sin avisar. |
+| `t8_concurrencia.py` | Dos ventanas a la vez: en radicados distintos y en el mismo, que ninguna pise a la otra. |
+| `t9_flotante_salida.py` | Que la ventana flotante no se quede sin salida cuando el filtro deja la lista vacía. |
+| `t10_ruido.py` | Que el aviso **no** salte en radicados sin empezar, y que **sí** salte en cuanto uno se trabaja y queda mal. |
+| `t11_confirmadas.py` | Que las anomalías confirmadas durante la semana se vean antes de entregar la base. |
 
 ## Reglas de la casa
 

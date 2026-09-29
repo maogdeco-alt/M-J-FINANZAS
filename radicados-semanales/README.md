@@ -157,6 +157,16 @@ navegador, sino uno propio de la app.
   entrega (`AGENDAR CON PRUEBAS` / `AGENDAR SIN PRUEBAS`).
 - **Los Excel salen con cuadrícula**, con la fila de títulos en negrita y
   congelada. Las fechas siguen siendo fechas de verdad, no texto.
+- **Las reglas obligatorias se vuelven a mirar justo antes de entregar.** No
+  basta con que avisen al guardar: la revisión previa de la masiva las
+  comprueba otra vez, fila por fila, y lo mismo hace la revisión de una
+  masiva terminada que se carga desde fuera.
+- **Lo que se confirma durante la semana se ve antes de enviar.** Si se
+  confirmó una anomalía para poder seguir, la revisión previa la vuelve a
+  listar (aparte, sin alarma) y queda anotada en la constancia de entrega.
+- **Un radicado que todavía no se ha trabajado no genera avisos.** Que no
+  tenga comparendo ni correo no es un error: es que no le ha llegado el
+  turno. Los avisos salen cuando hay algo que avisar, para que valgan algo.
 
 ## Protocolo de seguridad de la información (léelo con todo el equipo)
 
