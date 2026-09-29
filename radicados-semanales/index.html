@@ -1170,9 +1170,21 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12M8 11l4 4 4-4M4 19h16"/></svg>
         Descargar masiva <span class="navbadge" id="masivaListaBadge">0</span></button>
       <button class="navbtn" id="abrirDocumentosBtn" type="button"
-              title="Respaldo, copia de tu tabla, revisar una masiva terminada y cerrar la semana">
+              title="Respaldo, copia de tu tabla y revisar una masiva terminada">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
         Documentos</button>
+      <!-- CERRAR SEMANA, A LA VISTA.
+           Reportado por la usuaria: "no veo el botón de borrar los radicados de la semana".
+           Existía y funcionaba perfecto, pero vivía al FONDO de la ventana "Documentos", a 980 px
+           de scroll, detrás de una palabra que no dice lo que hay dentro. Es el mismo error que ya
+           había pasado con "Descargar masiva", que hubo que sacar aquí por lo mismo.
+           Este botón NO hace nada nuevo: llama exactamente a lo mismo que el de siempre (que sigue
+           donde estaba, para quien ya lo tenga ubicado), con su misma doble confirmación. Va en
+           gris, nunca en rojo ni en primer plano: se busca cuando se busca, no se pulsa sin querer. -->
+      <button class="navbtn" id="cerrarSemanaNavBtn" type="button"
+              title="Cierra la semana: archiva todos los radicados en el historial y deja la lista limpia para la semana nueva. Pide confirmación antes de nada.">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg>
+        Cerrar semana <span class="navbadge" id="cerrarSemanaBadge">0</span></button>
     </div>
   </nav>
   <div class="navsub">
@@ -8475,7 +8487,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se sube a mano en cada publicación. No se calcula solo a propósito: si se generara con la fecha
   // del navegador diría siempre "hoy" y no distinguiría una versión de otra, que es justo para lo
   // que sirve.
-  var VERSION_APP = "2026-09-29 · auditoría: reglas imperativas al entregar";
+  var VERSION_APP = "2026-09-29 · Cerrar semana a la vista + inventario de opciones";
   var TIPO_REGLA_TEXTO = {
     estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
     imperativa:  "Imperativa — la app avisa y hay que resolverlo",
@@ -9943,6 +9955,17 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("finalDocCount").textContent = n
       ? n + " radicado" + (n===1?"":"s") + " clasificado" + (n===1?"":"s") + " listo" + (n===1?"":"s") + " para el documento final"
       : "Aún no hay radicados clasificados (Formato lleno) para generar el documento final";
+    // Y la cifra de lo que se cerraría, en el botón de cerrar la semana: cuántos radicados se
+    // van a archivar. Que el número esté a la vista es parte de que el botón se pueda encontrar.
+    var badgeCierre = document.getElementById("cerrarSemanaBadge");
+    if(badgeCierre){
+      var total = state.records.length;
+      badgeCierre.textContent = String(total);
+      var btnCierre = document.getElementById("cerrarSemanaNavBtn");
+      if(btnCierre) btnCierre.title = total
+        ? "Cerrar la semana: archiva los " + total + " radicados en el historial y deja la lista limpia. Pide confirmación antes de borrar nada."
+        : "La lista ya está vacía: no hay semana que cerrar";
+    }
   }
 
   // Los dos caminos que producen el documento que se ENTREGA pasan primero por la revisión previa
@@ -9978,7 +10001,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function recordsToCloseThisWeek(){
     return state.records.slice();
   }
-  document.getElementById("clearAllBtn").addEventListener("click", function(){
+  // UNA SOLA FUNCIÓN PARA CERRAR LA SEMANA, llamada desde los dos botones que la ofrecen (el de
+  // la barra de arriba y el del fondo de "Documentos", que se deja donde siempre estuvo). Se hace
+  // así a propósito: dos copias del mismo código acaban discrepando, y esta es la operación que
+  // más borra de toda la app -- no puede comportarse distinto según por dónde se entre.
+  function abrirCierreDeSemana(){
     var toClose = recordsToCloseThisWeek();
     if(!toClose.length){ toast("La lista ya está vacía"); return; }
     // La operación que más borra de todas: punto de restauración obligatorio antes de nada.
@@ -10000,6 +10027,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }
     document.getElementById("confirmKeptNote").textContent = nota;
     confirmDialog.showModal();
+  }
+  document.getElementById("clearAllBtn").addEventListener("click", abrirCierreDeSemana);
+  document.getElementById("cerrarSemanaNavBtn").addEventListener("click", function(){
+    // Desde la barra de arriba se puede llegar con la ventana de Documentos abierta: se cierra
+    // primero para que el aviso de confirmación quede a la vista y no debajo de otra ventana.
+    var doc = document.getElementById("documentosDialog");
+    if(doc && doc.open) doc.close();
+    abrirCierreDeSemana();
   });
   document.getElementById("confirmCancel").addEventListener("click", function(){ confirmDialog.close(); });
   document.getElementById("confirmOk").addEventListener("click", function(){

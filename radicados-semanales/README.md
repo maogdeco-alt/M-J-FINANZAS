@@ -164,6 +164,11 @@ navegador, sino uno propio de la app.
 - **Lo que se confirma durante la semana se ve antes de enviar.** Si se
   confirmó una anomalía para poder seguir, la revisión previa la vuelve a
   listar (aparte, sin alarma) y queda anotada en la constancia de entrega.
+- **"Cerrar semana" está en la barra de arriba**, junto a "Descargar
+  masiva", con la cifra de cuántos radicados se archivarían. Antes solo
+  vivía al fondo de la ventana "Documentos" y no se encontraba. Sigue
+  estando también ahí, y pide la misma confirmación: nada se borra sin
+  avisar, y todo queda archivado en el historial.
 - **Un radicado que todavía no se ha trabajado no genera avisos.** Que no
   tenga comparendo ni correo no es un error: es que no le ha llegado el
   turno. Los avisos salen cuando hay algo que avisar, para que valgan algo.

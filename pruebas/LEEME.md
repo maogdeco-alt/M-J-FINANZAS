@@ -37,6 +37,8 @@ No se edita nunca `pruebas/sitio/index_test.html` a mano: es un archivo generado
 | `t9_flotante_salida.py` | Que la ventana flotante no se quede sin salida cuando el filtro deja la lista vacía. |
 | `t10_ruido.py` | Que el aviso **no** salte en radicados sin empezar, y que **sí** salte en cuanto uno se trabaja y queda mal. |
 | `t11_confirmadas.py` | Que las anomalías confirmadas durante la semana se vean antes de entregar la base. |
+| `t12_cerrar_semana.py` | Que "Cerrar semana" se encuentre sin bucear, pida confirmación, archive todo (incluidos los agendamientos) y no borre nada al cancelar. |
+| `t13_opciones.py` | Que las opciones que solo aparecen al hacer algo funcionen: la **doble verificación** de las reglas (con identificador equivocado NO deja), agregar un radicado a mano, la calculadora de término y las cuatro pestañas de Ajustes. |
 
 ## Reglas de la casa
 
