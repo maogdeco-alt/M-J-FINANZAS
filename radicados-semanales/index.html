@@ -3831,8 +3831,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return Array.isArray(v) ? v : [];
     }).catch(function(){ return []; });
   }
-  var ultimoPuntoEn = 0;
-  var ultimaFirmaPunto = null;
+  // EL RELOJ DE LOS PUNTOS ES COMPARTIDO ENTRE LAS DOS VENTANAS, no de cada una.
+  // Antes cada ventana llevaba su propio "hace cuánto hice el último punto". Con la ventana
+  // flotante abierta eso significaba DOS puntos por intervalo en vez de uno: como el tope son 30,
+  // el historial de puntos alcanzaba la mitad de tiempo hacia atrás justo cuando más se trabaja.
+  // Y como los dos escriben la misma lista (leer, añadir, guardar), dos puntos casi simultáneos
+  // podían pisarse. Guardándolo en el almacenamiento del navegador, que las dos ventanas
+  // comparten, las dos cuentan el mismo intervalo y se comportan como una sola.
+  var PUNTO_RELOJ_KEY = "radicados_ultimo_punto_v1";
+  function relojDePuntos(){
+    try{ return JSON.parse(localStorage.getItem(PUNTO_RELOJ_KEY) || "{}") || {}; }
+    catch(e){ return {}; }
+  }
+  function anotarRelojDePuntos(cuando, firma){
+    try{ localStorage.setItem(PUNTO_RELOJ_KEY, JSON.stringify({en:cuando, firma:firma})); }catch(e){}
+  }
   function firmaDeLaLista(){
     // Barata y suficiente para saber "¿cambió algo desde el último punto?": cantidad + la marca de
     // modificación más alta. No hace falta comparar radicado por radicado en cada latido.
@@ -3846,10 +3859,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(!state.profile.activeUser || !state.records.length) return Promise.resolve(false);
     var firma = firmaDeLaLista();
     var ahora = Date.now();
+    var reloj = relojDePuntos();
     if(!forzar){
-      if(firma === ultimaFirmaPunto) return Promise.resolve(false); // nada cambió
-      if(ahora - ultimoPuntoEn < MINUTOS_ENTRE_PUNTOS * 60 * 1000) return Promise.resolve(false);
+      if(firma === reloj.firma) return Promise.resolve(false); // nada cambió desde el último punto
+      if(ahora - Number(reloj.en || 0) < MINUTOS_ENTRE_PUNTOS * 60 * 1000) return Promise.resolve(false);
     }
+    // Se anota ANTES de escribir, no después: si las dos ventanas despiertan a la vez, la segunda
+    // ya ve el intervalo tomado y se retira, en vez de crear un punto gemelo y pisar al primero.
+    anotarRelojDePuntos(ahora, firma);
     var punto = {
       creadoEn: new Date(ahora).toISOString(),
       motivo: motivo || "copia automática",
@@ -3861,8 +3878,6 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     return leerPuntos().then(function(lista){
       lista.push(punto);
       if(lista.length > MAX_PUNTOS) lista = lista.slice(lista.length - MAX_PUNTOS);
-      ultimoPuntoEn = ahora;
-      ultimaFirmaPunto = firma;
       idbSet(puntosKeyFor(state.profile.activeUser), lista);
       return true;
     }).catch(function(){ return false; });
@@ -6249,8 +6264,22 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       state.activeId = null;
     }
     if(!state.activeId){
+      // En la flotante, primero se recupera el filtro con el que se cerró (ver recordarFiltro).
+      var fGuardado = filtroRecordado();
+      if(fGuardado && fGuardado !== state.filter && ["pend","done","all"].indexOf(fGuardado) !== -1){
+        state.filter = fGuardado;
+        Array.prototype.forEach.call(document.querySelectorAll("#filterTabs button"), function(b){
+          b.classList.toggle("active", b.getAttribute("data-filter") === fGuardado);
+        });
+        renderQueue();
+      }
       var list = visibleList();
-      if(list.length) state.activeId = list[0].id;
+      // Se vuelve al radicado en el que se estaba, si sigue existiendo y está a la vista con el
+      // filtro puesto. Si no, al primero de la lista, como siempre.
+      var ultimo = ultimoRadicadoVisto();
+      var sigueAhi = ultimo && list.some(function(r){ return r.id === ultimo; });
+      if(sigueAhi) state.activeId = ultimo;
+      else if(list.length) state.activeId = list[0].id;
     }
     renderCapture();
   }
@@ -6574,6 +6603,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var btn = e.target.closest("button[data-filter]");
     if(!btn) return;
     state.filter = btn.getAttribute("data-filter");
+    recordarFiltro(state.filter);
     Array.prototype.forEach.call(document.querySelectorAll("#filterTabs button"), function(b){ b.classList.toggle("active", b===btn); });
     renderQueue();
   });
@@ -6965,12 +6995,45 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }).join("");
   }
 
+  // DÓNDE ME QUEDÉ. La ventana flotante no recordaba en qué radicado estaba: al cerrarla y
+  // volverla a abrir aparecía en el primero de la lista -- y como ahí dentro no hay cola ni
+  // buscador, volver al que se estaba trabajando (el 140 de 180) era ir pulsando "Siguiente".
+  // Cada ventana guarda SU propia marca (la principal por un lado, la flotante por otro): si
+  // compartieran una sola, mover una arrastraría a la otra, que es peor que no recordar nada.
+  // EL FILTRO, SOLO EN LA VENTANA FLOTANTE. Ahí no hay pestañas que se puedan ver ni tocar, y
+  // abre siempre en "Pendientes": el día que se terminan de clasificar todos, la ventana se abre
+  // sin nada que mostrar y sin forma de cambiarlo desde dentro. Por eso la flotante recuerda con
+  // qué filtro se cerró. En la pantalla principal NO se hace: ahí las pestañas están a la vista,
+  // y abrir en "Completos" sin querer se vería como si hubieran desaparecido los radicados --
+  // justo el susto que la app se esfuerza en no dar.
+  var ULTIMO_FILTRO_KEY = "radicados_ultimo_filtro_v1";
+  function recordarFiltro(f){
+    if(!isFlotanteInstance) return;
+    try{ localStorage.setItem(ULTIMO_FILTRO_KEY + "::" + (state.profile.activeUser || "-"), String(f||"")); }catch(e){}
+  }
+  function filtroRecordado(){
+    if(!isFlotanteInstance) return "";
+    try{ return localStorage.getItem(ULTIMO_FILTRO_KEY + "::" + (state.profile.activeUser || "-")) || ""; }
+    catch(e){ return ""; }
+  }
+  var ULTIMO_RADICADO_KEY = "radicados_ultimo_visto_v1";
+  function ultimoRadicadoKey(){
+    return ULTIMO_RADICADO_KEY + "::" + (state.profile.activeUser || "-") +
+           "::" + (isFlotanteInstance ? "flotante" : "principal");
+  }
+  function recordarUltimoRadicado(id){
+    try{ localStorage.setItem(ultimoRadicadoKey(), String(id || "")); }catch(e){}
+  }
+  function ultimoRadicadoVisto(){
+    try{ return localStorage.getItem(ultimoRadicadoKey()) || ""; }catch(e){ return ""; }
+  }
   function selectRecord(id, focusField){
     // Se cancela cualquier autoguardado pendiente ANTES de cambiar de radicado: quien navega ya
     // llamó a commitCurrentEdits(), así que ese temporizador viejo no tiene nada que aportar y solo
     // podría escribir tarde (ver la nota junto a autosaveTimer sobre contaminación cruzada).
     cancelAutosavePendiente();
     state.activeId = id;
+    recordarUltimoRadicado(id);
     renderQueue();
     renderCapture();
     var el = document.querySelector('.queue-item[data-id="'+id+'"]');
@@ -7056,6 +7119,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se hace aquí, sin depender de las pestañas, porque en la ventana flotante no existen.
   document.getElementById("captureEmptyVerTodos").addEventListener("click", function(){
     state.filter = "all";
+    recordarFiltro("all");   // en la flotante, para que la próxima vez ya abra así
     Array.prototype.forEach.call(document.querySelectorAll("#filterTabs button"), function(b){
       b.classList.toggle("active", b.getAttribute("data-filter") === "all");
     });
@@ -8487,7 +8551,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se sube a mano en cada publicación. No se calcula solo a propósito: si se generara con la fecha
   // del navegador diría siempre "hoy" y no distinguiría una versión de otra, que es justo para lo
   // que sirve.
-  var VERSION_APP = "2026-09-29 · Cerrar semana a la vista + inventario de opciones";
+  var VERSION_APP = "2026-09-29 · la flotante recuerda dónde te quedaste";
   var TIPO_REGLA_TEXTO = {
     estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
     imperativa:  "Imperativa — la app avisa y hay que resolverlo",

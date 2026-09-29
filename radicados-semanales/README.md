@@ -169,6 +169,11 @@ navegador, sino uno propio de la app.
   vivía al fondo de la ventana "Documentos" y no se encontraba. Sigue
   estando también ahí, y pide la misma confirmación: nada se borra sin
   avisar, y todo queda archivado en el historial.
+- **La ventana flotante recuerda dónde te quedaste.** Al cerrarla y volverla
+  a abrir vuelve al mismo radicado y con el mismo filtro, en vez de empezar
+  por el primero de la lista. Cada ventana recuerda lo suyo: mover una no
+  arrastra a la otra. Y lo que estés escribiendo no se pierde ni cerrándola
+  de golpe — se guarda al cerrar, al minimizar y al cambiar de programa.
 - **Un radicado que todavía no se ha trabajado no genera avisos.** Que no
   tenga comparendo ni correo no es un error: es que no le ha llegado el
   turno. Los avisos salen cuando hay algo que avisar, para que valgan algo.

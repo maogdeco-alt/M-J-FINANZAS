@@ -19,7 +19,7 @@ echo ""
 echo "############ el Excel con cuadrícula (sin navegador)"
 node t_rejilla.js  || mal=$((mal+1))
 node t_rejilla2.js || mal=$((mal+1))
-for t in t1_placa.py t2_tira.py t3_pruebas.py t4_masiva.py t5_regresion.py t6_flotante.py t7_imperativas.py t8_concurrencia.py t9_flotante_salida.py t10_ruido.py t11_confirmadas.py t12_cerrar_semana.py t13_opciones.py; do
+for t in t1_placa.py t2_tira.py t3_pruebas.py t4_masiva.py t5_regresion.py t6_flotante.py t7_imperativas.py t8_concurrencia.py t9_flotante_salida.py t10_ruido.py t11_confirmadas.py t12_cerrar_semana.py t13_opciones.py t14_memoria_flotante.py; do
   echo ""
   echo "############ $t"
   python3 "$t" || mal=$((mal+1))
