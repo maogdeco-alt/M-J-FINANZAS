@@ -32,7 +32,7 @@ with sync_playwright() as pw:
     nav,ctx,pag,err=B.abrir(pw)
     B.entrar(pag)
     pag.click("#selBloqueManana"); pag.wait_for_timeout(500)
-    pag.set_input_files("#manFile", SHEET); pag.wait_for_timeout(2500)
+    B.cargar_sheet_manana(pag, SHEET)
     pag.fill("#manNombre","ALEJANDRA"); pag.keyboard.press("Tab"); pag.wait_for_timeout(900)
 
     print("1) sube a la nube en su propia columna, sin tocar la de la masiva")

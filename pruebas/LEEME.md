@@ -41,6 +41,7 @@ No se edita nunca `pruebas/sitio/index_test.html` a mano: es un archivo generado
 | `t14_memoria_flotante.py` | Que la ventana flotante no pierda lo escrito al cerrarse en seco, que vuelva al radicado donde se quedó, y que cada ventana recuerde lo suyo sin arrastrar a la otra. |
 | `t15_manana.py` | El bloque de la mañana, **contra el sheet real de Donina**: que lea las dos hojas, respete los espacios exactos de las clasificaciones, no le añada un punto al radicado, y saque las dos listas con la corrección en negrilla subrayada. |
 | `t16_manana_guardado.py` | Que el trabajo de la mañana se guarde en su propia columna, sobreviva a recargar, filtre por tu nombre y se pueda trabajar en la ventana flotante. |
+| `t17_aislamiento.py` | Que los dos bloques **no se toquen**: toma una foto exacta de todo lo guardado (navegador y nube), trabaja a fondo en uno, y comprueba que lo del otro no cambió ni un byte. En los dos sentidos. |
 | `t13_opciones.py` | Que las opciones que solo aparecen al hacer algo funcionen: la **doble verificación** de las reglas (con identificador equivocado NO deja), agregar un radicado a mano, la calculadora de término y las cuatro pestañas de Ajustes. |
 
 ## Reglas de la casa

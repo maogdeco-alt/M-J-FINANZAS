@@ -60,6 +60,24 @@ def ir_a(pag, radicado):
     cerrar_alerta(pag)
     pag.wait_for_timeout(300)
 
+def cargar_sheet_manana(pag, ruta):
+    """Carga el .xlsx del día como lo haría ella: por la ventana de «Cargar sheet del día»."""
+    pag.click("#manArchivoBtn")
+    pag.wait_for_selector("#manCargaDialog[open]", timeout=10000)
+    pag.set_input_files("#manFile", ruta)
+    pag.wait_for_timeout(2500)
+    if pag.locator("#manCargaDialog[open]").count():
+        pag.click("#manCargaClose"); pag.wait_for_timeout(400)
+
+def abrir_listas(pag):
+    """Abre la ventana de las dos listas que se entregan."""
+    if not pag.locator("#manListasDialog[open]").count():
+        pag.click("#manDescargarBtn"); pag.wait_for_timeout(600)
+
+def cerrar_listas(pag):
+    if pag.locator("#manListasDialog[open]").count():
+        pag.click("#manListasClose"); pag.wait_for_timeout(300)
+
 def ir_a_compacto(pag, radicado, vueltas=20):
     """En la ventana flotante la cola no se ve: se navega con "Siguiente", como ahí mismo.
     Si el filtro dejó la ventana vacía, primero se usa la salida ("Ver todos los radicados")."""

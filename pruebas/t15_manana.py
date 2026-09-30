@@ -26,7 +26,7 @@ with sync_playwright() as pw:
     ok(pag.locator("#paso2Section").is_hidden(), "y la masiva queda escondida, no borrada")
 
     print("2) cargar el sheet real de Donina (las dos hojas de una vez)")
-    pag.set_input_files("#manFile", SHEET); pag.wait_for_timeout(2500)
+    B.cargar_sheet_manana(pag, SHEET)
     sin = pag.locator("#manCuentaSin").inner_text(); ia = pag.locator("#manCuentaIa").inner_text()
     print("      sin clasificar:", sin, "| revisar al modelo:", ia)
     ok(sin.endswith("/ 65"), "leyó las 65 filas de «RAD.NO TOMADOS POR EL MODELO»")
@@ -62,6 +62,7 @@ with sync_playwright() as pw:
     ok(pag.locator("#manCuentaIa").inner_text().startswith("118 /"), "bajan los pendientes a 118 → "+pag.locator("#manCuentaIa").inner_text())
 
     print("6) las dos listas que se entregan")
+    B.abrir_listas(pag)
     with pag.expect_download(timeout=20000) as dl1:
         pag.click("#manDescargar1")
     r1=os.path.join(os.path.dirname(__file__),"lista1.xlsx"); dl1.value.save_as(r1)
@@ -86,6 +87,7 @@ with sync_playwright() as pw:
         ok(c.font.bold and c.font.underline=="single", "y va en NEGRILLA y SUBRAYADA → %r" % c.value)
         ok(str(negrillas[0][0])==rad_corr, "en el radicado que corregí (%s)" % negrillas[0][0])
 
+    B.cerrar_listas(pag)
     print("7) cerrar el día: archiva y deja limpio")
     pag.click("#manCerrarDiaBtn"); pag.wait_for_timeout(700)
     ok(pag.locator("#manCerrarDialog[open]").count()==1, "pide confirmación")
