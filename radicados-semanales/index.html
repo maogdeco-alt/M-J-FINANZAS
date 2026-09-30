@@ -753,8 +753,12 @@
   .man-sub{font-size:0.76rem;color:var(--muted);}
   .man-ia{font-size:0.86rem;min-width:0;}
   .man-ia b{font-weight:800;}
+  /* "¿por qué?" abre la justificación del modelo. Medía 14 px de alto: imposible de acertar sin
+     apuntar, y hay uno por fila. Se le da un área de clic decente sin engordarlo a la vista. */
   .man-porque{font-size:0.74rem;color:var(--muted);cursor:pointer;text-decoration:underline dotted;
-    background:none;border:0;padding:0;font-family:inherit;}
+    background:none;border:0;padding:5px 8px;margin:-5px -2px;min-height:26px;font-family:inherit;
+    border-radius:6px;}
+  .man-porque:hover{background:var(--surface-2);color:var(--accent-2);}
   .man-justif{grid-column:1 / -1;font-size:0.8rem;color:var(--muted);line-height:1.5;
     background:var(--surface-2);border-radius:8px;padding:9px 12px;margin:2px 0 6px;}
   .man-acc{display:flex;gap:6px;align-items:center;position:relative;justify-content:flex-end;}
@@ -3851,6 +3855,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     state.profile.activeUser = null;
     state.records = []; state.history = []; state.activeId = null;
     state.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+    // Y el bloque de la MAÑANA también, con el mismo rigor: si se queda en memoria, la siguiente
+    // persona que entre en este computador podría ver por un instante los radicados de la anterior.
+    // Cada cuenta ve lo suyo, y "lo suyo" empieza por que no quede nada de la otra.
+    manana = mananaVacio();
+    mananaMarcados = {};
+    mananaEnNube = null;
+    var inpNom = document.getElementById("manNombre");
+    if(inpNom) inpNom.value = "";
+    try{ renderManana(); }catch(e){}
     lastKnownSafeCount = 0; explicitRemovalPending = false; // el freno de sincronización se reinicia para la próxima cuenta que entre en esta pestaña
     var settingsDlg = document.getElementById("settingsDialog");
     if(settingsDlg.open) settingsDlg.close();
@@ -5078,6 +5091,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // hace nada si no hay un radicado abierto -- y guardar de menos cuesta el trabajo de la persona.
   function guardadoDeUltimoRecurso(){
     try{ commitCurrentEdits(); }catch(e){}
+    // Y lo del bloque de la mañana: una clasificación a medio escribir, con el cursor todavía
+    // dentro de la casilla, no se ha guardado -- se guarda al salir de ella. Si la ventana se
+    // cierra en ese instante, se perdería. Aquí se fuerza esa escritura antes de nada más.
+    try{
+      var foco = document.activeElement;
+      if(foco && foco.getAttribute && foco.getAttribute("data-manclas")){
+        aplicarClasificacion(foco.getAttribute("data-manclas"), foco.value);
+      }
+    }catch(e){}
   }
   window.addEventListener("beforeunload", guardadoDeUltimoRecurso);
   window.addEventListener("pagehide", guardadoDeUltimoRecurso);
@@ -5871,6 +5893,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
     document.getElementById("statTotal").textContent = total;
     document.getElementById("statPend").textContent = pend;
+    // La misma cifra en el selector de bloques: desde la mañana se ve cuánto espera en la tarde,
+    // y desde la tarde cuánto espera en la mañana. Las dos insignias funcionan igual.
+    var badgeT = document.getElementById("selBloqueTardeBadge");
+    if(badgeT){ badgeT.textContent = String(pend); badgeT.hidden = !pend; }
     document.getElementById("statDone").textContent = done;
     document.getElementById("statPct").textContent = pct + "%";
     document.getElementById("statDevuelto").textContent = summary.pctDevuelto + "%";
@@ -8899,7 +8925,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se sube a mano en cada publicación. No se calcula solo a propósito: si se generara con la fecha
   // del navegador diría siempre "hoy" y no distinguiría una versión de otra, que es justo para lo
   // que sirve.
-  var VERSION_APP = "2026-09-30 · dos bloques, separados y ordenados";
+  var VERSION_APP = "2026-09-30 · dos bloques, separación probada";
   var TIPO_REGLA_TEXTO = {
     estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
     imperativa:  "Imperativa — la app avisa y hay que resolverlo",
@@ -10614,7 +10640,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   var MANANA_KEY = "radicados_manana_v1";
   function mananaKeyFor(email){ return MANANA_KEY + "::" + email; }
   function mananaVacio(){
-    return {fechaSheet:"", cargadoEn:"", nombre:"", catalogo:[], personas:[], sin:[], ia:[], historial:[]};
+    return {fechaSheet:"", cargadoEn:"", nombre:"", catalogo:[], personas:[], sin:[], ia:[], historial:[], actualizadoEn:0};
   }
   var manana = mananaVacio();
   var mananaTab = "sin";
@@ -10633,16 +10659,45 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // ---------- guardar y traer ----------
   function guardarManana(){
     if(!state.profile.activeUser) return;
+    // RELEER ANTES DE ESCRIBIR. Es la misma protección que ya tiene la masiva y que aquí faltaba:
+    // las dos ventanas comparten el almacenamiento de este navegador, pero no la memoria. Sin esto,
+    // la segunda ventana en guardar escribía su copia entera encima y se llevaba por delante lo que
+    // la otra acababa de clasificar. Comprobado: pasaba.
+    // Se marca la hora PRIMERO, para que esta copia sea la más reciente y gane el radicado que se
+    // acaba de tocar; los radicados que solo tenga la otra ventana se conservan tal cual.
+    manana.actualizadoEn = Date.now();
+    try{
+      var raw = localStorage.getItem(mananaKeyFor(state.profile.activeUser));
+      if(raw){
+        var otro = JSON.parse(raw);
+        if(otro && typeof otro === "object") manana = fusionarManana(manana, otro);
+      }
+    }catch(e){}
     try{ localStorage.setItem(mananaKeyFor(state.profile.activeUser), JSON.stringify(manana)); }
     catch(e){ toast("No se pudo guardar el trabajo de la mañana en este navegador.", "warn"); }
     subirManana();
   }
+  // Y al revés: cuando la OTRA ventana guarda, esta se entera y se actualiza sola, en vez de
+  // quedarse mostrando una lista vieja hasta que alguien la recargue.
+  window.addEventListener("storage", function(e){
+    if(!state.profile.activeUser) return;
+    if(!e || e.key !== mananaKeyFor(state.profile.activeUser) || !e.newValue) return;
+    try{
+      var otro = JSON.parse(e.newValue);
+      if(otro && typeof otro === "object"){
+        manana = fusionarManana(manana, otro);
+        renderManana();
+      }
+    }catch(err){}
+  });
   // Petición APARTE de la de la masiva, a propósito: si la columna "manana" no existe todavía en
   // Supabase (no se ha corrido el SQL), esto falla solo, se avisa, y el guardado de la masiva ni
   // se entera. Nunca se mete "manana" en el mismo envío que los radicados de la tarde.
   function subirManana(){
     if(!supaSession || !supaSession.user || !supaConfig) return Promise.resolve(false);
+    if(!state.profile.activeUser) return Promise.resolve(false);
     if(mananaEnNube === false) return Promise.resolve(false);
+    manana.actualizadoEn = Date.now();
     return supaFetch("/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id, {
       method: "PATCH",
       headers: {"Content-Type":"application/json", "Prefer":"return=minimal"},
@@ -10660,13 +10715,17 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
   function traerManana(){
     if(!supaSession || !supaSession.user || !supaConfig) return Promise.resolve(false);
+    // De QUIÉN es esta petición. Si cuando llegue la respuesta ya hay otra cuenta activa (alguien
+    // cerró sesión y entró otra persona mientras viajaba), se descarta: escribirla sería meterle
+    // a una persona el trabajo de otra.
+    var dueno = state.profile.activeUser;
     return supaFetch("/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id + "&select=manana")
       .then(function(filas){
+        if(state.profile.activeUser !== dueno) return false;
         mananaEnNube = true;
         var v = filas && filas[0] && filas[0].manana;
         if(v && typeof v === "object" && (v.sin || v.ia || v.historial)){
-          // Lo de la nube manda, igual que con los radicados: es lo que vieron los demás equipos.
-          manana = Object.assign(mananaVacio(), v);
+          manana = fusionarManana(manana, v);
         }
         return true;
       }).catch(function(err){
@@ -10674,6 +10733,85 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         if(/manana|column|PGRST204|42703|schema cache/i.test(txt)) mananaEnNube = false;
         return false;
       });
+  }
+  // ¿ESTA FILA YA SE TRABAJÓ? Es la pregunta que decide todas las fusiones: entre una copia con
+  // trabajo hecho y una sin él, siempre gana la que tiene trabajo. Perder media hora de
+  // clasificación por abrir la app en otro computador no puede pasar.
+  function filaTrabajada(r, hoja){
+    if(!r) return false;
+    if(hoja === "sin") return !!String(r.clas||"").trim();
+    return !!r.ok || !!String(r.correccion||"").trim();
+  }
+  // FUSIÓN DEL TRABAJO DE LA MAÑANA — el mismo principio que ya rige en la masiva: lo que llega
+  // NUNCA borra lo que hay; se combina. Antes, lo de la nube reemplazaba lo de aquí de un golpe,
+  // y bastaba con que otro computador guardara algo para que el trabajo abierto se perdiera.
+  //   · el historial de días: se suman los dos, sin repetir. No se pierde ningún día cerrado.
+  //   · las filas del día abierto: radicado por radicado, gana la que tenga trabajo hecho. Si las
+  //     dos lo tienen y dicen cosas distintas, gana la más reciente y SE AVISA -- no en silencio.
+  function fusionarManana(mio, otro){
+    if(!otro || typeof otro !== "object") return mio;
+    var res = Object.assign(mananaVacio(), mio);
+    res.nombre     = mio.nombre || otro.nombre || "";
+    res.fechaSheet = mio.fechaSheet || otro.fechaSheet || "";
+    res.cargadoEn  = mio.cargadoEn || otro.cargadoEn || "";
+    res.catalogo   = (mio.catalogo && mio.catalogo.length) ? mio.catalogo : (otro.catalogo || []);
+    res.personas   = (mio.personas && mio.personas.length) ? mio.personas : (otro.personas || []);
+
+    var yaHay = {}, hist = (mio.historial || []).slice();
+    hist.forEach(function(d){ yaHay[(d.fecha||"") + "|" + (d.cerradoEn||"")] = true; });
+    (otro.historial || []).forEach(function(d){
+      var k = (d.fecha||"") + "|" + (d.cerradoEn||"");
+      if(!yaHay[k]){ hist.push(d); yaHay[k] = true; }
+    });
+    hist.sort(function(a,b){ return String(b.cerradoEn||"").localeCompare(String(a.cerradoEn||"")); });
+    res.historial = hist;
+
+    // UN DÍA CERRADO NO SE RESUCITA. Al cerrar el día las listas quedan vacías y el historial
+    // gana una entrada. Si al fusionar no se tuviera esto en cuenta, la regla de "entre vacío y
+    // lleno gana lo lleno" devolvería a la pantalla los radicados que se acaban de archivar --
+    // y además los devolvería a la otra ventana. Es exactamente el mismo cuidado que ya tiene la
+    // masiva con lo que se borra a propósito. Lo detectó una prueba antes de que saliera de aquí.
+    var mioCerro  = !(mio.sin||[]).length  && !(mio.ia||[]).length  && (mio.historial||[]).length  > (otro.historial||[]).length;
+    var otroCerro = !(otro.sin||[]).length && !(otro.ia||[]).length && (otro.historial||[]).length > (mio.historial||[]).length;
+    if(mioCerro || otroCerro){
+      res.sin = []; res.ia = []; res.fechaSheet = ""; res.cargadoEn = "";
+      res.actualizadoEn = Math.max(Number(mio.actualizadoEn||0), Number(otro.actualizadoEn||0));
+      return res;
+    }
+    var otroEsMasNuevo = Number(otro.actualizadoEn||0) > Number(mio.actualizadoEn||0);
+    var choques = 0;
+    ["sin","ia"].forEach(function(hoja){
+      var mias = mio[hoja] || [], otras = otro[hoja] || [];
+      if(!mias.length){ res[hoja] = otras.slice(); return; }
+      if(!otras.length){ res[hoja] = mias.slice(); return; }
+      var porRad = {};
+      otras.forEach(function(r){ if(r && r.radicado) porRad[String(r.radicado)] = r; });
+      var salida = mias.map(function(r){
+        var o = porRad[String(r.radicado)];
+        if(o) delete porRad[String(r.radicado)];
+        if(!o) return r;
+        var yoTengo = filaTrabajada(r, hoja), elTiene = filaTrabajada(o, hoja);
+        if(yoTengo && !elTiene) return r;
+        if(elTiene && !yoTengo) return o;
+        if(yoTengo && elTiene){
+          var igual = hoja === "sin"
+            ? String(r.clas||"") === String(o.clas||"")
+            : (!!r.ok === !!o.ok && String(r.correccion||"") === String(o.correccion||""));
+          if(!igual){ choques++; return otroEsMasNuevo ? o : r; }
+        }
+        return r;
+      });
+      // Y las filas que solo estaban en la otra copia: se agregan, nunca se descartan.
+      Object.keys(porRad).forEach(function(k){ salida.push(porRad[k]); });
+      res[hoja] = salida;
+    });
+    res.actualizadoEn = Math.max(Number(mio.actualizadoEn||0), Number(otro.actualizadoEn||0));
+    if(choques){
+      setTimeout(function(){
+        toast(choques + " radicado(s) de la mañana estaban clasificados distinto en otro lado. Se dejó lo más reciente — revísalos.", "warn");
+      }, 1200);
+    }
+    return res;
   }
   function cargarMananaLocal(){
     manana = mananaVacio();

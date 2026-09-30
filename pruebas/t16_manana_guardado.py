@@ -14,7 +14,7 @@ def ok(c,m):
     print(("  OK  " if c else "  FALLA  ")+m)
     if not c: fallos.append(m)
 def nube():
-    d=json.loads(urllib.request.urlopen("http://127.0.0.1:9870/rest/v1/radicados_datos?x",timeout=5).read())
+    d=json.loads(urllib.request.urlopen("http://127.0.0.1:9870/rest/v1/radicados_datos?usuario_id=eq.c81b5136-bcd1-0b43-9010-8c979ed28ee6",timeout=5).read())
     if not d or not d[0]: return None
     m=d[0].get("manana")
     if isinstance(m,str): m=json.loads(m)

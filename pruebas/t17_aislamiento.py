@@ -26,7 +26,7 @@ def foto_local(pag):
       for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);todo[k]=localStorage.getItem(k);}
       return todo;}""")
 def foto_nube():
-    d=json.loads(urllib.request.urlopen("http://127.0.0.1:9870/rest/v1/radicados_datos?x",timeout=5).read())
+    d=json.loads(urllib.request.urlopen("http://127.0.0.1:9870/rest/v1/radicados_datos?usuario_id=eq.c81b5136-bcd1-0b43-9010-8c979ed28ee6",timeout=5).read())
     f=(d[0] if d else {}) or {}
     def h(x): return hashlib.sha256(json.dumps(x, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
     return {"records":h(f.get("records")), "settings":h(f.get("settings")),

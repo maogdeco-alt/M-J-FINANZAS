@@ -7,6 +7,19 @@ DB = {"filas": {}, "reglas": {"params": {}, "bitacora": [], "firma": "", "actual
 LOCK = threading.Lock()
 UID = "11111111-2222-3333-4444-555555555555"
 
+def uid_de(correo):
+    """Un identificador distinto por correo, como hace Supabase de verdad. Antes todos los
+    correos compartían la MISMA fila, y eso hacía que una prueba de dos cuentas no probara nada."""
+    import hashlib
+    h = hashlib.md5((correo or "anon").strip().lower().encode()).hexdigest()
+    return "%s-%s-%s-%s-%s" % (h[0:8], h[8:12], h[12:16], h[16:20], h[20:32])
+
+def uid_de_ruta(path):
+    """Saca el usuario_id de un ?usuario_id=eq.<uuid>."""
+    import re as _re
+    m = _re.search(r"usuario_id=eq\.([^&]+)", path or "")
+    return m.group(1) if m else UID
+
 class H(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     def log_message(self, *a): pass
@@ -32,13 +45,15 @@ class H(BaseHTTPRequestHandler):
     def do_POST(self):
         p, b = self.path, self._body()
         if "/auth/v1/token" in p or "/auth/v1/signup" in p:
+            correo = b.get("email","a@gmail.com")
             return self._send(200, {"access_token":"tok","refresh_token":"ref","expires_in":3600,
-                "user":{"id":UID,"email":b.get("email","a@gmail.com"),
+                "user":{"id":uid_de(correo),"email":correo,
                         "user_metadata":{"name": b.get("data",{}).get("name","Prueba")}}})
         if "/auth/v1/logout" in p: return self._send(204, {})
         if "/rest/v1/radicados_datos" in p:
-            with LOCK: DB["filas"][UID] = b if isinstance(b, dict) else (b[0] if b else {})
-            return self._send(201, [DB["filas"][UID]])
+            u = uid_de_ruta(p)
+            with LOCK: DB["filas"][u] = b if isinstance(b, dict) else (b[0] if b else {})
+            return self._send(201, [DB["filas"][u]])
         return self._send(200, {})
     def do_PUT(self): return self._send(200, {"id":UID})
     def do_PATCH(self):
@@ -47,10 +62,11 @@ class H(BaseHTTPRequestHandler):
             with LOCK: DB["reglas"].update({k:v for k,v in b.items()})
             return self._send(200, [DB["reglas"]])
         if "/rest/v1/radicados_datos" in p:
+            u = uid_de_ruta(p)
             with LOCK:
-                fila = DB["filas"].setdefault(UID, {})
+                fila = DB["filas"].setdefault(u, {})
                 fila.update(b)
-            return self._send(200, [DB["filas"][UID]])
+            return self._send(200, [DB["filas"][u]])
         return self._send(200, [])
     def do_DELETE(self):
         # /__reset deja la base de mentira en blanco: cada prueba arranca de cero.
@@ -65,7 +81,7 @@ class H(BaseHTTPRequestHandler):
         if "/rest/v1/profiles" in p: return self._send(200, [{"nombre":"Prueba","correo":"a@gmail.com"}])
         if "/rest/v1/reglas_masivas" in p: return self._send(200, [DB["reglas"]])
         if "/rest/v1/radicados_datos" in p:
-            fila = DB["filas"].get(UID)
+            fila = DB["filas"].get(uid_de_ruta(p))
             return self._send(200, [fila] if fila else [])
         return self._send(200, [])
 
