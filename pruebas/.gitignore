@@ -1,0 +1,12 @@
+sitio/
+sheetjs.js
+rejilla.js
+__pycache__/
+.corriendo/
+*.xlsx
+*.png
+*.log
+sheet_donina.xlsx
+lista1.xlsx
+lista2.xlsx
+*.json
