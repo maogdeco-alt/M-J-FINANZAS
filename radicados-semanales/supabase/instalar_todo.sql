@@ -139,3 +139,19 @@ create policy "el area ajusta las reglas"
   on public.reglas_masivas for update
   using (auth.uid() is not null)
   with check (auth.uid() is not null);
+
+-- ===========================================================================
+-- 5. TRABAJO DE LA MAÑANA (asignaciones de Donina)
+--
+-- El trabajo se divide en dos bloques: el de la MAÑANA (el sheet que sube
+-- Donina a las 8 a.m., que se cierra cada día) y el de la TARDE (la masiva de
+-- siempre, que se cierra cada semana). Aquí solo se añade UNA COLUMNA a la
+-- tabla que ya existe, para que el trabajo de la mañana también viaje de un
+-- computador a otro. No se toca ninguna columna anterior ni ninguna política:
+-- la seguridad por fila que ya cubre radicados_datos cubre también esta.
+--
+-- Si te saltas esta parte, el bloque de la mañana funciona igual pero guarda
+-- solo en el navegador, y lo dice con un aviso amarillo en su propia pantalla.
+-- ===========================================================================
+alter table public.radicados_datos
+  add column if not exists manana jsonb not null default '{}'::jsonb;

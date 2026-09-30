@@ -669,6 +669,111 @@
   .pregunta-si-no .field-hint{flex:1 1 100%;margin:0;}
   .pregunta-si-no.sin-responder{border-color:var(--warn);background:var(--warn-soft);}
   .pregunta-si-no.sin-responder .psn-label{color:var(--warn-text);}
+  /* ======================================================================
+     LOS DOS BLOQUES DEL DÍA — selector y bloque de la mañana
+     ====================================================================== */
+  .bloque-sel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 4px;}
+  .bloque-sel button{display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer;
+    border:1.5px solid var(--border);border-radius:12px;background:var(--surface);
+    padding:10px 14px;color:var(--muted);font:inherit;position:relative;}
+  .bloque-sel button:hover{border-color:var(--accent);}
+  .bloque-sel button span{display:flex;flex-direction:column;min-width:0;}
+  .bloque-sel button b{font-size:0.98rem;color:var(--text);line-height:1.25;}
+  .bloque-sel button small{font-size:0.74rem;color:var(--muted);line-height:1.3;}
+  .bloque-sel button svg{flex:0 0 auto;}
+  .bloque-sel button.activo{border-color:var(--accent);background:var(--accent-soft);
+    box-shadow:0 0 0 1px var(--accent) inset;}
+  .bloque-sel button.activo b,.bloque-sel button.activo svg{color:var(--accent-2);}
+  .bloque-badge{position:absolute;top:8px;right:10px;background:var(--stamp);color:#fff;
+    border-radius:999px;font-size:0.68rem;font-weight:800;padding:1px 7px;}
+  @media (max-width:700px){ .bloque-sel{grid-template-columns:1fr;} }
+  /* Con el bloque de la mañana a la vista se esconde el de la tarde, entero y sin tocarlo. */
+  html.bloque-manana .appnav,
+  html.bloque-manana .navsub,
+  html.bloque-manana #paso2Section{display:none;}
+
+  .man-cabecera-der{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .man-aviso{border:1.5px solid var(--warn);background:var(--warn-soft);color:var(--warn-text);
+    border-radius:9px;padding:9px 13px;margin-bottom:12px;font-size:0.86rem;font-weight:600;}
+  .man-aviso[hidden]{display:none;}
+  .man-carga{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .man-carga input[type=file]{display:none;}
+  .man-pegar{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+  .man-pegar-ops{display:flex;gap:16px;flex-wrap:wrap;}
+  .man-pegar-ops label{display:inline-flex !important;align-items:center;gap:6px;font-weight:600;font-size:0.88rem;margin:0;}
+  .man-barra{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:14px 0 6px;}
+  .man-quien{display:inline-flex !important;align-items:center;gap:8px;font-weight:700;position:relative;margin:0;}
+  .man-quien input{font-weight:700;min-width:15rem;}
+  .man-stats{display:flex;gap:8px;flex-wrap:wrap;}
+  .man-stats .ws-stat{min-width:78px;}
+  .man-tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin-top:6px;}
+  .man-tabs button{border:0;background:none;font:inherit;font-weight:700;color:var(--muted);
+    cursor:pointer;padding:9px 14px;border-bottom:3px solid transparent;margin-bottom:-1px;}
+  .man-tabs button b{font-variant-numeric:tabular-nums;margin-left:5px;
+    background:var(--surface-2);border-radius:999px;padding:1px 8px;font-size:0.8rem;}
+  .man-tabs button.active{color:var(--accent-2);border-bottom-color:var(--accent);}
+  .man-herramientas{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 0;}
+  .man-herramientas .spacer{flex:1 1 auto;}
+  .man-herramientas input[type=search]{min-width:14rem;}
+  /* Las casillas de filtro son etiquetas, y la regla general de "label" las pone en bloque, en
+     mayúsculas y con margen: aquí se necesitan en una sola línea, junto a su casilla. */
+  .man-solo-mios{display:inline-flex !important;align-items:center;gap:7px;font-size:0.84rem;
+    font-weight:600;margin:0;text-transform:none;letter-spacing:0;white-space:nowrap;color:var(--text);}
+  /* La regla general "input{width:100%}" también alcanza a las casillas de verificación y las
+     estira como si fueran campos de texto. Aquí se les devuelve su tamaño. */
+  .man-solo-mios input[type=checkbox],
+  .man-pegar-ops input[type=radio],
+  .man-fila input[type=checkbox]{width:18px;height:18px;flex:0 0 auto;margin:0;padding:0;
+    accent-color:var(--accent);cursor:pointer;}
+  .man-quien{text-transform:none;letter-spacing:0;color:var(--text);font-size:0.9rem;}
+  .man-pegar-ops label{text-transform:none;letter-spacing:0;color:var(--text);white-space:nowrap;}
+  .man-lote{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;position:relative;
+    background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:9px;padding:5px 10px;}
+  .man-lote input{min-width:14rem;}
+  .man-panel{border:1px solid var(--border);border-radius:10px;overflow:auto;max-height:58vh;background:var(--surface);}
+  .man-fila{display:grid;grid-template-columns:28px 10.5rem 1fr 18rem;gap:10px;align-items:center;
+    padding:7px 12px;border-bottom:1px solid var(--border);}
+  .man-fila:last-child{border-bottom:0;}
+  .man-fila.lista{background:var(--ok-soft);}
+  .man-fila.mia{box-shadow:3px 0 0 var(--accent) inset;}
+  .man-rad{font-variant-numeric:tabular-nums;font-weight:700;font-size:0.88rem;}
+  .man-sub{font-size:0.76rem;color:var(--muted);}
+  .man-ia{font-size:0.86rem;min-width:0;}
+  .man-ia b{font-weight:800;}
+  .man-porque{font-size:0.74rem;color:var(--muted);cursor:pointer;text-decoration:underline dotted;
+    background:none;border:0;padding:0;font-family:inherit;}
+  .man-justif{grid-column:1 / -1;font-size:0.8rem;color:var(--muted);line-height:1.5;
+    background:var(--surface-2);border-radius:8px;padding:9px 12px;margin:2px 0 6px;}
+  .man-acc{display:flex;gap:6px;align-items:center;position:relative;justify-content:flex-end;}
+  .man-acc input[type=text]{min-width:11rem;}
+  .man-acc .btn{white-space:nowrap;}
+  .man-pill-ok{background:var(--ok-soft);color:var(--ok-text);border-radius:999px;
+    padding:2px 11px;font-size:0.78rem;font-weight:800;}
+  .man-pill-corr{background:var(--stamp-soft);color:var(--stamp);border-radius:999px;
+    padding:2px 11px;font-size:0.78rem;font-weight:800;text-decoration:underline;}
+  .man-vacio{padding:26px;text-align:center;color:var(--muted);}
+  .man-foot{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);}
+  .man-foot-grupo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    border:1px solid var(--border);border-radius:10px;padding:9px 13px;background:var(--surface);}
+  .man-foot-grupo b{font-size:0.86rem;}
+  @media (max-width:900px){
+    .man-fila{grid-template-columns:24px 1fr;gap:5px;}
+    .man-ia,.man-acc{grid-column:1 / -1;justify-content:flex-start;}
+  }
+  /* En la ventana flotante el bloque de la mañana también va compacto. */
+  html.es-flotante .bloque-sel{margin:4px 0 2px;gap:5px;}
+  html.es-flotante .bloque-sel button{padding:4px 8px;gap:6px;border-radius:8px;}
+  html.es-flotante .bloque-sel button b{font-size:0.76rem;}
+  html.es-flotante .bloque-sel button small{display:none;}
+  html.es-flotante #bloqueManana > .panel-head{display:none;}
+  html.es-flotante #manCargaAccordion{display:none;}
+  html.es-flotante .man-barra{margin:2px 0;gap:8px;}
+  html.es-flotante .man-panel{max-height:none;}
+  html.es-flotante .man-fila{padding:4px 8px;grid-template-columns:24px 9rem 1fr 15rem;gap:6px;}
+  html.es-flotante .man-rad{font-size:0.78rem;}
+  html.es-flotante .man-foot{margin-top:6px;padding-top:6px;gap:6px;}
+  html.es-flotante .man-foot-grupo{padding:4px 8px;gap:5px;}
+
   /* El aviso de regla imperativa rota: fijo, no un mensaje que se va solo. */
   .aviso-imperativas{border:1.5px solid var(--stamp);border-left-width:5px;border-radius:9px;
     background:var(--stamp-soft);padding:10px 13px;margin-top:8px;}
@@ -1115,6 +1220,31 @@
     </div>
   </header>
 
+  <!-- ============================================================
+       LOS DOS BLOQUES DEL DÍA
+       ------------------------------------------------------------
+       El trabajo son dos cosas distintas, con horario, fuente y ritmo distintos:
+         · MAÑANA — el sheet que Donina sube a las 8 a.m. Dos horas para
+           completarlo. No se pega ninguna tira de Fénix: se clasifica y se
+           revisa lo que clasificó el modelo. Se cierra CADA DÍA.
+         · TARDE — la masiva de siempre, tal cual estaba. Se cierra CADA SEMANA.
+       Este selector es lo único que comparten. El bloque de la tarde no cambió
+       ni una línea: lo que hace el selector es esconderlo y mostrar el otro,
+       igual que la ventana flotante esconde lo que no hace falta.
+       ============================================================ -->
+  <div class="bloque-sel" role="tablist" aria-label="Qué parte del día vas a trabajar">
+    <button id="selBloqueManana" type="button" role="tab" aria-selected="false">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
+      <span><b>Trabajo de la mañana</b><small>Asignaciones de Donina · se cierra cada día</small></span>
+      <span class="bloque-badge" id="selBloqueMananaBadge" hidden>0</span>
+    </button>
+    <button id="selBloqueTarde" type="button" role="tab" aria-selected="true" class="activo">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 18a5 5 0 0 0-10 0"/><path d="M12 2v7M4.2 10.2l1.4 1.4M1 18h2M21 18h2M18.4 11.6l1.4-1.4M23 22H1"/></svg>
+      <span><b>Trabajo de la tarde</b><small>Asignaciones para la masiva · se cierra cada semana</small></span>
+      <span class="bloque-badge" id="selBloqueTardeBadge" hidden>0</span>
+    </button>
+  </div>
+
 
   <!-- BARRA DE TRABAJO. Antes esto eran cinco bloques apilados del mismo peso visual (cifras,
        Paso 1, dos banners y Paso 3) que empujaban la pantalla a 2.764 px de alto: había que
@@ -1367,6 +1497,100 @@
     </div>
   </section>
 
+  <!-- ============================================================
+       BLOQUE DE LA MAÑANA — asignaciones de Donina
+       ------------------------------------------------------------
+       Todo lo de aquí es nuevo y vive aparte: su propio almacenamiento, su
+       propio historial y su propio cierre diario. No comparte una sola
+       variable con la masiva de la tarde, a propósito: lo que ya funciona no
+       se toca ni por accidente.
+       ============================================================ -->
+  <section class="panel" id="bloqueManana" hidden>
+    <div class="panel-head">
+      <div><span class="step">Mañana</span><h2>Asignaciones de Donina</h2></div>
+      <span class="man-cabecera-der">
+        <span class="hint" id="manFechaSheet">Sin sheet cargado</span>
+        <button class="btn ghost small" id="manHistorialBtn" type="button">Historial de días</button>
+        <button class="btn small" id="manCerrarDiaBtn" type="button" title="Archiva el día y deja la pantalla limpia para el sheet de mañana">Cerrar el día <span class="navbadge" id="manCerrarBadge">0</span></button>
+      </span>
+    </div>
+    <div class="panel-body">
+
+      <div class="man-aviso" id="manAvisoNube" hidden></div>
+
+      <!-- Cargar el sheet del día -->
+      <details class="panel accordion-panel" id="manCargaAccordion" open>
+        <summary class="accordion-summary">
+          <div><span class="step">Paso 1</span><h2>Cargar el sheet del día</h2></div>
+          <span class="accordion-caret" aria-hidden="true">▾</span>
+        </summary>
+        <div class="panel-body">
+          <p class="panel-desc">Baja el sheet de Donina como Excel y cárgalo aquí: la app lee <b>las dos hojas de una vez</b> (la de los radicados que el modelo no tomó y la de los que sí clasificó) y trae también la lista de clasificaciones válidas del propio archivo. Si prefieres, también puedes pegar las filas de una hoja a la vez.</p>
+          <div class="man-carga">
+            <button class="btn primary" id="manArchivoBtn" type="button">Cargar el archivo del día (.xlsx)</button>
+            <input type="file" id="manFile" accept=".xlsx,.xls">
+            <button class="btn ghost" id="manPegarBtn" type="button">o pegar las filas</button>
+            <span class="hint" id="manCargaNota"></span>
+          </div>
+          <div class="man-pegar" id="manPegarZona" hidden>
+            <label for="manPegarHoja">¿De cuál hoja son las filas que vas a pegar?</label>
+            <div class="man-pegar-ops">
+              <label><input type="radio" name="manPegarHoja" value="sin" checked> Los que el modelo NO tomó</label>
+              <label><input type="radio" name="manPegarHoja" value="ia"> Los que el modelo SÍ clasificó</label>
+            </div>
+            <textarea id="manPegarTexto" rows="5" placeholder="Pega aquí desde el sheet, INCLUYENDO la fila de títulos."></textarea>
+            <button class="btn" id="manPegarConfirm" type="button">Cargar lo pegado</button>
+          </div>
+        </div>
+      </details>
+
+      <!-- Quién soy + resumen -->
+      <div class="man-barra">
+        <label class="man-quien">Soy
+          <input id="manNombre" placeholder="tu nombre, como aparece en el sheet" autocomplete="off">
+          <div class="formato-dropdown" id="manNombreDropdown" hidden></div>
+        </label>
+        <div class="man-stats" id="manStats"></div>
+      </div>
+
+      <!-- Las dos hojas -->
+      <div class="man-tabs" id="manTabs">
+        <button data-mantab="sin" class="active" type="button">Sin clasificar <b id="manCuentaSin">0</b></button>
+        <button data-mantab="ia" type="button">Revisar al modelo <b id="manCuentaIa">0</b></button>
+      </div>
+      <div class="man-herramientas">
+        <input id="manBuscar" type="search" placeholder="Buscar un radicado…" autocomplete="off">
+        <label class="man-solo-mios"><input type="checkbox" id="manSoloMios"> Solo los míos</label>
+        <label class="man-solo-mios"><input type="checkbox" id="manSoloPendientes" checked> Solo lo que falta</label>
+        <span class="spacer"></span>
+        <span class="man-lote" id="manLote" hidden>
+          <b id="manLoteN">0</b> marcados ·
+          <input id="manLoteClas" placeholder="clasificación para todos" autocomplete="off">
+          <div class="formato-dropdown" id="manLoteDropdown" hidden></div>
+          <button class="btn small" id="manLoteAplicar" type="button">Aplicar a los marcados</button>
+          <button class="btn small ghost" id="manLoteOk" type="button" hidden>Marcar todos como correctos</button>
+        </span>
+      </div>
+      <div id="manPanel" class="man-panel"></div>
+
+      <!-- Lo que se entrega -->
+      <div class="man-foot">
+        <div class="man-foot-grupo">
+          <b>Lista 1 · sin clasificar</b>
+          <span class="hint" id="manSalida1">—</span>
+          <button class="btn primary small" id="manDescargar1" type="button">Descargar (.xlsx)</button>
+          <button class="btn small" id="manCopiar1" type="button">Copiar</button>
+        </div>
+        <div class="man-foot-grupo">
+          <b>Lista 2 · revisión al modelo</b>
+          <span class="hint" id="manSalida2">—</span>
+          <button class="btn primary small" id="manDescargar2" type="button">Descargar (.xlsx)</button>
+          <button class="btn small" id="manCopiar2" type="button">Copiar</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </div>
 
 <!-- Dialog: agregar uno manualmente -->
@@ -1387,6 +1611,34 @@
 </dialog>
 
 <!-- Dialog: calculadora de términos -->
+<!-- Historial de días del bloque de la mañana. Aparte del historial de semanas de la masiva:
+     son dos ritmos distintos y mezclarlos sería confundir dos trabajos que no se parecen. -->
+<dialog id="manHistorialDialog" class="workspace" aria-labelledby="manHistorialTitle">
+  <div class="panel-head">
+    <div><span class="step">Mañana</span><h2 id="manHistorialTitle">Días ya cerrados</h2></div>
+    <button class="btn ghost small" id="manHistorialClose" type="button">Cerrar</button>
+  </div>
+  <div class="panel-body">
+    <p class="panel-desc">Cada vez que cierras el día queda aquí el detalle completo: cuántos radicados traía el sheet, qué clasificación le pusiste a cada uno y qué revisaste del modelo. Se puede volver a descargar cualquier día, por si hay que mirar uno atrás.</p>
+    <div id="manHistorialLista" class="preflight-list"></div>
+  </div>
+</dialog>
+
+<!-- Confirmación de cerrar el día. Mismo espíritu que "Cerrar semana": nada se borra sin decirlo,
+     y lo que se cierra queda archivado entero. -->
+<dialog id="manCerrarDialog" class="small" aria-labelledby="manCerrarTitle">
+  <div class="panel-head"><h2 id="manCerrarTitle">Cerrar el día</h2></div>
+  <div class="panel-body">
+    <p class="panel-desc" id="manCerrarResumen"></p>
+    <p class="hint" id="manCerrarPendientes"></p>
+    <p class="hint">Todo queda guardado completo en el historial de días, y la pantalla queda limpia para el sheet de mañana.</p>
+  </div>
+  <div class="form-actions">
+    <button class="btn ghost" id="manCerrarCancel" type="button">Cancelar</button>
+    <button class="btn danger" id="manCerrarOk" type="button">Sí, cerrar el día</button>
+  </div>
+</dialog>
+
 <dialog id="installHelpDialog" class="small" aria-labelledby="installHelpTitle">
   <div class="panel-head">
     <div><span class="step">Instalar</span><h2 id="installHelpTitle">Instalar en iPhone o iPad</h2></div>
@@ -3438,6 +3690,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // espera a que lleguen -- si se hiciera antes, compararía contra la copia vieja de aquí y
       // avisaría (o callaría) por lo que no es.
       traerReglasDelArea().then(function(){ revisarFirmaDeLasReglasAlEntrar(); renderAll(); });
+      // El bloque de la mañana arranca aquí, junto a todo lo demás: lee lo suyo de este navegador,
+      // y después lo suyo de la nube. Va en su propia llamada -- si esa parte fallara, el trabajo
+      // de la tarde no se entera.
+      arrancarManana();
       var recovered = recoverLegacyFlatDataInto();
 
       // Comparación contra la memoria persistente de este navegador: si la última vez que se
@@ -8018,7 +8274,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     salida.set(fin, q);
     return salida;
   }
-  function ponerRejillaAlXlsx(buf){
+  // resaltadas: lista opcional de celdas ("B3", "B7"...) que van en NEGRILLA Y SUBRAYADAS.
+  // Se usa en la lista de revisión del modelo, para que se vea de un golpe cuál clasificación
+  // se corrigió y cuál venía bien. Es el mismo camino que la cuadrícula: un estilo más.
+  function ponerRejillaAlXlsx(buf, resaltadas){
     try{
       var entradas = abrirZip(buf);
       if(!entradas) return null;
@@ -8046,10 +8305,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       estilos = estilos.replace(mBordes[0],
         '<borders count="' + (idBorde + 1) + '">' + mBordes[2] + borde + '</borders>');
 
-      var idFuente = parseInt(mFuentes[1], 10);
-      var fuente = '<font><b/><sz val="11"/><color rgb="FF14532D"/><name val="Calibri"/><family val="2"/></font>';
+      var idFuente = parseInt(mFuentes[1], 10);      // encabezado: negrilla
+      var idFuenteResalte = idFuente + 1;             // corrección: negrilla + subrayado
+      var fuente = '<font><b/><sz val="11"/><color rgb="FF14532D"/><name val="Calibri"/><family val="2"/></font>' +
+                   '<font><b/><u/><sz val="11"/><color rgb="FF8A1C1C"/><name val="Calibri"/><family val="2"/></font>';
       estilos = estilos.replace(mFuentes[0],
-        '<fonts count="' + (idFuente + 1) + '"' + mFuentes[2] + '>' + mFuentes[3] + fuente + '</fonts>');
+        '<fonts count="' + (idFuente + 2) + '"' + mFuentes[2] + '>' + mFuentes[3] + fuente + '</fonts>');
 
       var idRelleno = parseInt(mRellenos[1], 10);
       var relleno = '<fill><patternFill patternType="solid"><fgColor rgb="FFDCEDE3"/><bgColor indexed="64"/></patternFill></fill>';
@@ -8070,17 +8331,25 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         '" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1">' +
         '<alignment vertical="center" wrapText="1"/></xf>';
       var idCabecera = base * 2;
-      estilos = estilos.replace(mXfs[0], '<cellXfs count="' + (base * 2 + 1) + '">' +
-        mXfs[2] + conBorde.join("") + xfCabecera + '</cellXfs>');
+      var xfResalte = '<xf numFmtId="0" fontId="' + idFuenteResalte + '" fillId="0" borderId="' + idBorde +
+        '" xfId="0" applyFont="1" applyBorder="1"/>';
+      var idResalte = base * 2 + 1;
+      estilos = estilos.replace(mXfs[0], '<cellXfs count="' + (base * 2 + 2) + '">' +
+        mXfs[2] + conBorde.join("") + xfCabecera + xfResalte + '</cellXfs>');
 
       // --- cada celda de la hoja apunta a su estilo nuevo ---
+      var marcadas = {};
+      (resaltadas || []).forEach(function(r){ marcadas[String(r).toUpperCase()] = true; });
       var hoja = dec.decode(entradas[iHoja].datos);
       hoja = hoja.replace(/<row\b([^>]*)>([\s\S]*?)<\/row>/g, function(todo, atrs, dentro){
         var r = /\br="(\d+)"/.exec(atrs);
         var esCabecera = !!r && r[1] === "1";
         var nuevo = dentro.replace(/<c\b([^>]*?)(\/?)>/g, function(cel, catrs, cierre){
           var s = /\bs="(\d+)"/.exec(catrs);
-          var idx = esCabecera ? idCabecera : (s ? base + parseInt(s[1], 10) : base);
+          var ref = /\br="([A-Z]+\d+)"/.exec(catrs);
+          var vaResaltada = !esCabecera && ref && marcadas[ref[1]];
+          var idx = esCabecera ? idCabecera
+                  : (vaResaltada ? idResalte : (s ? base + parseInt(s[1], 10) : base));
           var na = s ? catrs.replace(/\bs="\d+"/, 's="' + idx + '"') : catrs + ' s="' + idx + '"';
           return "<c" + na + cierre + ">";
         });
@@ -8103,7 +8372,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
   // Descarga un .xlsx real (formato binario de Excel — abre con doble clic, columnas correctas,
   // acentos y ñ perfectos) usando la librería SheetJS incluida en este mismo archivo.
-  function downloadExcel(filenameBase, headers, rows2d, okMsg){
+  // resaltadas (opcional): celdas en negrilla y subrayadas, en referencia de Excel ("B3").
+  function downloadExcel(filenameBase, headers, rows2d, okMsg, resaltadas){
     try{
       // Los valores Date se dejan pasar TAL CUAL (no se convierten a texto): así Excel los guarda
       // como fechas de verdad, con su formato, y no como una cadena. Importa: en la plantilla de
@@ -8124,7 +8394,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // abrir el archivo y dibujarle la cuadrícula justo después. Si eso fallara por lo que sea,
       // se descarga el archivo tal cual salió: con los mismos datos, solo que sin las líneas.
       var bruto = XLSX.write(wb, {type:"array", bookType:"xlsx", compression:false});
-      var conRejilla = ponerRejillaAlXlsx(bruto);
+      var conRejilla = ponerRejillaAlXlsx(bruto, resaltadas);
       var blob = new Blob([conRejilla || new Uint8Array(bruto)],
         {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
       var url = URL.createObjectURL(blob);
@@ -8551,7 +8821,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se sube a mano en cada publicación. No se calcula solo a propósito: si se generara con la fecha
   // del navegador diría siempre "hoy" y no distinguiría una versión de otra, que es justo para lo
   // que sirve.
-  var VERSION_APP = "2026-09-29 · la flotante recuerda dónde te quedaste";
+  var VERSION_APP = "2026-09-30 · dos bloques: mañana (Donina) y tarde (masiva)";
   var TIPO_REGLA_TEXTO = {
     estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
     imperativa:  "Imperativa — la app avisa y hay que resolverlo",
@@ -10226,6 +10496,854 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     setInterval(function(){
       if(state.records.length) toast("Recuerda descargar tu respaldo de trabajo (.json) — este navegador no guarda solo.");
     }, 10*60*1000);
+  }
+
+  // ============================================================================================
+  // BLOQUE DE LA MAÑANA — ASIGNACIONES DE DONINA
+  // --------------------------------------------------------------------------------------------
+  // Qué es: todas las mañanas a las 8 a.m. Donina sube un sheet con los radicados del día y hay
+  // DOS HORAS para devolverlo completo. No se pega ninguna tira de Fénix. Son dos trabajos:
+  //   · Hoja "RAD.NO TOMADOS POR EL MODELO": ponerle a cada radicado su clasificación.
+  //   · Hoja "RAD.CLASIFICADOS POR EL MODELO": decir si lo que clasificó el modelo está bien y,
+  //     si no, cuál es la correcta.
+  // Y lo que hay que entregar son dos listas de dos columnas: el radicado y, al lado, la
+  // clasificación (hoja 1) o el "OK" / la corrección en negrilla subrayada (hoja 2).
+  //
+  // POR QUÉ VIVE COMPLETAMENTE APARTE: la masiva de la tarde funciona y no se puede poner en
+  // riesgo. Este bloque no comparte ni una variable con ella: su propio estado (manana), su
+  // propio guardado, su propio historial y su propio cierre (diario, no semanal). Ni siquiera
+  // comparte la subida a la nube: va en su propia columna y con su propia petición, para que si
+  // esa columna faltara, el guardado de la masiva no se entere siquiera.
+  // ============================================================================================
+
+  // Las 37 clasificaciones del sheet, copiadas LETRA POR LETRA del archivo real (Hoja 4).
+  // Los espacios dobles y los espacios finales son de verdad y hay que respetarlos: el desplegable
+  // del sheet compara texto exacto, y "EMBRIAGUEZ" sin el espacio final NO es lo mismo que
+  // "EMBRIAGUEZ " para esa validación. Si el archivo del día trae su propia lista, manda la suya.
+  var MANANA_CATALOGO = [
+    "MASIVO TIPO 1","MASIVO TIPO 2","MASIVO TIPO 3","MASIVO TIPO 4","MASIVO TIPO 5","MASIVO TIPO 6",
+    "MASIVO TIPO 7","MASIVO TIPO 8","MASIVO TIPO 9","MASIVO TIPO 10","MASIVO TIPO 11","MASIVO TIPO 12",
+    "MASIVO TIPO 13","MASIVO TIPO 14","MASIVO TIPO 15","MASIVO TIPO 16","MASIVO TIPO 17",
+    "MASIVO TIPO 18","MASIVO TIPO 19","SUBSANACION","EMBRIAGUEZ ","REINCIDENCIA ","ENTES  DE CONTROL",
+    "ARCHIVO SECRETARIA  COMUN","ABOGADO  SUSTANCIADOR ","SUBDIRECCION  DE SEÑALIZACION",
+    "SUBDIRECCION DE SEMAFORIZACION","SUBDIRECCION  DE PLANES DE MANEJO DE  TRANSITO ",
+    "SUBDIRECCION DE CONTROL DE TRANSITO Y TRANSPORTE","DIRECCION DE  GESTION DE COBRO ",
+    "DIRECCION DE ATENCION AL  CIUDADANO","PETICION OSCURA","OFICINA DE CONTROL DISCIPLINARIO INTERNO",
+    "SUBDIRECCION DE  CONTROL E INVESTIGACIONES AL TRANSOPORTE PUBLICO","AGENDAMIENTO",
+    "REPRESENTACION JUDICIAL ","PRORROGA "
+  ];
+
+  var MANANA_KEY = "radicados_manana_v1";
+  function mananaKeyFor(email){ return MANANA_KEY + "::" + email; }
+  function mananaVacio(){
+    return {fechaSheet:"", cargadoEn:"", nombre:"", catalogo:[], personas:[], sin:[], ia:[], historial:[]};
+  }
+  var manana = mananaVacio();
+  var mananaTab = "sin";
+  var mananaEnNube = null;   // null = todavía no se sabe; false = falta la columna en Supabase
+  var mananaMarcados = {};   // ids marcados para aplicar algo en lote
+
+  function catalogoActual(){
+    return (manana.catalogo && manana.catalogo.length) ? manana.catalogo : MANANA_CATALOGO;
+  }
+  function mananaId(){ return "m" + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function hoyISO(){
+    var d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+  }
+
+  // ---------- guardar y traer ----------
+  function guardarManana(){
+    if(!state.profile.activeUser) return;
+    try{ localStorage.setItem(mananaKeyFor(state.profile.activeUser), JSON.stringify(manana)); }
+    catch(e){ toast("No se pudo guardar el trabajo de la mañana en este navegador.", "warn"); }
+    subirManana();
+  }
+  // Petición APARTE de la de la masiva, a propósito: si la columna "manana" no existe todavía en
+  // Supabase (no se ha corrido el SQL), esto falla solo, se avisa, y el guardado de la masiva ni
+  // se entera. Nunca se mete "manana" en el mismo envío que los radicados de la tarde.
+  function subirManana(){
+    if(!supaSession || !supaSession.user || !supaConfig) return Promise.resolve(false);
+    if(mananaEnNube === false) return Promise.resolve(false);
+    return supaFetch("/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id, {
+      method: "PATCH",
+      headers: {"Content-Type":"application/json", "Prefer":"return=minimal"},
+      body: JSON.stringify({manana: manana})
+    }).then(function(){
+      if(mananaEnNube !== true){ mananaEnNube = true; pintarAvisoNubeManana(); }
+      return true;
+    }).catch(function(err){
+      var txt = String((err && err.message) || err || "");
+      if(/manana|column|PGRST204|42703|schema cache/i.test(txt)){
+        mananaEnNube = false; pintarAvisoNubeManana();
+      }
+      return false;
+    });
+  }
+  function traerManana(){
+    if(!supaSession || !supaSession.user || !supaConfig) return Promise.resolve(false);
+    return supaFetch("/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id + "&select=manana")
+      .then(function(filas){
+        mananaEnNube = true;
+        var v = filas && filas[0] && filas[0].manana;
+        if(v && typeof v === "object" && (v.sin || v.ia || v.historial)){
+          // Lo de la nube manda, igual que con los radicados: es lo que vieron los demás equipos.
+          manana = Object.assign(mananaVacio(), v);
+        }
+        return true;
+      }).catch(function(err){
+        var txt = String((err && err.message) || err || "");
+        if(/manana|column|PGRST204|42703|schema cache/i.test(txt)) mananaEnNube = false;
+        return false;
+      });
+  }
+  function cargarMananaLocal(){
+    manana = mananaVacio();
+    if(!state.profile.activeUser) return;
+    try{
+      var raw = localStorage.getItem(mananaKeyFor(state.profile.activeUser));
+      if(raw){ var v = JSON.parse(raw); if(v && typeof v === "object") manana = Object.assign(mananaVacio(), v); }
+    }catch(e){}
+  }
+  function pintarAvisoNubeManana(){
+    var caja = document.getElementById("manAvisoNube");
+    if(!caja) return;
+    if(mananaEnNube === false){
+      caja.hidden = false;
+      caja.textContent = "El trabajo de la mañana se está guardando SOLO en este computador: a la base de datos le falta la columna nueva. " +
+        "Sigue funcionando y no se pierde nada aquí, pero no viaja a otro equipo. Para arreglarlo, corre una vez el archivo " +
+        "supabase/migrations/0003_trabajo_manana.sql en Supabase.";
+    } else { caja.hidden = true; caja.textContent = ""; }
+  }
+
+  // ---------- leer el sheet del día ----------
+  function tituloNorm(s){
+    return String(s == null ? "" : s).toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
+      .replace(/[^A-Z0-9]/g,"");
+  }
+  function valorCelda(v){
+    if(v == null) return "";
+    if(v instanceof Date && !isNaN(v.getTime())){
+      return pad(v.getDate())+"/"+pad(v.getMonth()+1)+"/"+v.getFullYear()+" "+pad(v.getHours())+":"+pad(v.getMinutes());
+    }
+    if(typeof v === "number") return String(v);   // el radicado es un número de 15 cifras: sin formatear
+    return cleanSpaces(String(v));
+  }
+  // LAS CLASIFICACIONES SE LEEN TAL CUAL, CON SUS ESPACIOS.
+  // En el sheet, doce de las treinta y siete llevan espacios dobles o un espacio al final
+  // ("ABOGADO  SUSTANCIADOR ", "EMBRIAGUEZ ", "PRORROGA "...). El desplegable del propio sheet
+  // compara texto exacto: si se les "arregla" el espacio, dejan de coincidir y la casilla queda
+  // marcada como inválida al pegarla de vuelta. Así que aquí NO se limpian espacios -- solo se
+  // quitan los caracteres invisibles y los saltos de línea, que sí son basura de copiar y pegar.
+  function valorExacto(v){
+    if(v == null) return "";
+    return String(v).replace(INVISIBLES, "").replace(/[\r\n\t]+/g, " ");
+  }
+  // Las columnas se buscan POR SU TÍTULO, nunca por su posición: es la misma regla que salvó la
+  // importación de la masiva. Devuelve el índice o -1.
+  function colPorTitulo(titulos, candidatos){
+    for(var c = 0; c < candidatos.length; c++){
+      var buscado = tituloNorm(candidatos[c]);
+      for(var i = 0; i < titulos.length; i++){ if(titulos[i] === buscado) return i; }
+    }
+    // segundo intento, por "empieza por": tolera títulos con texto de más
+    for(var c2 = 0; c2 < candidatos.length; c2++){
+      var b2 = tituloNorm(candidatos[c2]);
+      for(var j = 0; j < titulos.length; j++){ if(titulos[j] && titulos[j].indexOf(b2) === 0) return j; }
+    }
+    return -1;
+  }
+  function leerHojaSin(filas){
+    var tit = (filas[0] || []).map(tituloNorm);
+    var iRad = colPorTitulo(tit, ["RADICADO"]);
+    if(iRad === -1) return {ok:false, error:"Esa hoja no tiene una columna RADICADO."};
+    var iRep = colPorTitulo(tit, ["REPARTO"]);
+    var iFec = colPorTitulo(tit, ["FECHARADICACION","FECHA"]);
+    var iCla = colPorTitulo(tit, ["CLASIFICACION"]);
+    var iQui = colPorTitulo(tit, ["QUIENCLASIFICA","QUIEN"]);
+    var out = [];
+    for(var f = 1; f < filas.length; f++){
+      var fila = filas[f] || [];
+      var rad = valorCelda(fila[iRad]);
+      if(!rad) continue;
+      out.push({id: mananaId(), radicado: rad,
+        reparto: iRep === -1 ? "" : valorCelda(fila[iRep]),
+        fecha:   iFec === -1 ? "" : valorCelda(fila[iFec]),
+        clas:    iCla === -1 ? "" : valorExacto(fila[iCla]),
+        quien:   iQui === -1 ? "" : valorCelda(fila[iQui])});
+    }
+    return {ok:true, filas:out};
+  }
+  function leerHojaIa(filas){
+    var tit = (filas[0] || []).map(tituloNorm);
+    var iRad = colPorTitulo(tit, ["RADICADO"]);
+    if(iRad === -1) return {ok:false, error:"Esa hoja no tiene una columna RADICADO."};
+    var iFec = colPorTitulo(tit, ["FECHARADICACION","FECHA"]);
+    var iPla = colPorTitulo(tit, ["PLACA"]);
+    var iCom = colPorTitulo(tit, ["COMPARENDO"]);
+    var iJus = colPorTitulo(tit, ["JUSTIFICACION"]);
+    var iCor = colPorTitulo(tit, ["CLASIFICACIONCORRECTA"]);
+    // La clasificación del modelo es la columna CLASIFICACION que NO es la de "correcta".
+    var iCla = -1;
+    for(var i = 0; i < tit.length; i++){
+      if(tit[i] === "CLASIFICACION" && i !== iCor){ iCla = i; break; }
+    }
+    if(iCla === -1) iCla = colPorTitulo(tit, ["CLASIFICACION"]);
+    // Las dos últimas columnas del sheet no tienen título: la primera es quién revisó y la
+    // segunda el "OK". Se toman por su sitio RELATIVO a "clasificacion correcta", no por número
+    // de columna suelto, y solo si existen.
+    var iQui = (iCor !== -1) ? iCor + 1 : -1;
+    var iOk  = (iCor !== -1) ? iCor + 2 : -1;
+    var out = [];
+    for(var f = 1; f < filas.length; f++){
+      var fila = filas[f] || [];
+      var rad = valorCelda(fila[iRad]);
+      if(!rad) continue;
+      var corr = iCor === -1 ? "" : valorExacto(fila[iCor]);
+      var okTxt = iOk === -1 ? "" : valorCelda(fila[iOk]).toUpperCase();
+      var iaClas = iCla === -1 ? "" : valorExacto(fila[iCla]);
+      // Si lo escrito en "clasificación correcta" es LO MISMO que dijo el modelo, eso no es una
+      // corrección: es una confirmación escrita de otra manera (así lo hace hoy medio equipo).
+      // Se guarda como "correcta", no como corregida, para que la lista final no mienta.
+      var esIgual = corr && normalizaTexto(corr) === normalizaTexto(iaClas);
+      out.push({id: mananaId(), radicado: rad,
+        fecha:  iFec === -1 ? "" : valorCelda(fila[iFec]),
+        placa:  iPla === -1 ? "" : valorCelda(fila[iPla]),
+        comparendo: iCom === -1 ? "" : valorCelda(fila[iCom]),
+        iaClas: iaClas,
+        justif: iJus === -1 ? "" : valorCelda(fila[iJus]),
+        correccion: esIgual ? "" : corr,
+        ok: (okTxt === "OK" || !!esIgual),
+        quien: iQui === -1 ? "" : valorCelda(fila[iQui])});
+    }
+    return {ok:true, filas:out};
+  }
+  // ¿Qué es cada hoja? Se decide por lo que TIENE, no por cómo se llama: los nombres del archivo
+  // cambian ("RAD.NO TOMADOS", "RAD.CLASIFICADOS POR EL MODELO"...) y no se puede depender de eso.
+  function queHojaEs(nombre, filas){
+    var n = tituloNorm(nombre);
+    var tit = (filas[0] || []).map(tituloNorm);
+    var tieneRad = tit.indexOf("RADICADO") !== -1;
+    var tieneJus = tit.some(function(t){ return t.indexOf("JUSTIFICACION") === 0; });
+    var tieneRep = tit.indexOf("REPARTO") !== -1;
+    if(tieneRad && tieneJus) return "ia";
+    if(tieneRad && tieneRep) return "sin";
+    if(tieneRad && n.indexOf("NOTOMADO") !== -1) return "sin";
+    if(tieneRad) return n.indexOf("NOTOMADO") !== -1 ? "sin" : "ia";
+    // sin columna de radicado: es el catálogo (una columna larga de clasificaciones)
+    var cuantas = filas.filter(function(f){ return f && f[0] != null && String(f[0]).trim(); }).length;
+    if(cuantas >= 10) return "catalogo";
+    return "";
+  }
+  function cargarLibroManana(libro){
+    var res = {sin:0, ia:0, catalogo:0, hojas:[]};
+    libro.SheetNames.forEach(function(nombre){
+      var filas = XLSX.utils.sheet_to_json(libro.Sheets[nombre], {header:1, raw:true, defval:""});
+      filas = filas.filter(function(f){ return f && f.some(function(x){ return x != null && String(x).trim() !== ""; }); });
+      if(!filas.length) return;
+      var tipo = queHojaEs(nombre, filas);
+      res.hojas.push(nombre + " → " + (tipo || "no se reconoció"));
+      if(tipo === "sin"){
+        var r = leerHojaSin(filas);
+        if(r.ok){ manana.sin = r.filas; res.sin = r.filas.length; }
+      } else if(tipo === "ia"){
+        var r2 = leerHojaIa(filas);
+        if(r2.ok){ manana.ia = r2.filas; res.ia = r2.filas.length; }
+      } else if(tipo === "catalogo"){
+        var cat = [], per = [];
+        filas.forEach(function(f){
+          if(f[0] != null && String(f[0]).trim()) cat.push(valorExacto(f[0]));
+          if(f[2] != null && String(f[2]).trim()) per.push(String(f[2]).trim());
+        });
+        if(cat.length){ manana.catalogo = cat; res.catalogo = cat.length; }
+        if(per.length) manana.personas = per;
+      }
+    });
+    return res;
+  }
+
+  // ---------- lo que se entrega ----------
+  function filasListaSin(){
+    return manana.sin.filter(function(r){ return String(r.clas||"").trim(); })
+      .map(function(r){ return [r.radicado, r.clas]; });
+  }
+  function filasListaIa(){
+    var filas = [], resaltar = [];
+    manana.ia.forEach(function(r){
+      var corregida = String(r.correccion||"").trim();
+      if(!corregida && !r.ok) return;             // todavía sin revisar: no entra en la entrega
+      filas.push([r.radicado, corregida || "OK"]);
+      if(corregida) resaltar.push("B" + (filas.length + 1)); // +1 por la fila de títulos
+    });
+    return {filas: filas, resaltar: resaltar};
+  }
+  function pendientesIa(){
+    return manana.ia.filter(function(r){ return !r.ok && !String(r.correccion||"").trim(); }).length;
+  }
+  function pendientesSin(){
+    return manana.sin.filter(function(r){ return !String(r.clas||"").trim(); }).length;
+  }
+  function pendientesManana(){ return pendientesSin() + pendientesIa(); }
+
+  // ---------- pantalla ----------
+  function esMio(r){
+    var yo = normalizaTexto(manana.nombre);
+    if(!yo) return false;
+    var campos = [r.reparto, r.quien].map(normalizaTexto).filter(Boolean);
+    return campos.some(function(c){ return c === yo || c.indexOf(yo) !== -1 || yo.indexOf(c) !== -1; });
+  }
+  function filasVisiblesManana(){
+    var lista = mananaTab === "sin" ? manana.sin : manana.ia;
+    var q = normalizaTexto((document.getElementById("manBuscar")||{}).value || "");
+    var soloMios = !!(document.getElementById("manSoloMios")||{}).checked;
+    var soloPend = !!(document.getElementById("manSoloPendientes")||{}).checked;
+    return lista.filter(function(r){
+      if(q && String(r.radicado).indexOf(q.replace(/\s/g,"")) === -1 &&
+         normalizaTexto(r.iaClas||r.clas||"").indexOf(q) === -1) return false;
+      if(soloMios && !esMio(r)) return false;
+      if(soloPend){
+        var hecho = mananaTab === "sin" ? !!String(r.clas||"").trim()
+                                        : (r.ok || !!String(r.correccion||"").trim());
+        if(hecho) return false;
+      }
+      return true;
+    });
+  }
+  // Abre en la pestaña donde QUEDA TRABAJO. Con dos horas para terminar, que la pantalla arranque
+  // en una lista vacía porque esa hoja ya está lista es tiempo perdido buscando dónde seguir.
+  function elegirPestanaConTrabajo(){
+    var pSin = pendientesSin(), pIa = pendientesIa();
+    var actual = mananaTab === "sin" ? pSin : pIa;
+    if(actual > 0) return;
+    var otra = mananaTab === "sin" ? pIa : pSin;
+    if(otra > 0){
+      mananaTab = mananaTab === "sin" ? "ia" : "sin";
+      var tabs = document.getElementById("manTabs");
+      if(tabs) Array.prototype.forEach.call(tabs.querySelectorAll("button"), function(x){
+        x.classList.toggle("active", x.getAttribute("data-mantab") === mananaTab);
+      });
+    }
+  }
+  function renderManana(){
+    var sec = document.getElementById("bloqueManana");
+    if(!sec) return;
+    document.getElementById("manCuentaSin").textContent = pendientesSin() + " / " + manana.sin.length;
+    document.getElementById("manCuentaIa").textContent  = pendientesIa() + " / " + manana.ia.length;
+    document.getElementById("manCerrarBadge").textContent = String(manana.sin.length + manana.ia.length);
+    document.getElementById("manFechaSheet").textContent = manana.cargadoEn
+      ? ("Sheet del " + (manana.fechaSheet || manana.cargadoEn))
+      : "Sin sheet cargado";
+    var l1 = filasListaSin(), l2 = filasListaIa();
+    document.getElementById("manSalida1").textContent = l1.length
+      ? (l1.length + " radicado" + (l1.length===1?"":"s") + " con clasificación")
+      : "todavía no hay ninguno clasificado";
+    document.getElementById("manSalida2").textContent = l2.filas.length
+      ? (l2.filas.length + " revisado" + (l2.filas.length===1?"":"s") + " · " + l2.resaltar.length + " corregido" + (l2.resaltar.length===1?"":"s"))
+      : "todavía no hay ninguno revisado";
+    var st = document.getElementById("manStats");
+    if(st){
+      st.innerHTML = stat(manana.sin.length + manana.ia.length, "en el sheet") +
+        stat(pendientesManana(), "por hacer", pendientesManana() ? "alerta" : "bien") +
+        stat(l1.length + l2.filas.length, "listos", "bien") +
+        stat(l2.resaltar.length, "corregidos al modelo");
+    }
+    var badge = document.getElementById("selBloqueMananaBadge");
+    if(badge){ badge.textContent = String(pendientesManana()); badge.hidden = !pendientesManana(); }
+    renderMananaPanel();
+    pintarAvisoNubeManana();
+  }
+  function renderMananaPanel(){
+    var panel = document.getElementById("manPanel");
+    if(!panel) return;
+    var lista = filasVisiblesManana();
+    var lote = document.getElementById("manLote");
+    var nMarc = Object.keys(mananaMarcados).filter(function(k){ return mananaMarcados[k]; }).length;
+    if(lote){
+      lote.hidden = !nMarc;
+      document.getElementById("manLoteN").textContent = String(nMarc);
+      document.getElementById("manLoteOk").hidden = (mananaTab !== "ia");
+    }
+    if(!manana.sin.length && !manana.ia.length){
+      panel.innerHTML = '<div class="man-vacio">Todavía no has cargado el sheet del día. Súbelo arriba, en el Paso 1.</div>';
+      return;
+    }
+    if(!lista.length){
+      // Nunca un callejón sin salida: si los filtros esconden todo, aquí mismo está el botón que
+      // los quita. En la ventana flotante esto es indispensable -- ahí no hay a dónde más ir.
+      var hayEnEstaHoja = (mananaTab === "sin" ? manana.sin.length : manana.ia.length);
+      panel.innerHTML = '<div class="man-vacio">' +
+        (hayEnEstaHoja
+          ? 'Nada que mostrar con los filtros puestos, pero esta hoja tiene ' + hayEnEstaHoja + ' radicado(s).'
+          : 'Esta hoja llegó vacía en el sheet de hoy.') +
+        (hayEnEstaHoja ? '<div style="margin-top:10px;"><button class="btn small" id="manQuitarFiltros" type="button">Quitar los filtros y ver todo</button></div>' : '') +
+        '</div>';
+      return;
+    }
+    if(mananaTab === "sin"){
+      panel.innerHTML = lista.map(function(r){
+        var hecho = !!String(r.clas||"").trim();
+        return '<div class="man-fila' + (hecho ? " lista" : "") + (esMio(r) ? " mia" : "") + '" data-manid="' + r.id + '">' +
+          '<input type="checkbox" class="man-chk" data-manchk="' + r.id + '"' + (mananaMarcados[r.id] ? " checked" : "") + '>' +
+          '<div><div class="man-rad">' + escapeHtml(r.radicado) + '</div>' +
+            '<div class="man-sub">' + escapeHtml(r.fecha || "") + '</div></div>' +
+          '<div class="man-ia">' + (r.reparto ? '<span class="man-sub">Reparto: ' + escapeHtml(r.reparto) + '</span>' : '') + '</div>' +
+          '<div class="man-acc">' +
+            '<input type="text" class="man-clas" data-manclas="' + r.id + '" value="' + escapeHtml(r.clas||"") + '" placeholder="clasificación" autocomplete="off">' +
+          '</div></div>';
+      }).join("");
+    } else {
+      panel.innerHTML = lista.map(function(r){
+        var corr = String(r.correccion||"").trim();
+        var hecho = r.ok || !!corr;
+        return '<div class="man-fila' + (hecho ? " lista" : "") + (esMio(r) ? " mia" : "") + '" data-manid="' + r.id + '">' +
+          '<input type="checkbox" class="man-chk" data-manchk="' + r.id + '"' + (mananaMarcados[r.id] ? " checked" : "") + '>' +
+          '<div><div class="man-rad">' + escapeHtml(r.radicado) + '</div>' +
+            '<div class="man-sub">' + escapeHtml(r.fecha || "") + (r.placa && r.placa !== "0" ? " · " + escapeHtml(r.placa) : "") + '</div></div>' +
+          '<div class="man-ia">El modelo dice: <b>' + escapeHtml(r.iaClas || "(nada)") + '</b>' +
+            (r.justif ? ' <button class="man-porque" type="button" data-manporque="' + r.id + '">¿por qué?</button>' : '') +
+            (corr ? '<div><span class="man-pill-corr">corregida: ' + escapeHtml(corr) + '</span></div>'
+                  : (r.ok ? '<div><span class="man-pill-ok">correcta</span></div>' : '')) +
+          '</div>' +
+          '<div class="man-acc">' +
+            '<button class="btn small' + (r.ok && !corr ? " primary" : "") + '" data-manok="' + r.id + '" type="button">Correcta</button>' +
+            '<input type="text" class="man-clas" data-manclas="' + r.id + '" value="' + escapeHtml(corr) + '" placeholder="o la correcta…" autocomplete="off">' +
+          '</div>' +
+          (r._abierta && r.justif ? '<div class="man-justif">' + escapeHtml(r.justif) + '</div>' : '') +
+        '</div>';
+      }).join("");
+    }
+  }
+  function filaManana(id){
+    var lista = mananaTab === "sin" ? manana.sin : manana.ia;
+    return lista.filter(function(r){ return r.id === id; })[0] ||
+           manana.sin.concat(manana.ia).filter(function(r){ return r.id === id; })[0];
+  }
+
+  // ---------- el desplegable de clasificaciones ----------
+  // Hecho a mano, igual que el del Formato de la masiva: el desplegable NATIVO no se ve de forma
+  // confiable dentro de la ventana flotante, y este bloque también tiene que funcionar ahí.
+  function abrirSugerencias(input, opciones, alElegir){
+    cerrarSugerencias();
+    var cont = input.parentNode;
+    if(getComputedStyle(cont).position === "static") cont.style.position = "relative";
+    var caja = document.createElement("div");
+    caja.className = "formato-dropdown";
+    caja.id = "manSugerenciasVivas";
+    cont.appendChild(caja);
+    var idx = -1;
+    function pintar(){
+      var f = normalizaTexto(input.value);
+      var lista = opciones.filter(function(o){ return !f || normalizaTexto(o).indexOf(f) !== -1; }).slice(0, 40);
+      if(!lista.length){ caja.hidden = true; return; }
+      caja.hidden = false;
+      caja.innerHTML = lista.map(function(o, i){
+        return '<div class="fd-item' + (i === idx ? " active" : "") + '" data-val="' + escapeHtml(o) + '">' + escapeHtml(o) + '</div>';
+      }).join("");
+    }
+    function elegir(v){ input.value = v; cerrarSugerencias(); alElegir(v); }
+    caja.addEventListener("mousedown", function(e){
+      var it = e.target.closest(".fd-item");
+      if(!it) return;
+      e.preventDefault();
+      elegir(it.getAttribute("data-val"));
+    });
+    input._manPintar = pintar;
+    input._manTeclas = function(e){
+      var items = caja.querySelectorAll(".fd-item");
+      if(e.key === "ArrowDown"){ e.preventDefault(); idx = Math.min(idx + 1, items.length - 1); pintar(); }
+      else if(e.key === "ArrowUp"){ e.preventDefault(); idx = Math.max(idx - 1, 0); pintar(); }
+      else if(e.key === "Enter"){
+        if(idx >= 0 && items[idx]){ e.preventDefault(); elegir(items[idx].getAttribute("data-val")); }
+        else { cerrarSugerencias(); alElegir(input.value); }
+      }
+      else if(e.key === "Escape"){ cerrarSugerencias(); }
+    };
+    pintar();
+  }
+  function cerrarSugerencias(){
+    var v = document.getElementById("manSugerenciasVivas");
+    if(v && v.parentNode) v.parentNode.removeChild(v);
+  }
+
+  // ---------- los clics y las teclas del bloque de la mañana ----------
+  (function(){
+    var panel = document.getElementById("manPanel");
+    if(!panel) return;
+
+    panel.addEventListener("click", function(e){
+      var pq = e.target.closest("button[data-manporque]");
+      if(pq){
+        var r = filaManana(pq.getAttribute("data-manporque"));
+        if(r){ r._abierta = !r._abierta; renderMananaPanel(); }
+        return;
+      }
+      var okb = e.target.closest("button[data-manok]");
+      if(okb){
+        var r2 = filaManana(okb.getAttribute("data-manok"));
+        if(r2){
+          r2.ok = !r2.ok;
+          if(r2.ok) r2.correccion = "";
+          r2.quien = manana.nombre || r2.quien;
+          guardarManana(); renderManana();
+        }
+        return;
+      }
+    });
+    panel.addEventListener("change", function(e){
+      var chk = e.target.closest("input[data-manchk]");
+      if(chk){
+        mananaMarcados[chk.getAttribute("data-manchk")] = chk.checked;
+        renderMananaPanel();
+      }
+    });
+    // Escribir la clasificación: el desplegable se abre al entrar en la casilla y filtra al teclear.
+    panel.addEventListener("focusin", function(e){
+      var inp = e.target.closest("input[data-manclas]");
+      if(!inp) return;
+      abrirSugerencias(inp, catalogoActual(), function(v){ aplicarClasificacion(inp.getAttribute("data-manclas"), v); });
+    });
+    panel.addEventListener("input", function(e){
+      var inp = e.target.closest("input[data-manclas]");
+      if(inp && inp._manPintar) inp._manPintar();
+    });
+    panel.addEventListener("keydown", function(e){
+      var inp = e.target.closest("input[data-manclas]");
+      if(inp && inp._manTeclas) inp._manTeclas(e);
+    });
+    panel.addEventListener("focusout", function(e){
+      var inp = e.target.closest("input[data-manclas]");
+      if(!inp) return;
+      setTimeout(function(){
+        cerrarSugerencias();
+        aplicarClasificacion(inp.getAttribute("data-manclas"), inp.value);
+      }, 120);
+    });
+  })();
+
+  // Escribir una clasificación en una fila. Se acepta TAL CUAL lo escrito aunque no esté en el
+  // catálogo (el modelo mismo usa etiquetas que no están en la lista del sheet), pero se avisa,
+  // para que nadie entregue una clasificación inventada sin darse cuenta.
+  function aplicarClasificacion(id, valor){
+    var r = filaManana(id);
+    if(!r) return;
+    var v = cleanSpaces(valor || "");
+    var exacta = catalogoActual().filter(function(o){ return normalizaTexto(o) === normalizaTexto(v); })[0];
+    if(exacta) v = exacta;          // se guarda con los espacios EXACTOS del sheet
+    if(mananaTab === "sin"){
+      if(String(r.clas||"") === v) return;
+      r.clas = v;
+      if(v) r.quien = manana.nombre || r.quien;
+    } else {
+      var igualAlModelo = v && normalizaTexto(v) === normalizaTexto(r.iaClas||"");
+      var nuevaCorr = igualAlModelo ? "" : v;
+      if(String(r.correccion||"") === nuevaCorr && (!v || !igualAlModelo)) { if(!v) { } else return; }
+      r.correccion = nuevaCorr;
+      if(v){ r.ok = !!igualAlModelo; r.quien = manana.nombre || r.quien; }
+    }
+    if(v && !exacta){
+      toast("“" + v + "” no está en la lista de clasificaciones del sheet. Se guarda igual, pero revísalo.", "warn");
+    }
+    guardarManana(); renderManana();
+  }
+
+  document.getElementById("manPanel").addEventListener("click", function(e){
+    if(!e.target.closest("#manQuitarFiltros")) return;
+    document.getElementById("manSoloPendientes").checked = false;
+    document.getElementById("manSoloMios").checked = false;
+    document.getElementById("manBuscar").value = "";
+    renderMananaPanel();
+  });
+
+  // ---------- filtros, pestañas y lote ----------
+  document.getElementById("manTabs").addEventListener("click", function(e){
+    var b = e.target.closest("button[data-mantab]");
+    if(!b) return;
+    mananaTab = b.getAttribute("data-mantab");
+    mananaMarcados = {};
+    Array.prototype.forEach.call(this.querySelectorAll("button"), function(x){ x.classList.toggle("active", x === b); });
+    renderManana();
+  });
+  ["manBuscar","manSoloMios","manSoloPendientes"].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.addEventListener("input", renderMananaPanel);
+    if(el) el.addEventListener("change", renderMananaPanel);
+  });
+  (function(){
+    var inp = document.getElementById("manLoteClas");
+    if(!inp) return;
+    inp.addEventListener("focus", function(){ abrirSugerencias(inp, catalogoActual(), function(){}); });
+    inp.addEventListener("input", function(){ if(inp._manPintar) inp._manPintar(); });
+    inp.addEventListener("keydown", function(e){ if(inp._manTeclas) inp._manTeclas(e); });
+    inp.addEventListener("blur", function(){ setTimeout(cerrarSugerencias, 120); });
+  })();
+  document.getElementById("manLoteAplicar").addEventListener("click", function(){
+    var v = cleanSpaces(document.getElementById("manLoteClas").value || "");
+    if(!v){ toast("Escribe primero la clasificación que quieres poner en los marcados"); return; }
+    var ids = Object.keys(mananaMarcados).filter(function(k){ return mananaMarcados[k]; });
+    if(!ids.length){ toast("No hay ninguna fila marcada"); return; }
+    ids.forEach(function(id){ aplicarClasificacionSilenciosa(id, v); });
+    mananaMarcados = {};
+    guardarManana(); renderManana();
+    toast(ids.length + " radicado(s) quedaron como “" + v + "”");
+  });
+  document.getElementById("manLoteOk").addEventListener("click", function(){
+    var ids = Object.keys(mananaMarcados).filter(function(k){ return mananaMarcados[k]; });
+    if(!ids.length){ toast("No hay ninguna fila marcada"); return; }
+    ids.forEach(function(id){
+      var r = filaManana(id);
+      if(r){ r.ok = true; r.correccion = ""; r.quien = manana.nombre || r.quien; }
+    });
+    mananaMarcados = {};
+    guardarManana(); renderManana();
+    toast(ids.length + " quedaron confirmados como correctos");
+  });
+  // La misma escritura, sin avisos ni repintado: para aplicar en lote sin cien mensajes seguidos.
+  function aplicarClasificacionSilenciosa(id, valor){
+    var r = filaManana(id);
+    if(!r) return;
+    var v = cleanSpaces(valor || "");
+    var exacta = catalogoActual().filter(function(o){ return normalizaTexto(o) === normalizaTexto(v); })[0];
+    if(exacta) v = exacta;
+    if(mananaTab === "sin"){ r.clas = v; }
+    else {
+      var igual = v && normalizaTexto(v) === normalizaTexto(r.iaClas||"");
+      r.correccion = igual ? "" : v;
+      r.ok = !!igual;
+    }
+    if(v) r.quien = manana.nombre || r.quien;
+  }
+
+  // ---------- quién soy ----------
+  (function(){
+    var inp = document.getElementById("manNombre");
+    if(!inp) return;
+    function opciones(){
+      var base = (manana.personas && manana.personas.length) ? manana.personas.slice() : [];
+      manana.sin.forEach(function(r){ if(r.reparto && base.indexOf(r.reparto) === -1) base.push(r.reparto); });
+      manana.ia.forEach(function(r){ if(r.quien && base.indexOf(r.quien) === -1) base.push(r.quien); });
+      return base;
+    }
+    inp.addEventListener("focus", function(){ abrirSugerencias(inp, opciones(), function(v){ fijarNombre(v); }); });
+    inp.addEventListener("input", function(){ if(inp._manPintar) inp._manPintar(); });
+    inp.addEventListener("keydown", function(e){ if(inp._manTeclas) inp._manTeclas(e); });
+    inp.addEventListener("blur", function(){ setTimeout(function(){ cerrarSugerencias(); fijarNombre(inp.value); }, 120); });
+    function fijarNombre(v){
+      var nv = cleanSpaces(v || "");
+      if(nv === manana.nombre) return;
+      manana.nombre = nv;
+      guardarManana(); renderManana();
+    }
+  })();
+
+  // ---------- cargar el sheet ----------
+  document.getElementById("manArchivoBtn").addEventListener("click", function(){
+    document.getElementById("manFile").click();
+  });
+  document.getElementById("manFile").addEventListener("change", function(){
+    var file = this.files && this.files[0];
+    this.value = "";
+    if(!file) return;
+    var lector = new FileReader();
+    lector.onload = function(ev){
+      try{
+        var libro = XLSX.read(new Uint8Array(ev.target.result), {type:"array", cellDates:true});
+        var antesSin = manana.sin.length, antesIa = manana.ia.length;
+        var res = cargarLibroManana(libro);
+        if(!res.sin && !res.ia){
+          toast("No se reconoció ninguna hoja con radicados en ese archivo. Hojas vistas: " + res.hojas.join(" · "), "warn");
+          return;
+        }
+        manana.cargadoEn = hoyISO();
+        elegirPestanaConTrabajo();
+        var m = /(\d{1,2})[_\-.](\d{1,2})[_\-.](\d{2,4})/.exec(file.name || "");
+        manana.fechaSheet = m ? (pad(+m[1]) + "/" + pad(+m[2]) + "/" + m[3]) : hoyISO();
+        guardarManana(); renderManana();
+        var acc = document.getElementById("manCargaAccordion"); if(acc) acc.open = false;
+        toast("Sheet cargado: " + res.sin + " sin clasificar y " + res.ia + " clasificados por el modelo" +
+              (res.catalogo ? " · " + res.catalogo + " clasificaciones del propio archivo" : "") +
+              ((antesSin || antesIa) ? " (reemplazó lo que había)" : ""));
+      }catch(err){
+        toast("No se pudo leer ese archivo (" + ((err && err.message) || "error") + "). ¿Es el .xlsx del sheet?", "warn");
+      }
+    };
+    lector.onerror = function(){ toast("No se pudo abrir el archivo", "warn"); };
+    lector.readAsArrayBuffer(file);
+  });
+  document.getElementById("manPegarBtn").addEventListener("click", function(){
+    var z = document.getElementById("manPegarZona");
+    z.hidden = !z.hidden;
+    if(!z.hidden) document.getElementById("manPegarTexto").focus();
+  });
+  document.getElementById("manPegarConfirm").addEventListener("click", function(){
+    var txt = document.getElementById("manPegarTexto").value;
+    if(!txt.trim()){ toast("No hay nada pegado"); return; }
+    var filas = txt.split(/\r?\n/).filter(function(l){ return l.trim(); }).map(function(l){ return l.split("\t"); });
+    if(filas.length < 2){ toast("Pega también la fila de títulos, para saber qué columna es cuál", "warn"); return; }
+    var cual = (document.querySelector('input[name="manPegarHoja"]:checked')||{}).value || "sin";
+    var r = cual === "sin" ? leerHojaSin(filas) : leerHojaIa(filas);
+    if(!r.ok){ toast(r.error, "warn"); return; }
+    if(cual === "sin") manana.sin = r.filas; else manana.ia = r.filas;
+    manana.cargadoEn = manana.cargadoEn || hoyISO();
+    manana.fechaSheet = manana.fechaSheet || hoyISO();
+    document.getElementById("manPegarTexto").value = "";
+    document.getElementById("manPegarZona").hidden = true;
+    guardarManana(); renderManana();
+    toast("Se cargaron " + r.filas.length + " filas");
+  });
+
+  // ---------- las dos listas que se entregan ----------
+  document.getElementById("manDescargar1").addEventListener("click", function(){
+    var filas = filasListaSin();
+    if(!filas.length){ toast("Todavía no hay ningún radicado clasificado"); return; }
+    downloadExcel("CLASIFICACION_" + (manana.fechaSheet || hoyISO()).replace(/\//g,"-") + "_sin_clasificar",
+      ["RADICADO","CLASIFICACIÓN"], filas, "Lista 1 descargada — " + filas.length + " radicados");
+  });
+  document.getElementById("manCopiar1").addEventListener("click", function(){
+    var filas = filasListaSin();
+    if(!filas.length){ toast("Todavía no hay ningún radicado clasificado"); return; }
+    copyOrShowManually(rowsToTSV(["RADICADO","CLASIFICACIÓN"], filas), "Lista 1 copiada", "Lista 1 · sin clasificar");
+  });
+  document.getElementById("manDescargar2").addEventListener("click", function(){
+    var l = filasListaIa();
+    if(!l.filas.length){ toast("Todavía no has revisado ningún radicado del modelo"); return; }
+    downloadExcel("CLASIFICACION_" + (manana.fechaSheet || hoyISO()).replace(/\//g,"-") + "_revision_modelo",
+      ["RADICADO","CLASIFICACIÓN"], l.filas,
+      "Lista 2 descargada — " + l.filas.length + " revisados, " + l.resaltar.length + " corregidos",
+      l.resaltar);
+  });
+  document.getElementById("manCopiar2").addEventListener("click", function(){
+    var l = filasListaIa();
+    if(!l.filas.length){ toast("Todavía no has revisado ningún radicado del modelo"); return; }
+    copyOrShowManually(rowsToTSV(["RADICADO","CLASIFICACIÓN"], l.filas),
+      "Lista 2 copiada (al pegar como texto se pierde la negrilla: para entregarla con el resaltado, usa Descargar)",
+      "Lista 2 · revisión al modelo");
+  });
+
+  // ---------- historial de días y cierre diario ----------
+  document.getElementById("manHistorialBtn").addEventListener("click", function(){
+    renderMananaHistorial();
+    document.getElementById("manHistorialDialog").showModal();
+  });
+  document.getElementById("manHistorialClose").addEventListener("click", function(){
+    document.getElementById("manHistorialDialog").close();
+  });
+  function renderMananaHistorial(){
+    var cont = document.getElementById("manHistorialLista");
+    var h = manana.historial || [];
+    if(!h.length){
+      cont.innerHTML = '<div class="preflight-ok">Todavía no has cerrado ningún día.</div>';
+      return;
+    }
+    cont.innerHTML = h.map(function(d, i){
+      return '<div class="preflight-item">' +
+        '<div class="pf-head"><span class="pf-rad">' + escapeHtml(d.fecha || "") + '</span>' +
+        '<span class="pf-nombre">' + (d.totalSin||0) + ' sin clasificar · ' + (d.totalIa||0) + ' del modelo</span></div>' +
+        '<ul><li>' + (d.clasificados||0) + ' clasificados · ' + (d.revisados||0) + ' revisados · ' +
+          (d.corregidos||0) + ' corregidos al modelo</li></ul>' +
+        '<div class="toolbar" style="margin-top:8px;">' +
+          '<button class="btn small" data-mandesc1="' + i + '" type="button">Descargar lista 1</button>' +
+          '<button class="btn small" data-mandesc2="' + i + '" type="button">Descargar lista 2</button>' +
+        '</div></div>';
+    }).join("");
+  }
+  document.getElementById("manHistorialLista").addEventListener("click", function(e){
+    var b1 = e.target.closest("button[data-mandesc1]");
+    var b2 = e.target.closest("button[data-mandesc2]");
+    if(!b1 && !b2) return;
+    var d = (manana.historial||[])[parseInt((b1||b2).getAttribute(b1 ? "data-mandesc1" : "data-mandesc2"), 10)];
+    if(!d) return;
+    var sufijo = String(d.fecha||"").replace(/[^0-9A-Za-z]/g,"-");
+    if(b1){
+      var filas = (d.sin||[]).filter(function(r){ return String(r.clas||"").trim(); })
+        .map(function(r){ return [r.radicado, r.clas]; });
+      if(!filas.length){ toast("Ese día no tiene nada clasificado en la hoja 1"); return; }
+      downloadExcel("CLASIFICACION_" + sufijo + "_sin_clasificar", ["RADICADO","CLASIFICACIÓN"], filas, "Descargada");
+    } else {
+      var f2 = [], res = [];
+      (d.ia||[]).forEach(function(r){
+        var c = String(r.correccion||"").trim();
+        if(!c && !r.ok) return;
+        f2.push([r.radicado, c || "OK"]);
+        if(c) res.push("B" + (f2.length + 1));
+      });
+      if(!f2.length){ toast("Ese día no tiene nada revisado en la hoja 2"); return; }
+      downloadExcel("CLASIFICACION_" + sufijo + "_revision_modelo", ["RADICADO","CLASIFICACIÓN"], f2, "Descargada", res);
+    }
+  });
+  document.getElementById("manCerrarDiaBtn").addEventListener("click", function(){
+    if(!manana.sin.length && !manana.ia.length){ toast("No hay ningún sheet cargado que cerrar"); return; }
+    var l1 = filasListaSin().length, l2 = filasListaIa();
+    document.getElementById("manCerrarResumen").textContent =
+      "Se van a archivar " + (manana.sin.length + manana.ia.length) + " radicado(s) del sheet del " +
+      (manana.fechaSheet || manana.cargadoEn || "día") + ": " + l1 + " clasificados y " +
+      l2.filas.length + " revisados del modelo.";
+    var pend = pendientesManana();
+    document.getElementById("manCerrarPendientes").textContent = pend
+      ? "OJO: todavía quedan " + pend + " sin terminar. Si cierras ahora, se archivan así."
+      : "No queda nada pendiente.";
+    document.getElementById("manCerrarDialog").showModal();
+  });
+  document.getElementById("manCerrarCancel").addEventListener("click", function(){
+    document.getElementById("manCerrarDialog").close();
+  });
+  document.getElementById("manCerrarOk").addEventListener("click", function(){
+    var l2 = filasListaIa();
+    var entrada = {
+      fecha: manana.fechaSheet || manana.cargadoEn || hoyISO(),
+      cerradoEn: new Date().toISOString(),
+      totalSin: manana.sin.length, totalIa: manana.ia.length,
+      clasificados: filasListaSin().length, revisados: l2.filas.length, corregidos: l2.resaltar.length,
+      sin: manana.sin.map(function(r){ return Object.assign({}, r); }),
+      ia:  manana.ia.map(function(r){ return Object.assign({}, r); })
+    };
+    manana.historial = (manana.historial || []);
+    manana.historial.unshift(entrada);
+    if(manana.historial.length > 120) manana.historial = manana.historial.slice(0, 120);
+    manana.sin = []; manana.ia = []; manana.fechaSheet = ""; manana.cargadoEn = "";
+    mananaMarcados = {};
+    guardarManana(); renderManana();
+    document.getElementById("manCerrarDialog").close();
+    var acc = document.getElementById("manCargaAccordion"); if(acc) acc.open = true;
+    toast("Día cerrado y archivado. La pantalla queda lista para el sheet de mañana.");
+  });
+
+  // ---------- el selector de bloque ----------
+  // Se recuerda por ventana (principal y flotante por separado), igual que el radicado y el
+  // filtro: cada una abre donde la dejaste, sin arrastrar a la otra.
+  var BLOQUE_KEY = "radicados_bloque_v1";
+  function bloqueKey(){
+    return BLOQUE_KEY + "::" + (state.profile.activeUser || "-") + "::" + (isFlotanteInstance ? "flotante" : "principal");
+  }
+  function bloqueActivo(){
+    try{ return localStorage.getItem(bloqueKey()) === "manana" ? "manana" : "tarde"; }catch(e){ return "tarde"; }
+  }
+  function aplicarBloque(cual, recordar){
+    var esManana = cual === "manana";
+    document.documentElement.classList.toggle("bloque-manana", esManana);
+    var sec = document.getElementById("bloqueManana");
+    if(sec) sec.hidden = !esManana;
+    var bm = document.getElementById("selBloqueManana"), bt = document.getElementById("selBloqueTarde");
+    if(bm){ bm.classList.toggle("activo", esManana); bm.setAttribute("aria-selected", esManana ? "true" : "false"); }
+    if(bt){ bt.classList.toggle("activo", !esManana); bt.setAttribute("aria-selected", esManana ? "false" : "true"); }
+    if(recordar){ try{ localStorage.setItem(bloqueKey(), esManana ? "manana" : "tarde"); }catch(e){} }
+    if(esManana){ elegirPestanaConTrabajo(); renderManana(); }
+  }
+  document.getElementById("selBloqueManana").addEventListener("click", function(){ aplicarBloque("manana", true); });
+  document.getElementById("selBloqueTarde").addEventListener("click", function(){ aplicarBloque("tarde", true); });
+
+  // Arranque del bloque: se llama desde donde ya arranca todo lo demás al iniciar sesión.
+  function arrancarManana(){
+    cargarMananaLocal();
+    var inp = document.getElementById("manNombre");
+    if(inp) inp.value = manana.nombre || "";
+    aplicarBloque(bloqueActivo(), false);
+    elegirPestanaConTrabajo();
+    renderManana();
+    traerManana().then(function(){
+      var inp2 = document.getElementById("manNombre");
+      if(inp2 && !inp2.value) inp2.value = manana.nombre || "";
+      renderManana();
+    });
   }
 
   // ---------- botón "Instalar app": el ícono nativo del navegador es chiquito y muchas personas

@@ -2,6 +2,35 @@
 
 App interna del **área de Masivas** de la Secretaría de Movilidad de Bogotá para clasificar radicados semanales de comparendos y generar el documento final en Excel (formato MASIVA, 27 columnas). La usan las cuatro personas del área.
 
+## El día se divide en dos bloques
+
+Arriba del todo hay un selector con las dos partes del trabajo. Son dos cosas
+distintas, con horario, fuente y ritmo propios, y no se mezclan:
+
+| | **Trabajo de la mañana** | **Trabajo de la tarde** |
+|---|---|---|
+| Qué llega | El sheet que Donina sube a las 8 a.m. | Los radicados de la semana |
+| Qué se hace | Clasificar los que el modelo no tomó y revisar los que sí | Clasificar y armar la masiva |
+| Qué se entrega | Dos listas de dos columnas: radicado + clasificación | La masiva (27 columnas) y la plantilla de agendamientos |
+| Cada cuánto se cierra | **Cada día** | **Cada semana** |
+
+En la mañana **no se pega ninguna tira de Fénix**: se carga el archivo del día
+(la app lee las dos hojas de una vez y también la lista de clasificaciones
+válidas del propio archivo) y se trabaja de un clic por fila.
+
+- La hoja de **los que el modelo no tomó** se entrega como *radicado +
+  clasificación*, y nada más.
+- La hoja de **los que el modelo sí clasificó** se entrega como *radicado +
+  OK*, y cuando corriges al modelo, la clasificación correcta sale **en
+  negrilla y subrayada**, para que se vea de un golpe qué tocaste.
+
+Las clasificaciones se guardan **con los espacios exactos del sheet** (doce de
+las treinta y siete llevan espacios dobles o un espacio al final): si se les
+"arregla" el espacio, el desplegable del sheet las rechaza al pegarlas de vuelta.
+
+El bloque de la mañana tiene su propia ventana flotante, su propio historial de
+días y su propio cierre diario. No comparte nada con la masiva de la tarde.
+
 ## Qué es
 
 Una sola página (`index.html`), sin backend propio y sin build. Cada persona
@@ -34,6 +63,13 @@ final.
 
    Los archivos por separado siguen en `supabase/migrations/` por si
    alguna vez hace falta mirar qué trajo cada cambio.
+
+   Si ya habías instalado la app antes de que existiera el bloque de la
+   mañana, vuelve a correr `instalar_todo.sql` (o solo
+   `supabase/migrations/0003_trabajo_manana.sql`): añade una columna para el
+   trabajo de la mañana y no toca nada de lo que ya estaba. Si te lo saltas,
+   ese bloque funciona igual pero guarda solo en ese computador, y la propia
+   app te lo dice con un aviso amarillo en su pantalla.
 
    Si te saltas la parte de las reglas, la app funciona igual, pero cada
    computador usa su propia copia y lo que ajuste una persona no les llega
