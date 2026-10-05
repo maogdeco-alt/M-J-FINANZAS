@@ -79,7 +79,7 @@ with sync_playwright() as pw:
     cuentas = pag.locator("#cuadreCuentas").inner_text()
     ok("La cuenta cuadra" in cuentas, "la comprobación da bien → "+cuentas.split("\n")[-1][:110])
     ok(pag.locator("#cuadreCuentas .cuadre-check.bien").count()==1, "y se ve en verde")
-    ok("Filas repetidas" in cuentas, "el desglose tiene la línea de repetidas")
+    ok("Pegados dos veces" in cuentas, "el desglose tiene la línea de pegados dos veces")
     semanas = pag.locator("#cuadreSemanas").inner_text()
     ok("Asignados esta semana" in semanas or "semanas ANTERIORES" in semanas,
        "y el reparto por fecha de asignación está")

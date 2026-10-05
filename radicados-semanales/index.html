@@ -7694,27 +7694,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function agendamientoList(){
     return state.records.filter(esAgendamiento);
   }
-  // La lista que SE ENTREGA, sin el mismo radicado dos veces — mismo criterio que la masiva (ver
-  // finalDocReparto). La lista de trabajo de arriba sí los muestra todos: ahí hace falta ver las dos
-  // filas para poder arreglarlas.
-  function agendamientoListaParaEntregar(){
-    // Mismo desempate que la masiva: de cada radicado repetido sale la fila con más casillas
-    // llenas; si empatan, la que se capturó primero.
-    var porPeso = agendamientoList().slice().sort(function(a,b){
-      var d = pesoDeTrabajo(b) - pesoDeTrabajo(a);
-      if(d) return d;
-      return (a.order||0) - (b.order||0);
-    });
-    var vistos = {}, salida = [];
-    porPeso.forEach(function(r){
-      var k = radicadoClave(r);
-      if(!k){ salida.push(r); return; }
-      if(vistos[k]) return;
-      vistos[k] = 1;
-      salida.push(r);
-    });
-    return salida.sort(function(a,b){ return (a.order||0)-(b.order||0); });
-  }
+  // La lista que SE ENTREGA. Junta ÚNICAMENTE las filas que son la misma asignación (mismo
+  // radicado y misma fecha de asignación), igual que la masiva — ver repartirPorAsignacion y el
+  // comentario largo de ahí: la primera versión juntaba solo por radicado y dejaba fuera el
+  // agendamiento de ESTA semana cuando el mismo radicado traía uno de la semana pasada. Un
+  // agendamiento que no se entrega es una cita que el ciudadano no recibe.
+  //
+  // La lista de trabajo de arriba sí los muestra todos: ahí hace falta ver las dos filas.
+  function agendamientoReparto(){ return repartirPorAsignacion(agendamientoList()); }
+  function agendamientoListaParaEntregar(){ return agendamientoReparto().elegibles; }
   function agendamientoRepetidos(){
     return agendamientoList().length - agendamientoListaParaEntregar().length;
   }
@@ -9718,11 +9706,33 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // archivo entregado llevaba filas repetidas. Exactamente la clase de defecto por el que se
   // devuelve una base.
   //
-  // Desde aquí: a la masiva sale UNA sola fila por radicado, y la revisión previa dice en grande
-  // cuáles estaban repetidos, cuál sale y cuál se queda fuera, con un botón para abrir cada una.
-  // Nada se borra: las dos filas siguen en la lista de trabajo hasta que la persona decida.
+  // EL ERROR QUE TUVO ESTO PRIMERO, Y POR QUÉ LA REGLA ES LA QUE ES.
+  //
+  // La primera versión juntaba por radicado y punto: de cada repetido sacaba una sola fila, la que
+  // tuviera más casillas llenas. Eso DABA POR HECHO que un radicado repetido siempre es un pegado
+  // doble, y es falso. Un radicado se puede reasignar en otra semana (devuelto, prórroga,
+  // reasignación): entonces hay DOS asignaciones distintas, las dos son trabajo real, y la de la
+  // semana pasada -- más completa, porque ya se trabajó -- ganaba y echaba fuera la de esta semana.
+  // Resultado: el archivo salía con la fila de la semana pasada en lugar de la de esta. Eso es
+  // mezclar semanas, que es justo lo que no puede pasar. Reportado en el trabajo con los
+  // AGENDAMIENTOS y corregido aquí.
+  //
+  // REGLA DEFINITIVA: dos filas son la misma asignación solo si coinciden en RADICADO **y** en
+  // FECHA DE ASIGNACIÓN. Eso sí es un pegado doble y se junta (sale la más completa).
+  // Si la fecha de asignación difiere -- o si falta en alguna de las dos, que es no poder
+  // demostrar nada --, son asignaciones distintas: **salen las dos** y se avisa, porque quitar
+  // trabajo por una suposición es peor que entregar una fila de más.
   function radicadoClave(r){ return String((r && r.radicado) || "").replace(/\s+/g, ""); }
-  // De un grupo con el mismo radicado, la fila que sale es la que tiene MÁS trabajo hecho (más
+  function asignacionClave(r){
+    var k = radicadoClave(r);
+    if(!k) return "";
+    var f = normalizeDate((r && r.fechaAsignacion) || "").replace(/\s+/g, "");
+    // Sin fecha de asignación no se puede afirmar que sean la misma asignación: cada fila va por su
+    // cuenta (clave única por `id`) y así nunca se descarta nada sin prueba.
+    if(!f) return k + "@@sinfecha@@" + (r.id || Math.random());
+    return k + "@@" + f;
+  }
+  // De un grupo que ES la misma asignación, la fila que sale es la que tiene MÁS trabajo hecho (más
   // casillas de la masiva llenas); si empatan, la que se capturó primero. Es determinista a
   // propósito: el mismo conteo tiene que dar el mismo archivo, hoy y el lunes.
   var CAMPOS_PESO_MASIVA = ["formato", "direccion", "comparendoCompleto", "res", "fechaRes",
@@ -9733,20 +9743,18 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     CAMPOS_PESO_MASIVA.forEach(function(k){ if(String((r && r[k]) || "").trim()) n++; });
     return n;
   }
-  // {elegibles: los que salen, grupos: [{radicado, sale, fuera:[...]}]}
-  function finalDocReparto(){
-    var candidatos = finalDocCandidatos();
-    var porRadicado = {}, sinNumero = [];
-    candidatos.forEach(function(r){
-      var k = radicadoClave(r);
-      // Sin número de radicado no se puede comparar con nada: no se agrupa (dos filas en blanco no
-      // son "el mismo radicado"). Sale igual, y la revisión previa lo señala aparte.
-      if(!k){ sinNumero.push(r); return; }
-      (porRadicado[k] = porRadicado[k] || []).push(r);
+  // De una lista cualquiera: junta solo las filas que son la MISMA asignación y deja constancia.
+  // {elegibles, grupos:[{radicado,sale,fuera}], variasAsignaciones:[{radicado, filas:[...]}]}
+  function repartirPorAsignacion(lista){
+    var porAsignacion = {}, ordenAsig = [];
+    lista.forEach(function(r){
+      var k = asignacionClave(r);
+      if(!porAsignacion[k]){ porAsignacion[k] = []; ordenAsig.push(k); }
+      porAsignacion[k].push(r);
     });
-    var elegibles = sinNumero.slice(), grupos = [];
-    Object.keys(porRadicado).forEach(function(k){
-      var filas = porRadicado[k];
+    var elegibles = [], grupos = [];
+    ordenAsig.forEach(function(k){
+      var filas = porAsignacion[k];
       if(filas.length === 1){ elegibles.push(filas[0]); return; }
       var ordenadas = filas.slice().sort(function(a,b){
         var d = pesoDeTrabajo(b) - pesoDeTrabajo(a);
@@ -9754,11 +9762,38 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         return (a.order||0) - (b.order||0);
       });
       elegibles.push(ordenadas[0]);
-      grupos.push({radicado: filas[0].radicado || k, sale: ordenadas[0], fuera: ordenadas.slice(1)});
+      grupos.push({radicado: filas[0].radicado || "(sin radicado)",
+                   fecha: filas[0].fechaAsignacion || "",
+                   sale: ordenadas[0], fuera: ordenadas.slice(1)});
+    });
+    // El mismo radicado con DOS fechas de asignación distintas: no se junta nada, pero tiene que
+    // verse. Es lo que hay que mirar a mano para saber cuál corresponde a la semana que se entrega.
+    var porRadicado = {};
+    elegibles.forEach(function(r){
+      var k = radicadoClave(r);
+      if(!k) return;
+      (porRadicado[k] = porRadicado[k] || []).push(r);
+    });
+    var variasAsignaciones = [];
+    Object.keys(porRadicado).forEach(function(k){
+      if(porRadicado[k].length < 2) return;
+      variasAsignaciones.push({radicado: porRadicado[k][0].radicado || k, filas: porRadicado[k]});
     });
     elegibles.sort(function(a,b){ return (a.order||0)-(b.order||0); });
     grupos.sort(function(a,b){ return (a.sale.order||0)-(b.sale.order||0); });
-    return {elegibles: elegibles, grupos: grupos, sinNumero: sinNumero};
+    variasAsignaciones.sort(function(a,b){ return (a.filas[0].order||0)-(b.filas[0].order||0); });
+    return {elegibles: elegibles, grupos: grupos, variasAsignaciones: variasAsignaciones};
+  }
+  // {elegibles: los que salen, grupos: [{radicado, sale, fuera:[...]}]}
+  function finalDocReparto(){
+    var candidatos = finalDocCandidatos();
+    var sinNumero = candidatos.filter(function(r){ return !radicadoClave(r); });
+    var conNumero = candidatos.filter(function(r){ return !!radicadoClave(r); });
+    var rep = repartirPorAsignacion(conNumero);
+    var elegibles = rep.elegibles.concat(sinNumero)
+      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    return {elegibles: elegibles, grupos: rep.grupos,
+            variasAsignaciones: rep.variasAsignaciones, sinNumero: sinNumero};
   }
   function finalDocEligible(){ return finalDocReparto().elegibles; }
   // Los grupos de radicado repetido DENTRO de lo que iría a la masiva. Es más estrecho que el panel
@@ -9832,6 +9867,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       candidatos: candidatos,
       entran: reparto.elegibles,
       gruposRepetidos: reparto.grupos,
+      variasAsignaciones: reparto.variasAsignaciones,
       repetidosFuera: repetidosFuera,
       sinNumero: reparto.sinNumero,
       suma: suma,
@@ -10300,6 +10336,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
             // ni por "no volver a preguntar": que el archivo entregado lleve dos veces el mismo
             // radicado no es una anomalía confirmable, es un defecto de la base. Siempre se avisa.
             repetidos: reparto.grupos,
+            // Mismo radicado con DOS fechas de asignación: NO se junta nada, salen las dos filas.
+            // Se avisa porque casi siempre una es de una semana anterior que quedó sin cerrar, y
+            // hay que mirar a mano cuál corresponde a lo que se entrega.
+            variasAsignaciones: reparto.variasAsignaciones,
             sinNumero: reparto.sinNumero};
   }
 
@@ -10353,7 +10393,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var nSinClas = (informe.sinClasificar || []).length;
     var nRepes = (informe.repetidos || []).length;
     var nSinNum = (informe.sinNumero || []).length;
-    if(!informe.problemas.length && !informe.confirmadosAntes && !nSinClas && !nRepes && !nSinNum){ registrarEntrega(false); onProceed(); return; }
+    var nVarias = (informe.variasAsignaciones || []).length;
+    if(!informe.problemas.length && !informe.confirmadosAntes && !nSinClas && !nRepes && !nSinNum && !nVarias){ registrarEntrega(false); onProceed(); return; }
     var graves = informe.problemas.filter(function(p){ return p.grave; }).length;
     var notaSinClas = nSinClas
       ? " ATENCIÓN: " + nSinClas + " radicado(s) de tu lista NO VAN A SALIR en esta masiva porque todavía no tienen clasificación. Van listados abajo."
@@ -10364,28 +10405,54 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var notaSinNum = nSinNum
       ? " Además, " + nSinNum + " fila(s) van al archivo SIN NÚMERO DE RADICADO."
       : "";
+    var notaVarias = nVarias
+      ? " OJO CON LAS SEMANAS: " + nVarias + " radicado(s) tienen DOS ASIGNACIONES con fechas distintas. " +
+        "La app NO decide por ti: salen las dos filas. Mira abajo cuál corresponde a la semana que entregas."
+      : "";
     var notaConfirmados = informe.confirmadosAntes
       ? " Además, esta base lleva " + informe.confirmadosAntes + " anomalía(s) que ya confirmaste durante la semana: van listadas abajo y SÍ salen en el archivo."
       : "";
     document.getElementById("preflightResumen").textContent = informe.problemas.length
       ? ("De " + informe.total + " radicado(s) que entrarían al documento final, " + informe.problemas.length +
          " tiene(n) algo por revisar" + (graves ? " — " + graves + " con un problema GRAVE que saldría mal en la base que entregas." : ".") +
-         " Revísalos antes de enviar; puedes cancelar, corregirlos en el Paso 2, y volver a generar." + notaRepes + notaSinNum + notaSinClas + notaConfirmados)
+         " Revísalos antes de enviar; puedes cancelar, corregirlos en el Paso 2, y volver a generar." + notaVarias + notaRepes + notaSinNum + notaSinClas + notaConfirmados)
       : ((informe.total === 1 ? "El radicado que entra al documento final está en regla."
-                              : "Los " + informe.total + " radicados que entran al documento final están en regla.") + notaRepes + notaSinNum + notaSinClas + notaConfirmados);
+                              : "Los " + informe.total + " radicados que entran al documento final están en regla.") + notaVarias + notaRepes + notaSinNum + notaSinClas + notaConfirmados);
     // Cada fila trae su botón para IR A CORREGIRLA. Antes la revisión decía qué estaba mal pero
     // dejaba a la persona buscando el radicado a mano en una lista de doscientos: "no deja subsanar
     // cada radicado". Ahora se abre en el Paso 2, con el cursor puesto en la casilla del problema.
     document.getElementById("preflightLista").innerHTML =
-    // DE PRIMERO, el radicado repetido: es lo que descuadra el conteo y lo que mete una fila
-    // duplicada en la base que se entrega. Se dice cuál sale y cuál se queda fuera, con el botón
-    // para abrir cada una, porque la app no puede saber cuál de las dos es la buena.
+    // DE PRIMERO DEL TODO: el mismo radicado con DOS fechas de asignación. Aquí la app no junta ni
+    // descarta nada -- son dos asignaciones distintas y las dos son trabajo real --, pero tiene que
+    // decirlo, porque lo habitual es que una sea de una semana anterior que quedó sin cerrar y se
+    // esté a punto de entregar mezclada con la de esta semana.
+    (nVarias
+      ? '<div class="preflight-sinclas"><h4>' + nVarias + ' radicado(s) con DOS asignaciones de fechas distintas</h4>' +
+        '<p>El mismo radicado aparece asignado en dos fechas. <b>Salen las dos filas en el archivo</b>: ' +
+        'la app no decide por ti cuál corresponde a esta semana. Revísalas — casi siempre una es de una ' +
+        'semana anterior que quedó sin cerrar.</p>' +
+        informe.variasAsignaciones.slice(0, 40).map(function(g){
+          return '<div class="pfc-item"><span class="pf-rad">' + escapeHtml(g.radicado) + '</span>' +
+            '<ul>' + g.filas.map(function(r){
+              return '<li>asignado el <b>' + escapeHtml(r.fechaAsignacion || "(sin fecha)") + '</b> — ' +
+                escapeHtml(r.formato || "(sin formato)") + ' — ' +
+                escapeHtml(r.nombreF || r.nombre || "(sin nombre)") + ' ' +
+                '<button class="btn small" data-preflight-corregir="' + escapeHtml(r.id) + '"' +
+                ' data-preflight-campo="cc_formato" type="button">Abrir esta</button></li>';
+            }).join("") + '</ul></div>';
+        }).join("") +
+        (nVarias > 40 ? '<p>… y ' + (nVarias - 40) + ' más.</p>' : '') +
+        '</div>'
+      : "") +
+    // Después, el radicado repetido en LA MISMA asignación: es lo que descuadra el conteo y lo que
+    // mete una fila duplicada en la base que se entrega. Se dice cuál sale y cuál se queda fuera,
+    // con el botón para abrir cada una, porque la app no puede saber cuál de las dos es la buena.
     (nRepes
-      ? '<div class="preflight-repes"><h4>' + nRepes + ' radicado(s) están repetidos en tu lista</h4>' +
-        '<p>El mismo número de radicado aparece en dos o más filas. <b>Al archivo sale UNA sola fila de ' +
-        'cada uno</b> (la que tiene más casillas llenas), por eso el conteo de la masiva es menor que el ' +
-        'número de filas de tu lista. Revisa cada pareja: lo normal es que una de las dos sea un pegado ' +
-        'repetido que hay que borrar.</p>' +
+      ? '<div class="preflight-repes"><h4>' + nRepes + ' radicado(s) pegados dos veces (misma asignación)</h4>' +
+        '<p>El mismo radicado <b>con la misma fecha de asignación</b> aparece en dos o más filas: es el mismo ' +
+        'caso pegado dos veces. <b>Al archivo sale UNA sola fila</b> (la que tiene más casillas llenas), por eso ' +
+        'el conteo de la masiva es menor que el número de filas de tu lista. Si la fecha de asignación fuera ' +
+        'distinta, la app no junta nada y te lo dice arriba, aparte.</p>' +
         informe.repetidos.slice(0, 40).map(function(g){
           return '<div class="pfc-item"><span class="pf-rad">' + escapeHtml(g.radicado) + '</span> ' +
             '<span class="pf-nombre">' + escapeHtml(g.sale.nombreF || g.sale.nombre || "(sin nombre)") + '</span>' +
@@ -10472,10 +10539,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(!esAgenda){
       var nRep = (informe.repetidos || []).length;
       if(nRep){
-        lineas.push("RADICADOS REPETIDOS EN LA LISTA (" + nRep + ") — del archivo sale una sola fila de cada uno:");
+        lineas.push("PEGADOS DOS VECES, MISMA ASIGNACIÓN (" + nRep + ") — del archivo sale una sola fila de cada uno:");
         informe.repetidos.forEach(function(g){
-          lineas.push("    • " + g.radicado + " — " + (g.fuera.length + 1) + " filas; sale la de " +
-                      (g.sale.formato || "(sin formato)"));
+          lineas.push("    • " + g.radicado + " — asignado " + (g.fecha || "(sin fecha)") + " — " +
+                      (g.fuera.length + 1) + " filas; sale la de " + (g.sale.formato || "(sin formato)"));
+        });
+        lineas.push("");
+      }
+      var nVar = (informe.variasAsignaciones || []).length;
+      if(nVar){
+        lineas.push("MISMO RADICADO CON DOS ASIGNACIONES DE FECHAS DISTINTAS (" + nVar +
+                    ") — NO se juntó nada: salen todas las filas:");
+        informe.variasAsignaciones.forEach(function(g){
+          lineas.push("    • " + g.radicado + " — " + g.filas.map(function(r){
+            return (r.fechaAsignacion || "(sin fecha)") + " / " + (r.formato || "(sin formato)");
+          }).join("  |  "));
         });
         lineas.push("");
       }
@@ -10917,8 +10995,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     filas.push(cuadreFila("Entran a la masiva", c.entran.length,
       {rama:true, que:"clasificados, con formato conocido, uno por radicado"}));
     if(c.repetidosFuera){
-      filas.push(cuadreFila("Filas repetidas que NO se repiten en el archivo", c.repetidosFuera,
-        {rama:true, ojo:true, que: c.gruposRepetidos.length + " radicado(s) están en dos o más filas; al archivo sale una sola de cada uno"}));
+      filas.push(cuadreFila("Pegados dos veces (misma asignación) que no se repiten en el archivo", c.repetidosFuera,
+        {rama:true, ojo:true, que: c.gruposRepetidos.length + " radicado(s) con la MISMA fecha de asignación en dos o más filas; al archivo sale una sola de cada uno"}));
+    }
+    if((c.variasAsignaciones || []).length){
+      filas.push(cuadreFila("Mismo radicado con DOS asignaciones de fechas distintas", c.variasAsignaciones.length,
+        {rama:true, ojo:true, que:"NO se juntó nada: salen todas las filas. Casi siempre una es de una semana anterior sin cerrar — mira cuál va"}));
     }
     filas.push(cuadreFila("Sin clasificar — no salen en la masiva", c.sinClasificar.length,
       {rama:true, ojo: !!c.sinClasificar.length, que:"están en tu lista pero no tienen formato puesto"}));
@@ -10946,6 +11028,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         'no un dato tuyo.</p>';
     html += cuadreListaHtml("Las filas repetidas que quedan fuera del archivo",
       c.gruposRepetidos.reduce(function(acc,g){ return acc.concat(g.fuera); }, []));
+    // Esta va ABIERTA: es trabajo que hay que mirar a mano antes de entregar.
+    html += cuadreListaHtml("Radicados con dos asignaciones de fechas distintas (salen todas)",
+      (c.variasAsignaciones || []).reduce(function(acc,g){ return acc.concat(g.filas); }, []), 200, true);
     html += cuadreListaHtml("Los que no tienen clasificación", c.sinClasificar);
     html += cuadreListaHtml("Los que tienen el formato a medio escribir", c.desconocido);
     document.getElementById("cuadreCuentas").innerHTML = html;
