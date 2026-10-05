@@ -840,6 +840,9 @@
   .cuadre-check.mal{border:2px solid var(--stamp);background:var(--stamp-soft);color:var(--stamp);}
   .cuadre-lista{margin:8px 0 0;padding:10px 13px;border:1px solid var(--border);border-radius:9px;
     background:var(--surface-2);max-height:210px;overflow-y:auto;}
+  .rango-fechas{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0 0 10px;}
+  .rango-fechas label{margin:0;font-size:0.86rem;font-weight:700;color:var(--muted);}
+  .rango-fechas input[type="date"]{width:auto;min-width:9.5rem;}
   .cuadre-lista summary{cursor:pointer;font-size:0.86rem;}
   .cuadre-lista ul{margin:7px 0 0;padding-left:18px;}
   .cuadre-lista li{font-size:0.83rem;line-height:1.6;font-variant-numeric:tabular-nums;}
@@ -2190,6 +2193,20 @@
       <h4 class="subhead">Por fecha de asignación</h4>
       <p class="panel-desc">ORFEO muestra el lote de <b>esta</b> semana. Si en la app quedaron vivos radicados de semanas anteriores (porque la semana no se cerró), el número de la app es mayor — y esta es la cuenta que lo demuestra.</p>
       <div id="cuadreSemanas"></div>
+
+      <div class="hr"></div>
+      <h4 class="subhead">Sacar solo un rango de fechas</h4>
+      <p class="panel-desc">Para cuando hay que entregar lo de unos días concretos y no toda la lista: por ejemplo <b>desde el lunes pasado hasta hoy</b>, sin los viejos. Va por <b>fecha de asignación</b>, y de cada radicado sale <b>una sola fila</b> — la asignación más reciente dentro del rango. Esto <b>no cambia</b> el botón normal de la masiva: es una descarga aparte, con su propio nombre de archivo.</p>
+      <div class="rango-fechas">
+        <label for="cuadreDesde">Desde</label><input type="date" id="cuadreDesde">
+        <label for="cuadreHasta">Hasta</label><input type="date" id="cuadreHasta">
+        <button class="btn ghost small" id="cuadreRangoSemanaPasada" type="button">Del lunes pasado a hoy</button>
+      </div>
+      <div class="toolbar">
+        <button class="btn primary" id="cuadreRangoDescargar" type="button">Descargar solo ese rango (.xlsx)</button>
+        <button class="btn" id="cuadreRangoCopiar" type="button">Copiar</button>
+      </div>
+      <div id="cuadreRango"></div>
 
       <div class="hr"></div>
       <h4 class="subhead">Cuadre contra ORFEO</h4>
@@ -11055,6 +11072,118 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     h2 += cuadreListaHtml("Los que no tienen fecha de asignación legible", rp.sinFecha);
     document.getElementById("cuadreSemanas").innerHTML = h2;
   }
+  // ---------- SACAR SOLO UN RANGO DE FECHAS ----------
+  // "Necesito los radicados que trabajé desde el 28 de septiembre hasta ahora, no los anteriores,
+  // sin repetir." El botón normal de la masiva saca TODA la lista, y cuando quedan vivas semanas
+  // anteriores eso arrastra lo viejo. Esto es una salida aparte, explícita y con su propio nombre
+  // de archivo: el camino de siempre no se toca, para que nadie entregue un archivo recortado
+  // creyendo que es el completo.
+  function fechaDeEntrada(id){
+    var v = (document.getElementById(id).value || "").trim();
+    var m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m) return null;
+    return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+  }
+  // {filas: lo que sale, fuera: los que quedan fuera por fecha, sinFecha: ilegibles,
+  //  juntados: [{radicado, sale, fuera:[...]}]}
+  function rangoDeLaMasiva(){
+    var desde = fechaDeEntrada("cuadreDesde");
+    var hasta = fechaDeEntrada("cuadreHasta");
+    var elegibles = finalDocEligible();   // ya viene sin pegados dobles
+    var dentro = [], fuera = [], sinFecha = [];
+    elegibles.forEach(function(r){
+      var d = parseDMY(normalizeDate(r.fechaAsignacion));
+      // Sin fecha legible NO se incluye: no se puede afirmar que esté en el rango. Pero se lista,
+      // porque desaparecer en silencio es justo lo que no puede hacer esta app.
+      if(!d){ sinFecha.push(r); return; }
+      if(desde && d < desde){ fuera.push(r); return; }
+      if(hasta && d > hasta){ fuera.push(r); return; }
+      dentro.push(r);
+    });
+    // UNA SOLA FILA POR RADICADO. Si un radicado tiene dos asignaciones DENTRO del rango, sale la
+    // más reciente: es la vigente. Las dos siguen en la lista de trabajo; esto solo decide el
+    // archivo, y se dice cuáles se juntaron.
+    var porRad = {}, orden = [];
+    dentro.forEach(function(r){
+      var k = radicadoClave(r) || ("@@sin@@" + r.id);
+      if(!porRad[k]){ porRad[k] = []; orden.push(k); }
+      porRad[k].push(r);
+    });
+    var filas = [], juntados = [];
+    orden.forEach(function(k){
+      var g = porRad[k];
+      if(g.length === 1){ filas.push(g[0]); return; }
+      var ord = g.slice().sort(function(a,b){
+        var da = parseDMY(normalizeDate(a.fechaAsignacion)), db = parseDMY(normalizeDate(b.fechaAsignacion));
+        if(da && db && da.getTime() !== db.getTime()) return db - da;   // la más reciente primero
+        var d = pesoDeTrabajo(b) - pesoDeTrabajo(a);
+        return d ? d : (a.order||0) - (b.order||0);
+      });
+      filas.push(ord[0]);
+      juntados.push({radicado: g[0].radicado || "(sin radicado)", sale: ord[0], fuera: ord.slice(1)});
+    });
+    filas.sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    return {desde: desde, hasta: hasta, filas: filas, fuera: fuera,
+            sinFecha: sinFecha, juntados: juntados};
+  }
+  function textoRango(r){
+    var f = function(d){ return d ? ddmm(d) : null; };
+    if(r.desde && r.hasta) return "del " + f(r.desde) + " al " + f(r.hasta);
+    if(r.desde) return "desde el " + f(r.desde);
+    if(r.hasta) return "hasta el " + f(r.hasta);
+    return "sin rango (toda la lista)";
+  }
+  function renderRango(){
+    var r = rangoDeLaMasiva();
+    var filas = [];
+    filas.push(cuadreFila("Radicados que saldrían " + textoRango(r), r.filas.length, {total:true}));
+    if(r.juntados.length){
+      filas.push(cuadreFila("radicados con dos asignaciones dentro del rango", r.juntados.length,
+        {rama:true, que:"sale la más reciente, una sola fila por radicado"}));
+    }
+    filas.push(cuadreFila("Quedan fuera por estar fuera del rango", r.fuera.length,
+      {rama:true, que:"son los viejos que no quieres arrastrar"}));
+    if(r.sinFecha.length){
+      filas.push(cuadreFila("NO se incluyen: sin fecha de asignación legible", r.sinFecha.length,
+        {rama:true, ojo:true, que:"no se puede saber si están en el rango — míralos antes de entregar"}));
+    }
+    var html = '<table class="cuadre-tabla"><tbody>' + filas.join("") + '</tbody></table>';
+    html += cuadreListaHtml("Los que saldrían", r.filas, 200, r.filas.length <= 25);
+    html += cuadreListaHtml("Los que se juntaron (sale la asignación más reciente)",
+      r.juntados.reduce(function(acc,g){ return acc.concat(g.fuera); }, []), 200, true);
+    html += cuadreListaHtml("Los que NO se incluyen por no tener fecha legible", r.sinFecha, 200, true);
+    document.getElementById("cuadreRango").innerHTML = html;
+    return r;
+  }
+  function lunesPasado(){
+    var l = lunesDe(new Date());
+    return new Date(l.getFullYear(), l.getMonth(), l.getDate()-7);
+  }
+  function isoDeFecha(d){ return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
+  document.getElementById("cuadreRangoSemanaPasada").addEventListener("click", function(){
+    document.getElementById("cuadreDesde").value = isoDeFecha(lunesPasado());
+    document.getElementById("cuadreHasta").value = isoDeFecha(new Date());
+    renderRango();
+  });
+  document.getElementById("cuadreDesde").addEventListener("change", renderRango);
+  document.getElementById("cuadreHasta").addEventListener("change", renderRango);
+  document.getElementById("cuadreRangoDescargar").addEventListener("click", function(){
+    var r = renderRango();
+    if(!r.filas.length){ toast("Con ese rango no queda ningún radicado"); return; }
+    var sufijo = (r.desde ? isoDeFecha(r.desde) : "inicio") + "_a_" + (r.hasta ? isoDeFecha(r.hasta) : "hoy");
+    downloadExcel("MASIVA_RANGO_" + sufijo + "_" + userSlug(),
+      MASIVA_HEADERS, r.filas.map(recordToMasivaRow),
+      "Descargado el rango " + textoRango(r) + " — " + r.filas.length + " radicados, sin repetir" +
+      (r.sinFecha.length ? " · OJO: " + r.sinFecha.length + " sin fecha legible NO van incluidos" : ""));
+  });
+  document.getElementById("cuadreRangoCopiar").addEventListener("click", function(){
+    var r = renderRango();
+    if(!r.filas.length){ toast("Con ese rango no queda ningún radicado"); return; }
+    copyOrShowManually(rowsToTSV(MASIVA_HEADERS, r.filas.map(recordToMasivaRow)),
+      r.filas.length + " filas copiadas (" + textoRango(r) + ")",
+      "Masiva del rango " + textoRango(r) + " (" + r.filas.length + " radicados)");
+  });
+
   var ultimoCruce = null;
   function renderCruceOrfeo(){
     var texto = document.getElementById("cuadreOrfeo").value;
@@ -11128,6 +11257,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
   document.getElementById("abrirCuadreBtn").addEventListener("click", function(){
     renderCuadre();
+    // El rango se propone en lo que casi siempre se necesita -- del lunes pasado a hoy -- pero
+    // queda escrito en pantalla, editable, y no afecta al botón normal de la masiva.
+    var dDesde = document.getElementById("cuadreDesde"), dHasta = document.getElementById("cuadreHasta");
+    if(!dDesde.value) dDesde.value = isoDeFecha(lunesPasado());
+    if(!dHasta.value) dHasta.value = isoDeFecha(new Date());
+    renderRango();
     renderCruceOrfeo();
     document.getElementById("cuadreDialog").showModal();
   });
