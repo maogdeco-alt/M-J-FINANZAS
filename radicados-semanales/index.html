@@ -795,6 +795,56 @@
   .aviso-imperativas ul{margin:0;padding-left:19px;}
   .aviso-imperativas li{font-size:0.85rem;line-height:1.45;margin-bottom:3px;}
   .aviso-imperativas .ai-regla{font-weight:800;font-variant-numeric:tabular-nums;margin-right:5px;}
+  /* Los que se quedan FUERA de la masiva por no estar clasificados. Va primero y en rojo: es lo
+     único de esta pantalla que significa "hay trabajo que no se va a entregar". */
+  .historial-aviso{border:2px solid var(--stamp);border-radius:10px;background:var(--stamp-soft);
+    color:var(--ink);padding:11px 15px;margin:0 0 4px;font-size:0.88rem;line-height:1.5;}
+  .historial-aviso[hidden]{display:none;}
+  .historial-aviso b{color:var(--stamp);}
+  .preflight-sinclas{border:2px solid var(--stamp);border-radius:11px;background:var(--stamp-soft);
+    padding:13px 16px;margin-bottom:14px;}
+  .preflight-sinclas h4{margin:0 0 5px;font-size:0.98rem;color:var(--stamp);}
+  .preflight-sinclas > p{margin:0 0 10px;font-size:0.85rem;color:var(--ink);}
+  .preflight-sinclas .pfc-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    border:1px solid var(--border);border-radius:8px;padding:7px 11px;margin-bottom:6px;
+    background:var(--surface);}
+  .preflight-sinclas .pf-nombre{flex:1 1 auto;min-width:0;}
+  .confirm-grave{border:1.5px solid var(--stamp);background:var(--stamp-soft);color:var(--stamp);
+    border-radius:9px;padding:9px 12px;font-weight:700;}
+  /* Radicado repetido en la revisión previa: mismo peso visual que lo sin clasificar -- las dos
+     cosas descuadran lo que se entrega. */
+  .preflight-repes{border:2px solid var(--warn);border-radius:11px;background:var(--warn-soft);
+    padding:13px 16px;margin-bottom:14px;}
+  .preflight-repes h4{margin:0 0 5px;font-size:0.98rem;color:var(--warn-text);}
+  .preflight-repes > p{margin:0 0 10px;font-size:0.85rem;color:var(--ink);}
+  .preflight-repes .pfc-item{border:1px solid var(--border);border-radius:8px;padding:8px 12px;
+    margin-bottom:7px;background:var(--surface);}
+  .preflight-repes .pfc-item ul{margin:5px 0 0;padding-left:18px;}
+  .preflight-repes .pfc-item li{font-size:0.84rem;line-height:1.7;}
+  .aviso-inline{margin:6px 0 0;padding:8px 12px;border-radius:8px;border:1.5px solid var(--warn);
+    background:var(--warn-soft);color:var(--ink);font-size:0.86rem;line-height:1.5;}
+  .aviso-inline[hidden]{display:none;}
+  /* ---- Cuadre del conteo ---- */
+  .cuadre-tabla{width:100%;border-collapse:collapse;font-size:0.9rem;}
+  .cuadre-tabla td{border-bottom:1px solid var(--border);padding:7px 10px;vertical-align:top;}
+  .cuadre-tabla td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;
+    white-space:nowrap;width:4.5em;}
+  .cuadre-tabla tr.cuadre-rama td:first-child{padding-left:28px;color:var(--muted);}
+  .cuadre-tabla tr.cuadre-total td{border-top:2px solid var(--border);border-bottom:0;
+    font-weight:800;padding-top:9px;}
+  .cuadre-tabla tr.cuadre-ojo td{background:var(--warn-soft);}
+  .cuadre-tabla tr.cuadre-ojo td:first-child{color:var(--ink);}
+  .cuadre-tabla .cuadre-que{display:block;font-size:0.8rem;color:var(--muted);line-height:1.4;}
+  .cuadre-check{margin:10px 0 0;padding:9px 13px;border-radius:9px;font-size:0.87rem;font-weight:700;}
+  .cuadre-check.bien{border:1.5px solid var(--ok);background:var(--ok-soft);color:var(--ok-text);}
+  .cuadre-check.mal{border:2px solid var(--stamp);background:var(--stamp-soft);color:var(--stamp);}
+  .cuadre-lista{margin:8px 0 0;padding:10px 13px;border:1px solid var(--border);border-radius:9px;
+    background:var(--surface-2);max-height:210px;overflow-y:auto;}
+  .cuadre-lista summary{cursor:pointer;font-size:0.86rem;}
+  .cuadre-lista ul{margin:7px 0 0;padding-left:18px;}
+  .cuadre-lista li{font-size:0.83rem;line-height:1.6;font-variant-numeric:tabular-nums;}
+  .cuadre-lista h5{margin:0 0 6px;font-size:0.85rem;}
+  #cuadreOrfeo{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:0.86rem;}
   /* Lo ya confirmado, en la revisión previa: informativo, no alarma. */
   .preflight-confirmados{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;}
   .preflight-confirmados h4{margin:0 0 4px;font-size:0.9rem;color:var(--warn-text);}
@@ -1748,6 +1798,9 @@
     <div><span class="step">Memoria completa</span><h2 id="historialDialogTitle">Historial de radicados</h2></div>
     <div class="ws-stats" id="historialResumen"></div>
   </div>
+  <!-- El aviso de los que se archivaron sin entregarse. Va aquí arriba, antes de los filtros,
+       porque es lo único de esta pantalla que significa "hay trabajo que nunca se respondió". -->
+  <div class="historial-aviso" id="historialAvisoSinClas" hidden></div>
   <div class="ws-tools">
     <div class="search-box">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
@@ -2063,8 +2116,10 @@
       <div class="toolbar">
         <button class="btn primary big" id="downloadFinalBtn" type="button">Descargar Excel (.xlsx)</button>
         <button class="btn" id="copyFinalBtn" type="button">Copiar</button>
+        <button class="btn" id="abrirCuadreBtn" type="button">¿De dónde sale este número?</button>
         <span class="field-hint" id="finalDocCount"></span>
       </div>
+      <p class="aviso-inline" id="finalDocRepesAviso" hidden></p>
 
       <div class="hr"></div>
 
@@ -2112,6 +2167,42 @@
     próxima vez. Descarga el respaldo (.json) seguido y cárgalo al volver a entrar.
     </div></details>
   </footer>
+  </div>
+</dialog>
+
+<!-- CUADRE DEL CONTEO. Nace de un caso real: la masiva mostraba 219 radicados cuando en ORFEO los
+     aptos de la semana eran 176, y la app no explicaba la diferencia por ningún lado. Aquí el
+     número se descompone hasta que la suma cuadre, y se puede cruzar contra la lista de ORFEO para
+     ver, con nombre y apellido, qué sobra y qué falta. -->
+<dialog id="cuadreDialog" class="hoja" aria-labelledby="cuadreTitle">
+  <div class="hoja-head"><h2 id="cuadreTitle">Cuadre del conteo</h2>
+    <button class="btn ghost small" id="cuadreClose" type="button">Cerrar</button></div>
+  <div class="hoja-body">
+  <section class="panel">
+    <div class="panel-head">
+      <div><span class="step">Cuadre</span><h2>De dónde sale el número de la masiva</h2></div>
+    </div>
+    <div class="panel-body">
+      <p class="panel-desc">Tu lista de la semana se reparte en grupos que <b>no se cruzan entre sí</b>: cada radicado está en uno y solo uno. La app comprueba que la suma dé exactamente el total; si no diera, lo dice aquí en rojo.</p>
+      <div id="cuadreCuentas"></div>
+
+      <div class="hr"></div>
+      <h4 class="subhead">Por fecha de asignación</h4>
+      <p class="panel-desc">ORFEO muestra el lote de <b>esta</b> semana. Si en la app quedaron vivos radicados de semanas anteriores (porque la semana no se cerró), el número de la app es mayor — y esta es la cuenta que lo demuestra.</p>
+      <div id="cuadreSemanas"></div>
+
+      <div class="hr"></div>
+      <h4 class="subhead">Cuadre contra ORFEO</h4>
+      <p class="panel-desc">Pega aquí la lista de radicados de ORFEO — como venga: la columna sola, el bloque completo con tabulaciones, separada por comas. De cada línea se toma el número de radicado. La app te dice qué está en tu lista y no en ORFEO, y qué está en ORFEO y no en tu lista.</p>
+      <textarea id="cuadreOrfeo" rows="5" placeholder="202642110702441&#10;202642110702442&#10;…"></textarea>
+      <div class="toolbar">
+        <button class="btn primary" id="cuadreCruzar" type="button">Cruzar con mi lista</button>
+        <button class="btn" id="cuadreDescargar" type="button">Descargar el cruce (.xlsx)</button>
+        <button class="btn ghost small" id="cuadreLimpiar" type="button">Limpiar</button>
+      </div>
+      <div id="cuadreCruce"></div>
+    </div>
+  </section>
   </div>
 </dialog>
 
@@ -6165,9 +6256,17 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
     var porEstado = {masiva:0, agenda:0, devuelto:0, sinclasificar:0};
     var enPapelera = 0;
+    // De los que quedaron sin clasificar hay que separar DOS cosas muy distintas, y el número
+    // suelto las mezclaba: los que siguen en la lista de esta semana (todavía hay tiempo) y los
+    // que ya se archivaron al cerrar una semana (esos NUNCA se entregaron -- son los que la
+    // entidad acaba devolviendo). Se cuentan aparte porque son dos conversaciones distintas.
+    var sinClasCerrados = 0, sinClasEstaSemana = 0;
     todos.forEach(function(g){
       if(porEstado[g.estado.clave] !== undefined) porEstado[g.estado.clave]++;
       if(g.enPapelera) enPapelera++;
+      if(g.estado.clave === "sinclasificar" && !g.enPapelera){
+        if(g.enLista) sinClasEstaSemana++; else sinClasCerrados++;
+      }
     });
     var resumen = document.getElementById("historialResumen");
     if(resumen){
@@ -6186,6 +6285,19 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       (lista.length > mostrados.length ? " · se muestran " + mostrados.length + ", busca para acotar" : "");
     document.getElementById("historialNota").textContent =
       lista.length ? "Se descarga o copia todo lo filtrado (" + lista.length + "), no solo lo que se ve." : "";
+    // El aviso que de verdad importa en esta pantalla: cuántos se archivaron SIN ENTREGARSE.
+    var avisoSC = document.getElementById("historialAvisoSinClas");
+    if(avisoSC){
+      if(sinClasCerrados){
+        avisoSC.hidden = false;
+        avisoSC.innerHTML = "<b>" + sinClasCerrados + " radicado(s) se archivaron SIN CLASIFICAR al cerrar una semana.</b> " +
+          "Esos nunca salieron en ninguna masiva, así que nunca se respondieron. " +
+          (sinClasEstaSemana ? "(Otros " + sinClasEstaSemana + " están todavía en la lista de esta semana: a esos sí les queda tiempo.) " : "") +
+          "Pulsa <b>Sin clasificar</b> arriba para verlos todos, y <b>Descargar Excel</b> para tener la lista con fechas.";
+      } else {
+        avisoSC.hidden = true; avisoSC.innerHTML = "";
+      }
+    }
 
     if(!lista.length){
       panel.innerHTML = '<div class="ws-vacio">' +
@@ -7581,6 +7693,30 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
   function agendamientoList(){
     return state.records.filter(esAgendamiento);
+  }
+  // La lista que SE ENTREGA, sin el mismo radicado dos veces — mismo criterio que la masiva (ver
+  // finalDocReparto). La lista de trabajo de arriba sí los muestra todos: ahí hace falta ver las dos
+  // filas para poder arreglarlas.
+  function agendamientoListaParaEntregar(){
+    // Mismo desempate que la masiva: de cada radicado repetido sale la fila con más casillas
+    // llenas; si empatan, la que se capturó primero.
+    var porPeso = agendamientoList().slice().sort(function(a,b){
+      var d = pesoDeTrabajo(b) - pesoDeTrabajo(a);
+      if(d) return d;
+      return (a.order||0) - (b.order||0);
+    });
+    var vistos = {}, salida = [];
+    porPeso.forEach(function(r){
+      var k = radicadoClave(r);
+      if(!k){ salida.push(r); return; }
+      if(vistos[k]) return;
+      vistos[k] = 1;
+      salida.push(r);
+    });
+    return salida.sort(function(a,b){ return (a.order||0)-(b.order||0); });
+  }
+  function agendamientoRepetidos(){
+    return agendamientoList().length - agendamientoListaParaEntregar().length;
   }
   function agendamientoDuplicados(){
     // Solo compara contra lo que hay cargado ahora mismo en la app (no guarda histórico aparte).
@@ -9553,7 +9689,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       "que ya estaba. Antes de importar quedó un punto de restauración, por si quieres deshacerlo.", "warn");
   });
 
-  function finalDocEligible(){
+  // Los radicados que CUMPLEN el criterio de la masiva, todavía sin quitar repetidos. Es el
+  // conjunto bruto; finalDocEligible() es el que de verdad sale en el archivo.
+  function finalDocCandidatos(){
     // Mismo criterio que "completo" en toda la app: Formato lleno (igual que tu Excel original) --
     // EXCEPTO Formato = AGENDAMIENTO (vive aparte, en la ventana "Agendamientos") y Formato =
     // DEVUELTO (no se le entrega nada a la entidad de un radicado que se devolvió -- no aplica al
@@ -9564,6 +9702,69 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
              && formatoEsConocido(r.formato);
     }).sort(function(a,b){ return (a.order||0)-(b.order||0); });
   }
+
+  // EL MISMO RADICADO DOS VECES EN LA MASIVA — EL SEGUNDO AGUJERO DEL CONTEO.
+  //
+  // Un radicado es único por definición, y la app lo dice en su propia regla R12. Pero NINGUNA de
+  // las mezclas de datos de esta app descarta por radicado: fusionarConLoGuardado, absorberEntrantes,
+  // reconciliarCopias y restaurarPunto comparan por `id` interno, que es lo correcto para no perder
+  // trabajo. La consecuencia es que el MISMO radicado puede quedar en dos filas con dos `id`
+  // distintos -- por ejemplo si el bloque de ORFEO se pega en dos computadores (o en dos pestañas,
+  // o antes de que baje la lista de la nube): cada pegado crea sus propias filas, la mezcla las
+  // conserva todas porque sus `id` son distintos, y nada las volvía a juntar.
+  //
+  // Y la masiva las contaba y las entregaba las dos: el número de la pantalla quedaba por ENCIMA
+  // del real (el caso que apareció en el trabajo: 219 en la app contra 176 aptos en ORFEO) y el
+  // archivo entregado llevaba filas repetidas. Exactamente la clase de defecto por el que se
+  // devuelve una base.
+  //
+  // Desde aquí: a la masiva sale UNA sola fila por radicado, y la revisión previa dice en grande
+  // cuáles estaban repetidos, cuál sale y cuál se queda fuera, con un botón para abrir cada una.
+  // Nada se borra: las dos filas siguen en la lista de trabajo hasta que la persona decida.
+  function radicadoClave(r){ return String((r && r.radicado) || "").replace(/\s+/g, ""); }
+  // De un grupo con el mismo radicado, la fila que sale es la que tiene MÁS trabajo hecho (más
+  // casillas de la masiva llenas); si empatan, la que se capturó primero. Es determinista a
+  // propósito: el mismo conteo tiene que dar el mismo archivo, hoy y el lunes.
+  var CAMPOS_PESO_MASIVA = ["formato", "direccion", "comparendoCompleto", "res", "fechaRes",
+                            "nombre", "nombreF", "fechaRadicacion", "fechaAsignacion", "placa",
+                            "comparendo", "observaciones"];
+  function pesoDeTrabajo(r){
+    var n = 0;
+    CAMPOS_PESO_MASIVA.forEach(function(k){ if(String((r && r[k]) || "").trim()) n++; });
+    return n;
+  }
+  // {elegibles: los que salen, grupos: [{radicado, sale, fuera:[...]}]}
+  function finalDocReparto(){
+    var candidatos = finalDocCandidatos();
+    var porRadicado = {}, sinNumero = [];
+    candidatos.forEach(function(r){
+      var k = radicadoClave(r);
+      // Sin número de radicado no se puede comparar con nada: no se agrupa (dos filas en blanco no
+      // son "el mismo radicado"). Sale igual, y la revisión previa lo señala aparte.
+      if(!k){ sinNumero.push(r); return; }
+      (porRadicado[k] = porRadicado[k] || []).push(r);
+    });
+    var elegibles = sinNumero.slice(), grupos = [];
+    Object.keys(porRadicado).forEach(function(k){
+      var filas = porRadicado[k];
+      if(filas.length === 1){ elegibles.push(filas[0]); return; }
+      var ordenadas = filas.slice().sort(function(a,b){
+        var d = pesoDeTrabajo(b) - pesoDeTrabajo(a);
+        if(d) return d;
+        return (a.order||0) - (b.order||0);
+      });
+      elegibles.push(ordenadas[0]);
+      grupos.push({radicado: filas[0].radicado || k, sale: ordenadas[0], fuera: ordenadas.slice(1)});
+    });
+    elegibles.sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    grupos.sort(function(a,b){ return (a.sale.order||0)-(b.sale.order||0); });
+    return {elegibles: elegibles, grupos: grupos, sinNumero: sinNumero};
+  }
+  function finalDocEligible(){ return finalDocReparto().elegibles; }
+  // Los grupos de radicado repetido DENTRO de lo que iría a la masiva. Es más estrecho que el panel
+  // de "Datos repetidos" de Ajustes (que mira toda la lista, agendamientos incluidos): aquí solo
+  // interesa lo que afecta al archivo que se entrega.
+  function finalDocRepetidosEnMasiva(){ return finalDocReparto().grupos; }
   // Radicados que la persona dio por clasificados pero cuyo formato NO corresponde a ninguna
   // categoría conocida (por ejemplo "T" o "DEVU" a medio escribir). NO entran a la masiva -- no se
   // sabe si deberían -- pero tampoco pueden desaparecer en silencio: la revisión previa los saca
@@ -9573,6 +9774,163 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return isDone(r) && !paramEnLista("formatosFueraDeLaMasiva", normalizeFormatoInput(r.formato))
              && !formatoEsConocido(r.formato);
     }).sort(function(a,b){ return (a.order||0)-(b.order||0); });
+  }
+
+  // RADICADOS SIN CLASIFICAR — EL AGUJERO QUE COSTÓ UNA DEVOLUCIÓN.
+  //
+  // finalDocEligible() exige isDone(), e isDone() es "tiene formato". Un radicado al que nunca se
+  // le puso clasificación no es elegible... y tampoco lo veía finalDocFormatoDesconocido(), que
+  // también exige isDone(). Resultado: era INVISIBLE para la revisión previa. Se generaba la
+  // masiva, el radicado se quedaba fuera, la revisión ni siquiera se abría, y nadie se enteraba
+  // hasta que la entidad lo devolvía preguntando por qué no se le había respondido.
+  //
+  // Caso real, reproducido antes de escribir esto: tres radicados, uno sin clasificar; la masiva
+  // salió con dos y la pantalla no dijo una palabra.
+  //
+  // No bloquean la entrega -- generar una masiva parcial a media semana es legítimo. Lo que no
+  // puede pasar es entregarla SIN SABERLO.
+  function finalDocSinClasificar(){
+    return state.records.filter(function(r){ return !isDone(r); })
+      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+  }
+
+  // ---------- CUADRE DEL CONTEO (ver #cuadreDialog) ----------
+  // POR QUÉ EXISTE ESTO. El número de la masiva apareció en 219 cuando en ORFEO los radicados aptos
+  // de la semana eran 176, y la app no daba ni una pista de dónde salían los otros. Un número que
+  // no se puede explicar es tan grave como un número equivocado: delante de un memorando no se
+  // puede sostener "no sé por qué dice eso".
+  //
+  // Esta cuenta REPARTE la lista completa en grupos que no se solapan y comprueba la suma. Si no
+  // cuadra, lo dice: es la única forma de que el desglose sirva de prueba y no sea otro número más.
+  function cuadreDelConteo(){
+    var total = state.records.length;
+    var sinClasificar = finalDocSinClasificar();
+    var fuera = [], desconocido = [], candidatos = [];
+    state.records.forEach(function(r){
+      if(!isDone(r)) return;                         // ya contado en sinClasificar
+      if(paramEnLista("formatosFueraDeLaMasiva", normalizeFormatoInput(r.formato))){ fuera.push(r); return; }
+      if(!formatoEsConocido(r.formato)){ desconocido.push(r); return; }
+      candidatos.push(r);
+    });
+    // Los que quedan fuera a propósito, desglosados por su clasificación (DEVUELTO, AGENDAMIENTO,
+    // o lo que la persona haya configurado en Ajustes — no se dan por supuestos).
+    var porFormato = {};
+    fuera.forEach(function(r){
+      var f = normalizeFormatoInput(r.formato).toUpperCase() || "(sin formato)";
+      (porFormato[f] = porFormato[f] || []).push(r);
+    });
+    var reparto = finalDocReparto();
+    var repetidosFuera = 0;
+    reparto.grupos.forEach(function(g){ repetidosFuera += g.fuera.length; });
+    var suma = sinClasificar.length + fuera.length + desconocido.length + candidatos.length;
+    return {
+      total: total,
+      sinClasificar: sinClasificar,
+      fueraPorFormato: porFormato,
+      fuera: fuera,
+      desconocido: desconocido,
+      candidatos: candidatos,
+      entran: reparto.elegibles,
+      gruposRepetidos: reparto.grupos,
+      repetidosFuera: repetidosFuera,
+      sinNumero: reparto.sinNumero,
+      suma: suma,
+      cuadra: suma === total
+    };
+  }
+
+  // El lunes y el domingo de la semana en que cae una fecha. Lunes a domingo, como se cuenta el
+  // trabajo aquí: el lote de asignaciones de la semana.
+  function lunesDe(d){
+    var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    var dow = x.getDay();                 // 0 domingo … 6 sábado
+    x.setDate(x.getDate() - ((dow + 6) % 7));
+    return x;
+  }
+  function ddmm(d){ return pad(d.getDate()) + "-" + pad(d.getMonth()+1) + "-" + d.getFullYear(); }
+  // Reparte una lista de radicados según su FECHA DE ASIGNACIÓN: los de esta semana, los de semanas
+  // anteriores y los que no tienen fecha legible. Es la explicación más frecuente de que el número
+  // de la app sea mayor que el de ORFEO: ORFEO muestra el lote de ESTA semana, y en la app pueden
+  // seguir vivos radicados de semanas que no se cerraron.
+  function repartoPorSemanaDeAsignacion(lista){
+    var lunes = lunesDe(new Date());
+    var domingo = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate()+6);
+    var estaSemana = [], anteriores = [], posteriores = [], sinFecha = [];
+    (lista || []).forEach(function(r){
+      var d = parseDMY(normalizeDate(r.fechaAsignacion));
+      if(!d){ sinFecha.push(r); return; }
+      if(d < lunes) anteriores.push(r);
+      else if(d > domingo) posteriores.push(r);
+      else estaSemana.push(r);
+    });
+    return {lunes: lunes, domingo: domingo, estaSemana: estaSemana,
+            anteriores: anteriores, posteriores: posteriores, sinFecha: sinFecha};
+  }
+
+  // La clave con la que se CRUZAN las dos listas. Es más tolerante que radicadoClave (que solo
+  // quita espacios, para no cambiar lo que la app considera "radicado repetido"): aquí se comparan
+  // dos sistemas distintos, y un punto o un guion de más no puede hacer que un radicado se declare
+  // "ausente". Un falso "te falta este" delante de un memorando es peor que no cruzar nada.
+  function claveCruce(v){ return String(v||"").replace(/[\s.\-_/]/g, "").toUpperCase(); }
+  // Lee una lista de radicados pegada de ORFEO. Acepta lo que sea: una columna sola, el bloque
+  // completo con tabulaciones, separado por comas o por punto y coma.
+  //
+  // OJO CON LO QUE ESTO NO PUEDE HACER: la primera versión buscaba "el primer número largo" de cada
+  // línea, y con radicados que llevan letras (2026ER001234) no encontraba ninguno. La lista salía
+  // VACÍA y el cruce concluía que los 206 radicados de la app sobraban. Un cruce que falla así es
+  // peor que no tenerlo. Ahora se toma el primer CAMPO de la línea, y lo que no se reconozca se
+  // cuenta y se dice.
+  function radicadosPegados(texto){
+    var vistos = {}, lista = [], repetidosEnElPegado = 0, noReconocidas = [];
+    String(texto || "").split(/\r\n|\r|\n/).forEach(function(linea, i){
+      var l = linea.trim();
+      if(!l) return;
+      // Primer campo: tabulación, punto y coma, coma, barra vertical o dos espacios seguidos.
+      // Si la línea no trae separador, el primer trozo sin espacios.
+      var primero = l.split(/\t|;|\||,|\s{2,}/)[0].trim();
+      if(!primero) primero = l.split(/\s+/)[0];
+      if(/^radicado/i.test(primero)) return;           // encabezado
+      var k = claveCruce(primero);
+      // Un radicado siempre trae varios dígitos. Lo que no los tenga no es un radicado: se cuenta
+      // aparte en vez de colarse en la lista o desaparecer sin más.
+      if((k.match(/\d/g) || []).length < 4){ noReconocidas.push({linea: i+1, texto: l.slice(0,60)}); return; }
+      if(vistos[k]){ repetidosEnElPegado++; return; }
+      vistos[k] = true;
+      lista.push(primero.replace(/\s+/g, ""));         // se guarda como venía, para poder mostrarlo
+    });
+    return {lista: lista, repetidos: repetidosEnElPegado, noReconocidas: noReconocidas};
+  }
+
+  // EL CRUCE. Compara la lista de ORFEO contra la de la app y dice exactamente qué sobra y qué
+  // falta, con nombre propio y clasificación de cada uno. Es lo que se puede imprimir y adjuntar.
+  function cruzarConOrfeo(texto){
+    var pegado = radicadosPegados(texto);
+    var enOrfeo = {};
+    pegado.lista.forEach(function(k){ enOrfeo[claveCruce(k)] = true; });
+    var mios = {};
+    state.records.forEach(function(r){
+      var k = claveCruce(r.radicado);
+      if(!k) return;
+      (mios[k] = mios[k] || []).push(r);
+    });
+    var soloEnLaApp = [], coinciden = [], soloEnOrfeo = [];
+    Object.keys(mios).forEach(function(k){
+      if(enOrfeo[k]) coinciden.push(mios[k][0]);
+      else soloEnLaApp.push(mios[k][0]);
+    });
+    pegado.lista.forEach(function(k){ if(!mios[claveCruce(k)]) soloEnOrfeo.push(k); });
+    var orden = function(a,b){ return (a.order||0)-(b.order||0); };
+    soloEnLaApp.sort(orden); coinciden.sort(orden);
+    return {
+      pegados: pegado.lista.length,
+      repetidosEnElPegado: pegado.repetidos,
+      noReconocidas: pegado.noReconocidas,
+      enLaApp: Object.keys(mios).length,
+      sinNumeroEnLaApp: state.records.filter(function(r){ return !claveCruce(r.radicado); }).length,
+      coinciden: coinciden,
+      soloEnLaApp: soloEnLaApp,
+      soloEnOrfeo: soloEnOrfeo
+    };
   }
 
   // ---------- REVISIÓN PREVIA del documento final (ver #preflightDialog) ----------
@@ -9907,7 +10265,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     return porId;
   }
   function auditarDocumentoFinal(){
-    var elegibles = finalDocEligible();
+    var reparto = finalDocReparto();
+    var elegibles = reparto.elegibles;
     var repetidosPorId = indiceDeRepetidos();
     var problemas = [];
     // PRIMERO, los que se quedan FUERA por tener el formato a medio escribir. Son los más graves de
@@ -9935,7 +10294,13 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       }
     });
     return {total: elegibles.length, problemas: problemas,
-            confirmadosAntes: confirmadosAntes, confirmados: confirmados};
+            confirmadosAntes: confirmadosAntes, confirmados: confirmados,
+            sinClasificar: finalDocSinClasificar(),
+            // Radicado repetido entre filas que iban a la masiva. NO pasa por anomaliasConfirmadas
+            // ni por "no volver a preguntar": que el archivo entregado lleve dos veces el mismo
+            // radicado no es una anomalía confirmable, es un defecto de la base. Siempre se avisa.
+            repetidos: reparto.grupos,
+            sinNumero: reparto.sinNumero};
   }
 
   // Muestra la revisión y solo continúa (onProceed) si la persona lo confirma. Si no hay ningún
@@ -9985,21 +10350,85 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // la base llevara dentro veinte anomalías que se confirmaron durante la semana. Ese número se
     // calculaba y no se mostraba en ninguna parte. Ahora, si la base lleva anomalías confirmadas,
     // la revisión se abre igual para decirlo: se firma sabiendo qué se firma.
-    if(!informe.problemas.length && !informe.confirmadosAntes){ registrarEntrega(false); onProceed(); return; }
+    var nSinClas = (informe.sinClasificar || []).length;
+    var nRepes = (informe.repetidos || []).length;
+    var nSinNum = (informe.sinNumero || []).length;
+    if(!informe.problemas.length && !informe.confirmadosAntes && !nSinClas && !nRepes && !nSinNum){ registrarEntrega(false); onProceed(); return; }
     var graves = informe.problemas.filter(function(p){ return p.grave; }).length;
+    var notaSinClas = nSinClas
+      ? " ATENCIÓN: " + nSinClas + " radicado(s) de tu lista NO VAN A SALIR en esta masiva porque todavía no tienen clasificación. Van listados abajo."
+      : "";
+    var notaRepes = nRepes
+      ? " OJO CON EL NÚMERO: " + nRepes + " radicado(s) están DOS O MÁS VECES en tu lista. Al archivo sale UNA sola fila de cada uno, así que el conteo baja: están listados abajo."
+      : "";
+    var notaSinNum = nSinNum
+      ? " Además, " + nSinNum + " fila(s) van al archivo SIN NÚMERO DE RADICADO."
+      : "";
     var notaConfirmados = informe.confirmadosAntes
       ? " Además, esta base lleva " + informe.confirmadosAntes + " anomalía(s) que ya confirmaste durante la semana: van listadas abajo y SÍ salen en el archivo."
       : "";
     document.getElementById("preflightResumen").textContent = informe.problemas.length
       ? ("De " + informe.total + " radicado(s) que entrarían al documento final, " + informe.problemas.length +
          " tiene(n) algo por revisar" + (graves ? " — " + graves + " con un problema GRAVE que saldría mal en la base que entregas." : ".") +
-         " Revísalos antes de enviar; puedes cancelar, corregirlos en el Paso 2, y volver a generar." + notaConfirmados)
+         " Revísalos antes de enviar; puedes cancelar, corregirlos en el Paso 2, y volver a generar." + notaRepes + notaSinNum + notaSinClas + notaConfirmados)
       : ((informe.total === 1 ? "El radicado que entra al documento final está en regla."
-                              : "Los " + informe.total + " radicados que entran al documento final están en regla.") + notaConfirmados);
+                              : "Los " + informe.total + " radicados que entran al documento final están en regla.") + notaRepes + notaSinNum + notaSinClas + notaConfirmados);
     // Cada fila trae su botón para IR A CORREGIRLA. Antes la revisión decía qué estaba mal pero
     // dejaba a la persona buscando el radicado a mano en una lista de doscientos: "no deja subsanar
     // cada radicado". Ahora se abre en el Paso 2, con el cursor puesto en la casilla del problema.
-    document.getElementById("preflightLista").innerHTML = informe.problemas.map(function(p){
+    document.getElementById("preflightLista").innerHTML =
+    // DE PRIMERO, el radicado repetido: es lo que descuadra el conteo y lo que mete una fila
+    // duplicada en la base que se entrega. Se dice cuál sale y cuál se queda fuera, con el botón
+    // para abrir cada una, porque la app no puede saber cuál de las dos es la buena.
+    (nRepes
+      ? '<div class="preflight-repes"><h4>' + nRepes + ' radicado(s) están repetidos en tu lista</h4>' +
+        '<p>El mismo número de radicado aparece en dos o más filas. <b>Al archivo sale UNA sola fila de ' +
+        'cada uno</b> (la que tiene más casillas llenas), por eso el conteo de la masiva es menor que el ' +
+        'número de filas de tu lista. Revisa cada pareja: lo normal es que una de las dos sea un pegado ' +
+        'repetido que hay que borrar.</p>' +
+        informe.repetidos.slice(0, 40).map(function(g){
+          return '<div class="pfc-item"><span class="pf-rad">' + escapeHtml(g.radicado) + '</span> ' +
+            '<span class="pf-nombre">' + escapeHtml(g.sale.nombreF || g.sale.nombre || "(sin nombre)") + '</span>' +
+            '<ul><li><b>SALE</b> la fila con ' + escapeHtml(g.sale.formato || "(sin formato)") + ' — ' +
+              pesoDeTrabajo(g.sale) + ' casilla(s) llena(s) ' +
+              '<button class="btn small ghost" data-preflight-corregir="' + escapeHtml(g.sale.id) + '"' +
+              ' data-preflight-campo="cc_formato" type="button">Abrir la que sale</button></li>' +
+            g.fuera.map(function(r){
+              return '<li>queda FUERA la fila con ' + escapeHtml(r.formato || "(sin formato)") + ' — ' +
+                pesoDeTrabajo(r) + ' casilla(s) llena(s) ' +
+                '<button class="btn small" data-preflight-corregir="' + escapeHtml(r.id) + '"' +
+                ' data-preflight-campo="cc_formato" type="button">Abrir la que queda fuera</button></li>';
+            }).join("") + '</ul></div>';
+        }).join("") +
+        (nRepes > 40 ? '<p>… y ' + (nRepes - 40) + ' más. Los ves todos en Ajustes → Datos repetidos.</p>' : '') +
+        '</div>'
+      : "") +
+    (nSinNum
+      ? '<div class="preflight-repes"><h4>' + nSinNum + ' fila(s) sin número de radicado</h4>' +
+        '<p>Están clasificadas y van a salir en el archivo, pero con la casilla del radicado vacía. ' +
+        'En la base entregada eso es una fila que no se puede identificar.</p>' +
+        informe.sinNumero.slice(0, 20).map(function(r){
+          return '<div class="pfc-item"><span class="pf-nombre">' +
+            escapeHtml(r.nombreF || r.nombre || "(sin nombre)") + ' · ' + escapeHtml(r.formato||"") + '</span> ' +
+            '<button class="btn small" data-preflight-corregir="' + escapeHtml(r.id) + '"' +
+            ' data-preflight-campo="cc_formato" type="button">Abrir esta fila</button></div>';
+        }).join("") + '</div>'
+      : "") +
+    // Después, radicados que la entidad asignó y que, si se entrega así, no se responden.
+    (nSinClas
+      ? '<div class="preflight-sinclas"><h4>' + nSinClas + ' radicado(s) SIN CLASIFICAR — no salen en esta masiva</h4>' +
+        '<p>Están en tu lista pero nunca se les puso clasificación, así que la masiva se genera sin ellos. ' +
+        'Si la semana se cierra así, quedan archivados sin haberse entregado nunca.</p>' +
+        informe.sinClasificar.slice(0, 40).map(function(r){
+          return '<div class="pfc-item"><span class="pf-rad">' + escapeHtml(r.radicado) + '</span> ' +
+            '<span class="pf-nombre">' + escapeHtml(r.nombreF || r.nombre || "(sin nombre)") + '</span> ' +
+            '<button class="btn small" data-preflight-corregir="' + escapeHtml(r.id) + '"' +
+            ' data-preflight-campo="cc_formato" type="button">Clasificarlo ahora</button></div>';
+        }).join("") +
+        (nSinClas > 40 ? '<p>… y ' + (nSinClas - 40) + ' más. Los ves todos en el Paso 2, en la pestaña “Pendientes”.</p>' : '') +
+        '</div>'
+      : "") +
+    informe.problemas.map(function(p){
       return '<div class="preflight-item' + (p.grave ? ' grave' : '') + '">' +
         '<div class="pf-head"><span class="pf-rad">' + escapeHtml(p.rec.radicado) + '</span>' +
         '<span class="pf-nombre">' + escapeHtml(p.rec.nombreF || p.rec.nombre || "(sin nombre)") + ' · ' + escapeHtml(p.rec.formato||"") + '</span></div>' +
@@ -10039,6 +10468,29 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
                             : "REVISIÓN PREVIA DEL DOCUMENTO FINAL — ") + new Date().toLocaleString("es-CO"),
       (esAgenda ? "Agendamientos que entrarían: " : "Radicados que entrarían: ")
         + informe.total + " · con hallazgos: " + informe.problemas.length, ""];
+    // El cuadre del conteo va en la constancia: es la explicación de por qué el número es el que es.
+    if(!esAgenda){
+      var nRep = (informe.repetidos || []).length;
+      if(nRep){
+        lineas.push("RADICADOS REPETIDOS EN LA LISTA (" + nRep + ") — del archivo sale una sola fila de cada uno:");
+        informe.repetidos.forEach(function(g){
+          lineas.push("    • " + g.radicado + " — " + (g.fuera.length + 1) + " filas; sale la de " +
+                      (g.sale.formato || "(sin formato)"));
+        });
+        lineas.push("");
+      }
+      if((informe.sinNumero || []).length){
+        lineas.push("FILAS SIN NÚMERO DE RADICADO QUE SALEN EN EL ARCHIVO: " + informe.sinNumero.length, "");
+      }
+      if((informe.sinClasificar || []).length){
+        lineas.push("RADICADOS SIN CLASIFICAR QUE NO SALEN EN ESTA MASIVA (" + informe.sinClasificar.length + "):");
+        informe.sinClasificar.forEach(function(r){
+          lineas.push("    • " + r.radicado + " — " + (r.nombreF || r.nombre || "(sin nombre)") +
+                      " — asignado " + (r.fechaAsignacion || "(sin fecha)"));
+        });
+        lineas.push("");
+      }
+    }
     informe.problemas.forEach(function(p){
       lineas.push((p.grave ? "[GRAVE] " : "[AVISO] ") + p.rec.radicado + " — " + (p.rec.nombreF || p.rec.nombre || "(sin nombre)") + " — " + (p.rec.formato||""));
       p.hallazgos.forEach(function(h){ lineas.push("    " + (h.grave ? "• GRAVE: " : "• ") + h.texto); });
@@ -10230,9 +10682,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     ].map(celdaLimpia);
   }
   function refreshAgendaDocCount(){
-    var n = agendamientoList().length;
+    var n = agendamientoListaParaEntregar().length;
+    var repes = agendamientoRepetidos();
     document.getElementById("agendaDocCount").textContent = n
-      ? n + " radicado" + (n===1?"":"s") + " de AGENDAMIENTO listo" + (n===1?"":"s") + " para exportar"
+      ? n + " radicado" + (n===1?"":"s") + " de AGENDAMIENTO listo" + (n===1?"":"s") + " para exportar" +
+        (repes ? " · " + repes + " fila(s) con radicado repetido no salen" : "")
       : "Aún no hay radicados con Formato = AGENDAMIENTO";
   }
   // El botón principal genera la PLANTILLA OFICIAL, con los títulos exactos de la entidad: es lo
@@ -10319,21 +10773,27 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     pendingPreflightEsAgenda = true; // no es la masiva: no lleva constancia de entrega de la masiva
     document.getElementById("preflightDialog").showModal();
   }
+  // La plantilla que se entrega sale SIN radicados repetidos, igual que la masiva, y lo dice en el
+  // aviso para que el número no sorprenda a nadie.
+  function avisoRepesAgenda(n){
+    var repes = agendamientoRepetidos();
+    return repes ? " (se descartaron " + repes + " fila(s) con un radicado repetido)" : "";
+  }
   document.getElementById("downloadAgendaBtn").addEventListener("click", function(){
-    var list = agendamientoList();
+    var list = agendamientoListaParaEntregar();
     if(!list.length){ toast("Aún no hay radicados con Formato = AGENDAMIENTO para exportar"); return; }
     conRevisionAgenda(function(){
       var filename = "AGENDAMIENTOS_" + userSlug() + "_" + new Date().toISOString().slice(0,10);
-      downloadExcel(filename, PLANTILLA_AGENDA_HEADERS, agendamientoList().map(recordToPlantillaAgendaRow),
-        "Plantilla de Agendamientos descargada — " + list.length + " radicados");
+      downloadExcel(filename, PLANTILLA_AGENDA_HEADERS, list.map(recordToPlantillaAgendaRow),
+        "Plantilla de Agendamientos descargada — " + list.length + " radicados" + avisoRepesAgenda());
     });
   });
   document.getElementById("copyAgendaBtn").addEventListener("click", function(){
-    var list = agendamientoList();
+    var list = agendamientoListaParaEntregar();
     if(!list.length){ toast("Aún no hay radicados con Formato = AGENDAMIENTO para exportar"); return; }
     conRevisionAgenda(function(){
-      var text = rowsToTSV(PLANTILLA_AGENDA_HEADERS, agendamientoList().map(recordToPlantillaAgendaRow));
-      copyOrShowManually(text, list.length + " filas copiadas — pégalas bajo los títulos de la plantilla",
+      var text = rowsToTSV(PLANTILLA_AGENDA_HEADERS, list.map(recordToPlantillaAgendaRow));
+      copyOrShowManually(text, list.length + " filas copiadas — pégalas bajo los títulos de la plantilla" + avisoRepesAgenda(),
         "Plantilla de Agendamientos (" + list.length + " radicados)");
     });
   });
@@ -10380,19 +10840,36 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   });
 
   function refreshFinalDocCount(){
-    var n = finalDocEligible().length;
+    var reparto = finalDocReparto();
+    var n = reparto.elegibles.length;
+    var repesFuera = 0;
+    reparto.grupos.forEach(function(g){ repesFuera += g.fuera.length; });
     // La misma cifra, también en el botón del encabezado: dice de un vistazo cuántos van a salir.
     var badge = document.getElementById("masivaListaBadge");
     if(badge){
       badge.textContent = String(n);
       var btnMas = document.getElementById("descargarMasivaBtn");
       if(btnMas) btnMas.title = n
-        ? "Descargar la masiva final (.xlsx) — " + n + " radicados clasificados entrarían"
+        ? "Descargar la masiva final (.xlsx) — " + n + " radicados clasificados entrarían" +
+          (repesFuera ? " (ya sin " + repesFuera + " fila(s) repetida(s))" : "")
         : "Todavía no hay radicados clasificados para la masiva";
     }
+    // El número NUNCA va solo: al lado dice de dónde sale. Un conteo que no se puede explicar es lo
+    // que puso a la usuaria delante de un memorando sin saber qué contestar.
     document.getElementById("finalDocCount").textContent = n
-      ? n + " radicado" + (n===1?"":"s") + " clasificado" + (n===1?"":"s") + " listo" + (n===1?"":"s") + " para el documento final"
+      ? n + " radicado" + (n===1?"":"s") + " clasificado" + (n===1?"":"s") + " listo" + (n===1?"":"s") +
+        " para el documento final · de " + state.records.length + " en tu lista" +
+        (repesFuera ? " · " + repesFuera + " fila(s) repetida(s) descartada(s)" : "")
       : "Aún no hay radicados clasificados (Formato lleno) para generar el documento final";
+    var avisoRepes = document.getElementById("finalDocRepesAviso");
+    if(avisoRepes){
+      avisoRepes.hidden = !repesFuera;
+      if(repesFuera){
+        avisoRepes.textContent = "⚠ El mismo radicado está en dos o más filas de tu lista (" +
+          reparto.grupos.length + " caso(s), " + repesFuera + " fila(s) de sobra). Al archivo sale una " +
+          "sola fila de cada uno. Mira el cuadre para verlos uno por uno.";
+      }
+    }
     // Y la cifra de lo que se cerraría, en el botón de cerrar la semana: cuántos radicados se
     // van a archivar. Que el número esté a la vista es parte de que el botón se pueda encontrar.
     var badgeCierre = document.getElementById("cerrarSemanaBadge");
@@ -10405,6 +10882,187 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         : "La lista ya está vacía: no hay semana que cerrar";
     }
   }
+
+  // ---------- CUADRE DEL CONTEO: la pantalla (ver #cuadreDialog y cuadreDelConteo) ----------
+  function cuadreFila(etiqueta, n, opciones){
+    var o = opciones || {};
+    return '<tr class="' + (o.rama ? "cuadre-rama " : "") + (o.ojo ? "cuadre-ojo " : "") +
+      (o.total ? "cuadre-total" : "") + '">' +
+      '<td>' + escapeHtml(etiqueta) +
+        (o.que ? '<span class="cuadre-que">' + escapeHtml(o.que) + '</span>' : '') + '</td>' +
+      '<td class="n">' + n + '</td></tr>';
+  }
+  // Una lista de radicados, plegable, con fecha de asignación y clasificación. Plegada por defecto:
+  // la cuenta se lee de un golpe y el detalle está a un clic, no encima.
+  function cuadreListaHtml(titulo, lista, limite, abierta) {
+    if(!lista || !lista.length) return "";
+    var tope = limite || 60;
+    return '<details class="cuadre-lista"' + (abierta ? " open" : "") +
+      '><summary><b>' + escapeHtml(titulo) + '</b> (' + lista.length + ')</summary>' +
+      '<ul>' + lista.slice(0, tope).map(function(r){
+        if(typeof r === "string") return '<li>' + escapeHtml(r) + '</li>';
+        return '<li>' + escapeHtml(r.radicado || "(sin radicado)") + ' — ' +
+          escapeHtml(r.nombreF || r.nombre || "(sin nombre)") +
+          (r.formato ? ' · ' + escapeHtml(r.formato) : '') +
+          (r.fechaAsignacion ? ' · asignado ' + escapeHtml(r.fechaAsignacion) : ' · sin fecha de asignación') +
+          '</li>';
+      }).join("") + '</ul>' +
+      (lista.length > tope ? '<p class="hint">… y ' + (lista.length - tope) + ' más. Están todos en el Excel del cruce.</p>' : '') +
+      '</details>';
+  }
+  function renderCuadre(){
+    var c = cuadreDelConteo();
+    var filas = [];
+    filas.push(cuadreFila("Radicados en tu lista de esta semana", c.total, {total:true}));
+    filas.push(cuadreFila("Entran a la masiva", c.entran.length,
+      {rama:true, que:"clasificados, con formato conocido, uno por radicado"}));
+    if(c.repetidosFuera){
+      filas.push(cuadreFila("Filas repetidas que NO se repiten en el archivo", c.repetidosFuera,
+        {rama:true, ojo:true, que: c.gruposRepetidos.length + " radicado(s) están en dos o más filas; al archivo sale una sola de cada uno"}));
+    }
+    filas.push(cuadreFila("Sin clasificar — no salen en la masiva", c.sinClasificar.length,
+      {rama:true, ojo: !!c.sinClasificar.length, que:"están en tu lista pero no tienen formato puesto"}));
+    Object.keys(c.fueraPorFormato).sort().forEach(function(f){
+      filas.push(cuadreFila(f + " — fuera de la masiva a propósito", c.fueraPorFormato[f].length,
+        {rama:true, que: f === "AGENDAMIENTO" ? "van en su propio archivo, en la ventana Agendamientos"
+                                              : "configurado así en Ajustes → reglas de la masiva"}));
+    });
+    if(c.desconocido.length){
+      filas.push(cuadreFila("Formato a medio escribir — no salen", c.desconocido.length,
+        {rama:true, ojo:true, que:"el formato no corresponde a ninguna de tus categorías"}));
+    }
+    if(c.sinNumero.length){
+      filas.push(cuadreFila("Salen en el archivo SIN número de radicado", c.sinNumero.length,
+        {rama:true, ojo:true, que:"filas clasificadas con la casilla del radicado vacía"}));
+    }
+    var html = '<table class="cuadre-tabla"><tbody>' + filas.join("") + '</tbody></table>';
+    html += c.cuadra
+      ? '<p class="cuadre-check bien">✓ La cuenta cuadra: ' + c.entran.length + ' que entran + ' +
+        c.repetidosFuera + ' repetidas + ' + c.sinClasificar.length + ' sin clasificar + ' +
+        c.fuera.length + ' fuera a propósito + ' + c.desconocido.length +
+        ' con formato a medio escribir = ' + c.total + ' radicados en la lista.</p>'
+      : '<p class="cuadre-check mal">✗ LA CUENTA NO CUADRA: los grupos suman ' + c.suma +
+        ' y en la lista hay ' + c.total + '. No entregues sin avisar de esto — es un fallo de la app, ' +
+        'no un dato tuyo.</p>';
+    html += cuadreListaHtml("Las filas repetidas que quedan fuera del archivo",
+      c.gruposRepetidos.reduce(function(acc,g){ return acc.concat(g.fuera); }, []));
+    html += cuadreListaHtml("Los que no tienen clasificación", c.sinClasificar);
+    html += cuadreListaHtml("Los que tienen el formato a medio escribir", c.desconocido);
+    document.getElementById("cuadreCuentas").innerHTML = html;
+
+    // --- por fecha de asignación ---
+    var rp = repartoPorSemanaDeAsignacion(c.entran);
+    var f2 = [];
+    f2.push(cuadreFila("De los " + c.entran.length + " que entran a la masiva", c.entran.length, {total:true}));
+    f2.push(cuadreFila("Asignados esta semana (" + ddmm(rp.lunes) + " a " + ddmm(rp.domingo) + ")",
+      rp.estaSemana.length, {rama:true}));
+    f2.push(cuadreFila("Asignados en semanas ANTERIORES", rp.anteriores.length,
+      {rama:true, ojo: !!rp.anteriores.length,
+       que:"estos no están en el lote de ORFEO de esta semana — son los que hacen que el número de la app sea mayor"}));
+    if(rp.posteriores.length){
+      f2.push(cuadreFila("Con fecha de asignación POSTERIOR a esta semana", rp.posteriores.length,
+        {rama:true, ojo:true, que:"una fecha en el futuro casi siempre es un dato mal escrito"}));
+    }
+    f2.push(cuadreFila("Sin fecha de asignación legible", rp.sinFecha.length,
+      {rama:true, ojo: !!rp.sinFecha.length, que:"no se puede saber a qué semana pertenecen"}));
+    var h2 = '<table class="cuadre-tabla"><tbody>' + f2.join("") + '</tbody></table>';
+    h2 += cuadreListaHtml("Los asignados en semanas anteriores", rp.anteriores);
+    h2 += cuadreListaHtml("Los que no tienen fecha de asignación legible", rp.sinFecha);
+    document.getElementById("cuadreSemanas").innerHTML = h2;
+  }
+  var ultimoCruce = null;
+  function renderCruceOrfeo(){
+    var texto = document.getElementById("cuadreOrfeo").value;
+    var cont = document.getElementById("cuadreCruce");
+    if(!texto.trim()){
+      ultimoCruce = null;
+      cont.innerHTML = '<p class="hint">Pega la lista de ORFEO arriba y pulsa “Cruzar con mi lista”.</p>';
+      return;
+    }
+    var x = cruzarConOrfeo(texto);
+    ultimoCruce = x;
+    // SI NO SE ENTENDIÓ LO PEGADO, SE DICE Y NO SE CRUZA NADA. Un cruce sobre una lista vacía
+    // declararía que TODA tu lista sobra, que es rotundamente falso. Antes que un número mentiroso,
+    // ninguno.
+    if(!x.pegados){
+      ultimoCruce = null;
+      cont.innerHTML = '<p class="cuadre-check mal">✗ No se reconoció ningún radicado en lo que pegaste (' +
+        (x.noReconocidas.length ? x.noReconocidas.length + ' línea(s) revisadas' : '0 líneas') +
+        '). NO se cruzó nada: revisa que la primera columna de cada línea sea el número de radicado.</p>' +
+        (x.noReconocidas.length
+          ? '<div class="cuadre-lista"><h5>Lo que se leyó en cada línea</h5><ul>' +
+            x.noReconocidas.slice(0, 12).map(function(n){
+              return '<li>línea ' + n.linea + ': ' + escapeHtml(n.texto) + '</li>';
+            }).join("") + '</ul></div>'
+          : '');
+      return;
+    }
+    var filas = [];
+    filas.push(cuadreFila("Radicados que pegaste de ORFEO", x.pegados, {total:true}));
+    if(x.repetidosEnElPegado){
+      filas.push(cuadreFila("venían repetidos en lo pegado (se cuentan una vez)", x.repetidosEnElPegado, {rama:true}));
+    }
+    if(x.noReconocidas.length){
+      filas.push(cuadreFila("líneas que no se reconocieron como radicado", x.noReconocidas.length,
+        {rama:true, ojo:true, que:"no se cruzaron: revísalas para que el cruce esté completo"}));
+    }
+    filas.push(cuadreFila("Radicados distintos en tu lista de la app", x.enLaApp, {total:true}));
+    filas.push(cuadreFila("Están en ORFEO y en tu lista", x.coinciden.length, {rama:true}));
+    filas.push(cuadreFila("Están en tu lista y NO en ORFEO", x.soloEnLaApp.length,
+      {rama:true, ojo: !!x.soloEnLaApp.length, que:"son los que sobran en la app: de otra semana, pegados dos veces, o mal copiados"}));
+    filas.push(cuadreFila("Están en ORFEO y NO en tu lista", x.soloEnOrfeo.length,
+      {rama:true, ojo: !!x.soloEnOrfeo.length, que:"estos te faltan por trabajar: si entregas así, no se responden"}));
+    if(x.sinNumeroEnLaApp){
+      filas.push(cuadreFila("Filas de tu lista sin número de radicado", x.sinNumeroEnLaApp,
+        {rama:true, ojo:true, que:"no se pueden cruzar con nada"}));
+    }
+    var html = '<table class="cuadre-tabla"><tbody>' + filas.join("") + '</tbody></table>';
+    // Estas dos van ABIERTAS: son la respuesta a la pregunta que trajo a la usuaria aquí.
+    html += cuadreListaHtml("En tu lista y NO en ORFEO", x.soloEnLaApp, 200, true);
+    html += cuadreListaHtml("En ORFEO y NO en tu lista", x.soloEnOrfeo, 200, true);
+    cont.innerHTML = html;
+  }
+  var CRUCE_HEADERS = ["RADICADO", "DÓNDE ESTÁ", "DESTINATARIO", "FORMATO",
+                       "FECHA DE ASIGNACIÓN", "¿ENTRA A LA MASIVA?", "OBSERVACIÓN"];
+  function cruceComoFilas(x){
+    var entranIds = {};
+    finalDocEligible().forEach(function(r){ entranIds[r.id] = 1; });
+    var filas = [];
+    var fila = function(r, donde, obs){
+      return [r.radicado || "", donde, r.nombreF || r.nombre || "", r.formato || "",
+              r.fechaAsignacion || "", entranIds[r.id] ? "SÍ" : "NO", obs];
+    };
+    x.soloEnLaApp.forEach(function(r){
+      filas.push(fila(r, "SOLO EN LA APP", "No aparece en la lista de ORFEO que se pegó"));
+    });
+    x.soloEnOrfeo.forEach(function(k){
+      filas.push([k, "SOLO EN ORFEO", "", "", "", "NO", "Asignado en ORFEO y no está en la lista de la app"]);
+    });
+    x.coinciden.forEach(function(r){ filas.push(fila(r, "EN LAS DOS", "")); });
+    return filas;
+  }
+  document.getElementById("abrirCuadreBtn").addEventListener("click", function(){
+    renderCuadre();
+    renderCruceOrfeo();
+    document.getElementById("cuadreDialog").showModal();
+  });
+  document.getElementById("cuadreClose").addEventListener("click", function(){
+    document.getElementById("cuadreDialog").close();
+  });
+  document.getElementById("cuadreCruzar").addEventListener("click", renderCruceOrfeo);
+  document.getElementById("cuadreLimpiar").addEventListener("click", function(){
+    document.getElementById("cuadreOrfeo").value = "";
+    renderCruceOrfeo();
+  });
+  document.getElementById("cuadreDescargar").addEventListener("click", function(){
+    if(!ultimoCruce){ toast("Primero pega la lista de ORFEO y pulsa “Cruzar con mi lista”"); return; }
+    var filas = cruceComoFilas(ultimoCruce);
+    if(!filas.length){ toast("El cruce no arrojó ninguna fila"); return; }
+    downloadExcel("CUADRE_ORFEO_" + userSlug() + "_" + new Date().toISOString().slice(0,10),
+      CRUCE_HEADERS, filas,
+      "Cruce descargado — " + ultimoCruce.soloEnLaApp.length + " solo en la app, " +
+      ultimoCruce.soloEnOrfeo.length + " solo en ORFEO, " + ultimoCruce.coinciden.length + " en las dos");
+  });
 
   // Los dos caminos que producen el documento que se ENTREGA pasan primero por la revisión previa
   // (ver conRevisionPrevia / #preflightDialog). Si no hay hallazgos, no estorba: sigue de largo.
@@ -10456,14 +11114,24 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return !info.vencido;
     }).length;
     var nota = "";
+    // LO PRIMERO, Y EN GRANDE: los que se van a archivar SIN HABERSE ENTREGADO NUNCA.
+    // Antes este aviso solo hablaba de agendamientos. Un radicado sin clasificar se archivaba en
+    // silencio, y la entidad lo devolvía semanas después preguntando por qué no se le respondió.
+    var sinClas = toClose.filter(function(r){ return !isDone(r); }).length;
+    if(sinClas){
+      nota = "OJO: " + sinClas + " radicado(s) se van a archivar SIN CLASIFICAR. Esos nunca salieron en " +
+             "ninguna masiva: si cierras ahora, quedan sin responder. Puedes cancelar y clasificarlos primero. ";
+    }
     if(agendas){
-      nota = "Se cierran también " + agendas + " AGENDAMIENTO" + (agendas===1?"":"S") + ".";
+      nota += "Se cierran también " + agendas + " AGENDAMIENTO" + (agendas===1?"":"S") + ".";
       if(enTermino){
         nota += " Ojo: " + enTermino + " sigue" + (enTermino===1?"":"n") + " DENTRO de término y sin marcar “ya agendado”.";
       }
-      nota += " Todos quedan guardados completos en tu Historial de asignaciones.";
     }
-    document.getElementById("confirmKeptNote").textContent = nota;
+    if(sinClas || agendas) nota += " Todo queda guardado completo en tu Historial de asignaciones.";
+    var cajaNota = document.getElementById("confirmKeptNote");
+    cajaNota.textContent = nota;
+    cajaNota.classList.toggle("confirm-grave", !!sinClas);
     confirmDialog.showModal();
   }
   document.getElementById("clearAllBtn").addEventListener("click", abrirCierreDeSemana);
