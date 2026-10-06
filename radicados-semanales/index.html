@@ -5539,7 +5539,19 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     formatosQueExigenPlaca:           ["AGENDAMIENTO"],
     gravedadRadicadoRepetido:         "grave",
     gravedadComparendoRepetido:       "aviso",
-    gravedadResolucionRepetida:       "aviso"
+    gravedadResolucionRepetida:       "aviso",
+    // Dominios de correo que se dan por buenos. Lo que no esté aquí no se rechaza: se compara por
+    // PARECIDO, y solo se marca como error cuando está a un cambio de letra de uno de estos (una
+    // errata segura). Editable en Ajustes, como todos los demás parámetros.
+    dominiosDeCorreoConocidos:        ["gmail.com","hotmail.com","hotmail.es","outlook.com","outlook.es",
+                                       "yahoo.com","yahoo.es","live.com","icloud.com","me.com",
+                                       "aol.com","protonmail.com","unal.edu.co","javeriana.edu.co",
+                                       "uniandes.edu.co","movilidadbogota.gov.co"],
+    // Longitud admisible del número de comparendo, en dígitos. Un "11" no es un comparendo.
+    comparendoDigitosMin:             "6",
+    comparendoDigitosMax:             "12",
+    // Longitud del número de radicado de ORFEO. Todos los de la entidad son de 15 dígitos.
+    radicadoDigitos:                  "15"
   };
   // ------------------------------------------------------------
   // DÓNDE VIVEN LAS REGLAS: en el ÁREA, no en cada navegador.
@@ -5671,6 +5683,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var l = reglasParams[clave] || [];
     return l.map(function(x){ return normalizaTexto(x); }).indexOf(normalizaTexto(valor)) !== -1;
   }
+  // La lista en crudo y en minúsculas (para los dominios de correo, donde la comparación no es
+  // "¿está?" sino "¿a cuál se parece?").
+  function paramLista(clave){
+    var l = reglasParams[clave] || [];
+    return l.map(function(x){ return String(x||"").trim().toLowerCase(); }).filter(Boolean);
+  }
   // Cada regla: qué dice, de qué tipo es y qué parámetro usa. "param" es lo único editable.
   var REGLAS = [
     {id:"R01", grupo:"Clasificación", cuando:"captura", resumen:"El Formato solo acepta una clasificación de tu lista. Lo que no esté en ella no se guarda.",
@@ -5793,6 +5811,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
      titulo:"Una fecha que no se entiende no puede salir en blanco sin avisar",
      texto:"Las columnas de fecha del archivo que se entrega se escriben convirtiendo lo que hay guardado a fecha. Cuando lo guardado no se puede entender como fecha (un dedazo, un texto, un número de Excel suelto), esa conversión devuelve vacío: la casilla tenía un dato y el archivo sale en blanco. Antes eso pasaba en silencio. Ahora se revisa la fecha de la resolución, la de imposición y la de notificación, y se dice cuál es y qué trae, para escribirla como dd/mm/aaaa antes de entregar. Las de radicación y asignación ya se revisaban.",
      donde:"Al guardar y en la revisión previa de lo que se entrega"},
+    {id:"R26", grupo:"Notificación", cuando:"captura", resumen:"El correo se comprueba de verdad, no solo si tiene arroba.",
+     tipo:"aviso", param:"dominiosDeCorreoConocidos",
+     titulo:"Un correo mal escrito es una notificación que no llega",
+     texto:"La regla anterior daba por bueno cualquier texto con una arroba. Así pasaron, sin una sola alerta, correos con dos puntos pegados delante (\":dreyquintero@gmal.com\"), con un espacio en la mitad (\"gomezclara 1955@gmail.com\") y con el dominio mal escrito. En una masiva real de 245 filas fueron 34, y a esos ciudadanos no les llegó la citación. Ahora se comprueba la estructura completa, lo que sobre al principio, los espacios, y el dominio POR PARECIDO con los conocidos: a un cambio de letra es una errata segura y se marca como error; a dos, se avisa. Una dirección física sigue siendo válida: no todo se notifica por correo.",
+     donde:"Al guardar, en la revisión previa y en el verificador (invariante I5)"},
+    {id:"R27", grupo:"Datos únicos", cuando:"captura", resumen:"El radicado tiene que ser de 15 dígitos y solo dígitos.",
+     tipo:"aviso", param:"radicadoDigitos",
+     titulo:"El número de radicado se comprueba",
+     texto:"Los radicados de ORFEO son de 15 dígitos y nada más. Uno que no lo sea está mal copiado: truncado al pegar, con un punto pegado detrás o con una letra colada. Hasta ahora el dato que identifica el expediente entero era el ÚNICO que no tenía ninguna comprobación de forma.",
+     donde:"Al guardar, en la revisión previa y en el verificador (invariante I2)"},
+    {id:"R28", grupo:"Comparendo", cuando:"captura", resumen:"Un comparendo tiene entre 6 y 12 dígitos. Ni «11» ni un número kilométrico.",
+     tipo:"aviso", param:"comparendoDigitosMin",
+     titulo:"La longitud del comparendo se comprueba",
+     texto:"Caso real: en una masiva entregada quedó un comparendo escrito como \"11\". Ninguna regla miraba la longitud, así que salió tal cual en el archivo. Ahora, un comparendo con menos dígitos de los posibles o con más está cortado o mal pegado, y se dice antes de entregar.",
+     donde:"Al guardar, en la revisión previa y en el verificador (invariante I6)"},
     {id:"R17", grupo:"Agendamientos", cuando:"agenda", resumen:"La plantilla de Agendamientos se revisa antes de bajarla.",
      tipo:"estructural", param:null,
      titulo:"La plantilla de Agendamientos se revisa antes de entregarse",
@@ -7884,13 +7917,23 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     for(var i = 0; i < base.length; i++){ n = ((n * 33) ^ base.charCodeAt(i)) >>> 0; }
     return "h" + n;
   }
+  // Reglas que NO frenan al pasar de un radicado a otro, aunque sí se revisan antes de entregar.
+  // R27 (el formato del número de radicado) es el caso: ese número NO se escribe a mano, viene del
+  // bloque importado de ORFEO. Pararla en cada salto para avisar de algo que no se puede arreglar
+  // desde el formulario es exactamente el ruido que ya se midió una vez -- 15 avisos de cada 16
+  // eran ruido, y así es como se aprende a cerrar la alarma sin leerla. Donde sí hace falta es en
+  // la revisión previa, justo antes de generar el archivo, y ahí sigue estando.
+  var REGLAS_QUE_NO_FRENAN = {R27: true};
   function hallazgosPendientesDe(rec){
     if(!rec) return [];
     var todos = [];
     try{ todos = hallazgosDeRegistro(rec, indiceDeRepetidos()) || []; }
     catch(e){ todos = []; }
     var confirmadas = rec.anomaliasConfirmadas || {};
-    return todos.filter(function(h){ return !confirmadas[claveHallazgo(h)]; });
+    return todos.filter(function(h){
+      if(REGLAS_QUE_NO_FRENAN[h.regla]) return false;
+      return !confirmadas[claveHallazgo(h)];
+    });
   }
   // La casilla donde está el problema, para dejar el cursor ahí al pulsar "Corregir ahora".
   var CAMPO_A_INPUT = {
@@ -9813,10 +9856,6 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
             variasAsignaciones: rep.variasAsignaciones, sinNumero: sinNumero};
   }
   function finalDocEligible(){ return finalDocReparto().elegibles; }
-  // Los grupos de radicado repetido DENTRO de lo que iría a la masiva. Es más estrecho que el panel
-  // de "Datos repetidos" de Ajustes (que mira toda la lista, agendamientos incluidos): aquí solo
-  // interesa lo que afecta al archivo que se entrega.
-  function finalDocRepetidosEnMasiva(){ return finalDocReparto().grupos; }
   // Radicados que la persona dio por clasificados pero cuyo formato NO corresponde a ninguna
   // categoría conocida (por ejemplo "T" o "DEVU" a medio escribir). NO entran a la masiva -- no se
   // sabe si deberían -- pero tampoco pueden desaparecer en silencio: la revisión previa los saca
@@ -9844,6 +9883,44 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function finalDocSinClasificar(){
     return state.records.filter(function(r){ return !isDone(r); })
       .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+  }
+
+  // ---------- ¿DE CUÁNTAS SEMANAS ES ESTA MASIVA? ----------
+  // EL FALLO DE DISEÑO DE ORIGEN, Y EL MÁS CARO. La masiva exportaba SIEMPRE "todo lo que haya en
+  // la lista", sin ninguna noción de a qué semana pertenece. Mientras se cierre la semana cada
+  // viernes no se nota; en cuanto una semana se queda sin cerrar, su lote sigue ahí y entra en
+  // todas las entregas siguientes.
+  //
+  // Caso real del 2 de octubre de 2026: se entregó un archivo de 245 filas donde 124 eran del 24
+  // al 28 de AGOSTO. La app no dijo nada porque nunca tuvo nada que decir: para ella no existía
+  // la idea de "semana". Se descubrió cruzando a mano contra ORFEO, un mes después.
+  //
+  // No se bloquea la entrega -- hay motivos legítimos para entregar varias semanas juntas. Lo que
+  // no puede pasar es entregarlas SIN SABERLO.
+  function semanasDeAsignacion(lista){
+    var cajas = {};
+    (lista || []).forEach(function(r){
+      var d = parseDMY(normalizeDate(r.fechaAsignacion));
+      var k = d ? iso8601(lunesDe(d)) : "@@sinfecha";
+      if(!cajas[k]) cajas[k] = {clave:k, lunes: d ? lunesDe(d) : null, registros:[]};
+      cajas[k].registros.push(r);
+    });
+    return Object.keys(cajas).map(function(k){ return cajas[k]; })
+      .sort(function(a,b){
+        if(!a.lunes) return 1;
+        if(!b.lunes) return -1;
+        return b.lunes - a.lunes;   // la más reciente primero
+      });
+  }
+  function iso8601(d){
+    if(!d) return "";
+    var p = function(n){ return (n<10?"0":"") + n; };
+    return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate());
+  }
+  function etiquetaSemana(s){
+    if(!s.lunes) return "sin fecha de asignación legible";
+    var dom = new Date(s.lunes.getFullYear(), s.lunes.getMonth(), s.lunes.getDate()+6);
+    return "semana del " + ddmm(s.lunes) + " al " + ddmm(dom);
   }
 
   // ---------- CUADRE DEL CONTEO (ver #cuadreDialog) ----------
@@ -10010,9 +10087,82 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(PALABRAS_DIRECCION.test(s)) return true;
     return s.indexOf("#") !== -1 && /\d/.test(s); // "Carrera2b#90-27" y variantes pegadas
   }
-  function correoParece(valor){
+  // EL CORREO: LA REGLA QUE NO EXISTÍA, Y QUE COSTÓ 34 NOTIFICACIONES.
+  //
+  // Lo que había aquí era esto, literal: "¿tiene una arroba en alguna parte?". Con eso daban por
+  // buenos ":dreyquintero@gmal.com" (dos puntos pegados delante Y el dominio mal escrito),
+  // "gomezclara 1955@gmail.com" (un espacio en la mitad) y "l:jeidyhurtdo13@gmail.com". En una
+  // masiva real de 245 filas pasaron 34 correos rotos sin UNA SOLA alerta. A esos ciudadanos no
+  // les llegó la citación, y de ahí salen las devoluciones.
+  //
+  // Comprobado contra esa misma masiva: los 34 que marca están rotos de verdad, ninguno es un
+  // falso positivo. Eso importa tanto como detectarlos: una alarma que suena sobre un dato bueno
+  // enseña a saltarse la revisión, y entonces no protege de nada.
+  var CORREO_RE = /^[A-Za-z0-9](?:[A-Za-z0-9._%+-]*[A-Za-z0-9])?@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}$/;
+  // Distancia de edición acotada: cuántos cambios de una letra separan dos textos. Sirve para
+  // reconocer un dominio mal escrito SIN tener que haberlo visto antes -- "fmail.com" y
+  // "gmaial.com" aparecieron en una masiva real y ninguna lista fija los habría tenido.
+  function distanciaTexto(a, b){
+    if(a === b) return 0;
+    if(Math.abs(a.length - b.length) > 3) return 99;
+    var prev = [], fila = [], i, j;
+    for(j = 0; j <= b.length; j++) prev[j] = j;
+    for(i = 1; i <= a.length; i++){
+      fila = [i];
+      for(j = 1; j <= b.length; j++){
+        fila[j] = Math.min(prev[j] + 1, fila[j-1] + 1,
+                           prev[j-1] + (a.charAt(i-1) === b.charAt(j-1) ? 0 : 1));
+      }
+      prev = fila;
+    }
+    return prev[b.length];
+  }
+  // Devuelve {nivel:"ok"|"aviso"|"falla", motivo:"..."}. Vacío NO es falla: eso lo gobierna la
+  // regla de "no tiene correo ni dirección", que ya existe aparte.
+  // Junta TODOS los problemas del correo, no solo el primero. ":dreyquintero@gmal.com" tiene dos
+  // (los dos puntos delante y el dominio mal escrito); decir solo uno obliga a corregir, guardar,
+  // y volver a enterarse del otro. Se dicen juntos y se corrige una sola vez.
+  function revisarCorreo(valor){
     var s = String(valor||"").trim();
-    return !s || s.indexOf("@") !== -1 || pareceDireccionFisica(s);
+    if(!s) return {nivel:"ok", motivo:""};
+    if(s.indexOf("@") === -1){
+      // Una dirección física aquí es legítima (no todo se notifica por correo). Lo que no es
+      // legítimo es cualquier otra cosa.
+      return pareceDireccionFisica(s)
+        ? {nivel:"ok", motivo:""}
+        : {nivel:"falla", motivo:"no tiene arroba y tampoco parece una dirección física"};
+    }
+    var fallas = [], avisos = [];
+    // Lo que sobra al principio se aparta para poder juzgar el resto: si no, un ":" delante hace
+    // que todo lo demás parezca mal y el dominio equivocado se queda sin señalar.
+    var limpio = s, sobra = s.match(/^[^A-Za-z0-9]+|^[A-Za-z]:/);
+    if(sobra){
+      fallas.push("empieza por \"" + sobra[0] + "\", que sobra");
+      limpio = s.slice(sobra[0].length);
+    }
+    if(/\s/.test(limpio)){
+      fallas.push("tiene un espacio adentro");
+      limpio = limpio.replace(/\s+/g, "");
+    }
+    if(!CORREO_RE.test(limpio)){
+      fallas.push("no tiene forma de correo válido");
+    }else{
+      var dom = limpio.split("@").pop().toLowerCase();
+      var buenos = paramLista("dominiosDeCorreoConocidos");
+      if(buenos.indexOf(dom) === -1 && !/\.(edu|gov|org|mil)\.co$/.test(dom)){
+        var mejor = {d:99, dom:""};
+        buenos.forEach(function(d){
+          var n = distanciaTexto(dom, d);
+          if(n < mejor.d) mejor = {d:n, dom:d};
+        });
+        if(mejor.d === 1) fallas.push("el dominio \"" + dom + "\" está mal escrito: es \"" + mejor.dom + "\"");
+        else if(mejor.d === 2) avisos.push("el dominio \"" + dom + "\" se parece mucho a \"" + mejor.dom + "\" — verifícalo");
+        else avisos.push("dominio poco común (\"" + dom + "\") — verifícalo");
+      }
+    }
+    if(fallas.length) return {nivel:"falla", motivo: fallas.concat(avisos).join(", y ")};
+    if(avisos.length) return {nivel:"aviso", motivo: avisos.join(", y ")};
+    return {nivel:"ok", motivo:""};
   }
   function pareceNumeroDeComparendo(valor){
     var s = String(valor||"").trim();
@@ -10266,8 +10416,18 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         // solo dígitos: terminaba degradado a un aviso menor. Ahora se detecta por lo que realmente
         // es: un número de comparendo largo seguido de más columnas pegadas detrás.
         hallazgos.push({grave:true, texto:"En la casilla de correo/dirección quedó pegada una línea completa de otro campo (\"" + String(r.direccion).trim().slice(0,60) + "…\") — parece la línea de Fénix pegada en el lugar equivocado."});
-      } else if(!correoParece(r.direccion)){
-        hallazgos.push({grave:false, texto:"La casilla de correo/dirección no parece ni un correo ni una dirección (\"" + String(r.direccion).trim() + "\") — verifica que sea el dato correcto."});
+      } else {
+        // R26. El correo, comprobado de verdad y DICIENDO POR QUÉ está mal: no es lo mismo "le
+        // sobran dos puntos delante" que "el dominio está mal escrito", y la corrección es distinta.
+        var revCorreo = revisarCorreo(r.direccion);
+        if(revCorreo.nivel === "falla"){
+          hallazgos.push({regla:"R26", grave:true, campo:"direccion",
+            texto:"El correo \"" + String(r.direccion).trim() + "\" " + revCorreo.motivo +
+                  ". Así escrito la notificación NO le llega al ciudadano."});
+        }else if(revCorreo.nivel === "aviso"){
+          hallazgos.push({regla:"R26", grave:false, campo:"direccion",
+            texto:"El correo \"" + String(r.direccion).trim() + "\": " + revCorreo.motivo + "."});
+        }
       }
       if(!String(r.direccion||"").trim()){
         hallazgos.push({grave:false, texto:"No tiene correo ni dirección de notificación."});
@@ -10288,6 +10448,46 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
           "\" tiene un ESPACIO adentro. Un correo no puede llevar espacios: así escrito no le llega " +
           "al ciudadano y en la masiva se entrega ese espacio. Casi siempre viene de copiar y pegar. Quítalo."});
       }
+      // R27. EL NÚMERO DE RADICADO, COMPROBADO. Los radicados de ORFEO son todos de 15 dígitos y
+      // solo dígitos. Uno que no lo sea está mal copiado -- truncado al pegar, con un punto pegado
+      // detrás, o con una letra colada. Antes la app no miraba NUNCA el formato del radicado: el
+      // dato que identifica el expediente entero era el único que no tenía ni una comprobación.
+      (function(){
+        var rad = String(r.radicado||"").trim();
+        if(!rad) return;                      // "sin radicado" lo dice la revisión previa aparte
+        var n = parseInt(reglasParams.radicadoDigitos, 10) || 15;
+        if(!/^\d+$/.test(rad)){
+          hallazgos.push({regla:"R27", grave:true, campo:"radicado",
+            texto:"El radicado \"" + rad + "\" trae caracteres que no son dígitos. " +
+                  "Los radicados de ORFEO son " + n + " dígitos y nada más: este está mal copiado."});
+        }else if(rad.length !== n){
+          hallazgos.push({regla:"R27", grave:true, campo:"radicado",
+            texto:"El radicado \"" + rad + "\" tiene " + rad.length + " dígitos y deberían ser " + n +
+                  ". Casi siempre es un número cortado al pegar."});
+        }
+      })();
+      // R28. LA LONGITUD DEL COMPARENDO. Caso real: en una masiva entregada quedó un comparendo
+      // escrito como "11". Ninguna regla miraba la longitud, así que salió tal cual.
+      (function(){
+        if(!String(r.comparendoCompleto||"").trim()) return;   // vacío lo gobierna R04, por formato
+        // SE MIDE EL QUE DE VERDAD SALE EN EL ARCHIVO, no el guardado. "comparendoCompleto" es el
+        // número LARGO de Fénix (11001000000046855268, veinte dígitos); a la masiva va el corto de
+        // ocho, que es el que calcula comparendoCorto(). La primera versión de esta regla medía el
+        // largo y marcaba como error TODOS los comparendos bien pegados -- lo atrapó t14 al no
+        // poder pasar de un radicado a otro. Medir una cosa distinta de la que se entrega es el
+        // mismo error que ya costó una revisión entera en esta app.
+        var corto = String(comparendoCorto(r) || "").trim();
+        if(!corto) return;
+        var d = corto.replace(/\D/g, "");
+        var min = parseInt(reglasParams.comparendoDigitosMin, 10) || 6;
+        var max = parseInt(reglasParams.comparendoDigitosMax, 10) || 12;
+        if(d.length < min || d.length > max){
+          hallazgos.push({regla:"R28", grave:true, campo:"comparendo",
+            texto:"El comparendo que saldría en el archivo es \"" + corto + "\": " + d.length +
+                  " dígito(s). Un comparendo tiene entre " + min + " y " + max +
+                  ": este quedó cortado o mal pegado."});
+        }
+      })();
       // Resolución: los formatos T casi siempre la llevan. Se avisa, nunca se bloquea.
       if(resolucionEsEsperada(formato) && !String(r.res||"").trim()){
         hallazgos.push({grave:false, texto:"Formato " + formato + " sin número de resolución."});
@@ -10357,7 +10557,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
             // Se avisa porque casi siempre una es de una semana anterior que quedó sin cerrar, y
             // hay que mirar a mano cuál corresponde a lo que se entrega.
             variasAsignaciones: reparto.variasAsignaciones,
-            sinNumero: reparto.sinNumero};
+            sinNumero: reparto.sinNumero,
+            // En cuántas semanas de asignación cae lo que se va a entregar. Más de una significa
+            // que hay arrastre de semanas sin cerrar (ver semanasDeAsignacion).
+            semanas: semanasDeAsignacion(elegibles)};
   }
 
   // Muestra la revisión y solo continúa (onProceed) si la persona lo confirma. Si no hay ningún
@@ -10372,6 +10575,24 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(t.indexOf("fecha") !== -1) return "cc_fechaRes";
     return "cc_formato";
   }
+  // "Bajar solo esta semana": cierra la revisión y abre el cuadre con el rango ya puesto, que es
+  // donde vive la descarga acotada. No se descarga a ciegas desde aquí a propósito -- primero se
+  // ve en pantalla qué entra y qué queda fuera.
+  document.getElementById("preflightLista").addEventListener("click", function(e){
+    var sem = e.target.closest("button[data-preflight-semana]");
+    if(!sem) return;
+    var par = String(sem.getAttribute("data-preflight-semana")).split("|");
+    pendingPreflightProceed = null;
+    pendingPreflightEsAgenda = false;
+    document.getElementById("preflightDialog").close();
+    var doc = document.getElementById("documentosDialog");
+    if(doc && doc.open) doc.close();
+    document.getElementById("cuadreDesde").value = par[0] || "";
+    document.getElementById("cuadreHasta").value = par[1] || "";
+    renderCuadre(); renderRango(); renderCruceOrfeo();
+    document.getElementById("cuadreDialog").showModal();
+    toast("Aquí ves qué entra en esa semana y qué queda fuera. El botón de descargar está abajo.");
+  });
   document.getElementById("preflightLista").addEventListener("click", function(e){
     var btn = e.target.closest("button[data-preflight-corregir]");
     if(!btn) return;
@@ -10411,7 +10632,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var nRepes = (informe.repetidos || []).length;
     var nSinNum = (informe.sinNumero || []).length;
     var nVarias = (informe.variasAsignaciones || []).length;
-    if(!informe.problemas.length && !informe.confirmadosAntes && !nSinClas && !nRepes && !nSinNum && !nVarias){ registrarEntrega(false); onProceed(); return; }
+    var semanas = informe.semanas || [];
+    var variasSemanas = semanas.length > 1;
+    if(!informe.problemas.length && !informe.confirmadosAntes && !nSinClas && !nRepes && !nSinNum && !nVarias && !variasSemanas){ registrarEntrega(false); onProceed(); return; }
     var graves = informe.problemas.filter(function(p){ return p.grave; }).length;
     var notaSinClas = nSinClas
       ? " ATENCIÓN: " + nSinClas + " radicado(s) de tu lista NO VAN A SALIR en esta masiva porque todavía no tienen clasificación. Van listados abajo."
@@ -10421,6 +10644,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       : "";
     var notaSinNum = nSinNum
       ? " Además, " + nSinNum + " fila(s) van al archivo SIN NÚMERO DE RADICADO."
+      : "";
+    var notaSemanas = variasSemanas
+      ? " ESTA MASIVA MEZCLA " + semanas.length + " SEMANAS DE ASIGNACIÓN. Lo normal es que sea una sola: " +
+        "si hay semanas anteriores sin cerrar, su lote se está entregando otra vez. Van desglosadas abajo."
       : "";
     var notaVarias = nVarias
       ? " OJO CON LAS SEMANAS: " + nVarias + " radicado(s) tienen DOS ASIGNACIONES con fechas distintas. " +
@@ -10432,14 +10659,33 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("preflightResumen").textContent = informe.problemas.length
       ? ("De " + informe.total + " radicado(s) que entrarían al documento final, " + informe.problemas.length +
          " tiene(n) algo por revisar" + (graves ? " — " + graves + " con un problema GRAVE que saldría mal en la base que entregas." : ".") +
-         " Revísalos antes de enviar; puedes cancelar, corregirlos en el Paso 2, y volver a generar." + notaVarias + notaRepes + notaSinNum + notaSinClas + notaConfirmados)
+         " Revísalos antes de enviar; puedes cancelar, corregirlos en el Paso 2, y volver a generar." + notaSemanas + notaVarias + notaRepes + notaSinNum + notaSinClas + notaConfirmados)
       : ((informe.total === 1 ? "El radicado que entra al documento final está en regla."
-                              : "Los " + informe.total + " radicados que entran al documento final están en regla.") + notaVarias + notaRepes + notaSinNum + notaSinClas + notaConfirmados);
+                              : "Los " + informe.total + " radicados que entran al documento final están en regla.") + notaSemanas + notaVarias + notaRepes + notaSinNum + notaSinClas + notaConfirmados);
     // Cada fila trae su botón para IR A CORREGIRLA. Antes la revisión decía qué estaba mal pero
     // dejaba a la persona buscando el radicado a mano en una lista de doscientos: "no deja subsanar
     // cada radicado". Ahora se abre en el Paso 2, con el cursor puesto en la casilla del problema.
     document.getElementById("preflightLista").innerHTML =
-    // DE PRIMERO DEL TODO: el mismo radicado con DOS fechas de asignación. Aquí la app no junta ni
+    // LO PRIMERO DE TODO: de cuántas semanas es esta masiva. Es el aviso que no existía el 2 de
+    // octubre, cuando se entregaron 124 radicados de agosto dentro de la masiva de la semana.
+    (variasSemanas
+      ? '<div class="preflight-sinclas"><h4>Esta masiva mezcla ' + semanas.length + ' semanas de asignación</h4>' +
+        '<p>Lo normal es que una masiva sea de <b>una sola semana</b>. Si aquí aparecen semanas ' +
+        'anteriores, es que no se cerraron y su lote se está entregando otra vez. Revisa el desglose ' +
+        'y, si solo quieres una, bájala con el botón de su línea.</p>' +
+        semanas.map(function(s){
+          var r = '<div class="pfc-item"><span class="pf-rad">' + escapeHtml(etiquetaSemana(s)) + '</span> ' +
+            '<span class="pf-nombre">' + s.registros.length + ' radicado(s)</span> ';
+          if(s.lunes){
+            var dom = new Date(s.lunes.getFullYear(), s.lunes.getMonth(), s.lunes.getDate()+6);
+            r += '<button class="btn small" data-preflight-semana="' + iso8601(s.lunes) + '|' + iso8601(dom) +
+                 '" type="button">Bajar solo esta semana</button>';
+          }
+          return r + '</div>';
+        }).join("") +
+        '</div>'
+      : "") +
+    // Después: el mismo radicado con DOS fechas de asignación. Aquí la app no junta ni
     // descarta nada -- son dos asignaciones distintas y las dos son trabajo real --, pero tiene que
     // decirlo, porque lo habitual es que una sea de una semana anterior que quedó sin cerrar y se
     // esté a punto de entregar mezclada con la de esta semana.
@@ -10560,6 +10806,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         informe.repetidos.forEach(function(g){
           lineas.push("    • " + g.radicado + " — asignado " + (g.fecha || "(sin fecha)") + " — " +
                       (g.fuera.length + 1) + " filas; sale la de " + (g.sale.formato || "(sin formato)"));
+        });
+        lineas.push("");
+      }
+      var sem = informe.semanas || [];
+      if(sem.length > 1){
+        lineas.push("ESTA MASIVA MEZCLA " + sem.length + " SEMANAS DE ASIGNACIÓN:");
+        sem.forEach(function(x){
+          lineas.push("    • " + etiquetaSemana(x) + ": " + x.registros.length + " radicado(s)");
         });
         lineas.push("");
       }

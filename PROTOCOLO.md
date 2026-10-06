@@ -43,6 +43,21 @@ decirlo. Esa independencia es lo que lo hace valer.
 `t23_verificador.py` los pasa por el verificador y exige que encuentre los cinco problemas y que
 las otras cuatro invariantes se callen.
 
+**Qué comprueba la app por su cuenta, y qué solo el verificador.** Tras la auditoría del 6 de
+octubre de 2026, cada invariante tiene su regla dentro de la app donde es posible:
+
+| Invariante | Regla en la app | Dónde avisa |
+|---|---|---|
+| I1 repetidos | R12 + reparto por asignación | al capturar y en la revisión previa |
+| I2 radicado de 15 dígitos | **R27** (nueva) | revisión previa (no frena al avanzar: el número viene importado) |
+| I3 está en ORFEO | — | solo el cruce y el verificador: hace falta ORFEO |
+| I4 fuera de la semana | aviso de semanas mezcladas (nuevo) | revisión previa, con botón para bajar una sola semana |
+| I5 correos | **R26** (nueva) | al avanzar y en la revisión previa |
+| I6 comparendo | **R28** (nueva) | al avanzar y en la revisión previa |
+| I7 dos columnas COMPARENDO | las escribe el mismo dato | por construcción |
+| I8 27 columnas | las escribe MASIVA_HEADERS | por construcción |
+| I9 ninguno sin responder | radicados sin clasificar | revisión previa; el cruce contra ORFEO lo cierra |
+
 Las invariantes se añaden, nunca se quitan. Cada fallo real que aparezca en el trabajo se
 convierte en una invariante nueva ese mismo día.
 

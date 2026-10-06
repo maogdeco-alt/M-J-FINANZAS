@@ -19,7 +19,7 @@ echo ""
 echo "############ el Excel con cuadrícula (sin navegador)"
 node t_rejilla.js  || mal=$((mal+1))
 node t_rejilla2.js || mal=$((mal+1))
-for t in t1_placa.py t2_tira.py t3_pruebas.py t4_masiva.py t5_regresion.py t6_flotante.py t7_imperativas.py t8_concurrencia.py t9_flotante_salida.py t10_ruido.py t11_confirmadas.py t12_cerrar_semana.py t13_opciones.py t14_memoria_flotante.py t15_manana.py t16_manana_guardado.py t17_aislamiento.py t18_cruces.py t19_sin_clasificar.py t20_cuadre_conteo.py t21_semanas_no_se_mezclan.py t22_rango_fechas.py t23_verificador.py; do
+for t in t1_placa.py t2_tira.py t3_pruebas.py t4_masiva.py t5_regresion.py t6_flotante.py t7_imperativas.py t8_concurrencia.py t9_flotante_salida.py t10_ruido.py t11_confirmadas.py t12_cerrar_semana.py t13_opciones.py t14_memoria_flotante.py t15_manana.py t16_manana_guardado.py t17_aislamiento.py t18_cruces.py t19_sin_clasificar.py t20_cuadre_conteo.py t21_semanas_no_se_mezclan.py t22_rango_fechas.py t23_verificador.py t24_reglas_correo_radicado_comparendo.py t25_masiva_mezcla_semanas.py; do
   echo ""
   echo "############ $t"
   python3 "$t" || mal=$((mal+1))
