@@ -32,6 +32,17 @@ la app o sin ella.
 
 **Si un cambio rompe una invariante, no sale. Sin excepciones y sin discusión.**
 
+**Cómo se comprueban, en la práctica:** se abre `verificador.html` (está publicado junto a la app,
+y también funciona con doble clic sin internet), se sueltan la masiva, el reporte de ORFEO y la
+plantilla de agendamientos, y da un veredicto **APTO / NO APTO** con cada caso y su número de fila.
+No comparte una sola línea de lógica con la app: si la app se equivoca, el verificador puede
+decirlo. Esa independencia es lo que lo hace valer.
+
+`pruebas/caso_2oct/` guarda la masiva, el reporte de ORFEO y los agendamientos de la semana del
+2 de octubre de 2026 **anonimizados**, conservando exactamente la forma de cada defecto.
+`t23_verificador.py` los pasa por el verificador y exige que encuentre los cinco problemas y que
+las otras cuatro invariantes se callen.
+
 Las invariantes se añaden, nunca se quitan. Cada fallo real que aparezca en el trabajo se
 convierte en una invariante nueva ese mismo día.
 

@@ -12,6 +12,7 @@ mkdir -p "$P/sitio"
 sed 's#https://hgfqoodogpxhqbdyubsd.supabase.co#http://127.0.0.1:9870#g' "$APP" > "$P/sitio/index_test.html"
 grep -q '127.0.0.1:9870' "$P/sitio/index_test.html"
 cp "$P/../radicados-semanales/sw.js" "$P/../radicados-semanales/manifest.webmanifest" "$P/sitio/" 2>/dev/null || true
+cp "$P/../radicados-semanales/verificador.html" "$P/sitio/" 2>/dev/null || true
 cp -r "$P/../radicados-semanales/icons" "$P/sitio/" 2>/dev/null || true
 python3 - "$APP" "$P" <<'PY'
 import re, sys
