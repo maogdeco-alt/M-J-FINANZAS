@@ -164,6 +164,7 @@ Vale ante un memorando aunque el programa tenga fallos.
       diferencia explicada
 - [ ] Las nueve invariantes se cumplen en una masiva generada con la versión nueva
 - [ ] La configuración de Supabase está intacta (url y anonKey sin tocar)
+- [ ] Ninguna prueba se SALTÓ en la corrida (t15–t18 se saltan sin `pruebas/sheet_donina.xlsx`)
 - [ ] Guardado el `.zip` de la versión anterior
 - [ ] Commit con el mensaje explicando el cambio de comportamiento
 - [ ] No es viernes ni día de entrega
@@ -204,6 +205,18 @@ Si alguna vez hay que decidir entre los dos bloques, **el de la tarde manda**: e
 lo que se entrega y por lo que se responde.
 
 ---
+
+## LA PRINCIPAL Y LA FLOTANTE TAMPOCO SE PISAN
+
+Las dos ventanas comparten el navegador y la misma fila de Supabase. Desde el 10 de octubre de
+2026 se exige, con pruebas que manejan las dos a la vez:
+
+- que lo escrito en una **nunca vuelva a un valor anterior** por algo que haga la otra (t29);
+- que **ningún radicado reciba datos de otro**, ni trabajando rápido en las dos (t28);
+- que las dos **sigan subiendo a la nube** aunque choquen, y que lo archivado no resucite (t27).
+
+`mock.py` tiene que portarse como la Supabase real. Un servidor de pruebas más permisivo que el
+de verdad esconde justo los fallos que importan: así se escondió durante semanas el de la nube.
 
 ## QUÉ HACER CUANDO ALGO SALE MAL
 

@@ -1,6 +1,6 @@
 # SONDA (rehecha): concurrencia de verdad. Primero se clasifican los radicados para que
 # "Siguiente" funcione también en la flotante; después se prueba que no se pisen.
-import sys; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B
 T="\t"
@@ -58,5 +58,7 @@ with sync_playwright() as pw:
     nav.close()
 print("RESULTADO:", "TODO BIEN" if not fallos else str(len(fallos))+" FALLA(S)")
 
+# Hasta el 10-10-2026 esta prueba terminaba SIEMPRE con éxito (exit 0), fallara lo que fallara:
+# la batería no se enteraba nunca de un choque entre ventanas. Ahora cuenta.
 import sys as _s
-_s.exit(0)
+_s.exit(1 if fallos else 0)

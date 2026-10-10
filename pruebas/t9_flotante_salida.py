@@ -1,11 +1,15 @@
 # SONDA: en la ventana flotante, cuando ya no quedan PENDIENTES, ¿qué se ve y qué se puede hacer?
-import sys; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B
 T="\t"
 def tira(i): return T.join(["1100100000004685%04d"%i,"C02","19/04/2025","19/04/2025","No",
   "CAMARAS SALVAVIDAS","VIGENTE","","","","CEDULA DE CIUDADANIA","520000%03d"%i,"PERSONA %d"%i,"ABC%03d"%i])
 BLOQUE="\n".join("2026ER%03d\t01/09/2026\t03/09/2026\tPERSONA %d"%(i,i) for i in (1,2))
+fallos=[]
+def ok(c,m):
+    print(("  OK  " if c else "  FALLA  ")+m)
+    if not c: fallos.append(m)
 with sync_playwright() as pw:
     nav,ctx,pag,err=B.abrir(pw)
     B.entrar(pag); B.importar(pag,BLOQUE)
@@ -30,13 +34,13 @@ with sync_playwright() as pw:
                     ("#cc_prev","botón Anterior"),("#toggleQueueBtn","botón mostrar cola")]:
         c=flo.locator(sel)
         print("   ", nom, "->", ("VISIBLE" if (c.count() and c.first.is_visible()) else "no se ve"))
-    flo.screenshot(path="/home/user/M-J-FINANZAS/pruebas/foto_flotante_vacia.png")
     print("--- se pulsa 'Ver todos los radicados' ---")
     flo.click("#captureEmptyVerTodos"); flo.wait_for_timeout(800)
-    print("¿vuelve el formulario?", flo.locator("#captureForm").is_visible())
+    ok(flo.locator("#captureForm").is_visible(), "vuelve el formulario")
     print("radicado a la vista:", flo.locator("#cc_radicadoLabel").inner_text() if flo.locator("#captureForm").is_visible() else "-")
-    print("¿y ahora se puede navegar con Siguiente?", flo.locator("#cc_next").is_visible())
+    ok(flo.locator("#cc_next").is_visible(), "y se puede navegar con Siguiente")
     nav.close()
 
+# Antes terminaba siempre con éxito: era una sonda que solo imprimía. Ahora exige la salida.
 import sys as _s
-_s.exit(0)
+_s.exit(1 if fallos else 0)

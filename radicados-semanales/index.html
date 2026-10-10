@@ -3058,6 +3058,61 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("syncSafetyDialog").close();
     if(fn) fn();
   });
+  // Ver el choque con la otra ventana dentro de pushCloudNow(). Tope de reintentos seguidos: si
+  // la nube rechaza una y otra vez (otro computador escribiendo sin parar, o algo raro), se para
+  // y se avisa en vez de quedarse en un bucle.
+  var choquesSeguidos = 0;
+  var MAX_CHOQUES_SEGUIDOS = 4;
+  function mismaMarcaDeTiempo(a, b){
+    if(!a || !b) return false;
+    var ta = Date.parse(a), tb = Date.parse(b);
+    return !isNaN(ta) && ta === tb;
+  }
+  // Junta en la memoria de esta ventana lo que hay en la nube, SIN QUITAR NADA de lo de aquí:
+  //  · un radicado que solo está en la nube se añade (salvo que aquí se haya borrado o archivado
+  //    a propósito: eso no se resucita);
+  //  · uno que está en los dos lados se deja como está aquí, salvo que la versión de la nube sea
+  //    más reciente: entonces manda la de la nube, pero ningún dato de aquí se vacía;
+  //  · las semanas archivadas se suman por su fecha de cierre, sin repetir.
+  // Los ajustes son de esta ventana y no se tocan.
+  function juntarConLaNube(fila){
+    if(!fila) return;
+    var nube = Array.isArray(fila.records) ? fila.records : [];
+    var porId = {};
+    state.records.forEach(function(r){ if(r && r.id) porId[r.id] = r; });
+    var cambiados = 0, activoCambio = false;
+    nube.forEach(function(c){
+      if(!c || !c.id || idsBorradosAdrede[c.id]) return;
+      var mio = porId[c.id];
+      if(!mio){ c.order = state.records.length; state.records.push(c); cambiados++; return; }
+      if(registrosIguales(mio, c)) return;
+      if(Number(c.modificadoEn || 0) <= Number(mio.modificadoEn || 0)) return; // lo de aquí es igual o más nuevo
+      var combinado = combinarSinVaciar(c, mio);
+      Object.keys(combinado).forEach(function(k){ mio[k] = combinado[k]; });
+      if(c.id === state.activeId) activoCambio = true;
+      cambiados++;
+    });
+    if(Array.isArray(fila.history) && fila.history.length){
+      var cierres = {};
+      state.history.forEach(function(h){ if(h && h.closedAt) cierres[h.closedAt] = true; });
+      var nuevas = fila.history.filter(function(h){ return h && h.closedAt && !cierres[h.closedAt]; });
+      if(nuevas.length){
+        state.history = state.history.concat(nuevas).sort(function(a,b){
+          return String(a.closedAt||"").localeCompare(String(b.closedAt||""));
+        });
+        saveHistory(true);
+      }
+    }
+    if(cambiados){
+      save(true); // al navegador; la subida la hace quien llamó, ya con la marca nueva
+      setTimeout(function(){
+        try{
+          renderQueue(); renderStats(); renderAgendamientos();
+          if(activoCambio){ if(hayCambiosSinGuardar()) refrescarCamposNoTocados(); else renderCapture(); }
+        }catch(e){}
+      }, 0);
+    }
+  }
   function queueCloudSync(){
     if(!supaSession) return;
     clearTimeout(cloudSyncTimer);
@@ -3079,7 +3134,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       showDataSafetyBanner("Se bloqueó una sincronización que iba a dejar tu cuenta en la nube completamente vacía (antes de esto tenías " + lastKnownSafeCount + " radicado(s) en esta sesión). Tu información en el servidor NO se tocó. Si de verdad quieres vaciar la lista, usa \"Cerrar semana\". Si no reconoces esta situación, no sigas usando la app y avisa antes de continuar.", "warn");
       return;
     }
+    var vaciadoAdrede = explicitRemovalPending; // se conserva si hay que reintentar tras un choque
     explicitRemovalPending = false;
+    // Lo que la otra ventana dejó en este navegador sube también: sin esto, esta ventana subía su
+    // copia de memoria, que puede ir atrasada respecto de lo que la otra ya guardó aquí.
+    try{ sincronizarAntesDeLeerFormulario(); }catch(e){}
     setSaveStatus("syncing");
     var nuevoActualizado = new Date().toISOString();
     var ruta = "/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id;
@@ -3106,14 +3165,33 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         // PATCH por algún tema de permisos de lectura (RLS) pero el guardado sí se aplicó de
         // verdad, esta consulta lo confirma y evita un aviso de "conflicto" falso que no es real.
         supaFetchDatos().then(function(check){
-          if(check && check.actualizado === nuevoActualizado){
+          // Se comparan como INSTANTES, no como texto: Supabase devuelve la marca con "+00:00" y
+          // aquí se escribió con "Z". Comparando el texto, esta confirmación no salía nunca.
+          if(check && mismaMarcaDeTiempo(check.actualizado, nuevoActualizado)){
             // Sí se guardó -- el hueco era de permisos de lectura, no un choque real.
             inConflictState = false;
+            choquesSeguidos = 0;
             setSaveStatus("cloudok");
             lastKnownSafeCount = state.records.length;
             lastKnownCloudActualizado = nuevoActualizado;
             notifyDataSynced(nuevoActualizado);
             if(supaSession && supaSession.user) rememberSafeCount(supaSession.user.email, state.records.length);
+          } else if(check && choquesSeguidos < MAX_CHOQUES_SEGUIDOS){
+            // CHOQUE NORMAL CON LA OTRA VENTANA (arreglo del 10-10-2026, t27). Con la principal y
+            // la flotante abiertas, cada una sube a la nube por su lado: en cuanto una sube, la
+            // marca de la otra queda vieja y su siguiente subida se rechaza. Antes, esa ventana
+            // se quedaba en "conflicto" el resto de la sesión y DEJABA DE SUBIR: todo lo que se
+            // trabajaba ahí quedaba solo en este navegador, con un aviso rojo que no se iba.
+            // Ahora se trae lo de la nube, se junta con lo de aquí sin quitar nada, y se vuelve a
+            // subir con la marca nueva. Solo si choca varias veces seguidas se avisa como antes.
+            choquesSeguidos++;
+            juntarConLaNube(check);
+            lastKnownCloudActualizado = check.actualizado || null;
+            cloudPushInFlight = false;
+            cloudPushPendingRerun = false;
+            explicitRemovalPending = vaciadoAdrede;
+            pushCloudNow();
+            return;
           } else {
             inConflictState = true;
             setSaveStatus("conflict");
@@ -3131,6 +3209,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         return;
       }
       inConflictState = false;
+      choquesSeguidos = 0;
       setSaveStatus("cloudok");
       lastKnownSafeCount = state.records.length;
       lastKnownCloudActualizado = nuevoActualizado;
@@ -3194,9 +3273,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // sesión (trae la nube, fusiona lo que haya sin subir) SIN navegar a ningún lado. Dentro de la
     // ventana flotante (un iframe, no la pestaña que la abrió) sí es seguro recargar -- se confirmó
     // aparte que eso no la cierra.
-    if(isFlotanteInstance){
-      location.reload();
-    } else if(supaSession){
+    // Tampoco en la flotante (10-10-2026): la sesión vive solo en memoria y la flotante la recibe
+    // UNA vez, al abrirse. Recargarla la dejaba en la pantalla de iniciar sesión, en medio del
+    // trabajo. Con sesión abierta, las dos ventanas traen lo nuevo igual, sin recargar.
+    if(supaSession){
       inConflictState = false; // completeLogin() trae una marca de tiempo nueva y válida -- ya no aplica
       completeLogin(true);
     } else {
@@ -3333,6 +3413,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     return false;
   }
   function valorVacio(v){ return v == null || v === ""; }
+  function copiaProfunda(o){ try{ return JSON.parse(JSON.stringify(o)); }catch(e){ return o; } }
   // MEZCLA DE TRES VÍAS. "base" es la versión que ESTA ventana escribió la última vez; "mio" la que
   // tiene ahora en memoria; "otro" la que hay guardada, escrita por la otra ventana.
   //
@@ -3453,7 +3534,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(!o || !o.id) return;
       if(idsBorradosAdrede[o.id]) return;
       var mio = porId[o.id];
-      if(!mio){ state.records.push(o); cambiados++; return; } // existe allá y no aquí: se conserva
+      if(!mio){
+        state.records.push(o); cambiados++;               // existe allá y no aquí: se conserva
+        ultimoEscritoPorId[o.id] = copiaProfunda(o);       // y lo que llegó no es un cambio de aquí
+        return;
+      }
       if(hayQueCombinar(mio, o)){
         if(o.id === state.activeId) activoCambio = true;
         // Igual que en fusionarConLoGuardado: campo a campo, nunca el radicado entero. En memoria
@@ -3462,6 +3547,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         // otra ventana se los llevaría por delante.
         var combinado = combinarConLoOtro(mio, o);
         Object.keys(combinado).forEach(function(k){ mio[k] = combinado[k]; });
+        // LA BASE SE MUEVE CON LO QUE SE TRAJO (arreglo del 10-10-2026, t29). La base es "lo
+        // último que esta ventana y la otra tenían en común". Lo que acaba de llegar ya es común:
+        // si la base se quedaba en la versión vieja, el valor recién traído parecía un cambio
+        // HECHO AQUÍ, y en el siguiente guardado de esta ventana pisaba la corrección más nueva
+        // de la otra. Así se perdía, por ejemplo, un correo corregido en la flotante: volvía el
+        // anterior sin ningún aviso. Con la base en lo traído, lo único que cuenta como "mío" es
+        // lo que de verdad se escribió aquí y todavía no se ha guardado.
+        ultimoEscritoPorId[o.id] = copiaProfunda(o);
         cambiados++;
       }
     });
@@ -4330,7 +4423,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         state.records.push(o); anadidos++; return;
       }
       if(registrosIguales(o, mio)) return;
-      var combinado = combinarSinVaciar(o, mio); // lo de ahora manda; el punto solo rellena huecos
+      // Lo de ahora manda; el punto solo rellena huecos. (Hasta el 10-10-2026 los argumentos iban
+      // al revés y el dato VIEJO del punto pisaba al de ahora -- justo lo contrario de lo que esta
+      // línea y la pantalla prometen. Ver t30_restaurar_punto_no_pisa.)
+      var combinado = combinarSinVaciar(mio, o);
       var cambio = false;
       Object.keys(combinado).forEach(function(k){
         if(!mismoValor(mio[k], combinado[k])){ mio[k] = combinado[k]; cambio = true; }

@@ -2,7 +2,7 @@
 #   (a) no puede saltar en radicados que todavía no se han trabajado (si sale siempre, se cierra
 #       sin leer, y ahí es donde se pierde la alarma de verdad);
 #   (b) pero TIENE que saltar en cuanto se trabaja uno y algo queda mal.
-import sys; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B
 T="\t"

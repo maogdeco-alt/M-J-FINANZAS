@@ -2,7 +2,7 @@
 #   (a) lo que se escribe NO se pierde ni cerrando la ventana en seco;
 #   (b) al volver a abrirla, vuelve al radicado en el que se estaba (antes empezaba del primero);
 #   (c) cada ventana recuerda LO SUYO: mover una no arrastra a la otra.
-import sys; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B
 T="\t"

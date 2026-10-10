@@ -267,7 +267,7 @@ Dentro de la app: **Documentos → ¿De dónde sale este número?**
 
 ## 8. LAS PRUEBAS
 
-26 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
+30 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
 cada corrida). Manejan la app **por la interfaz**, con clics y teclado, como la usuaria.
 
 ```bash
@@ -305,6 +305,13 @@ memorando, y todos siguen el mismo patrón.
 | 124 radicados de agosto en la masiva del 2 de octubre | La masiva exportaba «todo lo que haya»: la palabra «semana» no existía para la app | Aviso de semanas mezcladas + descarga por rango (t25) |
 | 34 correos rotos entregados sin una alerta | La regla era, literal, «¿tiene una arroba?» | R26: estructura, lo que sobre delante, espacios y dominio por parecido (t24) |
 | Un comparendo entregado como «11» | Ninguna regla miraba la longitud | R28, midiendo el número **corto**, que es el que sale al archivo (t24) |
+| Con la principal y la flotante abiertas, una dejaba de subir a la nube y mostraba «Se guardó desde otro lugar» el resto del día | Cada ventana sube con la marca de la última vez; en cuanto sube la otra, la marca queda vieja y Supabase rechaza la subida. La ventana rechazada se rendía. El servidor de mentira de las pruebas aceptaba todo, así que nadie lo vio | Al chocar, se trae la nube, se junta sin quitar nada (lo archivado no resucita) y se vuelve a subir (t27). `mock.py` ahora aplica el filtro como el real |
+| Un correo corregido en la flotante volvía al anterior, sin aviso | Lo que una ventana traía de la otra quedaba contado como «cambio hecho aquí», y en su siguiente guardado pisaba la corrección más nueva | La referencia de la mezcla se mueve con lo que se trae (t28 lo encontró, t29 lo fija) |
+| Restaurar un punto de restauración deshacía lo corregido después | Los dos argumentos de la mezcla iban al revés: mandaba el dato viejo del punto | Manda lo de ahora; el punto solo rellena huecos, como dice la pantalla (t30) |
+
+Los tres últimos se encontraron el 10-10-2026, en la auditoría tras el despliegue del bloque de la
+mañana. Ninguno lo causó ese bloque: estaban antes. Pero los tres son justo «cruza información» y
+«no guarda lo que trabajo», que es lo que se notó.
 
 **El patrón**: ninguno era un error de cálculo. Todos eran **algo que la app no miraba**, y que
 por tanto pasaba en silencio hasta que lo encontraba otra persona semanas después.
