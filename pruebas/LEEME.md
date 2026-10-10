@@ -52,6 +52,8 @@ No se edita nunca `pruebas/sitio/index_test.html` a mano: es un archivo generado
 | `t28_estres_cruces.py` | 60 saltos rápidos entre radicados, en las dos ventanas a la vez (escribir y saltar sin esperar, guardar, Tab, esperar). Cada valor lleva dentro el número de su radicado: exige que **ningún radicado tenga datos de otro** y que **no se pierda nada** de lo escrito. Secuencia fija (`SEMILLA=` para probar otra). |
 | `t29_lo_absorbido_no_es_mio.py` | El caso que encontró t28, aislado: un correo corregido en la flotante **no puede volver al anterior** cuando la principal guarda otra cosa. |
 | `t30_restaurar_punto_no_pisa.py` | Restaurar un punto de restauración devuelve lo borrado **sin deshacer** lo corregido después. |
+| `t31_semana_cerrada_no_vuelve.py` | Cerrar la semana con las dos ventanas abiertas, o sin conexión, y volver a entrar: la semana **no vuelve** a la lista y sus radicados siguen en el historial. |
+| `t32_solo_radicados.py` | Una lista de **solo números de radicado** entra completa; lo llenado a mano queda en su radicado y sale en la masiva. |
 
 ## Reglas de la casa
 

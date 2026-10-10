@@ -214,6 +214,8 @@ Las dos ventanas comparten el navegador y la misma fila de Supabase. Desde el 10
 - que lo escrito en una **nunca vuelva a un valor anterior** por algo que haga la otra (t29);
 - que **ningún radicado reciba datos de otro**, ni trabajando rápido en las dos (t28);
 - que las dos **sigan subiendo a la nube** aunque choquen, y que lo archivado no resucite (t27).
+- que una semana cerrada **no vuelva** a la lista al entrar otra vez, y que su historial no se
+  pierda, aunque el cierre no haya alcanzado a subir a la nube (t31).
 
 `mock.py` tiene que portarse como la Supabase real. Un servidor de pruebas más permisivo que el
 de verdad esconde justo los fallos que importan: así se escondió durante semanas el de la nube.

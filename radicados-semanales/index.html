@@ -3075,9 +3075,38 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   //    más reciente: entonces manda la de la nube, pero ningún dato de aquí se vacía;
   //  · las semanas archivadas se suman por su fecha de cierre, sin repetir.
   // Los ajustes son de esta ventana y no se tocan.
+  // Junta dos historiales por fecha de cierre, sin repetir y sin quitar nada.
+  function juntarHistoriales(base, otro){
+    base = Array.isArray(base) ? base.slice() : [];
+    var cierres = {};
+    base.forEach(function(h){ if(h && h.closedAt) cierres[h.closedAt] = true; });
+    var nuevas = (Array.isArray(otro) ? otro : []).filter(function(h){ return h && h.closedAt && !cierres[h.closedAt]; });
+    var history = base.concat(nuevas).sort(function(a,b){
+      return String(a.closedAt||"").localeCompare(String(b.closedAt||""));
+    });
+    return { history: history, anadidasDeAqui: nuevas.length };
+  }
+  // Un radicado que ya está archivado en una semana cerrada, y que nadie tocó DESPUÉS de ese
+  // cierre, no pertenece a la lista de trabajo: si aparece ahí es una copia vieja (de la nube o de
+  // la otra ventana) que no se enteró del cierre. Se quita para que la semana no vuelva.
+  function quitarYaArchivados(records, history){
+    var cierrePorId = {};
+    (history || []).forEach(function(h){
+      var t = Date.parse(h && h.closedAt);
+      if(!h || isNaN(t)) return;
+      (h.records || []).forEach(function(r){
+        if(r && r.id && !(cierrePorId[r.id] >= t)) cierrePorId[r.id] = t;
+      });
+    });
+    return (records || []).filter(function(r){
+      if(!r || !r.id || !(r.id in cierrePorId)) return true;
+      return Number(r.modificadoEn || r.createdAt || 0) > cierrePorId[r.id];
+    });
+  }
   function juntarConLaNube(fila){
     if(!fila) return;
     var nube = Array.isArray(fila.records) ? fila.records : [];
+    nube = quitarYaArchivados(nube, state.history.concat(Array.isArray(fila.history) ? fila.history : []));
     var porId = {};
     state.records.forEach(function(r){ if(r && r.id) porId[r.id] = r; });
     var cambiados = 0, activoCambio = false;
@@ -3927,7 +3956,27 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         state.records = mergeResult.records;
         mergeDetectoCambiosSinSubir = mergeResult.changed;
         state.settings = mergeSettings(cloud.settings);
-        state.history = Array.isArray(cloud.history) ? cloud.history : [];
+        // El historial se JUNTA (por fecha de cierre), no se reemplaza. Hasta el 10-10-2026 aquí
+        // mandaba solo el de la nube: una semana cerrada en este navegador que no alcanzó a subir
+        // (sin conexión, o un choque con la otra ventana) desaparecía del historial al volver a
+        // entrar, y sus radicados volvían a la lista de trabajo desde la copia vieja de la nube.
+        // Ver t31_semana_cerrada_no_vuelve.
+        var historialLocalAntes = [];
+        try{
+          var rawHistAntes = localStorage.getItem(historyKeyFor(user.email));
+          var parsedHistAntes = rawHistAntes ? JSON.parse(rawHistAntes) : null;
+          if(Array.isArray(parsedHistAntes)) historialLocalAntes = parsedHistAntes;
+        }catch(e){}
+        var juntado = juntarHistoriales(Array.isArray(cloud.history) ? cloud.history : [], historialLocalAntes);
+        state.history = juntado.history;
+        if(juntado.anadidasDeAqui) mergeDetectoCambiosSinSubir = true;
+        var antesDeQuitarArchivados = state.records.length;
+        state.records = quitarYaArchivados(state.records, state.history);
+        if(state.records.length !== antesDeQuitarArchivados){
+          mergeDetectoCambiosSinSubir = true;
+          explicitRemovalPending = true; // salen porque YA están en el historial, no por un vaciado accidental
+        }
+        state.records.forEach(function(r,i){ r.order = i; });
       } else {
         load(); loadSettings(); loadHistory();
       }
@@ -7005,6 +7054,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var radicado = cleanSpaces(cells[0]||"");
       if(/^radicado$/i.test(radicado)){ headerSkipped++; return; }
       if(!radicado) return;
+      // Hay semanas en que solo se tiene la lista de números de radicado y todo lo demás se llena
+      // a mano. Una línea que es ÚNICAMENTE un radicado de 15 dígitos entra sola, con lo demás
+      // vacío, y queda dicho en el informe. Cualquier otra línea corta sigue sin entrar.
+      // (Hasta el 10-10-2026 una lista de solo radicados no metía NINGUNO. Ver t32_solo_radicados.)
+      if(cells.length === 1 && /^\d{15}$/.test(radicado)){
+        filas.push({cells:cells, radicado:radicado, linea:i+1, soloNumero:true});
+        return;
+      }
       if(cells.length < 4){
         tooShort++;
         omitidas.push({linea:i+1, radicado:radicado, motivo:"la línea trae menos de 4 columnas — no se pudo saber dónde están las fechas ni el nombre"});
@@ -7013,13 +7070,25 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       filas.push({cells:cells, radicado:radicado, linea:i+1, porEspacios:separadoPorEspacios});
     });
 
-    var forma = detectarFormaDelBloque(filas.map(function(f){ return f.cells; }));
+    var forma = detectarFormaDelBloque(filas.filter(function(f){ return !f.soloNumero; }).map(function(f){ return f.cells; }));
+    var soloNumero = [];
 
     filas.forEach(function(f){
       var cells = f.cells;
       if(existing[f.radicado]){
         dup++;
         duplicadas.push({linea:f.linea, radicado:f.radicado});
+        return;
+      }
+      if(f.soloNumero){
+        var solo = blankRecord();
+        solo.order = nextOrder++;
+        solo.radicado = f.radicado;
+        state.records.push(solo);
+        existing[f.radicado] = true;
+        if(!firstNewId) firstNewId = solo.id;
+        soloNumero.push({linea:f.linea, radicado:f.radicado});
+        added++;
         return;
       }
       var fRad = cells[forma.fRad], fAsig = cells[forma.fAsig], nombre = cells[forma.nombre];
@@ -7064,7 +7133,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     });
     return {
       added: added, dup: dup, headerSkipped: headerSkipped, tooShort: tooShort,
-      firstNewId: firstNewId, forma: forma, avisos: avisos, omitidas: omitidas, duplicadas: duplicadas
+      firstNewId: firstNewId, forma: forma, avisos: avisos, omitidas: omitidas, duplicadas: duplicadas,
+      soloNumero: soloNumero
     };
   }
 
@@ -7072,7 +7142,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // estorba: se limita al aviso corto de siempre.
   var ultimoInformeImportacion = "";
   function mostrarInformeImportacion(res){
-    var hayQueDecir = res.avisos.length || res.omitidas.length || res.tooShort || res.dup;
+    var hayQueDecir = res.avisos.length || res.omitidas.length || res.tooShort || res.dup || (res.soloNumero && res.soloNumero.length);
     if(!hayQueDecir){
       toast(res.added + " radicados importados, todos correctos.");
       return;
@@ -7081,6 +7151,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(res.dup) resumen += " " + res.dup + " ya estaban en la lista y se omitieron.";
     if(res.omitidas.length) resumen += " " + res.omitidas.length + " línea(s) NO se pudieron importar.";
     if(res.avisos.length) resumen += " " + res.avisos.length + " dato(s) entraron pero no cuadran — revísalos antes de trabajarlos.";
+    if(res.soloNumero && res.soloNumero.length) resumen += " " + res.soloNumero.length + " entraron solo con el número de radicado: las fechas, el destinatario y lo demás se llenan a mano.";
     document.getElementById("importReportResumen").textContent = resumen;
     document.getElementById("importReportForma").textContent =
       "El bloque se leyó con esta forma de columnas: " + res.forma.etiqueta +
@@ -7101,6 +7172,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       res.avisos.forEach(function(a){
         var l = "Línea " + a.linea + " (" + a.radicado + "): " + a.texto;
         html += "<li>" + escapeHtml(l) + "</li>"; texto.push("REVISAR · " + l);
+      });
+      html += "</ul></div>";
+    }
+    if(res.soloNumero && res.soloNumero.length){
+      html += '<div class="preflight-card"><div class="pf-head"><b>Entraron solo con el número (llena a mano las fechas y el destinatario)</b></div><ul>';
+      res.soloNumero.forEach(function(o){
+        var l = "Línea " + o.linea + ": " + o.radicado;
+        html += "<li>" + escapeHtml(l) + "</li>"; texto.push("SOLO NÚMERO · " + l);
       });
       html += "</ul></div>";
     }
@@ -7770,7 +7849,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // para que el aviso corresponda siempre a lo que está en pantalla (y desaparezca si está bien).
     document.dispatchEvent(new Event("radicado:seleccionado"));
 
-    document.getElementById("baseEditFields").classList.remove("open");
+    // Si al radicado le faltan las fechas o el nombre (por ejemplo, entró solo con el número), las
+    // casillas para llenarlos se muestran abiertas de una vez; si ya los tiene, cerradas como siempre.
+    document.getElementById("baseEditFields").classList.toggle("open",
+      !rec.fechaRadicacion || !rec.fechaAsignacion || !rec.nombre);
     clearFieldErrors();
 
     var list = visibleList();

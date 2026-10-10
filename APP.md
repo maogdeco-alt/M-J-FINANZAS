@@ -50,7 +50,7 @@ radicados-semanales/
 PROTOCOLO.md            las 9 invariantes y las 6 reglas de cambio
 APP.md                  este documento
 PROYECTO_CLAUDE.md      cómo montar el proyecto de Claude
-pruebas/                28 pruebas automáticas (ver §8)
+pruebas/                32 pruebas automáticas (ver §8)
 ```
 
 ### Configuración que NUNCA se toca
@@ -267,7 +267,7 @@ Dentro de la app: **Documentos → ¿De dónde sale este número?**
 
 ## 8. LAS PRUEBAS
 
-30 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
+32 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
 cada corrida). Manejan la app **por la interfaz**, con clics y teclado, como la usuaria.
 
 ```bash
@@ -285,6 +285,9 @@ Lo que defiende cada una está en `pruebas/LEEME.md`. Las que más importan:
 - **t24** · correo, radicado y comparendo, caso por caso
 - **t25** · la masiva avisa cuando mezcla semanas
 - **t26** · el bloque de la mañana, apagado de verdad
+- **t27–t30** · principal y flotante a la vez: nada se pierde, nada se cruza, las dos suben a la nube
+- **t31** · una semana cerrada no vuelve y su historial no se pierde, aunque el cierre no haya subido
+- **t32** · solo los números de radicado: entran y se llenan a mano
 
 `pruebas/caso_2oct/` guarda la masiva, el reporte de ORFEO y los agendamientos de aquella semana
 **anonimizados**, conservando la forma exacta de cada defecto. **Nunca se suben datos de
@@ -308,8 +311,10 @@ memorando, y todos siguen el mismo patrón.
 | Con la principal y la flotante abiertas, una dejaba de subir a la nube y mostraba «Se guardó desde otro lugar» el resto del día | Cada ventana sube con la marca de la última vez; en cuanto sube la otra, la marca queda vieja y Supabase rechaza la subida. La ventana rechazada se rendía. El servidor de mentira de las pruebas aceptaba todo, así que nadie lo vio | Al chocar, se trae la nube, se junta sin quitar nada (lo archivado no resucita) y se vuelve a subir (t27). `mock.py` ahora aplica el filtro como el real |
 | Un correo corregido en la flotante volvía al anterior, sin aviso | Lo que una ventana traía de la otra quedaba contado como «cambio hecho aquí», y en su siguiente guardado pisaba la corrección más nueva | La referencia de la mezcla se mueve con lo que se trae (t28 lo encontró, t29 lo fija) |
 | Restaurar un punto de restauración deshacía lo corregido después | Los dos argumentos de la mezcla iban al revés: mandaba el dato viejo del punto | Manda lo de ahora; el punto solo rellena huecos, como dice la pantalla (t30) |
+| Una semana cerrada volvía a la lista al entrar otra vez, y el historial quedaba vacío | Al iniciar sesión el historial de la nube **reemplazaba** al de este navegador, y los radicados de la copia vieja de la nube se sumaban a la lista. Si el cierre no alcanzó a subir (choque entre ventanas, o sin conexión), la semana volvía entera y su archivo se perdía | Al entrar, los historiales se juntan por fecha de cierre, y un radicado ya archivado que nadie tocó después del cierre no vuelve a la lista (t31) |
+| Una lista de solo números de radicado no metía ninguno | La importación exigía 4 columnas (radicado, dos fechas, nombre) | Una línea que es solo un radicado de 15 dígitos entra con lo demás vacío, el informe lo dice y las casillas de fechas y nombre se abren solas (t32) |
 
-Los tres últimos se encontraron el 10-10-2026, en la auditoría tras el despliegue del bloque de la
+Los cinco últimos se encontraron el 10-10-2026, en la auditoría tras el despliegue del bloque de la
 mañana. Ninguno lo causó ese bloque: estaban antes. Pero los tres son justo «cruza información» y
 «no guarda lo que trabajo», que es lo que se notó.
 
