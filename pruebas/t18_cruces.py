@@ -3,6 +3,9 @@
 #   (a) dos personas usando el MISMO computador, una detrás de otra;
 #   (b) dos ventanas trabajando la mañana a la vez;
 #   (c) que lo que llega de la nube borre lo que se está trabajando aquí.
+# NOTA: esta prueba corre contra index_test_manana.html, la copia con el bloque de la
+# mañana ENCENDIDO. En la app ese bloque está apagado desde el 10-10-2026; se sigue
+# probando para que, si algún día se reactiva, funcione igual que el día que se apagó.
 import sys, os, json, urllib.request; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
 from playwright.sync_api import sync_playwright
 import base as B
@@ -20,7 +23,7 @@ def nube_manana():
     m=d[0].get("manana")
     return json.loads(m) if isinstance(m,str) else m
 def entrar_como(pag, correo, limpio=False):
-    pag.goto(B.URL, wait_until="domcontentloaded")
+    pag.goto(B.URL_MANANA, wait_until="domcontentloaded")
     pag.wait_for_selector("#loginEmail", timeout=20000)
     pag.fill("#loginEmail", correo); pag.fill("#loginPassword","123456")
     pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
@@ -28,7 +31,7 @@ def entrar_como(pag, correo, limpio=False):
 
 with sync_playwright() as pw:
     nav,ctx,pag,err=B.abrir(pw)
-    B.entrar(pag, "alejandra@gmail.com")
+    B.entrar(pag, "alejandra@gmail.com", url=B.URL_MANANA)
     pag.click("#selBloqueManana"); pag.wait_for_timeout(500)
     B.cargar_sheet_manana(pag, SHEET)
     pag.fill("#manNombre","ALEJANDRA"); pag.keyboard.press("Tab"); pag.wait_for_timeout(900)
@@ -63,7 +66,7 @@ with sync_playwright() as pw:
     print("(c) dos ventanas trabajando la mañana a la vez")
     flo=ctx.new_page(); ef=[]
     flo.on("pageerror", lambda x: ef.append(str(x)))
-    flo.goto(B.URL+"#flotante=1", wait_until="domcontentloaded")
+    flo.goto(B.URL_MANANA+"#flotante=1", wait_until="domcontentloaded")
     flo.wait_for_selector("#loginEmail", timeout=20000)
     flo.fill("#loginEmail","alejandra@gmail.com"); flo.fill("#loginPassword","123456")
     flo.click("#loginBtn"); flo.wait_for_selector("#authDialog", state="hidden", timeout=20000)

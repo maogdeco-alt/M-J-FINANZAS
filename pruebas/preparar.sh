@@ -11,6 +11,12 @@ mkdir -p "$P/sitio"
 # La app apunta a la Supabase de verdad; la copia de pruebas apunta al servidor de mentira.
 sed 's#https://hgfqoodogpxhqbdyubsd.supabase.co#http://127.0.0.1:9870#g' "$APP" > "$P/sitio/index_test.html"
 grep -q '127.0.0.1:9870' "$P/sitio/index_test.html"
+# Segunda copia CON el bloque de la mañana encendido. El interruptor está apagado en la app
+# (decisión del 10-10-2026), pero las pruebas de ese bloque se siguen corriendo contra esta copia:
+# si algún día se vuelve a encender, tiene que seguir funcionando igual que el día que se apagó.
+sed 's/var BLOQUE_MANANA_ACTIVO = false;/var BLOQUE_MANANA_ACTIVO = true;/' \
+    "$P/sitio/index_test.html" > "$P/sitio/index_test_manana.html"
+grep -q 'BLOQUE_MANANA_ACTIVO = true' "$P/sitio/index_test_manana.html"
 cp "$P/../radicados-semanales/sw.js" "$P/../radicados-semanales/manifest.webmanifest" "$P/sitio/" 2>/dev/null || true
 cp "$P/../radicados-semanales/verificador.html" "$P/sitio/" 2>/dev/null || true
 cp -r "$P/../radicados-semanales/icons" "$P/sitio/" 2>/dev/null || true

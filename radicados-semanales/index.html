@@ -674,6 +674,8 @@
      ====================================================================== */
   /* Control segmentado: dos pestañas de tamaño normal, no dos tarjetones. Es un cambio de modo,
      tiene que verse claro y quedarse quieto, no competir con el encabezado de la entidad. */
+  /* display:flex gana a [hidden], así que el apagado necesita su propia regla. */
+  .bloque-sel[hidden]{display:none !important;}
   .bloque-sel{display:flex;align-items:center;gap:4px;margin:14px 0 2px;
     background:var(--surface-2);border:1px solid var(--border);border-radius:11px;padding:4px;}
   .bloque-sel button{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
@@ -12685,15 +12687,32 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // ---------- el selector de bloque ----------
   // Se recuerda por ventana (principal y flotante por separado), igual que el radicado y el
   // filtro: cada una abre donde la dejaste, sin arrastrar a la otra.
+  // ============================================================
+  // EL INTERRUPTOR DEL BLOQUE DE LA MAÑANA
+  // ------------------------------------------------------------
+  // Decisión de la usuaria (10 de octubre de 2026): la app se enfoca al 100% en la masiva y los
+  // agendamientos. El bloque de la mañana se APAGA, no se borra.
+  //
+  // Se apaga y no se borra a propósito, por dos razones. Una: está demostrado que no tuvo nada
+  // que ver con los fallos de octubre -- t17_aislamiento comprueba byte a byte que trabajar en un
+  // bloque no mueve nada del otro, y los 124 radicados de agosto que aparecieron en la masiva eran
+  // radicados DE LA MASIVA que nunca se sacaron de la lista. Dos: volver atrás tiene que costar un
+  // minuto, no rehacerlo. Lo guardado en el navegador y en Supabase no se toca: si se vuelve a
+  // encender, el trabajo sigue ahí.
+  //
+  // PARA VOLVER A ENCENDERLO: poner esta constante en true. Nada más.
+  var BLOQUE_MANANA_ACTIVO = false;
+
   var BLOQUE_KEY = "radicados_bloque_v1";
   function bloqueKey(){
     return BLOQUE_KEY + "::" + (state.profile.activeUser || "-") + "::" + (isFlotanteInstance ? "flotante" : "principal");
   }
   function bloqueActivo(){
+    if(!BLOQUE_MANANA_ACTIVO) return "tarde";   // apagado: siempre la masiva
     try{ return localStorage.getItem(bloqueKey()) === "manana" ? "manana" : "tarde"; }catch(e){ return "tarde"; }
   }
   function aplicarBloque(cual, recordar){
-    var esManana = cual === "manana";
+    var esManana = BLOQUE_MANANA_ACTIVO && cual === "manana";
     document.documentElement.classList.toggle("bloque-manana", esManana);
     var sec = document.getElementById("bloqueManana");
     if(sec) sec.hidden = !esManana;
@@ -12712,8 +12731,23 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   document.getElementById("selBloqueManana").addEventListener("click", function(){ aplicarBloque("manana", true); });
   document.getElementById("selBloqueTarde").addEventListener("click", function(){ aplicarBloque("tarde", true); });
 
+  // Con el bloque apagado, el selector entero sobra: la app no tiene dos partes, tiene una.
+  // Se esconde el selector completo (no solo su botón) para que no quede una pestaña suelta
+  // diciendo "Trabajo de la tarde" cuando no hay ninguna otra.
+  (function apagarSelectorSiHaceFalta(){
+    if(BLOQUE_MANANA_ACTIVO) return;
+    var sel = document.querySelector(".bloque-sel");
+    if(sel) sel.hidden = true;
+    var sec = document.getElementById("bloqueManana");
+    if(sec) sec.hidden = true;
+    var barra = document.getElementById("mananaNav");
+    if(barra) barra.hidden = true;
+    document.documentElement.classList.remove("bloque-manana");
+  })();
+
   // Arranque del bloque: se llama desde donde ya arranca todo lo demás al iniciar sesión.
   function arrancarManana(){
+    if(!BLOQUE_MANANA_ACTIVO) return;   // apagado: ni se carga ni se pinta
     cargarMananaLocal();
     var inp = document.getElementById("manNombre");
     if(inp) inp.value = manana.nombre || "";

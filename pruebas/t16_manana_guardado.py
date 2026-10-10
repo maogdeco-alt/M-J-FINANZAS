@@ -1,4 +1,7 @@
 # El bloque de la mañana: que GUARDE sin fallas y que se pueda trabajar en la ventana flotante.
+# NOTA: esta prueba corre contra index_test_manana.html, la copia con el bloque de la
+# mañana ENCENDIDO. En la app ese bloque está apagado desde el 10-10-2026; se sigue
+# probando para que, si algún día se reactiva, funcione igual que el día que se apagó.
 import sys, os, json, urllib.request; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
 from playwright.sync_api import sync_playwright
 import base as B
@@ -22,7 +25,7 @@ def nube():
 def entrar_flotante(ctx):
     f=ctx.new_page(); e=[]
     f.on("pageerror", lambda x: e.append(str(x)))
-    f.goto(B.URL+"#flotante=1", wait_until="domcontentloaded")
+    f.goto(B.URL_MANANA+"#flotante=1", wait_until="domcontentloaded")
     f.wait_for_selector("#loginEmail", timeout=20000)
     f.fill("#loginEmail","prueba@gmail.com"); f.fill("#loginPassword","123456")
     f.click("#loginBtn"); f.wait_for_selector("#authDialog", state="hidden", timeout=20000)
@@ -30,7 +33,7 @@ def entrar_flotante(ctx):
     return f,e
 with sync_playwright() as pw:
     nav,ctx,pag,err=B.abrir(pw)
-    B.entrar(pag)
+    B.entrar(pag, url=B.URL_MANANA)
     pag.click("#selBloqueManana"); pag.wait_for_timeout(500)
     B.cargar_sheet_manana(pag, SHEET)
     pag.fill("#manNombre","ALEJANDRA"); pag.keyboard.press("Tab"); pag.wait_for_timeout(900)

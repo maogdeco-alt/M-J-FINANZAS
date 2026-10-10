@@ -3,6 +3,9 @@
 # la información bajo ninguna circunstancia".
 # Esta prueba no lo afirma: lo mide. Toma una FOTO EXACTA de todo lo que la app guarda (navegador
 # y nube), trabaja a fondo en un bloque, y comprueba que lo del otro no cambió NI UN BYTE.
+# NOTA: esta prueba corre contra index_test_manana.html, la copia con el bloque de la
+# mañana ENCENDIDO. En la app ese bloque está apagado desde el 10-10-2026; se sigue
+# probando para que, si algún día se reactiva, funcione igual que el día que se apagó.
 import sys, os, json, hashlib, urllib.request; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
 from playwright.sync_api import sync_playwright
 import base as B
@@ -49,7 +52,7 @@ def claves_de(foto, quien):
 
 with sync_playwright() as pw:
     nav,ctx,pag,err=B.abrir(pw)
-    B.entrar(pag)
+    B.entrar(pag, url=B.URL_MANANA)
 
     print("1) se llena el bloque de la TARDE (la masiva)")
     B.importar(pag,BLOQUE)

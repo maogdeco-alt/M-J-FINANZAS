@@ -1,4 +1,7 @@
 # BLOQUE DE LA MAÑANA — asignaciones de Donina. Se prueba con el ARCHIVO REAL del 30/9/2026.
+# NOTA: esta prueba corre contra index_test_manana.html, la copia con el bloque de la
+# mañana ENCENDIDO. En la app ese bloque está apagado desde el 10-10-2026; se sigue
+# probando para que, si algún día se reactiva, funcione igual que el día que se apagó.
 import sys, os; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
 from playwright.sync_api import sync_playwright
 import base as B, openpyxl
@@ -15,7 +18,7 @@ def ok(c,m):
     if not c: fallos.append(m)
 with sync_playwright() as pw:
     nav,ctx,pag,err=B.abrir(pw)
-    B.entrar(pag)
+    B.entrar(pag, url=B.URL_MANANA)
 
     print("1) el selector de bloques")
     ok(pag.locator("#selBloqueManana").is_visible(), "se ve «Trabajo de la mañana»")

@@ -10,6 +10,9 @@ def reiniciar():
     urllib.request.urlopen(r, timeout=5).read()
 
 URL = "http://127.0.0.1:8871/index_test.html"
+# La copia con el bloque de la mañana ENCENDIDO (ver preparar.sh). En la app ese bloque está
+# apagado; sus pruebas corren contra esta copia para que siga comprobado por si se reactiva.
+URL_MANANA = "http://127.0.0.1:8871/index_test_manana.html"
 CHROMIUM = "/opt/pw-browsers/chromium"
 
 def abrir(pw, headless=True):
@@ -21,9 +24,9 @@ def abrir(pw, headless=True):
     pag.on("console", lambda m: errores.append("console." + m.type + ": " + m.text) if m.type == "error" else None)
     return nav, ctx, pag, errores
 
-def entrar(pag, correo="prueba@gmail.com", clave="123456", limpio=True):
+def entrar(pag, correo="prueba@gmail.com", clave="123456", limpio=True, url=None):
     if limpio: reiniciar()
-    pag.goto(URL, wait_until="domcontentloaded")
+    pag.goto(url or URL, wait_until="domcontentloaded")
     pag.wait_for_selector("#loginEmail", timeout=20000)
     pag.fill("#loginEmail", correo)
     pag.fill("#loginPassword", clave)
