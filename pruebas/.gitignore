@@ -1,0 +1,19 @@
+sitio/
+sheetjs.js
+rejilla.js
+__pycache__/
+.corriendo/
+*.xlsx
+*.png
+*.log
+sheet_donina.xlsx
+lista1.xlsx
+lista2.xlsx
+*.json
+informe_verificador.xlsx
+masiva_limpia_tmp.xlsx
+
+# El caso real del 2 de octubre, ANONIMIZADO, sí se versiona: es la prueba permanente
+# de PROTOCOLO.md (Regla 2). No contiene datos de ningún ciudadano.
+!caso_2oct/*.xlsx
+!caso_2oct/*.xls

@@ -1,0 +1,8 @@
+# El paquete que se arrastra a Netlify. Se arma a partir de radicados-semanales/ con un comando y
+# pesa medio mega: no es código, es el resultado de empaquetar el código. Guardarlo en el
+# repositorio solo serviría para que alguien suba un .zip viejo pensando que es el último.
+#
+#   cd radicados-semanales && zip -r ../radicados-semanales-NETLIFY.zip \
+#       index.html manifest.webmanifest sw.js netlify.toml icons
+radicados-semanales-NETLIFY.zip
+*.zip
