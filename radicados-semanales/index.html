@@ -616,6 +616,7 @@
   .queue-item.prioritario{background:var(--stamp-soft);border-color:var(--stamp);}
   .queue-item.prioritario.active{background:var(--stamp-soft);border-color:var(--stamp);box-shadow:0 0 0 2px var(--stamp) inset;}
   .qi-priority-badge{display:inline-block;background:var(--stamp);color:#fff;font-size:0.66rem;font-weight:800;letter-spacing:.02em;padding:1px 6px;border-radius:999px;vertical-align:middle;margin-right:4px;}
+  .qi-sin-fecha{display:block;font-size:0.62rem;font-weight:800;letter-spacing:.02em;color:var(--warn);}
   .qi-priority-badge[hidden]{display:none;} /* mismo problema de especificidad que installAppBtn -- sin esto, display:inline-block gana y el hidden no oculta nada */
   .dot{width:8px;height:8px;border-radius:50%;flex:none;margin-top:5px;}
   .dot.pend{background:var(--warn);}
@@ -6365,7 +6366,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return '<div class="queue-item'+(r.id===state.activeId?" active":"")+(prioritario?" prioritario":"")+'" data-id="'+r.id+'">'+
         '<span class="dot '+(done?"done":"pend")+'"></span>'+
         '<span class="qi-body"><span class="qi-radicado">'+(prioritario?'<span class="qi-priority-badge" title="'+TERMINO_RADICADO_DIAS_HABILES+' días hábiles de término, ya van '+UMBRAL_PRIORITARIO_DIAS+' o más desde la asignación">PRIORITARIO</span> ':'')+escapeHtml(r.radicado)+'</span>'+
-        '<span class="qi-name">'+escapeHtml(r.nombre||"(sin nombre)")+'</span></span>'+
+        '<span class="qi-name">'+escapeHtml(r.nombre||"(sin nombre)")+'</span>'+
+        (parseDMY(normalizeDate(r.fechaAsignacion)) ? '' : '<span class="qi-sin-fecha" title="Sin fecha de asignación: el término no se puede calcular">SIN FECHA DE ASIGNACIÓN</span>')+
+        '</span>'+
         '<button class="qi-del" data-del="'+r.id+'" title="Borrar" type="button" aria-label="Borrar radicado '+escapeHtml(r.radicado)+'">✕</button>'+
       '</div>';
     }).join("");
@@ -7823,7 +7826,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("cc_nombreLabel").textContent = rec.nombre || "(sin nombre)";
     document.getElementById("cc_priorityBadge").hidden = !esPrioritario(rec);
     document.getElementById("bf_fechaRadicacion").textContent = rec.fechaRadicacion || "—";
-    document.getElementById("bf_fechaAsignacion").textContent = rec.fechaAsignacion || "—";
+    // Sin fecha de asignación no hay término que contar: se dice así, en vez de calcularlo con
+    // una fecha que no existe.
+    document.getElementById("bf_fechaAsignacion").textContent = parseDMY(normalizeDate(rec.fechaAsignacion))
+      ? rec.fechaAsignacion
+      : (rec.fechaAsignacion ? rec.fechaAsignacion + " (no es una fecha) · término: sin dato" : "sin fecha · término: sin dato");
 
     document.getElementById("cc_radicado").value = rec.radicado;
     document.getElementById("cc_nombre").value = rec.nombre;
@@ -10563,6 +10570,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         var etiqueta = campo === "fechaRadicacion" ? "La fecha de radicación" : "La fecha de asignación";
         if(v && !pareceFecha(v)){
           hallazgos.push({grave:true, texto:etiqueta + " es \"" + v + "\", que no es una fecha — señal de que las columnas se corrieron al importar este radicado."});
+        }else if(!v){
+          // Puede ser legítimo (a veces solo se tiene el número de radicado), pero el archivo
+          // saldría con esa casilla en blanco: se dice, para que se entregue sabiéndolo.
+          hallazgos.push({grave:false, texto:etiqueta + " está vacía: en la masiva esa casilla sale en blanco" +
+            (campo === "fechaAsignacion" ? " y no se puede saber a qué semana pertenece este radicado." : ".")});
         }
       });
       // UNA FECHA QUE NO SE ENTIENDE SALE VACÍA, Y ANTES NO LO DECÍA NADIE.
