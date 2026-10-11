@@ -50,7 +50,7 @@ radicados-semanales/
 PROTOCOLO.md            las 9 invariantes y las 6 reglas de cambio
 APP.md                  este documento
 PROYECTO_CLAUDE.md      cómo montar el proyecto de Claude
-pruebas/                36 pruebas automáticas (ver §8)
+pruebas/                37 pruebas automáticas (ver §8)
 ```
 
 ### Configuración que NUNCA se toca
@@ -267,7 +267,7 @@ Dentro de la app: **Documentos → ¿De dónde sale este número?**
 
 ## 8. LAS PRUEBAS
 
-36 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
+37 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
 cada corrida). Manejan la app **por la interfaz**, con clics y teclado, como la usuaria.
 
 ```bash
@@ -288,6 +288,7 @@ Lo que defiende cada una está en `pruebas/LEEME.md`. Las que más importan:
 - **t27–t30** · principal y flotante a la vez: nada se pierde, nada se cruza, las dos suben a la nube
 - **t31** · una semana cerrada no vuelve y su historial no se pierde, aunque el cierre no haya subido
 - **t32** · solo los números de radicado: entran y se llenan a mano
+- **t37** · sin Comentario en pantalla (lo guardado se conserva), flotante compacta y fila de la masiva a la vista
 - **t36** · la tira de Fénix sigue llenando todo sola; si choca con lo escrito a mano, pregunta
 - **t35** · todo a mano, sin línea de Fénix: cada casilla a su columna de la masiva
 - **t33** · sin fecha de asignación: se trabaja igual, se marca «sin fecha», término «sin dato», la masiva lo avisa
@@ -363,3 +364,21 @@ Lo completo está en `PROTOCOLO.md`. En corto:
 6. **Nunca desplegar en viernes ni el día de la entrega.** El lunes temprano.
 7. **ORFEO manda.** La app nunca es la fuente de verdad sobre si se entregó todo.
 8. Si una prueba falla, **mirar primero si la equivocada es la prueba**. Ya ha pasado varias veces.
+
+## Pantalla (11-10-2026)
+
+- La casilla **Comentario** salió de la pantalla a pedido de la usuaria: no va a la masiva ni a la
+  plantilla. La casilla sigue oculta en el documento para que lo ya guardado se conserve al
+  guardar, y sigue saliendo en las descargas internas (historial, control de agendamientos). Ya no
+  se puede marcar como obligatoria.
+- Las pruebas que escribían en Comentario (t8, t14, t20, t21, t27–t33) escriben ahora en
+  **N.° documento**, que va por el mismo camino de guardado y mezcla entre ventanas. En t8 los
+  valores son cortos para no chocar con R22 (un N.° documento de más de 15 caracteres frena
+  «Siguiente», y la prueba terminaba escribiendo en otro radicado).
+- Debajo de las casillas está **la fila de la masiva** del radicado abierto: lo que la app pone
+  sola (TIPO, COMPARENDO corto, ANEXO, ciudad, departamento, ASIGNADOS_A, USUARIO) y, plegada, la
+  fila completa de 27 columnas. Solo muestra; se arma con `recordToMasivaRow` sobre lo que hay en
+  pantalla. t37 exige que sea idéntica a la del archivo.
+- Flotante: el desglose por formato y el enlace a informes quedan solo en la principal; contadores
+  y botones en tamaño mínimo; casillas en 4 columnas. Las explicaciones fijas de cada casilla se
+  ven al pasar el cursor.
