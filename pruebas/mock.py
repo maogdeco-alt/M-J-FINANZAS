@@ -20,6 +20,27 @@ def uid_de_ruta(path):
     m = _re.search(r"usuario_id=eq\.([^&]+)", path or "")
     return m.group(1) if m else UID
 
+def actualizado_de_ruta(path):
+    """Saca la marca de un ?actualizado=eq.<marca>, o None si la petición no la pide."""
+    import re as _re, urllib.parse as _u
+    m = _re.search(r"[?&]actualizado=eq\.([^&]+)", path or "")
+    return _u.unquote(m.group(1)) if m else None
+
+def _instante(v):
+    from datetime import datetime
+    try: return datetime.fromisoformat(str(v).replace("Z", "+00:00"))
+    except Exception: return None
+
+def misma_marca(a, b):
+    """Postgres compara timestamptz como instantes, no como texto: '...Z' y '...+00:00' son iguales."""
+    ia, ib = _instante(a), _instante(b)
+    return ia is not None and ia == ib
+
+def como_postgres(v):
+    """Supabase devuelve la marca con '+00:00', no con la 'Z' que manda la app."""
+    i = _instante(v)
+    return i.isoformat(timespec="milliseconds") if i else v
+
 class H(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     def log_message(self, *a): pass
@@ -65,7 +86,16 @@ class H(BaseHTTPRequestHandler):
             u = uid_de_ruta(p)
             with LOCK:
                 fila = DB["filas"].setdefault(u, {})
+                # Como PostgREST de verdad: un filtro ?actualizado=eq.<marca> que no coincide con
+                # la fila NO cambia nada y responde una lista vacía. Antes este servidor de mentira
+                # ignoraba el filtro, y por eso ninguna prueba vio nunca lo que pasa con dos
+                # ventanas abiertas contra la Supabase real (ver t27_nube_dos_ventanas.py).
+                esperado = actualizado_de_ruta(p)
+                if esperado is not None and not misma_marca(fila.get("actualizado"), esperado):
+                    return self._send(200, [])
                 fila.update(b)
+                if "actualizado" in b:
+                    fila["actualizado"] = como_postgres(b["actualizado"])
             return self._send(200, [DB["filas"][u]])
         return self._send(200, [])
     def do_DELETE(self):

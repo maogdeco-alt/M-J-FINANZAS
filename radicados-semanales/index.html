@@ -549,10 +549,34 @@
   html.es-flotante .work-fields textarea{padding:4px 7px;font-size:0.8rem;}
   html.es-flotante textarea{font-size:0.72rem;line-height:1.25;}
   html.es-flotante #cc_comparendo{min-height:0;height:32px;}
-  html.es-flotante #cc_comentario{min-height:0;height:26px;}
+  /* Flotante (11-10-2026): todo lo de la fila de la masiva a la vista con el menor scroll posible.
+     Los contadores y botones de arriba siguen, en tamaño mínimo; el desglose por formato y el
+     enlace a informes quedan en la pestaña principal. */
+  html.es-flotante .navsub{display:none;}
+  html.es-flotante .appnav{gap:4px 6px;}
+  html.es-flotante .nav-stats .stat-card{padding:2px 7px;}
+  html.es-flotante .nav-stats .stat-card .num{font-size:0.78rem;}
+  html.es-flotante .nav-stats .stat-card .label{font-size:0.5rem;}
+  html.es-flotante .nav-acciones{gap:3px;margin-left:0;}
+  html.es-flotante .navbtn{padding:2px 7px;font-size:0.66rem;gap:4px;min-height:0;}
+  html.es-flotante .navbtn svg{display:none;}
+  html.es-flotante .work-fields > #wrap_tipoId,
+  html.es-flotante .work-fields > #wrap_idNum,
+  html.es-flotante .work-fields > #wrap_res,
+  html.es-flotante .work-fields > #wrap_fechaRes{grid-column:span 2;}
+  html.es-flotante .comparendo-a-mano{grid-template-columns:repeat(4,minmax(0,1fr));gap:2px 8px;margin:2px 0;}
+  html.es-flotante .comparendo-a-mano label{font-size:0.6rem;}
+  html.es-flotante .comparendo-a-mano > div:has(#m_comparendoCompleto),
+  html.es-flotante .comparendo-a-mano > div:has(#m_medio){grid-column:span 2;}
+  html.es-flotante #captureForm > .fila-masiva{order:5;}
+  html.es-flotante #cc_comparendo{height:26px;}
+  html.es-flotante .fila-masiva{margin-top:4px;}
+  html.es-flotante .fila-masiva-auto{font-size:0.64rem;gap:2px 4px;}
+  html.es-flotante .fm-chip{padding:0 6px;}
+  html.es-flotante .fila-masiva-tabla table{font-size:0.66rem;}
   html.es-flotante .base-fields{font-size:0.68rem;padding:3px 8px;margin-bottom:3px;gap:2px 10px;background:none;border:0;}
   html.es-flotante .base-edit-toggle{padding:2px 6px;font-size:0.62rem;}
-  html.es-flotante .work-fields{gap:2px 10px;max-width:none;}
+  html.es-flotante .work-fields{gap:2px 10px;max-width:none;grid-template-columns:repeat(4,minmax(0,1fr));}
   html.es-flotante .work-fields > div,
   html.es-flotante .work-fields > .full{margin-bottom:0;}
   /* La pregunta de "¿pidió pruebas?" también en la ventana flotante: más apretada, pero entera y
@@ -616,6 +640,7 @@
   .queue-item.prioritario{background:var(--stamp-soft);border-color:var(--stamp);}
   .queue-item.prioritario.active{background:var(--stamp-soft);border-color:var(--stamp);box-shadow:0 0 0 2px var(--stamp) inset;}
   .qi-priority-badge{display:inline-block;background:var(--stamp);color:#fff;font-size:0.66rem;font-weight:800;letter-spacing:.02em;padding:1px 6px;border-radius:999px;vertical-align:middle;margin-right:4px;}
+  .qi-sin-fecha{display:block;font-size:0.62rem;font-weight:800;letter-spacing:.02em;color:var(--warn);}
   .qi-priority-badge[hidden]{display:none;} /* mismo problema de especificidad que installAppBtn -- sin esto, display:inline-block gana y el hidden no oculta nada */
   .dot{width:8px;height:8px;border-radius:50%;flex:none;margin-top:5px;}
   .dot.pend{background:var(--warn);}
@@ -651,6 +676,25 @@
   .work-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 16px;}
   .work-fields > div{min-width:0;}
   .work-fields > .full{grid-column:1 / -1;}
+  /* Distribución (11-10-2026): una fila para Formato + Dirección y otra para documento y
+     resolución, en vez de una columna larga. Mismas casillas, mismo orden de tabulación. */
+  .work-fields{grid-template-columns:repeat(4,minmax(0,1fr));}
+  .work-fields > #wrap_direccion{grid-column:span 3;}
+  /* Las explicaciones fijas de cada casilla ocupaban una línea cada una: se ven al pasar el
+     cursor por la casilla (ver ayudasComoTooltip). Los avisos que cambian -- correo mal escrito,
+     plantilla -- tienen id y siguen a la vista. */
+  #captureForm .work-fields .field-hint:not([id]){display:none;}
+  .fila-masiva{margin-top:8px;}
+  .fila-masiva-auto{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;font-size:0.74rem;}
+  .fm-nota{color:var(--muted);font-weight:700;}
+  .fm-chip{background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:1px 8px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+  .fm-chip b{font-size:0.62rem;color:var(--muted);letter-spacing:.03em;}
+  .fm-chip.vacio{opacity:.6;}
+  .fila-masiva-tabla table{border-collapse:collapse;width:100%;font-size:0.74rem;margin-top:4px;}
+  .fila-masiva-tabla td{border-bottom:1px solid var(--border);padding:2px 6px;vertical-align:top;}
+  .fila-masiva-tabla td:first-child{color:var(--muted);width:2.2em;}
+  .fila-masiva-tabla td:nth-child(2){color:var(--muted);white-space:nowrap;width:1%;}
+  .fila-masiva-tabla tr.vacio td:last-child::after{content:"(vacía)";color:var(--muted);}
   .work-fields .formato-field input{font-weight:700;}
   /* Pregunta de SÍ o NO. Se ve como una pregunta, no como un campo más: la idea es que se
      responda de un clic mientras se clasifica, sin abrir otra ventana. Los dos botones son
@@ -893,6 +937,10 @@
                  margin-bottom:6px;flex-wrap:wrap;min-width:0;}
   .res-label-row > *{min-width:0;max-width:100%;}
   .res-label-row label{margin-bottom:0;}
+  /* Con Res. en una columna de cuatro, el botón se encoge (con "…") en la misma línea de la
+     etiqueta en vez de bajar a una línea propia: el texto completo queda en su title. */
+  .res-label-row{flex-wrap:nowrap;margin-bottom:3px;}
+  .res-label-row .simit-btn{flex:0 1 auto;max-width:78%;}
   .simit-btn{margin-left:0;padding:3px 11px;font-size:0.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:999px;background:var(--accent-soft);border-color:transparent;color:var(--accent);vertical-align:middle;text-decoration:none;}
   .simit-btn:hover{background:var(--accent);color:var(--accent-ink);filter:none;}
   .simit-btn:disabled{background:var(--surface-2);color:var(--muted);cursor:default;opacity:0.7;}
@@ -905,6 +953,8 @@
   .simit-btn.is-disabled:hover{background:var(--surface-2);color:var(--muted);}
 
   .breakdown-details{margin-top:4px;}
+  .comparendo-a-mano{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 10px;margin:4px 0;}
+  .comparendo-a-mano label{font-size:0.72rem;}
   .breakdown-details > summary{list-style:none;cursor:pointer;color:var(--accent);font-size:0.78rem;font-weight:700;user-select:none;}
   .breakdown-details > summary::-webkit-details-marker{display:none;}
   .breakdown-details[open] > summary{margin-bottom:2px;}
@@ -1225,7 +1275,9 @@
 
   @media (max-width:760px){
     .base-edit-fields{grid-template-columns:1fr;}
-    .work-fields{grid-template-columns:1fr;}
+    html:not(.es-flotante) .work-fields{grid-template-columns:1fr;}
+    html:not(.es-flotante) .work-fields > div{grid-column:auto !important;}
+    html:not(.es-flotante) .work-fields > .full{grid-column:1 / -1 !important;}
   }
 </style>
 </head>
@@ -1484,6 +1536,26 @@
                   <summary>Ver los campos separados ▾</summary>
                   <div class="breakdown" id="cc_breakdown"></div>
                 </details>
+                <!-- DATOS DEL COMPARENDO A MANO. Para cuando solo se tiene el número de radicado y no
+                     hay línea de Fénix que pegar: cada columna de la masiva que viene de Fénix tiene
+                     aquí su casilla. Lo escrito se guarda DENTRO de la misma línea de arriba (en su
+                     columna), así que todo lo demás -- reglas, masiva, plantilla, nube, la otra
+                     ventana -- funciona igual que con una línea pegada. Ver t35. -->
+                <details class="breakdown-details" id="comparendoAManoDetails">
+                  <summary>Llenar a mano los datos del comparendo ▾</summary>
+                  <div class="comparendo-a-mano">
+                    <div><label for="m_comparendoCompleto">N.° de comparendo</label><input id="m_comparendoCompleto" inputmode="numeric" autocomplete="off" placeholder="el número completo de Fénix"></div>
+                    <div><label for="m_cod">Infracción</label><input id="m_cod" autocomplete="off" placeholder="ej. C29"></div>
+                    <div><label for="m_imposicion">Fecha de comparendo</label><input id="m_imposicion" autocomplete="off" placeholder="dd/mm/aaaa"></div>
+                    <div><label for="m_notificacion">Fecha de notificación</label><input id="m_notificacion" autocomplete="off" placeholder="dd/mm/aaaa (vacía si no hay)"></div>
+                    <div><label for="m_medio">Tipo de comparendo</label><input id="m_medio" list="medioList" autocomplete="off" placeholder="ej. CAMARAS SALVAVIDAS">
+                      <datalist id="medioList"><option value="CAMARAS SALVAVIDAS"></option><option value="COMPARENDERA"></option><option value="CAMARAS FIJAS CENTRO DE GESTION"></option></datalist></div>
+                    <div><label for="m_estado">Estado</label><input id="m_estado" list="estadoList" autocomplete="off" placeholder="ej. VIGENTE">
+                      <datalist id="estadoList"><option value="VIGENTE"></option></datalist></div>
+                    <div><label for="m_placa">Placa</label><input id="m_placa" autocomplete="off" placeholder="solo hace falta para AGENDAMIENTO"></div>
+                  </div>
+                  <div class="field-hint">El tipo y el número de documento, la resolución y su fecha tienen sus propias casillas más abajo.</div>
+                </details>
                 <div class="insights" id="ccInsights"></div>
               </div>
 
@@ -1540,7 +1612,20 @@
                 <div class="field-hint">Puedes pegar tal cual copias de SIMIT ("1368706 Fecha: 26/07/2024") — separa el número y la fecha solo.</div>
               </div>
               <div id="wrap_fechaRes"><label for="cc_fechaRes">Fecha res.<span class="required-mark" id="req_fechaRes" hidden>*</span></label><input id="cc_fechaRes" placeholder="dd/mm/aaaa"></div>
-              <div class="full" id="wrap_comentario"><label for="cc_comentario">Comentario<span class="required-mark" id="req_comentario" hidden>*</span></label><textarea id="cc_comentario" rows="2" style="font-family:inherit;"></textarea></div>
+              <!-- COMENTARIO: fuera de la pantalla desde el 11-10-2026, a pedido de la usuaria (ocupaba
+                   espacio y no va a la masiva ni a la plantilla). La casilla sigue en el documento,
+                   oculta, para que lo ya escrito se conserve tal cual al guardar: no se borra nada. -->
+              <div class="full" id="wrap_comentario" hidden><label for="cc_comentario">Comentario<span class="required-mark" id="req_comentario" hidden>*</span></label><textarea id="cc_comentario" rows="2" style="font-family:inherit;"></textarea></div>
+            </div>
+            <!-- LA FILA DE LA MASIVA, TAL COMO SALDRÍA. Lo que se llena a mano ya está en las
+                 casillas; aquí se ve, además, lo que la app pone sola (TIPO, ANEXO, ciudad...), y
+                 la fila completa de 27 columnas para revisarla sin salir de la flotante. -->
+            <div class="fila-masiva" id="filaMasiva">
+              <div class="fila-masiva-auto" id="filaMasivaAuto"></div>
+              <details class="breakdown-details" id="filaMasivaDetails">
+                <summary>Ver la fila completa de la masiva (27 columnas) ▾</summary>
+                <div class="fila-masiva-tabla" id="filaMasivaTabla"></div>
+              </details>
             </div>
             <p class="field-hint" id="requiredSummary" style="margin-top:2px;"></p>
 
@@ -2574,6 +2659,19 @@
   </div>
 </dialog>
 
+<!-- Dialog: la línea de Fénix pegada trae datos distintos de los escritos a mano (ver t36) -->
+<dialog id="tiraDistintaDialog" class="small" aria-labelledby="tiraDistintaTitle">
+  <div class="panel-head"><h2 id="tiraDistintaTitle">La línea de Fénix trae datos distintos</h2></div>
+  <div class="panel-body">
+    <p>Estos datos los habías escrito a mano y la línea que acabas de pegar trae otra cosa. Elige cuál se queda:</p>
+    <ul id="tiraDistintaLista" style="margin:8px 0 0 18px;"></ul>
+  </div>
+  <div class="form-actions">
+    <button class="btn ghost" id="tiraDistintaMios" type="button">Dejar lo que escribí</button>
+    <button class="btn primary" id="tiraDistintaFenix" type="button">Usar lo de Fénix</button>
+  </div>
+</dialog>
+
 <!-- Dialog: copia manual (respaldo si el portapapeles del navegador está bloqueado) -->
 <dialog id="manualCopyDialog" class="small" aria-labelledby="manualCopyLabel">
   <div class="panel-head"><h2 id="manualCopyLabel">Copia este contenido</h2></div>
@@ -2786,9 +2884,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     {key:"direccion", id:"cc_direccion", wrapId:"wrap_direccion", label:"Dirección"},
     {key:"comparendo", id:"cc_comparendo", wrapId:"wrap_comparendo", label:"Comparendo completo"},
     {key:"res", id:"cc_res", wrapId:"wrap_res", label:"Res."},
-    {key:"fechaRes", id:"cc_fechaRes", wrapId:"wrap_fechaRes", label:"Fecha res."},
-    {key:"comentario", id:"cc_comentario", wrapId:"wrap_comentario", label:"Comentario"}
+    {key:"fechaRes", id:"cc_fechaRes", wrapId:"wrap_fechaRes", label:"Fecha res."}
   ];
+  // (El Comentario ya no puede ser obligatorio: su casilla no está en pantalla. Ver wrap_comentario.)
   var DEFAULT_SETTINGS = {
     required: {formato:true, comparendo:true, direccion:false, res:false, fechaRes:false, comentario:false},
     exemptFormato: "T6",
@@ -3058,6 +3156,90 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("syncSafetyDialog").close();
     if(fn) fn();
   });
+  // Ver el choque con la otra ventana dentro de pushCloudNow(). Tope de reintentos seguidos: si
+  // la nube rechaza una y otra vez (otro computador escribiendo sin parar, o algo raro), se para
+  // y se avisa en vez de quedarse en un bucle.
+  var choquesSeguidos = 0;
+  var MAX_CHOQUES_SEGUIDOS = 4;
+  function mismaMarcaDeTiempo(a, b){
+    if(!a || !b) return false;
+    var ta = Date.parse(a), tb = Date.parse(b);
+    return !isNaN(ta) && ta === tb;
+  }
+  // Junta en la memoria de esta ventana lo que hay en la nube, SIN QUITAR NADA de lo de aquí:
+  //  · un radicado que solo está en la nube se añade (salvo que aquí se haya borrado o archivado
+  //    a propósito: eso no se resucita);
+  //  · uno que está en los dos lados se deja como está aquí, salvo que la versión de la nube sea
+  //    más reciente: entonces manda la de la nube, pero ningún dato de aquí se vacía;
+  //  · las semanas archivadas se suman por su fecha de cierre, sin repetir.
+  // Los ajustes son de esta ventana y no se tocan.
+  // Junta dos historiales por fecha de cierre, sin repetir y sin quitar nada.
+  function juntarHistoriales(base, otro){
+    base = Array.isArray(base) ? base.slice() : [];
+    var cierres = {};
+    base.forEach(function(h){ if(h && h.closedAt) cierres[h.closedAt] = true; });
+    var nuevas = (Array.isArray(otro) ? otro : []).filter(function(h){ return h && h.closedAt && !cierres[h.closedAt]; });
+    var history = base.concat(nuevas).sort(function(a,b){
+      return String(a.closedAt||"").localeCompare(String(b.closedAt||""));
+    });
+    return { history: history, anadidasDeAqui: nuevas.length };
+  }
+  // Un radicado que ya está archivado en una semana cerrada, y que nadie tocó DESPUÉS de ese
+  // cierre, no pertenece a la lista de trabajo: si aparece ahí es una copia vieja (de la nube o de
+  // la otra ventana) que no se enteró del cierre. Se quita para que la semana no vuelva.
+  function quitarYaArchivados(records, history){
+    var cierrePorId = {};
+    (history || []).forEach(function(h){
+      var t = Date.parse(h && h.closedAt);
+      if(!h || isNaN(t)) return;
+      (h.records || []).forEach(function(r){
+        if(r && r.id && !(cierrePorId[r.id] >= t)) cierrePorId[r.id] = t;
+      });
+    });
+    return (records || []).filter(function(r){
+      if(!r || !r.id || !(r.id in cierrePorId)) return true;
+      return Number(r.modificadoEn || r.createdAt || 0) > cierrePorId[r.id];
+    });
+  }
+  function juntarConLaNube(fila){
+    if(!fila) return;
+    var nube = Array.isArray(fila.records) ? fila.records : [];
+    nube = quitarYaArchivados(nube, state.history.concat(Array.isArray(fila.history) ? fila.history : []));
+    var porId = {};
+    state.records.forEach(function(r){ if(r && r.id) porId[r.id] = r; });
+    var cambiados = 0, activoCambio = false;
+    nube.forEach(function(c){
+      if(!c || !c.id || idsBorradosAdrede[c.id]) return;
+      var mio = porId[c.id];
+      if(!mio){ c.order = state.records.length; state.records.push(c); cambiados++; return; }
+      if(registrosIguales(mio, c)) return;
+      if(Number(c.modificadoEn || 0) <= Number(mio.modificadoEn || 0)) return; // lo de aquí es igual o más nuevo
+      var combinado = combinarSinVaciar(c, mio);
+      Object.keys(combinado).forEach(function(k){ mio[k] = combinado[k]; });
+      if(c.id === state.activeId) activoCambio = true;
+      cambiados++;
+    });
+    if(Array.isArray(fila.history) && fila.history.length){
+      var cierres = {};
+      state.history.forEach(function(h){ if(h && h.closedAt) cierres[h.closedAt] = true; });
+      var nuevas = fila.history.filter(function(h){ return h && h.closedAt && !cierres[h.closedAt]; });
+      if(nuevas.length){
+        state.history = state.history.concat(nuevas).sort(function(a,b){
+          return String(a.closedAt||"").localeCompare(String(b.closedAt||""));
+        });
+        saveHistory(true);
+      }
+    }
+    if(cambiados){
+      save(true); // al navegador; la subida la hace quien llamó, ya con la marca nueva
+      setTimeout(function(){
+        try{
+          renderQueue(); renderStats(); renderAgendamientos();
+          if(activoCambio){ if(hayCambiosSinGuardar()) refrescarCamposNoTocados(); else renderCapture(); }
+        }catch(e){}
+      }, 0);
+    }
+  }
   function queueCloudSync(){
     if(!supaSession) return;
     clearTimeout(cloudSyncTimer);
@@ -3079,7 +3261,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       showDataSafetyBanner("Se bloqueó una sincronización que iba a dejar tu cuenta en la nube completamente vacía (antes de esto tenías " + lastKnownSafeCount + " radicado(s) en esta sesión). Tu información en el servidor NO se tocó. Si de verdad quieres vaciar la lista, usa \"Cerrar semana\". Si no reconoces esta situación, no sigas usando la app y avisa antes de continuar.", "warn");
       return;
     }
+    var vaciadoAdrede = explicitRemovalPending; // se conserva si hay que reintentar tras un choque
     explicitRemovalPending = false;
+    // Lo que la otra ventana dejó en este navegador sube también: sin esto, esta ventana subía su
+    // copia de memoria, que puede ir atrasada respecto de lo que la otra ya guardó aquí.
+    try{ sincronizarAntesDeLeerFormulario(); }catch(e){}
     setSaveStatus("syncing");
     var nuevoActualizado = new Date().toISOString();
     var ruta = "/rest/v1/radicados_datos?usuario_id=eq." + supaSession.user.id;
@@ -3106,14 +3292,33 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         // PATCH por algún tema de permisos de lectura (RLS) pero el guardado sí se aplicó de
         // verdad, esta consulta lo confirma y evita un aviso de "conflicto" falso que no es real.
         supaFetchDatos().then(function(check){
-          if(check && check.actualizado === nuevoActualizado){
+          // Se comparan como INSTANTES, no como texto: Supabase devuelve la marca con "+00:00" y
+          // aquí se escribió con "Z". Comparando el texto, esta confirmación no salía nunca.
+          if(check && mismaMarcaDeTiempo(check.actualizado, nuevoActualizado)){
             // Sí se guardó -- el hueco era de permisos de lectura, no un choque real.
             inConflictState = false;
+            choquesSeguidos = 0;
             setSaveStatus("cloudok");
             lastKnownSafeCount = state.records.length;
             lastKnownCloudActualizado = nuevoActualizado;
             notifyDataSynced(nuevoActualizado);
             if(supaSession && supaSession.user) rememberSafeCount(supaSession.user.email, state.records.length);
+          } else if(check && choquesSeguidos < MAX_CHOQUES_SEGUIDOS){
+            // CHOQUE NORMAL CON LA OTRA VENTANA (arreglo del 10-10-2026, t27). Con la principal y
+            // la flotante abiertas, cada una sube a la nube por su lado: en cuanto una sube, la
+            // marca de la otra queda vieja y su siguiente subida se rechaza. Antes, esa ventana
+            // se quedaba en "conflicto" el resto de la sesión y DEJABA DE SUBIR: todo lo que se
+            // trabajaba ahí quedaba solo en este navegador, con un aviso rojo que no se iba.
+            // Ahora se trae lo de la nube, se junta con lo de aquí sin quitar nada, y se vuelve a
+            // subir con la marca nueva. Solo si choca varias veces seguidas se avisa como antes.
+            choquesSeguidos++;
+            juntarConLaNube(check);
+            lastKnownCloudActualizado = check.actualizado || null;
+            cloudPushInFlight = false;
+            cloudPushPendingRerun = false;
+            explicitRemovalPending = vaciadoAdrede;
+            pushCloudNow();
+            return;
           } else {
             inConflictState = true;
             setSaveStatus("conflict");
@@ -3131,6 +3336,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         return;
       }
       inConflictState = false;
+      choquesSeguidos = 0;
       setSaveStatus("cloudok");
       lastKnownSafeCount = state.records.length;
       lastKnownCloudActualizado = nuevoActualizado;
@@ -3194,9 +3400,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // sesión (trae la nube, fusiona lo que haya sin subir) SIN navegar a ningún lado. Dentro de la
     // ventana flotante (un iframe, no la pestaña que la abrió) sí es seguro recargar -- se confirmó
     // aparte que eso no la cierra.
-    if(isFlotanteInstance){
-      location.reload();
-    } else if(supaSession){
+    // Tampoco en la flotante (10-10-2026): la sesión vive solo en memoria y la flotante la recibe
+    // UNA vez, al abrirse. Recargarla la dejaba en la pantalla de iniciar sesión, en medio del
+    // trabajo. Con sesión abierta, las dos ventanas traen lo nuevo igual, sin recargar.
+    if(supaSession){
       inConflictState = false; // completeLogin() trae una marca de tiempo nueva y válida -- ya no aplica
       completeLogin(true);
     } else {
@@ -3333,6 +3540,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     return false;
   }
   function valorVacio(v){ return v == null || v === ""; }
+  function copiaProfunda(o){ try{ return JSON.parse(JSON.stringify(o)); }catch(e){ return o; } }
   // MEZCLA DE TRES VÍAS. "base" es la versión que ESTA ventana escribió la última vez; "mio" la que
   // tiene ahora en memoria; "otro" la que hay guardada, escrita por la otra ventana.
   //
@@ -3453,7 +3661,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(!o || !o.id) return;
       if(idsBorradosAdrede[o.id]) return;
       var mio = porId[o.id];
-      if(!mio){ state.records.push(o); cambiados++; return; } // existe allá y no aquí: se conserva
+      if(!mio){
+        state.records.push(o); cambiados++;               // existe allá y no aquí: se conserva
+        ultimoEscritoPorId[o.id] = copiaProfunda(o);       // y lo que llegó no es un cambio de aquí
+        return;
+      }
       if(hayQueCombinar(mio, o)){
         if(o.id === state.activeId) activoCambio = true;
         // Igual que en fusionarConLoGuardado: campo a campo, nunca el radicado entero. En memoria
@@ -3462,6 +3674,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         // otra ventana se los llevaría por delante.
         var combinado = combinarConLoOtro(mio, o);
         Object.keys(combinado).forEach(function(k){ mio[k] = combinado[k]; });
+        // LA BASE SE MUEVE CON LO QUE SE TRAJO (arreglo del 10-10-2026, t29). La base es "lo
+        // último que esta ventana y la otra tenían en común". Lo que acaba de llegar ya es común:
+        // si la base se quedaba en la versión vieja, el valor recién traído parecía un cambio
+        // HECHO AQUÍ, y en el siguiente guardado de esta ventana pisaba la corrección más nueva
+        // de la otra. Así se perdía, por ejemplo, un correo corregido en la flotante: volvía el
+        // anterior sin ningún aviso. Con la base en lo traído, lo único que cuenta como "mío" es
+        // lo que de verdad se escribió aquí y todavía no se ha guardado.
+        ultimoEscritoPorId[o.id] = copiaProfunda(o);
         cambiados++;
       }
     });
@@ -3834,7 +4054,27 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         state.records = mergeResult.records;
         mergeDetectoCambiosSinSubir = mergeResult.changed;
         state.settings = mergeSettings(cloud.settings);
-        state.history = Array.isArray(cloud.history) ? cloud.history : [];
+        // El historial se JUNTA (por fecha de cierre), no se reemplaza. Hasta el 10-10-2026 aquí
+        // mandaba solo el de la nube: una semana cerrada en este navegador que no alcanzó a subir
+        // (sin conexión, o un choque con la otra ventana) desaparecía del historial al volver a
+        // entrar, y sus radicados volvían a la lista de trabajo desde la copia vieja de la nube.
+        // Ver t31_semana_cerrada_no_vuelve.
+        var historialLocalAntes = [];
+        try{
+          var rawHistAntes = localStorage.getItem(historyKeyFor(user.email));
+          var parsedHistAntes = rawHistAntes ? JSON.parse(rawHistAntes) : null;
+          if(Array.isArray(parsedHistAntes)) historialLocalAntes = parsedHistAntes;
+        }catch(e){}
+        var juntado = juntarHistoriales(Array.isArray(cloud.history) ? cloud.history : [], historialLocalAntes);
+        state.history = juntado.history;
+        if(juntado.anadidasDeAqui) mergeDetectoCambiosSinSubir = true;
+        var antesDeQuitarArchivados = state.records.length;
+        state.records = quitarYaArchivados(state.records, state.history);
+        if(state.records.length !== antesDeQuitarArchivados){
+          mergeDetectoCambiosSinSubir = true;
+          explicitRemovalPending = true; // salen porque YA están en el historial, no por un vaciado accidental
+        }
+        state.records.forEach(function(r,i){ r.order = i; });
       } else {
         load(); loadSettings(); loadHistory();
       }
@@ -4330,7 +4570,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         state.records.push(o); anadidos++; return;
       }
       if(registrosIguales(o, mio)) return;
-      var combinado = combinarSinVaciar(o, mio); // lo de ahora manda; el punto solo rellena huecos
+      // Lo de ahora manda; el punto solo rellena huecos. (Hasta el 10-10-2026 los argumentos iban
+      // al revés y el dato VIEJO del punto pisaba al de ahora -- justo lo contrario de lo que esta
+      // línea y la pantalla prometen. Ver t30_restaurar_punto_no_pisa.)
+      var combinado = combinarSinVaciar(mio, o);
       var cambio = false;
       Object.keys(combinado).forEach(function(k){
         if(!mismoValor(mio[k], combinado[k])){ mio[k] = combinado[k]; cambio = true; }
@@ -6220,7 +6463,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return '<div class="queue-item'+(r.id===state.activeId?" active":"")+(prioritario?" prioritario":"")+'" data-id="'+r.id+'">'+
         '<span class="dot '+(done?"done":"pend")+'"></span>'+
         '<span class="qi-body"><span class="qi-radicado">'+(prioritario?'<span class="qi-priority-badge" title="'+TERMINO_RADICADO_DIAS_HABILES+' días hábiles de término, ya van '+UMBRAL_PRIORITARIO_DIAS+' o más desde la asignación">PRIORITARIO</span> ':'')+escapeHtml(r.radicado)+'</span>'+
-        '<span class="qi-name">'+escapeHtml(r.nombre||"(sin nombre)")+'</span></span>'+
+        '<span class="qi-name">'+escapeHtml(r.nombre||"(sin nombre)")+'</span>'+
+        (parseDMY(normalizeDate(r.fechaAsignacion)) ? '' : '<span class="qi-sin-fecha" title="Sin fecha de asignación: el término no se puede calcular">SIN FECHA DE ASIGNACIÓN</span>')+
+        '</span>'+
         '<button class="qi-del" data-del="'+r.id+'" title="Borrar" type="button" aria-label="Borrar radicado '+escapeHtml(r.radicado)+'">✕</button>'+
       '</div>';
     }).join("");
@@ -6909,6 +7154,27 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var radicado = cleanSpaces(cells[0]||"");
       if(/^radicado$/i.test(radicado)){ headerSkipped++; return; }
       if(!radicado) return;
+      // Hay semanas en que solo se tiene la lista de números de radicado y todo lo demás se llena
+      // a mano. Una línea que es ÚNICAMENTE un radicado de 15 dígitos entra sola, con lo demás
+      // vacío, y queda dicho en el informe. Cualquier otra línea corta sigue sin entrar.
+      // (Hasta el 10-10-2026 una lista de solo radicados no metía NINGUNO. Ver t32_solo_radicados.)
+      // Al copiar de Excel o de un mensaje pueden venir comillas, una coma o un punto pegados al
+      // número (así llegó la primera lista real: con una comilla antes del primero y otra después
+      // del último). Se quitan solo de los extremos; lo de adentro tiene que ser 15 dígitos exactos.
+      if(cells.length === 1){
+        var soloDigitos = radicado.replace(/^["'`´“”‘’,;.\s]+|["'`´“”‘’,;.\s]+$/g, "");
+        if(/^\d{15}$/.test(soloDigitos)){
+          filas.push({cells:[soloDigitos], radicado:soloDigitos, linea:i+1, soloNumero:true});
+          return;
+        }
+        tooShort++;
+        var motivo;
+        if(/^\d+([.,]\d+)?E\+?\d+$/i.test(soloDigitos)) motivo = "Excel lo convirtió en número científico (" + soloDigitos + ") y se perdieron dígitos — en Excel pon esa columna con formato Texto y vuelve a copiar";
+        else if(/^\d+$/.test(soloDigitos)) motivo = "tiene " + soloDigitos.length + " dígitos y un radicado tiene 15";
+        else motivo = "no es un número de radicado de 15 dígitos";
+        omitidas.push({linea:i+1, radicado:radicado, motivo:motivo});
+        return;
+      }
       if(cells.length < 4){
         tooShort++;
         omitidas.push({linea:i+1, radicado:radicado, motivo:"la línea trae menos de 4 columnas — no se pudo saber dónde están las fechas ni el nombre"});
@@ -6917,13 +7183,25 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       filas.push({cells:cells, radicado:radicado, linea:i+1, porEspacios:separadoPorEspacios});
     });
 
-    var forma = detectarFormaDelBloque(filas.map(function(f){ return f.cells; }));
+    var forma = detectarFormaDelBloque(filas.filter(function(f){ return !f.soloNumero; }).map(function(f){ return f.cells; }));
+    var soloNumero = [];
 
     filas.forEach(function(f){
       var cells = f.cells;
       if(existing[f.radicado]){
         dup++;
         duplicadas.push({linea:f.linea, radicado:f.radicado});
+        return;
+      }
+      if(f.soloNumero){
+        var solo = blankRecord();
+        solo.order = nextOrder++;
+        solo.radicado = f.radicado;
+        state.records.push(solo);
+        existing[f.radicado] = true;
+        if(!firstNewId) firstNewId = solo.id;
+        soloNumero.push({linea:f.linea, radicado:f.radicado});
+        added++;
         return;
       }
       var fRad = cells[forma.fRad], fAsig = cells[forma.fAsig], nombre = cells[forma.nombre];
@@ -6968,7 +7246,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     });
     return {
       added: added, dup: dup, headerSkipped: headerSkipped, tooShort: tooShort,
-      firstNewId: firstNewId, forma: forma, avisos: avisos, omitidas: omitidas, duplicadas: duplicadas
+      firstNewId: firstNewId, forma: forma, avisos: avisos, omitidas: omitidas, duplicadas: duplicadas,
+      soloNumero: soloNumero
     };
   }
 
@@ -6976,7 +7255,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // estorba: se limita al aviso corto de siempre.
   var ultimoInformeImportacion = "";
   function mostrarInformeImportacion(res){
-    var hayQueDecir = res.avisos.length || res.omitidas.length || res.tooShort || res.dup;
+    var hayQueDecir = res.avisos.length || res.omitidas.length || res.tooShort || res.dup || (res.soloNumero && res.soloNumero.length);
     if(!hayQueDecir){
       toast(res.added + " radicados importados, todos correctos.");
       return;
@@ -6985,6 +7264,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(res.dup) resumen += " " + res.dup + " ya estaban en la lista y se omitieron.";
     if(res.omitidas.length) resumen += " " + res.omitidas.length + " línea(s) NO se pudieron importar.";
     if(res.avisos.length) resumen += " " + res.avisos.length + " dato(s) entraron pero no cuadran — revísalos antes de trabajarlos.";
+    if(res.soloNumero && res.soloNumero.length) resumen += " " + res.soloNumero.length + " entraron solo con el número de radicado: las fechas, el destinatario y lo demás se llenan a mano.";
     document.getElementById("importReportResumen").textContent = resumen;
     document.getElementById("importReportForma").textContent =
       "El bloque se leyó con esta forma de columnas: " + res.forma.etiqueta +
@@ -7005,6 +7285,14 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       res.avisos.forEach(function(a){
         var l = "Línea " + a.linea + " (" + a.radicado + "): " + a.texto;
         html += "<li>" + escapeHtml(l) + "</li>"; texto.push("REVISAR · " + l);
+      });
+      html += "</ul></div>";
+    }
+    if(res.soloNumero && res.soloNumero.length){
+      html += '<div class="preflight-card"><div class="pf-head"><b>Entraron solo con el número (llena a mano las fechas y el destinatario)</b></div><ul>';
+      res.soloNumero.forEach(function(o){
+        var l = "Línea " + o.linea + ": " + o.radicado;
+        html += "<li>" + escapeHtml(l) + "</li>"; texto.push("SOLO NÚMERO · " + l);
       });
       html += "</ul></div>";
     }
@@ -7176,15 +7464,96 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     while(parts.length && !String(parts[parts.length-1]).trim()) parts.pop();
     return parts.length;
   }
+  // Casillas "a mano" del comparendo: cada una es una columna de la línea de Fénix (ver
+  // parseComparendoLine). Escribir en una reescribe SOLO esa columna de la línea; pegar una línea
+  // rellena las casillas. La línea sigue siendo la única fuente: no hay dos copias que discrepen.
+  var COMPARENDO_A_MANO = [
+    {id:"m_comparendoCompleto", k:"comparendoCompleto", pos:0}, {id:"m_cod", k:"cod", pos:1},
+    {id:"m_imposicion", k:"imposicion", pos:2}, {id:"m_notificacion", k:"notificacion", pos:3},
+    {id:"m_medio", k:"medio", pos:5}, {id:"m_estado", k:"estado", pos:6}, {id:"m_placa", k:"placa", pos:13}
+  ];
+  var tiraArmadaAMano = false; // ¿lo que hay en la casilla del comparendo lo armaron estas casillas?
+  function pintarCasillasDelComparendo(parsed){
+    COMPARENDO_A_MANO.forEach(function(m){
+      var el = document.getElementById(m.id);
+      if(el && el !== document.activeElement) el.value = (parsed && parsed[m.k]) || "";
+    });
+  }
+  function escribirTiraDesdeCasillas(){
+    var cp = document.getElementById("cc_comparendo");
+    var parts = String(cp.value || "").split("\t");
+    while(parts.length < 13) parts.push("");
+    COMPARENDO_A_MANO.forEach(function(m){
+      var v = cleanSpaces(document.getElementById(m.id).value || "");
+      if(m.k === "placa"){
+        // En una línea de 15 columnas la placa va después de la dirección del infractor: se
+        // reemplaza donde esté, para no pisar la dirección.
+        var actual = parseComparendoLine(parts.join("\t")).placa;
+        var donde = -1;
+        for(var i = parts.length - 1; i >= 13; i--){ if(actual && cleanSpaces(parts[i]) === actual){ donde = i; break; } }
+        parts[donde === -1 ? 13 : donde] = v;
+        return;
+      }
+      parts[m.pos] = v;
+    });
+    // El tipo y el número de documento tienen sus propias casillas: van a sus columnas, para que
+    // la línea nunca vuelva a dejarlos vacíos al guardar.
+    // Si la casilla está vacía se deja lo que ya traía la línea (una línea pegada antes, por
+    // ejemplo): una casilla en blanco nunca borra lo que vino de Fénix.
+    var tdoc = cleanSpaces(document.getElementById("cc_tipoId").value || "");
+    var ndoc = cleanSpaces(document.getElementById("cc_idNum").value || "");
+    if(tdoc) parts[10] = tdoc;
+    if(ndoc) parts[11] = ndoc;
+    while(parts.length && !cleanSpaces(parts[parts.length-1])) parts.pop();
+    cp.value = parts.join("\t");
+    tiraArmadaAMano = true;
+    renderBreakdown(parseComparendoLine(cp.value));
+    renderInsights();
+  }
+  COMPARENDO_A_MANO.forEach(function(m){
+    document.getElementById(m.id).addEventListener("input", escribirTiraDesdeCasillas);
+  });
   function renderBreakdown(parsed){
+    pintarCasillasDelComparendo(parsed);
     var el = document.getElementById("cc_breakdown");
     el.innerHTML = COMPARENDO_KEYS.map(function(c){
       var v = parsed[c.k];
       return '<div class="bd-item'+(v?"":" empty")+'"><div class="k">'+c.label+'</div><div class="v">'+escapeHtml(v||"—")+'</div></div>';
     }).join("");
   }
+  // Si lo que había lo escribió ella en las casillas a mano y la línea pegada trae OTRA cosa, no
+  // se reemplaza en silencio: se le muestran las diferencias y elige.
+  var ETIQUETAS_A_MANO = {comparendoCompleto:"N.° de comparendo", cod:"Infracción", imposicion:"Fecha de comparendo",
+    notificacion:"Fecha de notificación", medio:"Tipo de comparendo", estado:"Estado", placa:"Placa",
+    tipoId:"Tipo de documento", idNum:"N.° documento"};
+  var tiraDistintaAntes = null;
+  function casillasEscritasAMano(){
+    var v = {};
+    COMPARENDO_A_MANO.forEach(function(m){ v[m.k] = cleanSpaces(document.getElementById(m.id).value || ""); });
+    v.tipoId = cleanSpaces(document.getElementById("cc_tipoId").value || "");
+    v.idNum = cleanSpaces(document.getElementById("cc_idNum").value || "");
+    return v;
+  }
+  function mismoDato(a, b){ return String(a||"").toUpperCase().replace(/\s+/g," ") === String(b||"").toUpperCase().replace(/\s+/g," "); }
   document.getElementById("cc_comparendo").addEventListener("input", function(){
-    renderBreakdown(parseComparendoLine(this.value));
+    var antes = tiraArmadaAMano ? casillasEscritasAMano() : null;
+    tiraArmadaAMano = false; // se pegó o se escribió la línea directamente
+    var nuevo = parseComparendoLine(this.value);
+    if(antes){
+      var distintos = Object.keys(ETIQUETAS_A_MANO).filter(function(k){
+        return antes[k] && nuevo[k] && !mismoDato(antes[k], nuevo[k]);
+      });
+      if(distintos.length){
+        tiraDistintaAntes = {valores: antes, campos: distintos};
+        document.getElementById("tiraDistintaLista").innerHTML = distintos.map(function(k){
+          return "<li><b>" + escapeHtml(ETIQUETAS_A_MANO[k]) + "</b>: escribiste <b>" + escapeHtml(antes[k]) +
+                 "</b>, Fénix trae <b>" + escapeHtml(nuevo[k]) + "</b></li>";
+        }).join("");
+        var dlgTira = document.getElementById("tiraDistintaDialog");
+        if(!dlgTira.open) dlgTira.showModal();
+      }
+    }
+    renderBreakdown(nuevo);
     renderInsights();
   });
   document.getElementById("cc_formato").addEventListener("input", renderInsights);
@@ -7648,7 +8017,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("cc_nombreLabel").textContent = rec.nombre || "(sin nombre)";
     document.getElementById("cc_priorityBadge").hidden = !esPrioritario(rec);
     document.getElementById("bf_fechaRadicacion").textContent = rec.fechaRadicacion || "—";
-    document.getElementById("bf_fechaAsignacion").textContent = rec.fechaAsignacion || "—";
+    // Sin fecha de asignación no hay término que contar: se dice así, en vez de calcularlo con
+    // una fecha que no existe.
+    document.getElementById("bf_fechaAsignacion").textContent = parseDMY(normalizeDate(rec.fechaAsignacion))
+      ? rec.fechaAsignacion
+      : (rec.fechaAsignacion ? rec.fechaAsignacion + " (no es una fecha) · término: sin dato" : "sin fecha · término: sin dato");
 
     document.getElementById("cc_radicado").value = rec.radicado;
     document.getElementById("cc_nombre").value = rec.nombre;
@@ -7663,18 +8036,25 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("cc_tipoId").value = rec.tipoId || "";
     document.getElementById("cc_idNum").value = rec.idNum || "";
     document.getElementById("cc_comparendo").value = rec.comparendoRaw || "";
+    tiraArmadaAMano = !!rec.comparendoAMano;
+    // Sin línea de Fénix, las casillas para llenar el comparendo a mano se muestran abiertas.
+    document.getElementById("comparendoAManoDetails").open = !String(rec.comparendoRaw || "").trim() || !!rec.comparendoAMano;
     pintarPreguntaPruebas(rec);
     pintarAvisoImperativas(rec);
     // Foto de lo que se acaba de pintar: es la referencia para saber, de aquí en adelante, qué
     // casillas tocó la persona y cuáles no (ver "LA FOTO DEL FORMULARIO").
     tomarFotoFormulario();
     renderBreakdown(parseComparendoLine(rec.comparendoRaw || ""));
+    pintarFilaMasivaPronto();
     renderInsights();
     // Vuelve a evaluar la guardia de la casilla del correo para el radicado que acaba de abrirse,
     // para que el aviso corresponda siempre a lo que está en pantalla (y desaparezca si está bien).
     document.dispatchEvent(new Event("radicado:seleccionado"));
 
-    document.getElementById("baseEditFields").classList.remove("open");
+    // Si al radicado le faltan las fechas o el nombre (por ejemplo, entró solo con el número), las
+    // casillas para llenarlos se muestran abiertas de una vez; si ya los tiene, cerradas como siempre.
+    document.getElementById("baseEditFields").classList.toggle("open",
+      !rec.fechaRadicacion || !rec.fechaAsignacion || !rec.nombre);
     clearFieldErrors();
 
     var list = visibleList();
@@ -8102,6 +8482,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(campoTocadoAMano(CAMPO_COMPARENDO)){
         var raw = cpEl.value; // sin limpiar: los tabs son el separador de columnas
         rec.comparendoRaw = raw;
+        rec.comparendoAMano = tiraArmadaAMano && !!String(raw).trim();
         var parsed = parseComparendoLine(raw);
         Object.keys(parsed).forEach(function(k){ rec[k] = parsed[k]; });
         // La tira acaba de reescribir tipoId/idNum. Si en este MISMO guardado la persona además
@@ -8169,6 +8550,42 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     pendingNombreConfirm = {rec:rec, clave:clave, callback:callback};
     document.getElementById("nombreMismatchDialog").showModal();
   }
+  document.getElementById("tiraDistintaFenix").addEventListener("click", function(){
+    // Lo de Fénix se queda; las casillas de documento también toman lo de la línea.
+    var nuevo = parseComparendoLine(document.getElementById("cc_comparendo").value);
+    if(tiraDistintaAntes){
+      tiraDistintaAntes.campos.forEach(function(k){
+        if(k === "tipoId") document.getElementById("cc_tipoId").value = nuevo.tipoId || "";
+        if(k === "idNum") document.getElementById("cc_idNum").value = nuevo.idNum || "";
+      });
+    }
+    tiraDistintaAntes = null;
+    document.getElementById("tiraDistintaDialog").close();
+  });
+  document.getElementById("tiraDistintaMios").addEventListener("click", function(){
+    // Lo escrito a mano vuelve a su columna; lo demás de la línea pegada se conserva.
+    var d = tiraDistintaAntes; tiraDistintaAntes = null;
+    document.getElementById("tiraDistintaDialog").close();
+    if(!d) return;
+    d.campos.forEach(function(k){
+      if(k === "tipoId"){ document.getElementById("cc_tipoId").value = d.valores.tipoId; return; }
+      if(k === "idNum"){ document.getElementById("cc_idNum").value = d.valores.idNum; return; }
+      var m = COMPARENDO_A_MANO.filter(function(x){ return x.k === k; })[0];
+      if(m) document.getElementById(m.id).value = d.valores[k];
+    });
+    var cp = document.getElementById("cc_comparendo");
+    var parts = String(cp.value || "").split("\t");
+    while(parts.length < 13) parts.push("");
+    d.campos.forEach(function(k){
+      var m = COMPARENDO_A_MANO.filter(function(x){ return x.k === k; })[0];
+      if(k === "tipoId") parts[10] = d.valores.tipoId;
+      else if(k === "idNum") parts[11] = d.valores.idNum;
+      else if(m && k !== "placa") parts[m.pos] = d.valores[k];
+    });
+    cp.value = parts.join("\t");
+    if(d.campos.indexOf("placa") !== -1){ escribirTiraDesdeCasillas(); }
+    else { renderBreakdown(parseComparendoLine(cp.value)); renderInsights(); }
+  });
   document.getElementById("nombreMismatchYes").addEventListener("click", function(){
     if(!pendingNombreConfirm) return;
     pendingNombreConfirm.rec._nombreConfirmado = pendingNombreConfirm.clave;
@@ -10233,8 +10650,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var faltantes = [];
     if(!String(r.tipoId||"").trim())   faltantes.push("el tipo de documento");
     if(!String(r.idNum||"").trim())    faltantes.push("el número de documento");
-    if(!String(r.nombreF||"").trim())  faltantes.push("el nombre del infractor");
-    if(n < 13 && faltantes.length){
+    if(!String(r.nombreF||"").trim() && !(r.comparendoAMano && String(r.nombre||"").trim())) faltantes.push("el nombre del infractor");
+    if(n < 13 && faltantes.length && r.comparendoAMano){
+      // Llenado a mano: no hay ninguna línea "cortada"; lo que hay que decir es qué falta.
+      out.push({regla:"R21", grave:true, campo:"comparendo", texto:
+        "Al comparendo llenado a mano le falta " + faltantes.join(", ") + ". Esas casillas se entregarían vacías en la masiva."});
+    }else if(n < 13 && faltantes.length){
       out.push({regla:"R21", grave:true, campo:"comparendo", texto:
         "La línea de Fénix llegó CORTADA: trae solo " + n + " columna" + (n===1?"":"s") + " (una línea completa " +
         "trae 14, o 15 si Fénix incluye la dirección del infractor), y por eso falta " +
@@ -10354,7 +10775,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // en columnas, el aviso correcto es el de R20 (dice qué pasó y cómo copiarla bien), no este.
       // Sin esta condición salían los dos a la vez y el de R19 decía algo que no era cierto.
       var soloElNumero = !/\s/.test(cleanSpaces(r.comparendoCompleto||""));
-      if(hayComp && sinDesglose && seIntentoPegar && soloElNumero){
+      if(hayComp && sinDesglose && seIntentoPegar && soloElNumero && r.comparendoAMano){
+        hallazgos.push({regla:"R19", grave:true, campo:"comparendo", texto:"Del comparendo solo está el número. Así saldrían VACÍAS las columnas de infracción, tipo de comparendo, estado y fechas: llénalas en «Llenar a mano los datos del comparendo»."});
+      }else if(hayComp && sinDesglose && seIntentoPegar && soloElNumero){
         hallazgos.push({regla:"R19", grave:true, campo:"comparendo", texto:"En la casilla del comparendo quedó solo el número, sin el resto de la línea de Fénix. Así saldrían VACÍAS las columnas de código de infracción, medio, estado, fechas, documento y nombre del infractor. Vuelve a copiar la línea completa."});
       }
       // R24. Un AGENDAMIENTO sin responder si el ciudadano pidió pruebas: esa respuesta ES la
@@ -10385,6 +10808,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         var etiqueta = campo === "fechaRadicacion" ? "La fecha de radicación" : "La fecha de asignación";
         if(v && !pareceFecha(v)){
           hallazgos.push({grave:true, texto:etiqueta + " es \"" + v + "\", que no es una fecha — señal de que las columnas se corrieron al importar este radicado."});
+        }else if(!v){
+          // Puede ser legítimo (a veces solo se tiene el número de radicado), pero el archivo
+          // saldría con esa casilla en blanco: se dice, para que se entregue sabiéndolo.
+          hallazgos.push({grave:false, texto:etiqueta + " está vacía: en la masiva esa casilla sale en blanco" +
+            (campo === "fechaAsignacion" ? " y no se puede saber a qué semana pertenece este radicado." : ".")});
         }
       });
       // UNA FECHA QUE NO SE ENTIENDE SALE VACÍA, Y ANTES NO LO DECÍA NADIE.
@@ -10921,6 +11349,68 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     copyOrShowManually(informePreflightComoTexto(), "Lista de revisión copiada", "Revisión previa del documento final");
   });
 
+  // La fila de la masiva del radicado abierto, con lo que hay EN PANTALLA (aunque no se haya
+  // guardado todavía). Solo muestra: no guarda ni cambia nada.
+  function registroEnPantalla(){
+    var rec = state.records.find(function(r){ return r.id === state.activeId; });
+    if(!rec) return null;
+    var copia = Object.assign({}, rec);
+    CAMPOS_FORMULARIO.forEach(function(c){
+      var el = document.getElementById(c.input);
+      if(el) copia[c.campo] = c.limpiar(el.value);
+    });
+    var cp = document.getElementById("cc_comparendo");
+    if(cp && String(cp.value || "").trim()){
+      var parsed = parseComparendoLine(cp.value);
+      Object.keys(parsed).forEach(function(k){
+        if(k === "tipoId" || k === "idNum"){ if(!String(copia[k] || "").trim()) copia[k] = parsed[k]; return; }
+        copia[k] = parsed[k];
+      });
+    }
+    return copia;
+  }
+  function pintarFilaMasiva(){
+    var auto = document.getElementById("filaMasivaAuto");
+    var tabla = document.getElementById("filaMasivaTabla");
+    if(!auto || !tabla) return;
+    var r = registroEnPantalla();
+    if(!r){ auto.innerHTML = ""; tabla.innerHTML = ""; return; }
+    var fila;
+    try{ fila = recordToMasivaRow(r); }catch(e){ auto.textContent = ""; return; }
+    var formato = normalizeFormatoInput(r.formato || "");
+    var fuera = formato && paramEnLista("formatosFueraDeLaMasiva", formato);
+    var chip = function(titulo, valor){
+      return '<span class="fm-chip' + (valor ? '' : ' vacio') + '"><b>' + escapeHtml(titulo) + '</b> ' + escapeHtml(valor || "—") + '</span>';
+    };
+    // Lo que la app pone sola (columnas D/T, C/N, S, G, H, J, U). Lo demás ya está en las casillas.
+    auto.innerHTML = (fuera
+        ? '<span class="fm-nota">' + escapeHtml(formato) + ' no va en la masiva.</span> '
+        : (!formato ? '<span class="fm-nota">Sin formato todavía: aún no sale en la masiva.</span> ' : '<span class="fm-nota">En la masiva también va:</span> ')) +
+      chip("TIPO", fila[3]) + chip("COMPARENDO", fila[2]) + chip("ANEXO", fila[18]) +
+      chip("CIUDAD", fila[6]) + chip("DEPTO.", fila[7]) + chip("ASIGNADOS_A", fila[9]) + chip("USUARIO", fila[20]);
+    if(document.getElementById("filaMasivaDetails").open){
+      tabla.innerHTML = '<table><tbody>' + MASIVA_HEADERS.map(function(h, i){
+        var col = i < 26 ? String.fromCharCode(65 + i) : "AA";
+        return '<tr class="' + (fila[i] ? '' : 'vacio') + '"><td>' + col + '</td><td>' + escapeHtml(h) + '</td><td>' + escapeHtml(fila[i] || "") + '</td></tr>';
+      }).join("") + '</tbody></table>';
+    }
+  }
+  var pintarFilaMasivaPendiente = null;
+  function pintarFilaMasivaPronto(){
+    if(pintarFilaMasivaPendiente) clearTimeout(pintarFilaMasivaPendiente);
+    pintarFilaMasivaPendiente = setTimeout(function(){ pintarFilaMasivaPendiente = null; try{ pintarFilaMasiva(); }catch(e){} }, 120);
+  }
+  document.getElementById("captureForm").addEventListener("input", pintarFilaMasivaPronto);
+  // Las explicaciones fijas de las casillas ya no ocupan una línea en pantalla (ver la regla de
+  // estilo): su texto pasa a verse al poner el cursor sobre la casilla.
+  (function ayudasComoTooltip(){
+    Array.prototype.forEach.call(document.querySelectorAll("#captureForm .work-fields .field-hint:not([id])"), function(h){
+      var txt = (h.textContent || "").replace(/\s+/g, " ").trim();
+      var caja = h.parentElement;
+      if(txt && caja && !caja.title) caja.title = txt;
+    });
+  })();
+  document.getElementById("filaMasivaDetails").addEventListener("toggle", pintarFilaMasivaPronto);
   function recordToMasivaRow(rec){
     var dict = (state.settings && state.settings.formatToPlantilla) || DEFAULT_SETTINGS.formatToPlantilla;
     var plantilla = dict[(rec.formato||"").trim().toUpperCase()] || "Sin definir";

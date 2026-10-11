@@ -48,6 +48,17 @@ No se edita nunca `pruebas/sitio/index_test.html` a mano: es un archivo generado
 | `t22_rango_fechas.py` | Que se pueda sacar **solo un rango de fechas de asignación** ("desde el 28 de septiembre hasta ahora"): que lo anterior al rango no se cuele, que de cada radicado salga **una sola fila** (la asignación más reciente del rango), que lo que no tenga fecha legible se liste en vez de desaparecer, y que el botón normal de la masiva siga sacando **todo** sin recortar nada. |
 | `t20_cuadre_conteo.py` | El caso del número inflado (219 en la app contra 176 aptos en ORFEO): que el **mismo radicado repetido** no salga dos veces en el archivo ni infle el contador, que el cuadre **explique** el número y la suma cuadre, y que el cruce contra ORFEO lea radicados con letras y **avise** si no entendió lo pegado en vez de declarar que todo sobra. |
 | `t13_opciones.py` | Que las opciones que solo aparecen al hacer algo funcionen: la **doble verificación** de las reglas (con identificador equivocado NO deja), agregar un radicado a mano, la calculadora de término y las cuatro pestañas de Ajustes. |
+| `t27_nube_dos_ventanas.py` | La principal y la flotante abiertas a la vez, contra un servidor que se porta como la Supabase **de verdad** (aplica el filtro `actualizado=eq.`). Que ninguna se quede en "conflicto" y deje de subir, que la nube tenga lo de las dos, que un navegador limpio vea todo, y que cerrar la semana justo después de un choque no resucite lo archivado. |
+| `t28_estres_cruces.py` | 60 saltos rápidos entre radicados, en las dos ventanas a la vez (escribir y saltar sin esperar, guardar, Tab, esperar). Cada valor lleva dentro el número de su radicado: exige que **ningún radicado tenga datos de otro** y que **no se pierda nada** de lo escrito. Secuencia fija (`SEMILLA=` para probar otra). |
+| `t29_lo_absorbido_no_es_mio.py` | El caso que encontró t28, aislado: un correo corregido en la flotante **no puede volver al anterior** cuando la principal guarda otra cosa. |
+| `t30_restaurar_punto_no_pisa.py` | Restaurar un punto de restauración devuelve lo borrado **sin deshacer** lo corregido después. |
+| `t31_semana_cerrada_no_vuelve.py` | Cerrar la semana con las dos ventanas abiertas, o sin conexión, y volver a entrar: la semana **no vuelve** a la lista y sus radicados siguen en el historial. |
+| `t32_solo_radicados.py` | Una lista de **solo números de radicado** entra completa; lo llenado a mano queda en su radicado y sale en la masiva. |
+| `t33_sin_fecha_asignacion.py` | Un radicado **sin fecha de asignación** ni nada más se clasifica, se guarda (también desde la flotante), se ve marcado como «sin fecha», sale en la masiva con esas casillas en blanco y avisado, y se cierra con la semana. |
+| `t34_lista_como_la_pega.py` | La lista de solo radicados **como llega de verdad** (con comillas y espacios, o copiada de Excel) entra completa; lo que no es un radicado de 15 dígitos queda fuera diciendo por qué (número científico de Excel, dígitos de más o de menos). |
+| `t35_comparendo_a_mano.py` | **Todo a mano**, sin línea de Fénix, en la principal y en la flotante: cada casilla sale en su columna de la masiva con el formato de la del 02-10, y corregir una casilla no borra las demás. |
+| `t36_tira_en_solo_radicado.py` | Pegar la **tira de Fénix** en un radicado de solo número llena sola las casillas, en la principal y en la flotante. Si trae algo distinto de lo escrito a mano, la app lo muestra en su diálogo y ella elige; corregir una casilla después no borra el documento. |
+| `t37_espacio_y_fila_masiva.py` | La casilla **Comentario** ya no está en pantalla, pero un comentario guardado **no se borra**; la flotante cabe en mucho menos alto y muestra la **fila de la masiva** igual, columna por columna, a la del archivo. |
 
 ## Reglas de la casa
 
@@ -55,5 +66,12 @@ No se edita nunca `pruebas/sitio/index_test.html` a mano: es un archivo generado
   `DELETE /__reset`, y cada prueba arranca de cero.
 - Las pruebas manejan la app **por la interfaz** (clics y teclado), no por dentro: así comprueban
   lo mismo que ve la usuaria.
+- `mock.py` tiene que portarse **como la Supabase real**, no ser más permisivo. Hasta el 10-10-2026
+  aceptaba cualquier escritura, aunque la marca `actualizado` no coincidiera; por eso ninguna prueba
+  vio que con dos ventanas abiertas una dejaba de subir a la nube (t27).
+- Una prueba que termina siempre con `exit 0` no es una prueba. `t8` y `t9` lo hacían hasta el
+  10-10-2026; ahora cuentan sus fallas.
+- `t15`–`t18` (bloque de la mañana) se **saltan** si falta `pruebas/sheet_donina.xlsx`, que no se
+  sube al repositorio. Una corrida sin ese archivo no las comprobó, aunque diga que todo pasa.
 - Si una prueba falla, primero se mira si la equivocada es la prueba. Ya ha pasado tres veces que
   una "falla" era una prueba mal escrita, y corregir la app por eso habría roto algo que estaba bien.

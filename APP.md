@@ -50,7 +50,7 @@ radicados-semanales/
 PROTOCOLO.md            las 9 invariantes y las 6 reglas de cambio
 APP.md                  este documento
 PROYECTO_CLAUDE.md      cómo montar el proyecto de Claude
-pruebas/                28 pruebas automáticas (ver §8)
+pruebas/                37 pruebas automáticas (ver §8)
 ```
 
 ### Configuración que NUNCA se toca
@@ -267,7 +267,7 @@ Dentro de la app: **Documentos → ¿De dónde sale este número?**
 
 ## 8. LAS PRUEBAS
 
-26 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
+37 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
 cada corrida). Manejan la app **por la interfaz**, con clics y teclado, como la usuaria.
 
 ```bash
@@ -285,6 +285,13 @@ Lo que defiende cada una está en `pruebas/LEEME.md`. Las que más importan:
 - **t24** · correo, radicado y comparendo, caso por caso
 - **t25** · la masiva avisa cuando mezcla semanas
 - **t26** · el bloque de la mañana, apagado de verdad
+- **t27–t30** · principal y flotante a la vez: nada se pierde, nada se cruza, las dos suben a la nube
+- **t31** · una semana cerrada no vuelve y su historial no se pierde, aunque el cierre no haya subido
+- **t32** · solo los números de radicado: entran y se llenan a mano
+- **t37** · sin Comentario en pantalla (lo guardado se conserva), flotante compacta y fila de la masiva a la vista
+- **t36** · la tira de Fénix sigue llenando todo sola; si choca con lo escrito a mano, pregunta
+- **t35** · todo a mano, sin línea de Fénix: cada casilla a su columna de la masiva
+- **t33** · sin fecha de asignación: se trabaja igual, se marca «sin fecha», término «sin dato», la masiva lo avisa
 
 `pruebas/caso_2oct/` guarda la masiva, el reporte de ORFEO y los agendamientos de aquella semana
 **anonimizados**, conservando la forma exacta de cada defecto. **Nunca se suben datos de
@@ -305,6 +312,16 @@ memorando, y todos siguen el mismo patrón.
 | 124 radicados de agosto en la masiva del 2 de octubre | La masiva exportaba «todo lo que haya»: la palabra «semana» no existía para la app | Aviso de semanas mezcladas + descarga por rango (t25) |
 | 34 correos rotos entregados sin una alerta | La regla era, literal, «¿tiene una arroba?» | R26: estructura, lo que sobre delante, espacios y dominio por parecido (t24) |
 | Un comparendo entregado como «11» | Ninguna regla miraba la longitud | R28, midiendo el número **corto**, que es el que sale al archivo (t24) |
+| Con la principal y la flotante abiertas, una dejaba de subir a la nube y mostraba «Se guardó desde otro lugar» el resto del día | Cada ventana sube con la marca de la última vez; en cuanto sube la otra, la marca queda vieja y Supabase rechaza la subida. La ventana rechazada se rendía. El servidor de mentira de las pruebas aceptaba todo, así que nadie lo vio | Al chocar, se trae la nube, se junta sin quitar nada (lo archivado no resucita) y se vuelve a subir (t27). `mock.py` ahora aplica el filtro como el real |
+| Un correo corregido en la flotante volvía al anterior, sin aviso | Lo que una ventana traía de la otra quedaba contado como «cambio hecho aquí», y en su siguiente guardado pisaba la corrección más nueva | La referencia de la mezcla se mueve con lo que se trae (t28 lo encontró, t29 lo fija) |
+| Restaurar un punto de restauración deshacía lo corregido después | Los dos argumentos de la mezcla iban al revés: mandaba el dato viejo del punto | Manda lo de ahora; el punto solo rellena huecos, como dice la pantalla (t30) |
+| Una semana cerrada volvía a la lista al entrar otra vez, y el historial quedaba vacío | Al iniciar sesión el historial de la nube **reemplazaba** al de este navegador, y los radicados de la copia vieja de la nube se sumaban a la lista. Si el cierre no alcanzó a subir (choque entre ventanas, o sin conexión), la semana volvía entera y su archivo se perdía | Al entrar, los historiales se juntan por fecha de cierre, y un radicado ya archivado que nadie tocó después del cierre no vuelve a la lista (t31) |
+| Una lista de solo números de radicado no metía ninguno | La importación exigía 4 columnas (radicado, dos fechas, nombre) | Una línea que es solo un radicado de 15 dígitos entra con lo demás vacío, el informe lo dice y las casillas de fechas y nombre se abren solas (t32). La primera lista real llegó con comillas y espacios en los extremos: se quitan, y lo que no sea 15 dígitos dice por qué no entra (t34) |
+| Con solo los radicados no había dónde escribir los datos del comparendo | Esas columnas solo salían de la línea de Fénix pegada | Casillas «Llenar a mano los datos del comparendo» (número, infracción, fechas, tipo, estado, placa). Escriben en su columna de la misma línea, así que reglas, masiva, nube y flotante no cambian (t35) |
+
+Los cinco últimos se encontraron el 10-10-2026, en la auditoría tras el despliegue del bloque de la
+mañana. Ninguno lo causó ese bloque: estaban antes. Pero los tres son justo «cruza información» y
+«no guarda lo que trabajo», que es lo que se notó.
 
 **El patrón**: ninguno era un error de cálculo. Todos eran **algo que la app no miraba**, y que
 por tanto pasaba en silencio hasta que lo encontraba otra persona semanas después.
@@ -347,3 +364,21 @@ Lo completo está en `PROTOCOLO.md`. En corto:
 6. **Nunca desplegar en viernes ni el día de la entrega.** El lunes temprano.
 7. **ORFEO manda.** La app nunca es la fuente de verdad sobre si se entregó todo.
 8. Si una prueba falla, **mirar primero si la equivocada es la prueba**. Ya ha pasado varias veces.
+
+## Pantalla (11-10-2026)
+
+- La casilla **Comentario** salió de la pantalla a pedido de la usuaria: no va a la masiva ni a la
+  plantilla. La casilla sigue oculta en el documento para que lo ya guardado se conserve al
+  guardar, y sigue saliendo en las descargas internas (historial, control de agendamientos). Ya no
+  se puede marcar como obligatoria.
+- Las pruebas que escribían en Comentario (t8, t14, t20, t21, t27–t33) escriben ahora en
+  **N.° documento**, que va por el mismo camino de guardado y mezcla entre ventanas. En t8 los
+  valores son cortos para no chocar con R22 (un N.° documento de más de 15 caracteres frena
+  «Siguiente», y la prueba terminaba escribiendo en otro radicado).
+- Debajo de las casillas está **la fila de la masiva** del radicado abierto: lo que la app pone
+  sola (TIPO, COMPARENDO corto, ANEXO, ciudad, departamento, ASIGNADOS_A, USUARIO) y, plegada, la
+  fila completa de 27 columnas. Solo muestra; se arma con `recordToMasivaRow` sobre lo que hay en
+  pantalla. t37 exige que sea idéntica a la del archivo.
+- Flotante: el desglose por formato y el enlace a informes quedan solo en la principal; contadores
+  y botones en tamaño mínimo; casillas en 4 columnas. Las explicaciones fijas de cada casilla se
+  ven al pasar el cursor.
