@@ -906,6 +906,8 @@
   .simit-btn.is-disabled:hover{background:var(--surface-2);color:var(--muted);}
 
   .breakdown-details{margin-top:4px;}
+  .comparendo-a-mano{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 10px;margin:4px 0;}
+  .comparendo-a-mano label{font-size:0.72rem;}
   .breakdown-details > summary{list-style:none;cursor:pointer;color:var(--accent);font-size:0.78rem;font-weight:700;user-select:none;}
   .breakdown-details > summary::-webkit-details-marker{display:none;}
   .breakdown-details[open] > summary{margin-bottom:2px;}
@@ -1484,6 +1486,26 @@
                 <details class="breakdown-details">
                   <summary>Ver los campos separados ▾</summary>
                   <div class="breakdown" id="cc_breakdown"></div>
+                </details>
+                <!-- DATOS DEL COMPARENDO A MANO. Para cuando solo se tiene el número de radicado y no
+                     hay línea de Fénix que pegar: cada columna de la masiva que viene de Fénix tiene
+                     aquí su casilla. Lo escrito se guarda DENTRO de la misma línea de arriba (en su
+                     columna), así que todo lo demás -- reglas, masiva, plantilla, nube, la otra
+                     ventana -- funciona igual que con una línea pegada. Ver t35. -->
+                <details class="breakdown-details" id="comparendoAManoDetails">
+                  <summary>Llenar a mano los datos del comparendo ▾</summary>
+                  <div class="comparendo-a-mano">
+                    <div><label for="m_comparendoCompleto">N.° de comparendo</label><input id="m_comparendoCompleto" inputmode="numeric" autocomplete="off" placeholder="el número completo de Fénix"></div>
+                    <div><label for="m_cod">Infracción</label><input id="m_cod" autocomplete="off" placeholder="ej. C29"></div>
+                    <div><label for="m_imposicion">Fecha de comparendo</label><input id="m_imposicion" autocomplete="off" placeholder="dd/mm/aaaa"></div>
+                    <div><label for="m_notificacion">Fecha de notificación</label><input id="m_notificacion" autocomplete="off" placeholder="dd/mm/aaaa (vacía si no hay)"></div>
+                    <div><label for="m_medio">Tipo de comparendo</label><input id="m_medio" list="medioList" autocomplete="off" placeholder="ej. CAMARAS SALVAVIDAS">
+                      <datalist id="medioList"><option value="CAMARAS SALVAVIDAS"></option><option value="COMPARENDERA"></option><option value="CAMARAS FIJAS CENTRO DE GESTION"></option></datalist></div>
+                    <div><label for="m_estado">Estado</label><input id="m_estado" list="estadoList" autocomplete="off" placeholder="ej. VIGENTE">
+                      <datalist id="estadoList"><option value="VIGENTE"></option></datalist></div>
+                    <div><label for="m_placa">Placa</label><input id="m_placa" autocomplete="off" placeholder="solo hace falta para AGENDAMIENTO"></div>
+                  </div>
+                  <div class="field-hint">El tipo y el número de documento, la resolución y su fecha tienen sus propias casillas más abajo.</div>
                 </details>
                 <div class="insights" id="ccInsights"></div>
               </div>
@@ -7367,7 +7389,53 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     while(parts.length && !String(parts[parts.length-1]).trim()) parts.pop();
     return parts.length;
   }
+  // Casillas "a mano" del comparendo: cada una es una columna de la línea de Fénix (ver
+  // parseComparendoLine). Escribir en una reescribe SOLO esa columna de la línea; pegar una línea
+  // rellena las casillas. La línea sigue siendo la única fuente: no hay dos copias que discrepen.
+  var COMPARENDO_A_MANO = [
+    {id:"m_comparendoCompleto", k:"comparendoCompleto", pos:0}, {id:"m_cod", k:"cod", pos:1},
+    {id:"m_imposicion", k:"imposicion", pos:2}, {id:"m_notificacion", k:"notificacion", pos:3},
+    {id:"m_medio", k:"medio", pos:5}, {id:"m_estado", k:"estado", pos:6}, {id:"m_placa", k:"placa", pos:13}
+  ];
+  var tiraArmadaAMano = false; // ¿lo que hay en la casilla del comparendo lo armaron estas casillas?
+  function pintarCasillasDelComparendo(parsed){
+    COMPARENDO_A_MANO.forEach(function(m){
+      var el = document.getElementById(m.id);
+      if(el && el !== document.activeElement) el.value = (parsed && parsed[m.k]) || "";
+    });
+  }
+  function escribirTiraDesdeCasillas(){
+    var cp = document.getElementById("cc_comparendo");
+    var parts = String(cp.value || "").split("\t");
+    while(parts.length < 13) parts.push("");
+    COMPARENDO_A_MANO.forEach(function(m){
+      var v = cleanSpaces(document.getElementById(m.id).value || "");
+      if(m.k === "placa"){
+        // En una línea de 15 columnas la placa va después de la dirección del infractor: se
+        // reemplaza donde esté, para no pisar la dirección.
+        var actual = parseComparendoLine(parts.join("\t")).placa;
+        var donde = -1;
+        for(var i = parts.length - 1; i >= 13; i--){ if(actual && cleanSpaces(parts[i]) === actual){ donde = i; break; } }
+        parts[donde === -1 ? 13 : donde] = v;
+        return;
+      }
+      parts[m.pos] = v;
+    });
+    // El tipo y el número de documento tienen sus propias casillas: van a sus columnas, para que
+    // la línea nunca vuelva a dejarlos vacíos al guardar.
+    parts[10] = cleanSpaces(document.getElementById("cc_tipoId").value || "");
+    parts[11] = cleanSpaces(document.getElementById("cc_idNum").value || "");
+    while(parts.length && !cleanSpaces(parts[parts.length-1])) parts.pop();
+    cp.value = parts.join("\t");
+    tiraArmadaAMano = true;
+    renderBreakdown(parseComparendoLine(cp.value));
+    renderInsights();
+  }
+  COMPARENDO_A_MANO.forEach(function(m){
+    document.getElementById(m.id).addEventListener("input", escribirTiraDesdeCasillas);
+  });
   function renderBreakdown(parsed){
+    pintarCasillasDelComparendo(parsed);
     var el = document.getElementById("cc_breakdown");
     el.innerHTML = COMPARENDO_KEYS.map(function(c){
       var v = parsed[c.k];
@@ -7375,6 +7443,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }).join("");
   }
   document.getElementById("cc_comparendo").addEventListener("input", function(){
+    tiraArmadaAMano = false; // se pegó o se escribió la línea directamente
     renderBreakdown(parseComparendoLine(this.value));
     renderInsights();
   });
@@ -7858,6 +7927,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("cc_tipoId").value = rec.tipoId || "";
     document.getElementById("cc_idNum").value = rec.idNum || "";
     document.getElementById("cc_comparendo").value = rec.comparendoRaw || "";
+    tiraArmadaAMano = !!rec.comparendoAMano;
+    // Sin línea de Fénix, las casillas para llenar el comparendo a mano se muestran abiertas.
+    document.getElementById("comparendoAManoDetails").open = !String(rec.comparendoRaw || "").trim() || !!rec.comparendoAMano;
     pintarPreguntaPruebas(rec);
     pintarAvisoImperativas(rec);
     // Foto de lo que se acaba de pintar: es la referencia para saber, de aquí en adelante, qué
@@ -8300,6 +8372,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(campoTocadoAMano(CAMPO_COMPARENDO)){
         var raw = cpEl.value; // sin limpiar: los tabs son el separador de columnas
         rec.comparendoRaw = raw;
+        rec.comparendoAMano = tiraArmadaAMano && !!String(raw).trim();
         var parsed = parseComparendoLine(raw);
         Object.keys(parsed).forEach(function(k){ rec[k] = parsed[k]; });
         // La tira acaba de reescribir tipoId/idNum. Si en este MISMO guardado la persona además
@@ -10431,8 +10504,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var faltantes = [];
     if(!String(r.tipoId||"").trim())   faltantes.push("el tipo de documento");
     if(!String(r.idNum||"").trim())    faltantes.push("el número de documento");
-    if(!String(r.nombreF||"").trim())  faltantes.push("el nombre del infractor");
-    if(n < 13 && faltantes.length){
+    if(!String(r.nombreF||"").trim() && !(r.comparendoAMano && String(r.nombre||"").trim())) faltantes.push("el nombre del infractor");
+    if(n < 13 && faltantes.length && r.comparendoAMano){
+      // Llenado a mano: no hay ninguna línea "cortada"; lo que hay que decir es qué falta.
+      out.push({regla:"R21", grave:true, campo:"comparendo", texto:
+        "Al comparendo llenado a mano le falta " + faltantes.join(", ") + ". Esas casillas se entregarían vacías en la masiva."});
+    }else if(n < 13 && faltantes.length){
       out.push({regla:"R21", grave:true, campo:"comparendo", texto:
         "La línea de Fénix llegó CORTADA: trae solo " + n + " columna" + (n===1?"":"s") + " (una línea completa " +
         "trae 14, o 15 si Fénix incluye la dirección del infractor), y por eso falta " +
@@ -10552,7 +10629,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // en columnas, el aviso correcto es el de R20 (dice qué pasó y cómo copiarla bien), no este.
       // Sin esta condición salían los dos a la vez y el de R19 decía algo que no era cierto.
       var soloElNumero = !/\s/.test(cleanSpaces(r.comparendoCompleto||""));
-      if(hayComp && sinDesglose && seIntentoPegar && soloElNumero){
+      if(hayComp && sinDesglose && seIntentoPegar && soloElNumero && r.comparendoAMano){
+        hallazgos.push({regla:"R19", grave:true, campo:"comparendo", texto:"Del comparendo solo está el número. Así saldrían VACÍAS las columnas de infracción, tipo de comparendo, estado y fechas: llénalas en «Llenar a mano los datos del comparendo»."});
+      }else if(hayComp && sinDesglose && seIntentoPegar && soloElNumero){
         hallazgos.push({regla:"R19", grave:true, campo:"comparendo", texto:"En la casilla del comparendo quedó solo el número, sin el resto de la línea de Fénix. Así saldrían VACÍAS las columnas de código de infracción, medio, estado, fechas, documento y nombre del infractor. Vuelve a copiar la línea completa."});
       }
       // R24. Un AGENDAMIENTO sin responder si el ciudadano pidió pruebas: esa respuesta ES la
