@@ -6082,6 +6082,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
      titulo:"La longitud del comparendo se comprueba",
      texto:"Caso real: en una masiva entregada quedó un comparendo escrito como \"11\". Ninguna regla miraba la longitud, así que salió tal cual en el archivo. Ahora, un comparendo con menos dígitos de los posibles o con más está cortado o mal pegado, y se dice antes de entregar.",
      donde:"Al guardar, en la revisión previa y en el verificador (invariante I6)"},
+    {id:"R29", grupo:"Resolución", cuando:"captura", resumen:"El número de resolución va solo: ni una fecha en su lugar ni texto pegado.",
+     tipo:"aviso", param:null,
+     titulo:"La resolución se comprueba antes de entregarla",
+     texto:"Caso real: en la masiva del 02-10-2026 una resolución quedó escrita como FECHA (\"12/8/2025\") y otra con texto pegado (\"<número> del 11 de marzo de 2026\"). Ninguna regla lo miraba, y el ANEXO salió \"Res. 12/8/2025 de 2025\" y \"… de 2026 de 2026\". Ahora, una resolución que no sea solo dígitos se avisa. Avisa, no bloquea.",
+     donde:"Al avanzar y en la revisión previa"},
     {id:"R17", grupo:"Agendamientos", cuando:"agenda", resumen:"La plantilla de Agendamientos se revisa antes de bajarla.",
      tipo:"estructural", param:null,
      titulo:"La plantilla de Agendamientos se revisa antes de entregarse",
@@ -10933,6 +10938,16 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       if(resolucionEsEsperada(formato) && !String(r.res||"").trim()){
         hallazgos.push({grave:false, texto:"Formato " + formato + " sin número de resolución."});
       }
+      // R29. LA RESOLUCIÓN VA SOLA. Caso real (masiva del 02-10-2026): una quedó como fecha y otra
+      // con "del 11 de marzo de 2026" pegado detrás; el ANEXO salió con eso adentro. Avisa, no bloquea.
+      (function(){
+        var res = String(r.res||"").trim();
+        if(!res || /^\d+$/.test(res)) return;
+        var esFecha = /^\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{1,4}(\s|T|$)/.test(res);
+        hallazgos.push({regla:"R29", grave:false, campo:"res", texto: esFecha
+          ? "La resolución \"" + res + "\" parece una FECHA, no el número de la resolución. En la masiva el ANEXO saldría \"Res. " + res + " de …\". Escribe el número que da SIMIT y deja la fecha en FECHA RES."
+          : "La resolución \"" + res + "\" trae texto pegado: el número va solo, sin palabras ni espacios. En la masiva el ANEXO saldría con ese texto adentro. Deja solo el número y la fecha en FECHA RES."});
+      })();
       if(String(r.res||"").trim() && !String(r.fechaRes||"").trim()){
         hallazgos.push({grave:false, texto:"Tiene resolución (" + String(r.res).trim() + ") pero le falta la fecha de la resolución."});
       }

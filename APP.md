@@ -47,7 +47,7 @@ radicados-semanales/
   supabase/migrations/  el SQL de la base
   README.md             instalación y uso
   INSTRUCTIVO_PRIORITARIOS.md
-PROTOCOLO.md            las 9 invariantes y las 6 reglas de cambio
+PROTOCOLO.md            las 10 invariantes y las 6 reglas de cambio
 APP.md                  este documento
 PROYECTO_CLAUDE.md      cómo montar el proyecto de Claude
 pruebas/                37 pruebas automáticas (ver §8)
@@ -177,6 +177,7 @@ sitios a la vez. Los parámetros se editan en Ajustes, con doble verificación y
 | **R26** | Notificación | captura | El correo se comprueba de verdad, no solo si tiene arroba. |
 | **R27** | Datos únicos | captura | El radicado tiene que ser 15 dígitos y solo dígitos. |
 | **R28** | Comparendo | captura | Un comparendo tiene entre 6 y 12 dígitos. |
+| **R29** | Resolución | captura | La resolución va sola: ni una fecha en su lugar ni texto pegado. Avisa, no bloquea. |
 
 ### Parámetros editables (Ajustes → Reglas)
 
@@ -235,7 +236,7 @@ T1, T5, T6, T10, T11, T14, AGENDAMIENTO, DEVUELTO, PRORROGA, PRORROGA SDA
 
 ## 7. LAS NUEVE INVARIANTES Y EL VERIFICADOR
 
-`PROTOCOLO.md` define nueve propiedades que **todo archivo entregado** debe cumplir. Se comprueban
+`PROTOCOLO.md` define diez propiedades que **todo archivo entregado** debe cumplir. Se comprueban
 sobre el `.xlsx` ya generado, sin la app:
 
 1. Ningún radicado repetido

@@ -60,6 +60,7 @@ No se edita nunca `pruebas/sitio/index_test.html` a mano: es un archivo generado
 | `t36_tira_en_solo_radicado.py` | Pegar la **tira de Fénix** en un radicado de solo número llena sola las casillas, en la principal y en la flotante. Si trae algo distinto de lo escrito a mano, la app lo muestra en su diálogo y ella elige; corregir una casilla después no borra el documento. |
 | `t37_espacio_y_fila_masiva.py` | La casilla **Comentario** ya no está en pantalla, pero un comentario guardado **no se borra**; la flotante cabe en mucho menos alto y muestra la **fila de la masiva** igual, columna por columna, a la del archivo. |
 | `t38_flecha_conteo_flotante.py` | En la flotante, el **conteo por formato** y el enlace a informes van ocultos tras una **flecha** que los despliega; en la principal siguen a la vista. |
+| `t39_resolucion_mal_escrita.py` | **R29**: una resolución escrita como **fecha** o con **texto pegado** (los dos casos reales de la masiva del 02-10) se avisa en la revisión previa; las bien escritas no; el archivo se descarga igual. |
 
 ## Reglas de la casa
 

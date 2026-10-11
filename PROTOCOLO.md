@@ -14,7 +14,7 @@ pruebas: se apoya en **invariantes sobre el archivo que se entrega** y en **dato
 
 ## REGLA 0 — Qué significa "la app está bien"
 
-No es una opinión. Son nueve propiedades que **todo** archivo de masiva entregado debe cumplir.
+No es una opinión. Son diez propiedades que **todo** archivo de masiva entregado debe cumplir.
 Se comprueban sobre el .xlsx ya generado, no sobre el código. Cualquiera puede verificarlas, con
 la app o sin ella.
 
@@ -29,6 +29,7 @@ la app o sin ella.
 | I7 | Las dos columnas COMPARENDO coinciden fila por fila | comparación |
 | I8 | 27 columnas, con los títulos exactos y en el mismo orden | comparar con la cabecera patrón |
 | I9 | Ningún radicado asignado esa semana se queda fuera sin motivo registrado | cruce inverso: ORFEO → archivo, y cada ausencia explicada (agendamiento, devuelto, o salió de la bandeja) |
+| I10 | Toda resolución es solo el número: ni una fecha en su lugar ni texto pegado | expresión regular (aviso, no falla) |
 
 **Si un cambio rompe una invariante, no sale. Sin excepciones y sin discusión.**
 
@@ -57,6 +58,7 @@ octubre de 2026, cada invariante tiene su regla dentro de la app donde es posibl
 | I7 dos columnas COMPARENDO | las escribe el mismo dato | por construcción |
 | I8 27 columnas | las escribe MASIVA_HEADERS | por construcción |
 | I9 ninguno sin responder | radicados sin clasificar | revisión previa; el cruce contra ORFEO lo cierra |
+| I10 resolución solo el número | **R29** (nueva, 11-10-2026) | al avanzar y en la revisión previa; avisa, no bloquea |
 
 Las invariantes se añaden, nunca se quitan. Cada fallo real que aparezca en el trabajo se
 convierte en una invariante nueva ese mismo día.
@@ -135,7 +137,7 @@ una versión rota porque volver atrás daba miedo.
 - Un cambio por despliegue. Si se juntan cinco cambios y algo sale mal, no se sabe cuál fue.
 - **Nunca** se despliega el día de la entrega de la masiva.
 - El mejor momento es el lunes temprano: queda la semana entera para notar algo raro.
-- Después de desplegar, la primera masiva se revisa con las nueve invariantes **antes** de
+- Después de desplegar, la primera masiva se revisa con las diez invariantes **antes** de
   entregarla.
 
 ---
@@ -162,7 +164,7 @@ Vale ante un memorando aunque el programa tenga fallos.
 - [ ] `./pruebas/correr_todo.sh` → TODAS LAS PRUEBAS PASAN
 - [ ] Si el cambio toca qué filas salen: diff antes/después sobre datos reales, con cada
       diferencia explicada
-- [ ] Las nueve invariantes se cumplen en una masiva generada con la versión nueva
+- [ ] Las diez invariantes se cumplen en una masiva generada con la versión nueva
 - [ ] La configuración de Supabase está intacta (url y anonKey sin tocar)
 - [ ] Ninguna prueba se SALTÓ en la corrida (t15–t18 se saltan sin `pruebas/sheet_donina.xlsx`)
 - [ ] Guardado el `.zip` de la versión anterior
