@@ -65,7 +65,7 @@ with sync_playwright() as pw:
     with pag.expect_download(timeout=30000) as dl:
         pag.click("#descargarMasivaBtn"); pag.wait_for_timeout(1500)
         if pag.locator("#preflightDialog[open]").count():
-            rp = pag.locator("#preflightDialog").inner_text()
+            rp = pag.locator("#preflightDialog").inner_text(); print("   revisión previa:", rp[:500].replace("\n", " | "))
             pag.click("#preflightProceed")
     dl.value.save_as(salida)
     ok("CORTADA" not in rp and "solo el número" not in rp and "corrieron" not in rp,

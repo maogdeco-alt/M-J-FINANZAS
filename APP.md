@@ -50,7 +50,7 @@ radicados-semanales/
 PROTOCOLO.md            las 9 invariantes y las 6 reglas de cambio
 APP.md                  este documento
 PROYECTO_CLAUDE.md      cómo montar el proyecto de Claude
-pruebas/                34 pruebas automáticas (ver §8)
+pruebas/                35 pruebas automáticas (ver §8)
 ```
 
 ### Configuración que NUNCA se toca
@@ -267,7 +267,7 @@ Dentro de la app: **Documentos → ¿De dónde sale este número?**
 
 ## 8. LAS PRUEBAS
 
-34 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
+35 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
 cada corrida). Manejan la app **por la interfaz**, con clics y teclado, como la usuaria.
 
 ```bash
@@ -288,6 +288,7 @@ Lo que defiende cada una está en `pruebas/LEEME.md`. Las que más importan:
 - **t27–t30** · principal y flotante a la vez: nada se pierde, nada se cruza, las dos suben a la nube
 - **t31** · una semana cerrada no vuelve y su historial no se pierde, aunque el cierre no haya subido
 - **t32** · solo los números de radicado: entran y se llenan a mano
+- **t35** · todo a mano, sin línea de Fénix: cada casilla a su columna de la masiva
 - **t33** · sin fecha de asignación: se trabaja igual, se marca «sin fecha», término «sin dato», la masiva lo avisa
 
 `pruebas/caso_2oct/` guarda la masiva, el reporte de ORFEO y los agendamientos de aquella semana
@@ -314,6 +315,7 @@ memorando, y todos siguen el mismo patrón.
 | Restaurar un punto de restauración deshacía lo corregido después | Los dos argumentos de la mezcla iban al revés: mandaba el dato viejo del punto | Manda lo de ahora; el punto solo rellena huecos, como dice la pantalla (t30) |
 | Una semana cerrada volvía a la lista al entrar otra vez, y el historial quedaba vacío | Al iniciar sesión el historial de la nube **reemplazaba** al de este navegador, y los radicados de la copia vieja de la nube se sumaban a la lista. Si el cierre no alcanzó a subir (choque entre ventanas, o sin conexión), la semana volvía entera y su archivo se perdía | Al entrar, los historiales se juntan por fecha de cierre, y un radicado ya archivado que nadie tocó después del cierre no vuelve a la lista (t31) |
 | Una lista de solo números de radicado no metía ninguno | La importación exigía 4 columnas (radicado, dos fechas, nombre) | Una línea que es solo un radicado de 15 dígitos entra con lo demás vacío, el informe lo dice y las casillas de fechas y nombre se abren solas (t32). La primera lista real llegó con comillas y espacios en los extremos: se quitan, y lo que no sea 15 dígitos dice por qué no entra (t34) |
+| Con solo los radicados no había dónde escribir los datos del comparendo | Esas columnas solo salían de la línea de Fénix pegada | Casillas «Llenar a mano los datos del comparendo» (número, infracción, fechas, tipo, estado, placa). Escriben en su columna de la misma línea, así que reglas, masiva, nube y flotante no cambian (t35) |
 
 Los cinco últimos se encontraron el 10-10-2026, en la auditoría tras el despliegue del bloque de la
 mañana. Ninguno lo causó ese bloque: estaban antes. Pero los tres son justo «cruza información» y
