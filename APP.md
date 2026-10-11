@@ -50,7 +50,7 @@ radicados-semanales/
 PROTOCOLO.md            las 9 invariantes y las 6 reglas de cambio
 APP.md                  este documento
 PROYECTO_CLAUDE.md      cómo montar el proyecto de Claude
-pruebas/                35 pruebas automáticas (ver §8)
+pruebas/                36 pruebas automáticas (ver §8)
 ```
 
 ### Configuración que NUNCA se toca
@@ -267,7 +267,7 @@ Dentro de la app: **Documentos → ¿De dónde sale este número?**
 
 ## 8. LAS PRUEBAS
 
-35 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
+36 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
 cada corrida). Manejan la app **por la interfaz**, con clics y teclado, como la usuaria.
 
 ```bash
@@ -288,6 +288,7 @@ Lo que defiende cada una está en `pruebas/LEEME.md`. Las que más importan:
 - **t27–t30** · principal y flotante a la vez: nada se pierde, nada se cruza, las dos suben a la nube
 - **t31** · una semana cerrada no vuelve y su historial no se pierde, aunque el cierre no haya subido
 - **t32** · solo los números de radicado: entran y se llenan a mano
+- **t36** · la tira de Fénix sigue llenando todo sola; si choca con lo escrito a mano, pregunta
 - **t35** · todo a mano, sin línea de Fénix: cada casilla a su columna de la masiva
 - **t33** · sin fecha de asignación: se trabaja igual, se marca «sin fecha», término «sin dato», la masiva lo avisa
 

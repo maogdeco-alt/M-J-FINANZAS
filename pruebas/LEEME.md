@@ -57,6 +57,7 @@ No se edita nunca `pruebas/sitio/index_test.html` a mano: es un archivo generado
 | `t33_sin_fecha_asignacion.py` | Un radicado **sin fecha de asignación** ni nada más se clasifica, se guarda (también desde la flotante), se ve marcado como «sin fecha», sale en la masiva con esas casillas en blanco y avisado, y se cierra con la semana. |
 | `t34_lista_como_la_pega.py` | La lista de solo radicados **como llega de verdad** (con comillas y espacios, o copiada de Excel) entra completa; lo que no es un radicado de 15 dígitos queda fuera diciendo por qué (número científico de Excel, dígitos de más o de menos). |
 | `t35_comparendo_a_mano.py` | **Todo a mano**, sin línea de Fénix, en la principal y en la flotante: cada casilla sale en su columna de la masiva con el formato de la del 02-10, y corregir una casilla no borra las demás. |
+| `t36_tira_en_solo_radicado.py` | Pegar la **tira de Fénix** en un radicado de solo número llena sola las casillas, en la principal y en la flotante. Si trae algo distinto de lo escrito a mano, la app lo muestra en su diálogo y ella elige; corregir una casilla después no borra el documento. |
 
 ## Reglas de la casa
 
