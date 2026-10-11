@@ -1,6 +1,6 @@
 # SONDA: las anomalías CONFIRMADAS durante la semana, ¿se ven al entregar? (antes se contaban
 # y no se mostraban en ninguna parte: se firmaba la base sin saber qué llevaba dentro)
-import sys; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B
 T="\t"

@@ -2,7 +2,7 @@
 #   (a) lo que se escribe NO se pierde ni cerrando la ventana en seco;
 #   (b) al volver a abrirla, vuelve al radicado en el que se estaba (antes empezaba del primero);
 #   (c) cada ventana recuerda LO SUYO: mover una no arrastra a la otra.
-import sys; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B
 T="\t"
@@ -34,12 +34,12 @@ with sync_playwright() as pw:
     print("(a) cerrar la flotante en seco justo después de escribir")
     flo,ef=abrir_flotante(ctx)
     B.ir_a_compacto(flo,"2026ER004")
-    flo.fill("#cc_comentario","ESCRITO Y CERRADO AL INSTANTE"); flo.dispatch_event("#cc_comentario","input")
+    flo.fill("#cc_idNum","ESCRITO Y CERRADO AL INSTANTE"); flo.dispatch_event("#cc_idNum","input")
     flo.wait_for_timeout(150)
     flo.close(); pag.wait_for_timeout(1500)
     B.ir_a(pag,"2026ER004")
-    ok(pag.input_value("#cc_comentario")=="ESCRITO Y CERRADO AL INSTANTE",
-       "no se pierde lo escrito → "+repr(pag.input_value("#cc_comentario")))
+    ok(pag.input_value("#cc_idNum")=="ESCRITO Y CERRADO AL INSTANTE",
+       "no se pierde lo escrito → "+repr(pag.input_value("#cc_idNum")))
 
     print("(b) al reabrir la flotante, vuelve donde estaba")
     flo,ef=abrir_flotante(ctx)

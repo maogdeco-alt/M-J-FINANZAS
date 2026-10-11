@@ -2,7 +2,7 @@
 # Las que solo aparecen al hacer algo, y que ninguna prueba tocaba: la DOBLE VERIFICACIÓN de las
 # reglas, agregar un radicado a mano, la calculadora de término, la papelera y los puntos de
 # restauración.
-import sys; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B
 BLOQUE="2026ER001\t01/09/2026\t03/09/2026\tPERSONA 1"

@@ -1,6 +1,6 @@
 # LO QUE DESTAPÓ LA AUDITORÍA DEL 29-09: las reglas imperativas no se volvían a mirar al entregar,
 # y el aviso al guardar se lo llevaba por delante el siguiente mensaje. Esta prueba lo vigila.
-import sys; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B, openpyxl, os
 T="\t"

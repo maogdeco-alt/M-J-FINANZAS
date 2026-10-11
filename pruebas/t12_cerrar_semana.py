@@ -1,7 +1,7 @@
 # "No veo el botón de borrar los radicados de la semana". Existía y funcionaba, pero vivía al
 # fondo de la ventana "Documentos". Esta prueba vigila que se pueda encontrar Y que siga
 # haciendo lo mismo desde los dos sitios, sin perder nada.
-import sys; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B
 T="\t"
