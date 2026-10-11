@@ -7061,8 +7061,21 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // a mano. Una línea que es ÚNICAMENTE un radicado de 15 dígitos entra sola, con lo demás
       // vacío, y queda dicho en el informe. Cualquier otra línea corta sigue sin entrar.
       // (Hasta el 10-10-2026 una lista de solo radicados no metía NINGUNO. Ver t32_solo_radicados.)
-      if(cells.length === 1 && /^\d{15}$/.test(radicado)){
-        filas.push({cells:cells, radicado:radicado, linea:i+1, soloNumero:true});
+      // Al copiar de Excel o de un mensaje pueden venir comillas, una coma o un punto pegados al
+      // número (así llegó la primera lista real: con una comilla antes del primero y otra después
+      // del último). Se quitan solo de los extremos; lo de adentro tiene que ser 15 dígitos exactos.
+      if(cells.length === 1){
+        var soloDigitos = radicado.replace(/^["'`´“”‘’,;.\s]+|["'`´“”‘’,;.\s]+$/g, "");
+        if(/^\d{15}$/.test(soloDigitos)){
+          filas.push({cells:[soloDigitos], radicado:soloDigitos, linea:i+1, soloNumero:true});
+          return;
+        }
+        tooShort++;
+        var motivo;
+        if(/^\d+([.,]\d+)?E\+?\d+$/i.test(soloDigitos)) motivo = "Excel lo convirtió en número científico (" + soloDigitos + ") y se perdieron dígitos — en Excel pon esa columna con formato Texto y vuelve a copiar";
+        else if(/^\d+$/.test(soloDigitos)) motivo = "tiene " + soloDigitos.length + " dígitos y un radicado tiene 15";
+        else motivo = "no es un número de radicado de 15 dígitos";
+        omitidas.push({linea:i+1, radicado:radicado, motivo:motivo});
         return;
       }
       if(cells.length < 4){

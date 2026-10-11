@@ -50,7 +50,7 @@ radicados-semanales/
 PROTOCOLO.md            las 9 invariantes y las 6 reglas de cambio
 APP.md                  este documento
 PROYECTO_CLAUDE.md      cómo montar el proyecto de Claude
-pruebas/                33 pruebas automáticas (ver §8)
+pruebas/                34 pruebas automáticas (ver §8)
 ```
 
 ### Configuración que NUNCA se toca
@@ -267,7 +267,7 @@ Dentro de la app: **Documentos → ¿De dónde sale este número?**
 
 ## 8. LAS PRUEBAS
 
-33 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
+34 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
 cada corrida). Manejan la app **por la interfaz**, con clics y teclado, como la usuaria.
 
 ```bash
@@ -313,7 +313,7 @@ memorando, y todos siguen el mismo patrón.
 | Un correo corregido en la flotante volvía al anterior, sin aviso | Lo que una ventana traía de la otra quedaba contado como «cambio hecho aquí», y en su siguiente guardado pisaba la corrección más nueva | La referencia de la mezcla se mueve con lo que se trae (t28 lo encontró, t29 lo fija) |
 | Restaurar un punto de restauración deshacía lo corregido después | Los dos argumentos de la mezcla iban al revés: mandaba el dato viejo del punto | Manda lo de ahora; el punto solo rellena huecos, como dice la pantalla (t30) |
 | Una semana cerrada volvía a la lista al entrar otra vez, y el historial quedaba vacío | Al iniciar sesión el historial de la nube **reemplazaba** al de este navegador, y los radicados de la copia vieja de la nube se sumaban a la lista. Si el cierre no alcanzó a subir (choque entre ventanas, o sin conexión), la semana volvía entera y su archivo se perdía | Al entrar, los historiales se juntan por fecha de cierre, y un radicado ya archivado que nadie tocó después del cierre no vuelve a la lista (t31) |
-| Una lista de solo números de radicado no metía ninguno | La importación exigía 4 columnas (radicado, dos fechas, nombre) | Una línea que es solo un radicado de 15 dígitos entra con lo demás vacío, el informe lo dice y las casillas de fechas y nombre se abren solas (t32) |
+| Una lista de solo números de radicado no metía ninguno | La importación exigía 4 columnas (radicado, dos fechas, nombre) | Una línea que es solo un radicado de 15 dígitos entra con lo demás vacío, el informe lo dice y las casillas de fechas y nombre se abren solas (t32). La primera lista real llegó con comillas y espacios en los extremos: se quitan, y lo que no sea 15 dígitos dice por qué no entra (t34) |
 
 Los cinco últimos se encontraron el 10-10-2026, en la auditoría tras el despliegue del bloque de la
 mañana. Ninguno lo causó ese bloque: estaban antes. Pero los tres son justo «cruza información» y

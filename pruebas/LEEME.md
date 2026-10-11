@@ -55,6 +55,7 @@ No se edita nunca `pruebas/sitio/index_test.html` a mano: es un archivo generado
 | `t31_semana_cerrada_no_vuelve.py` | Cerrar la semana con las dos ventanas abiertas, o sin conexión, y volver a entrar: la semana **no vuelve** a la lista y sus radicados siguen en el historial. |
 | `t32_solo_radicados.py` | Una lista de **solo números de radicado** entra completa; lo llenado a mano queda en su radicado y sale en la masiva. |
 | `t33_sin_fecha_asignacion.py` | Un radicado **sin fecha de asignación** ni nada más se clasifica, se guarda (también desde la flotante), se ve marcado como «sin fecha», sale en la masiva con esas casillas en blanco y avisado, y se cierra con la semana. |
+| `t34_lista_como_la_pega.py` | La lista de solo radicados **como llega de verdad** (con comillas y espacios, o copiada de Excel) entra completa; lo que no es un radicado de 15 dígitos queda fuera diciendo por qué (número científico de Excel, dígitos de más o de menos). |
 
 ## Reglas de la casa
 
