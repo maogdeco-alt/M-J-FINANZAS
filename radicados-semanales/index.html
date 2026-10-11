@@ -553,6 +553,11 @@
      Los contadores y botones de arriba siguen, en tamaño mínimo; el desglose por formato y el
      enlace a informes quedan en la pestaña principal. */
   html.es-flotante .navsub{display:none;}
+  /* La usuaria pidió (11-10-2026) una flecha para desplegarla en la flotante cuando quiera consultarla. */
+  .navsub-toggle{display:none;}
+  html.es-flotante .navsub-toggle{display:block;margin:0 0 4px;font-size:0.68rem;text-align:left;}
+  html.es-flotante.navsub-abierta .navsub{display:flex;padding:2px 0 6px;font-size:0.7rem;}
+  html.bloque-manana .navsub-toggle{display:none;}
   html.es-flotante .appnav{gap:4px 6px;}
   html.es-flotante .nav-stats .stat-card{padding:2px 7px;}
   html.es-flotante .nav-stats .stat-card .num{font-size:0.78rem;}
@@ -1438,6 +1443,7 @@
         Cerrar semana <span class="navbadge" id="cerrarSemanaBadge">0</span></button>
     </div>
   </nav>
+  <button class="link-btn navsub-toggle" id="navsubToggle" type="button" aria-expanded="false" aria-controls="formatoChips">▸ Conteo por formato e informes</button>
   <div class="navsub">
     <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
     <div class="formato-chips" id="formatoChips"></div>
@@ -4850,6 +4856,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
   document.getElementById("settingsBtn").addEventListener("click", function(){ openSettings("general"); });
   document.getElementById("openInformesLink").addEventListener("click", function(){ openSettings("informes"); });
+  document.getElementById("navsubToggle").addEventListener("click", function(){
+    var abierta = document.documentElement.classList.toggle("navsub-abierta");
+    this.setAttribute("aria-expanded", abierta ? "true" : "false");
+    this.textContent = (abierta ? "▾ " : "▸ ") + "Conteo por formato e informes";
+  });
   document.getElementById("settingsCancel").addEventListener("click", function(){ document.getElementById("settingsDialog").close(); });
 
   document.getElementById("termCalcBtn").addEventListener("click", function(){
