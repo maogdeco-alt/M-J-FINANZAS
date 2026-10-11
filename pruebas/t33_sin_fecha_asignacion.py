@@ -32,7 +32,7 @@ with sync_playwright() as pw:
     B.importar(pag, "\n".join(RAD))
     # 01: petición oscura, sin nada más que el radicado
     B.ir_a(pag, RAD[0])
-    B.escribir(pag, "#cc_formato", "T10"); B.escribir(pag, "#cc_comentario", "SOLO EL NUMERO")
+    B.escribir(pag, "#cc_formato", "T10"); B.escribir(pag, "#cc_idNum", "SOLO EL NUMERO")
     guardar(pag)
     # 02: con comparendo y resolución, pero sin fechas base ni nombre del solicitante
     B.ir_a(pag, RAD[1])
@@ -40,7 +40,7 @@ with sync_playwright() as pw:
     B.escribir(pag, "#cc_direccion", "dos@gmail.com"); B.escribir(pag, "#cc_res", "770002"); B.escribir(pag, "#cc_fechaRes", "26/07/2024")
     guardar(pag)
     g = guardados(pag)
-    ok(g.get(RAD[0], {}).get("formato") == "T10" and g.get(RAD[0], {}).get("comentario") == "SOLO EL NUMERO",
+    ok(g.get(RAD[0], {}).get("formato") == "T10" and g.get(RAD[0], {}).get("idNum") == "SOLO EL NUMERO",
        "01 se guarda clasificado sin fechas ni nombre → %r" % g.get(RAD[0], {}).get("formato"))
     ok(g.get(RAD[1], {}).get("formato") == "T14" and g.get(RAD[1], {}).get("res") == "770002",
        "02 se guarda clasificado sin fechas base → %r" % g.get(RAD[1], {}).get("formato"))
@@ -65,7 +65,7 @@ with sync_playwright() as pw:
         if RAD[0] in flo.locator("#cc_radicadoLabel").inner_text(): break
         flo.click("#cc_prev" if not flo.locator("#cc_prev").is_disabled() else "#cc_next"); flo.wait_for_timeout(300); B.confirmar_nombre(flo); B.cerrar_alerta(flo)
     ok(RAD[0] in flo.locator("#cc_radicadoLabel").inner_text(), "la flotante llega al 01")
-    B.escribir(flo, "#cc_comentario", "SOLO EL NUMERO, DESDE LA FLOTANTE"); guardar(flo); flo.wait_for_timeout(1500)
+    B.escribir(flo, "#cc_idNum", "SOLO EL NUMERO, DESDE LA FLOTANTE"); guardar(flo); flo.wait_for_timeout(1500)
     flo.close()
 
     pag.reload(wait_until="domcontentloaded")
@@ -73,7 +73,7 @@ with sync_playwright() as pw:
     pag.fill("#loginEmail", "prueba@gmail.com"); pag.fill("#loginPassword", "123456")
     pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000); pag.wait_for_timeout(1200)
     g = guardados(pag)
-    ok(g.get(RAD[0], {}).get("comentario") == "SOLO EL NUMERO, DESDE LA FLOTANTE", "tras recargar, el 01 tiene lo de la flotante → %r" % g.get(RAD[0], {}).get("comentario"))
+    ok(g.get(RAD[0], {}).get("idNum") == "SOLO EL NUMERO, DESDE LA FLOTANTE", "tras recargar, el 01 tiene lo de la flotante → %r" % g.get(RAD[0], {}).get("idNum"))
     ok(g.get(RAD[1], {}).get("res") == "770002", "y el 02 conserva su resolución")
 
     pag.evaluate("()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close())")

@@ -39,7 +39,7 @@ def clasificar(pag, rad, i, comentario):
     B.ir_a(pag, rad); B.pegar_tira(pag, tira(i))
     B.escribir(pag, "#cc_formato", "T14"); B.escribir(pag, "#cc_direccion", "p%d@gmail.com" % i)
     B.escribir(pag, "#cc_res", "13687%02d" % i); B.escribir(pag, "#cc_fechaRes", "26/07/2024")
-    B.escribir(pag, "#cc_comentario", comentario)
+    B.escribir(pag, "#cc_idNum", comentario)
     pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
 
 def en_conflicto(pag):
@@ -53,7 +53,7 @@ with sync_playwright() as pw:
     B.entrar(pag); B.importar(pag, BLOQUE)
     clasificar(pag, RAD[0], 1, "UNO EN LA PRINCIPAL")
     pag.wait_for_timeout(2500)
-    ok(nube().get(RAD[0], {}).get("comentario") == "UNO EN LA PRINCIPAL", "lo de la principal llega a la nube")
+    ok(nube().get(RAD[0], {}).get("idNum") == "UNO EN LA PRINCIPAL", "lo de la principal llega a la nube")
 
     print("(a) se abre la flotante y se trabaja en las dos, en radicados distintos")
     flo = ctx.new_page(); err2 = []
@@ -67,7 +67,7 @@ with sync_playwright() as pw:
     ok(RAD[1] in flo.locator("#cc_radicadoLabel").inner_text(),
        "la flotante abre en el 002 → " + flo.locator("#cc_radicadoLabel").inner_text())
     B.pegar_tira(flo, tira(2)); B.escribir(flo, "#cc_formato", "T14")
-    B.escribir(flo, "#cc_comentario", "DOS EN LA FLOTANTE")
+    B.escribir(flo, "#cc_idNum", "DOS EN LA FLOTANTE")
     flo.click("#cc_save"); flo.wait_for_timeout(500); B.confirmar_nombre(flo); B.cerrar_alerta(flo)
     flo.wait_for_timeout(2500)
     clasificar(pag, RAD[2], 3, "TRES EN LA PRINCIPAL")
@@ -85,11 +85,11 @@ with sync_playwright() as pw:
 
     n = nube()
     print("(b) la nube tiene lo de las dos ventanas")
-    ok(n.get(RAD[0], {}).get("comentario") == "UNO EN LA PRINCIPAL", "001 → " + repr(n.get(RAD[0], {}).get("comentario")))
-    ok(n.get(RAD[1], {}).get("comentario") == "DOS EN LA FLOTANTE", "002 comentario (flotante) → " + repr(n.get(RAD[1], {}).get("comentario")))
+    ok(n.get(RAD[0], {}).get("idNum") == "UNO EN LA PRINCIPAL", "001 → " + repr(n.get(RAD[0], {}).get("idNum")))
+    ok(n.get(RAD[1], {}).get("idNum") == "DOS EN LA FLOTANTE", "002 comentario (flotante) → " + repr(n.get(RAD[1], {}).get("idNum")))
     ok(n.get(RAD[1], {}).get("res") == "999", "002 resolución (flotante, después) → " + repr(n.get(RAD[1], {}).get("res")))
-    ok(n.get(RAD[2], {}).get("comentario") == "TRES EN LA PRINCIPAL", "003 → " + repr(n.get(RAD[2], {}).get("comentario")))
-    ok(n.get(RAD[3], {}).get("comentario") == "CUATRO EN LA PRINCIPAL", "004 → " + repr(n.get(RAD[3], {}).get("comentario")))
+    ok(n.get(RAD[2], {}).get("idNum") == "TRES EN LA PRINCIPAL", "003 → " + repr(n.get(RAD[2], {}).get("idNum")))
+    ok(n.get(RAD[3], {}).get("idNum") == "CUATRO EN LA PRINCIPAL", "004 → " + repr(n.get(RAD[3], {}).get("idNum")))
     print("(c) ningún radicado recibió datos de otro")
     for i, r in enumerate(RAD):
         rec = n.get(r, {})
@@ -102,11 +102,11 @@ with sync_playwright() as pw:
     for r, esperado in ((RAD[0], "UNO EN LA PRINCIPAL"), (RAD[1], "DOS EN LA FLOTANTE"),
                         (RAD[2], "TRES EN LA PRINCIPAL"), (RAD[3], "CUATRO EN LA PRINCIPAL")):
         B.ir_a(p2, r)
-        ok(p2.input_value("#cc_comentario") == esperado, r + " en el otro computador → " + repr(p2.input_value("#cc_comentario")))
+        ok(p2.input_value("#cc_idNum") == esperado, r + " en el otro computador → " + repr(p2.input_value("#cc_idNum")))
     nav2.close()
 
     print("(e) cerrar la semana justo después de que subió la flotante")
-    B.escribir(flo, "#cc_comentario", "DOS EN LA FLOTANTE, OTRA VEZ")
+    B.escribir(flo, "#cc_idNum", "DOS EN LA FLOTANTE, OTRA VEZ")
     flo.click("#cc_save"); flo.wait_for_timeout(500); B.confirmar_nombre(flo); B.cerrar_alerta(flo)
     flo.wait_for_timeout(2500)
     pag.click("#cerrarSemanaNavBtn"); pag.wait_for_timeout(600)

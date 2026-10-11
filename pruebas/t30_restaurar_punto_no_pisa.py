@@ -17,7 +17,7 @@ def ok(c, m):
 with sync_playwright() as pw:
     nav, ctx, pag, err = B.abrir(pw)
     B.entrar(pag); B.importar(pag, BLOQUE)
-    B.ir_a(pag, RAD[0]); B.escribir(pag, "#cc_comentario", "COMENTARIO VIEJO")
+    B.ir_a(pag, RAD[0]); B.escribir(pag, "#cc_idNum", "COMENTARIO VIEJO")
     pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
     print("1) se crea un punto (con el comentario viejo)")
     pag.click("#settingsBtn"); pag.wait_for_timeout(600)
@@ -25,7 +25,7 @@ with sync_playwright() as pw:
     pag.click("#puntosCrear"); pag.wait_for_timeout(900)
     pag.evaluate("()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close())")
     print("2) se corrige el comentario y se borra el otro radicado")
-    B.ir_a(pag, RAD[0]); B.escribir(pag, "#cc_comentario", "COMENTARIO CORREGIDO")
+    B.ir_a(pag, RAD[0]); B.escribir(pag, "#cc_idNum", "COMENTARIO CORREGIDO")
     pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
     B.ir_a(pag, RAD[1]); pag.click("#cc_delete"); pag.wait_for_timeout(400)
     pag.click("#deleteConfirmOk"); pag.wait_for_timeout(700)
@@ -41,8 +41,8 @@ with sync_playwright() as pw:
     B.ir_a(pag, RAD[1])
     ok(RAD[1] in pag.locator("#cc_radicadoLabel").inner_text(), "volvió el radicado borrado")
     B.ir_a(pag, RAD[0])
-    ok(pag.input_value("#cc_comentario") == "COMENTARIO CORREGIDO",
-       "el comentario corregido NO vuelve al viejo → " + repr(pag.input_value("#cc_comentario")))
+    ok(pag.input_value("#cc_idNum") == "COMENTARIO CORREGIDO",
+       "el comentario corregido NO vuelve al viejo → " + repr(pag.input_value("#cc_idNum")))
     print("errores js:", err or "ninguno")
     if err: fallos.append("errores de JavaScript")
     nav.close()

@@ -40,7 +40,7 @@ with sync_playwright() as pw:
     pag.wait_for_timeout(2000)
     flo = ctx.new_page(); login(flo)
     if flo.locator("#captureEmptyVerTodos").is_visible(): flo.click("#captureEmptyVerTodos"); flo.wait_for_timeout(500)
-    flo.fill("#cc_comentario", "algo en la flotante"); flo.dispatch_event("#cc_comentario", "input")
+    flo.fill("#cc_idNum", "algo en la flotante"); flo.dispatch_event("#cc_idNum", "input")
     flo.click("#cc_save"); flo.wait_for_timeout(500); B.confirmar_nombre(flo); B.cerrar_alerta(flo)
     flo.wait_for_timeout(2500)
     print("estado principal antes de cerrar:", pag.locator("#saveStatus").inner_text())

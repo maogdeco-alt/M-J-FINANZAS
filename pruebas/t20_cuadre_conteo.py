@@ -57,7 +57,7 @@ with sync_playwright() as pw:
       localStorage.setItem(k, JSON.stringify(lista.concat(copias)));
     }""", [R1,R2])
     # Un guardado cualquiera de ESTA ventana dispara la fusión con lo que dejó la otra.
-    B.ir_a(pag,R3); B.escribir(pag,"#cc_comentario","x"); pag.click("#cc_save")
+    B.ir_a(pag,R3); B.escribir(pag,"#cc_idNum","x"); pag.click("#cc_save")
     pag.wait_for_timeout(900); B.cerrar_alerta(pag)
     filas = pag.locator("#queuePanel .queue-item").count()
     ok(filas==5, "la lista tiene ahora 5 filas para 3 radicados → "+str(filas))

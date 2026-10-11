@@ -57,7 +57,7 @@ with sync_playwright() as pw:
       lista.push(nuevo);
       localStorage.setItem(k, JSON.stringify(lista));
     }""", REASIG)
-    B.ir_a(pag,OTRO); B.escribir(pag,"#cc_comentario","x"); pag.click("#cc_save")
+    B.ir_a(pag,OTRO); B.escribir(pag,"#cc_idNum","x"); pag.click("#cc_save")
     pag.wait_for_timeout(900); B.cerrar_alerta(pag)
     ok(pag.locator("#queuePanel .queue-item").count()==3, "la lista tiene 3 filas")
 

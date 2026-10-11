@@ -34,12 +34,12 @@ with sync_playwright() as pw:
     print("(a) cerrar la flotante en seco justo después de escribir")
     flo,ef=abrir_flotante(ctx)
     B.ir_a_compacto(flo,"2026ER004")
-    flo.fill("#cc_comentario","ESCRITO Y CERRADO AL INSTANTE"); flo.dispatch_event("#cc_comentario","input")
+    flo.fill("#cc_idNum","ESCRITO Y CERRADO AL INSTANTE"); flo.dispatch_event("#cc_idNum","input")
     flo.wait_for_timeout(150)
     flo.close(); pag.wait_for_timeout(1500)
     B.ir_a(pag,"2026ER004")
-    ok(pag.input_value("#cc_comentario")=="ESCRITO Y CERRADO AL INSTANTE",
-       "no se pierde lo escrito → "+repr(pag.input_value("#cc_comentario")))
+    ok(pag.input_value("#cc_idNum")=="ESCRITO Y CERRADO AL INSTANTE",
+       "no se pierde lo escrito → "+repr(pag.input_value("#cc_idNum")))
 
     print("(b) al reabrir la flotante, vuelve donde estaba")
     flo,ef=abrir_flotante(ctx)

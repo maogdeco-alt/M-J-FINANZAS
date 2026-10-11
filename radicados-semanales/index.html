@@ -549,10 +549,34 @@
   html.es-flotante .work-fields textarea{padding:4px 7px;font-size:0.8rem;}
   html.es-flotante textarea{font-size:0.72rem;line-height:1.25;}
   html.es-flotante #cc_comparendo{min-height:0;height:32px;}
-  html.es-flotante #cc_comentario{min-height:0;height:26px;}
+  /* Flotante (11-10-2026): todo lo de la fila de la masiva a la vista con el menor scroll posible.
+     Los contadores y botones de arriba siguen, en tamaño mínimo; el desglose por formato y el
+     enlace a informes quedan en la pestaña principal. */
+  html.es-flotante .navsub{display:none;}
+  html.es-flotante .appnav{gap:4px 6px;}
+  html.es-flotante .nav-stats .stat-card{padding:2px 7px;}
+  html.es-flotante .nav-stats .stat-card .num{font-size:0.78rem;}
+  html.es-flotante .nav-stats .stat-card .label{font-size:0.5rem;}
+  html.es-flotante .nav-acciones{gap:3px;margin-left:0;}
+  html.es-flotante .navbtn{padding:2px 7px;font-size:0.66rem;gap:4px;min-height:0;}
+  html.es-flotante .navbtn svg{display:none;}
+  html.es-flotante .work-fields > #wrap_tipoId,
+  html.es-flotante .work-fields > #wrap_idNum,
+  html.es-flotante .work-fields > #wrap_res,
+  html.es-flotante .work-fields > #wrap_fechaRes{grid-column:span 2;}
+  html.es-flotante .comparendo-a-mano{grid-template-columns:repeat(4,minmax(0,1fr));gap:2px 8px;margin:2px 0;}
+  html.es-flotante .comparendo-a-mano label{font-size:0.6rem;}
+  html.es-flotante .comparendo-a-mano > div:has(#m_comparendoCompleto),
+  html.es-flotante .comparendo-a-mano > div:has(#m_medio){grid-column:span 2;}
+  html.es-flotante #captureForm > .fila-masiva{order:5;}
+  html.es-flotante #cc_comparendo{height:26px;}
+  html.es-flotante .fila-masiva{margin-top:4px;}
+  html.es-flotante .fila-masiva-auto{font-size:0.64rem;gap:2px 4px;}
+  html.es-flotante .fm-chip{padding:0 6px;}
+  html.es-flotante .fila-masiva-tabla table{font-size:0.66rem;}
   html.es-flotante .base-fields{font-size:0.68rem;padding:3px 8px;margin-bottom:3px;gap:2px 10px;background:none;border:0;}
   html.es-flotante .base-edit-toggle{padding:2px 6px;font-size:0.62rem;}
-  html.es-flotante .work-fields{gap:2px 10px;max-width:none;}
+  html.es-flotante .work-fields{gap:2px 10px;max-width:none;grid-template-columns:repeat(4,minmax(0,1fr));}
   html.es-flotante .work-fields > div,
   html.es-flotante .work-fields > .full{margin-bottom:0;}
   /* La pregunta de "¿pidió pruebas?" también en la ventana flotante: más apretada, pero entera y
@@ -652,6 +676,25 @@
   .work-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 16px;}
   .work-fields > div{min-width:0;}
   .work-fields > .full{grid-column:1 / -1;}
+  /* Distribución (11-10-2026): una fila para Formato + Dirección y otra para documento y
+     resolución, en vez de una columna larga. Mismas casillas, mismo orden de tabulación. */
+  .work-fields{grid-template-columns:repeat(4,minmax(0,1fr));}
+  .work-fields > #wrap_direccion{grid-column:span 3;}
+  /* Las explicaciones fijas de cada casilla ocupaban una línea cada una: se ven al pasar el
+     cursor por la casilla (ver ayudasComoTooltip). Los avisos que cambian -- correo mal escrito,
+     plantilla -- tienen id y siguen a la vista. */
+  #captureForm .work-fields .field-hint:not([id]){display:none;}
+  .fila-masiva{margin-top:8px;}
+  .fila-masiva-auto{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;font-size:0.74rem;}
+  .fm-nota{color:var(--muted);font-weight:700;}
+  .fm-chip{background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:1px 8px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+  .fm-chip b{font-size:0.62rem;color:var(--muted);letter-spacing:.03em;}
+  .fm-chip.vacio{opacity:.6;}
+  .fila-masiva-tabla table{border-collapse:collapse;width:100%;font-size:0.74rem;margin-top:4px;}
+  .fila-masiva-tabla td{border-bottom:1px solid var(--border);padding:2px 6px;vertical-align:top;}
+  .fila-masiva-tabla td:first-child{color:var(--muted);width:2.2em;}
+  .fila-masiva-tabla td:nth-child(2){color:var(--muted);white-space:nowrap;width:1%;}
+  .fila-masiva-tabla tr.vacio td:last-child::after{content:"(vacía)";color:var(--muted);}
   .work-fields .formato-field input{font-weight:700;}
   /* Pregunta de SÍ o NO. Se ve como una pregunta, no como un campo más: la idea es que se
      responda de un clic mientras se clasifica, sin abrir otra ventana. Los dos botones son
@@ -894,6 +937,10 @@
                  margin-bottom:6px;flex-wrap:wrap;min-width:0;}
   .res-label-row > *{min-width:0;max-width:100%;}
   .res-label-row label{margin-bottom:0;}
+  /* Con Res. en una columna de cuatro, el botón se encoge (con "…") en la misma línea de la
+     etiqueta en vez de bajar a una línea propia: el texto completo queda en su title. */
+  .res-label-row{flex-wrap:nowrap;margin-bottom:3px;}
+  .res-label-row .simit-btn{flex:0 1 auto;max-width:78%;}
   .simit-btn{margin-left:0;padding:3px 11px;font-size:0.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:999px;background:var(--accent-soft);border-color:transparent;color:var(--accent);vertical-align:middle;text-decoration:none;}
   .simit-btn:hover{background:var(--accent);color:var(--accent-ink);filter:none;}
   .simit-btn:disabled{background:var(--surface-2);color:var(--muted);cursor:default;opacity:0.7;}
@@ -1228,7 +1275,9 @@
 
   @media (max-width:760px){
     .base-edit-fields{grid-template-columns:1fr;}
-    .work-fields{grid-template-columns:1fr;}
+    html:not(.es-flotante) .work-fields{grid-template-columns:1fr;}
+    html:not(.es-flotante) .work-fields > div{grid-column:auto !important;}
+    html:not(.es-flotante) .work-fields > .full{grid-column:1 / -1 !important;}
   }
 </style>
 </head>
@@ -1563,7 +1612,20 @@
                 <div class="field-hint">Puedes pegar tal cual copias de SIMIT ("1368706 Fecha: 26/07/2024") — separa el número y la fecha solo.</div>
               </div>
               <div id="wrap_fechaRes"><label for="cc_fechaRes">Fecha res.<span class="required-mark" id="req_fechaRes" hidden>*</span></label><input id="cc_fechaRes" placeholder="dd/mm/aaaa"></div>
-              <div class="full" id="wrap_comentario"><label for="cc_comentario">Comentario<span class="required-mark" id="req_comentario" hidden>*</span></label><textarea id="cc_comentario" rows="2" style="font-family:inherit;"></textarea></div>
+              <!-- COMENTARIO: fuera de la pantalla desde el 11-10-2026, a pedido de la usuaria (ocupaba
+                   espacio y no va a la masiva ni a la plantilla). La casilla sigue en el documento,
+                   oculta, para que lo ya escrito se conserve tal cual al guardar: no se borra nada. -->
+              <div class="full" id="wrap_comentario" hidden><label for="cc_comentario">Comentario<span class="required-mark" id="req_comentario" hidden>*</span></label><textarea id="cc_comentario" rows="2" style="font-family:inherit;"></textarea></div>
+            </div>
+            <!-- LA FILA DE LA MASIVA, TAL COMO SALDRÍA. Lo que se llena a mano ya está en las
+                 casillas; aquí se ve, además, lo que la app pone sola (TIPO, ANEXO, ciudad...), y
+                 la fila completa de 27 columnas para revisarla sin salir de la flotante. -->
+            <div class="fila-masiva" id="filaMasiva">
+              <div class="fila-masiva-auto" id="filaMasivaAuto"></div>
+              <details class="breakdown-details" id="filaMasivaDetails">
+                <summary>Ver la fila completa de la masiva (27 columnas) ▾</summary>
+                <div class="fila-masiva-tabla" id="filaMasivaTabla"></div>
+              </details>
             </div>
             <p class="field-hint" id="requiredSummary" style="margin-top:2px;"></p>
 
@@ -2822,9 +2884,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     {key:"direccion", id:"cc_direccion", wrapId:"wrap_direccion", label:"Dirección"},
     {key:"comparendo", id:"cc_comparendo", wrapId:"wrap_comparendo", label:"Comparendo completo"},
     {key:"res", id:"cc_res", wrapId:"wrap_res", label:"Res."},
-    {key:"fechaRes", id:"cc_fechaRes", wrapId:"wrap_fechaRes", label:"Fecha res."},
-    {key:"comentario", id:"cc_comentario", wrapId:"wrap_comentario", label:"Comentario"}
+    {key:"fechaRes", id:"cc_fechaRes", wrapId:"wrap_fechaRes", label:"Fecha res."}
   ];
+  // (El Comentario ya no puede ser obligatorio: su casilla no está en pantalla. Ver wrap_comentario.)
   var DEFAULT_SETTINGS = {
     required: {formato:true, comparendo:true, direccion:false, res:false, fechaRes:false, comentario:false},
     exemptFormato: "T6",
@@ -7983,6 +8045,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // casillas tocó la persona y cuáles no (ver "LA FOTO DEL FORMULARIO").
     tomarFotoFormulario();
     renderBreakdown(parseComparendoLine(rec.comparendoRaw || ""));
+    pintarFilaMasivaPronto();
     renderInsights();
     // Vuelve a evaluar la guardia de la casilla del correo para el radicado que acaba de abrirse,
     // para que el aviso corresponda siempre a lo que está en pantalla (y desaparezca si está bien).
@@ -11286,6 +11349,68 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     copyOrShowManually(informePreflightComoTexto(), "Lista de revisión copiada", "Revisión previa del documento final");
   });
 
+  // La fila de la masiva del radicado abierto, con lo que hay EN PANTALLA (aunque no se haya
+  // guardado todavía). Solo muestra: no guarda ni cambia nada.
+  function registroEnPantalla(){
+    var rec = state.records.find(function(r){ return r.id === state.activeId; });
+    if(!rec) return null;
+    var copia = Object.assign({}, rec);
+    CAMPOS_FORMULARIO.forEach(function(c){
+      var el = document.getElementById(c.input);
+      if(el) copia[c.campo] = c.limpiar(el.value);
+    });
+    var cp = document.getElementById("cc_comparendo");
+    if(cp && String(cp.value || "").trim()){
+      var parsed = parseComparendoLine(cp.value);
+      Object.keys(parsed).forEach(function(k){
+        if(k === "tipoId" || k === "idNum"){ if(!String(copia[k] || "").trim()) copia[k] = parsed[k]; return; }
+        copia[k] = parsed[k];
+      });
+    }
+    return copia;
+  }
+  function pintarFilaMasiva(){
+    var auto = document.getElementById("filaMasivaAuto");
+    var tabla = document.getElementById("filaMasivaTabla");
+    if(!auto || !tabla) return;
+    var r = registroEnPantalla();
+    if(!r){ auto.innerHTML = ""; tabla.innerHTML = ""; return; }
+    var fila;
+    try{ fila = recordToMasivaRow(r); }catch(e){ auto.textContent = ""; return; }
+    var formato = normalizeFormatoInput(r.formato || "");
+    var fuera = formato && paramEnLista("formatosFueraDeLaMasiva", formato);
+    var chip = function(titulo, valor){
+      return '<span class="fm-chip' + (valor ? '' : ' vacio') + '"><b>' + escapeHtml(titulo) + '</b> ' + escapeHtml(valor || "—") + '</span>';
+    };
+    // Lo que la app pone sola (columnas D/T, C/N, S, G, H, J, U). Lo demás ya está en las casillas.
+    auto.innerHTML = (fuera
+        ? '<span class="fm-nota">' + escapeHtml(formato) + ' no va en la masiva.</span> '
+        : (!formato ? '<span class="fm-nota">Sin formato todavía: aún no sale en la masiva.</span> ' : '<span class="fm-nota">En la masiva también va:</span> ')) +
+      chip("TIPO", fila[3]) + chip("COMPARENDO", fila[2]) + chip("ANEXO", fila[18]) +
+      chip("CIUDAD", fila[6]) + chip("DEPTO.", fila[7]) + chip("ASIGNADOS_A", fila[9]) + chip("USUARIO", fila[20]);
+    if(document.getElementById("filaMasivaDetails").open){
+      tabla.innerHTML = '<table><tbody>' + MASIVA_HEADERS.map(function(h, i){
+        var col = i < 26 ? String.fromCharCode(65 + i) : "AA";
+        return '<tr class="' + (fila[i] ? '' : 'vacio') + '"><td>' + col + '</td><td>' + escapeHtml(h) + '</td><td>' + escapeHtml(fila[i] || "") + '</td></tr>';
+      }).join("") + '</tbody></table>';
+    }
+  }
+  var pintarFilaMasivaPendiente = null;
+  function pintarFilaMasivaPronto(){
+    if(pintarFilaMasivaPendiente) clearTimeout(pintarFilaMasivaPendiente);
+    pintarFilaMasivaPendiente = setTimeout(function(){ pintarFilaMasivaPendiente = null; try{ pintarFilaMasiva(); }catch(e){} }, 120);
+  }
+  document.getElementById("captureForm").addEventListener("input", pintarFilaMasivaPronto);
+  // Las explicaciones fijas de las casillas ya no ocupan una línea en pantalla (ver la regla de
+  // estilo): su texto pasa a verse al poner el cursor sobre la casilla.
+  (function ayudasComoTooltip(){
+    Array.prototype.forEach.call(document.querySelectorAll("#captureForm .work-fields .field-hint:not([id])"), function(h){
+      var txt = (h.textContent || "").replace(/\s+/g, " ").trim();
+      var caja = h.parentElement;
+      if(txt && caja && !caja.title) caja.title = txt;
+    });
+  })();
+  document.getElementById("filaMasivaDetails").addEventListener("toggle", pintarFilaMasivaPronto);
   function recordToMasivaRow(rec){
     var dict = (state.settings && state.settings.formatToPlantilla) || DEFAULT_SETTINGS.formatToPlantilla;
     var plantilla = dict[(rec.formato||"").trim().toUpperCase()] || "Sin definir";

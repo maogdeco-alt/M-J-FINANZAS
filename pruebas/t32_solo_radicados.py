@@ -33,7 +33,7 @@ def a_mano(pag, i, formato, con_comparendo=True):
     B.escribir(pag, "#cc_direccion", "mano%d@gmail.com" % i)
     if formato in ("T14", "T1"):
         B.escribir(pag, "#cc_res", "77%04d" % i); B.escribir(pag, "#cc_fechaRes", "26/07/2024")
-    B.escribir(pag, "#cc_comentario", "ESCRITO A MANO %d" % i)
+    B.escribir(pag, "#cc_idNum", "ESCRITO A MANO %d" % i)
     pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
 
 with sync_playwright() as pw:
@@ -59,9 +59,9 @@ with sync_playwright() as pw:
     guardado = {r.get("radicado"): r for r in pag.evaluate("()=>{const k=Object.keys(localStorage).find(k=>k.startsWith('radicados_semanales_v2::'));return JSON.parse(localStorage.getItem(k)||'[]')}")}
     for i, r in enumerate(RAD, 1):
         g = guardado.get(r, {})
-        ok(g.get("nombre") == "PERSONA A MANO %d" % i and g.get("comentario") == "ESCRITO A MANO %d" % i
+        ok(g.get("nombre") == "PERSONA A MANO %d" % i and g.get("idNum") == "ESCRITO A MANO %d" % i
            and g.get("fechaAsignacion") == "05/10/2026" and g.get("fechaRadicacion") == "0%d/10/2026" % i,
-           "%s conserva lo escrito a mano tras recargar → %r / %r / %r" % (r[-2:], g.get("nombre"), g.get("comentario"), g.get("fechaRadicacion")))
+           "%s conserva lo escrito a mano tras recargar → %r / %r / %r" % (r[-2:], g.get("nombre"), g.get("idNum"), g.get("fechaRadicacion")))
 
     pag.evaluate("()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close())")
     salida = os.path.join(os.environ.get("TMPDIR", "/tmp"), "t32_masiva.xlsx")

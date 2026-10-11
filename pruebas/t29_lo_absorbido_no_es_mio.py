@@ -58,7 +58,7 @@ with sync_playwright() as pw:
     flo.click("#cc_save"); flo.wait_for_timeout(600); B.confirmar_nombre(flo); B.cerrar_alerta(flo)
     ok(en_disco(pag, RAD[1], "direccion") == "correoB@gmail.com", "B quedó guardada")
     print("4) la principal guarda algo en OTRO radicado (el 001)")
-    pag.fill("#cc_comentario", "algo en el 001"); pag.dispatch_event("#cc_comentario", "input")
+    pag.fill("#cc_idNum", "algo en el 001"); pag.dispatch_event("#cc_idNum", "input")
     pag.click("#cc_save"); pag.wait_for_timeout(600); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
     pag.wait_for_timeout(1500)
     ok(en_disco(pag, RAD[1], "direccion") == "correoB@gmail.com",
@@ -66,7 +66,7 @@ with sync_playwright() as pw:
     B.ir_a(pag, RAD[1])
     ok(pag.input_value("#cc_direccion") == "correoB@gmail.com",
        "y la principal muestra B → " + repr(pag.input_value("#cc_direccion")))
-    ok(en_disco(pag, RAD[0], "comentario") == "algo en el 001", "lo del 001 se guardó")
+    ok(en_disco(pag, RAD[0], "idNum") == "algo en el 001", "lo del 001 se guardó")
     print("errores js:", err or "ninguno", "|", err2 or "ninguno")
     if err or err2: fallos.append("errores de JavaScript")
     nav.close()

@@ -24,7 +24,7 @@ def ok(c, m):
     print(("  OK  " if c else "  FALLA  ") + m)
     if not c: fallos.append(m)
 
-CAMPOS = ["#cc_comentario", "#cc_res", "#cc_direccion"]
+CAMPOS = ["#cc_idNum", "#cc_res", "#cc_direccion"]
 def valor(campo, i, n):
     if campo == "#cc_res": return "%d%04d" % (i, n)                 # el radicado va al principio
     if campo == "#cc_direccion": return "r%dv%d@gmail.com" % (i, n)
@@ -56,7 +56,7 @@ with sync_playwright() as pw:
         B.ir_a(pag, r); B.pegar_tira(pag, tira(i))
         B.escribir(pag, "#cc_formato", "T14"); B.escribir(pag, "#cc_direccion", "r%dv0@gmail.com" % i)
         B.escribir(pag, "#cc_res", "%d0000" % i); B.escribir(pag, "#cc_fechaRes", "26/07/2024")
-        B.escribir(pag, "#cc_comentario", "RAD%d-V0" % i)
+        B.escribir(pag, "#cc_idNum", "RAD%d-V0" % i)
         pag.click("#cc_save"); pag.wait_for_timeout(350); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
     pag.wait_for_timeout(1500)
 
@@ -70,7 +70,7 @@ with sync_playwright() as pw:
 
     esperado = {}
     for i in range(1, N + 1):
-        esperado[(i, "#cc_comentario")] = "RAD%d-V0" % i
+        esperado[(i, "#cc_idNum")] = "RAD%d-V0" % i
         esperado[(i, "#cc_res")] = "%d0000" % i
         esperado[(i, "#cc_direccion")] = "r%dv0@gmail.com" % i
 
@@ -105,17 +105,17 @@ with sync_playwright() as pw:
       return JSON.parse(localStorage.getItem(k)||'[]');
     }""")
     porRad = {r.get("radicado"): r for r in guardado}
-    clave = {"#cc_comentario": "comentario", "#cc_res": "res", "#cc_direccion": "direccion"}
+    clave = {"#cc_idNum": "idNum", "#cc_res": "res", "#cc_direccion": "direccion"}
     perdidos, cruzados = [], []
     for (i, campo), v in sorted(esperado.items()):
         real = str(porRad.get(RAD[i - 1], {}).get(clave[campo], ""))
         if real != v: perdidos.append("%s %s: esperaba %r, hay %r" % (RAD[i - 1][-2:], clave[campo], v, real))
     for i, r in enumerate(RAD, 1):
         rec = porRad.get(r, {})
-        for c in ("comentario", "res", "direccion"):
+        for c in ("idNum", "res", "direccion"):
             s = str(rec.get(c, ""))
             dueno = None
-            if c == "comentario" and s.startswith("RAD"): dueno = int(s[3:s.index("-")])
+            if c == "idNum" and s.startswith("RAD"): dueno = int(s[3:s.index("-")])
             if c == "direccion" and s.startswith("r"): dueno = int(s[1:s.index("v")])
             if c == "res" and s: dueno = int(s[0])
             if dueno is not None and dueno != i: cruzados.append("%s %s = %r (es del %d)" % (r[-2:], c, s, dueno))
