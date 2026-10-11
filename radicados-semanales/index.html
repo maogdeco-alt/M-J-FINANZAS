@@ -2597,6 +2597,19 @@
   </div>
 </dialog>
 
+<!-- Dialog: la línea de Fénix pegada trae datos distintos de los escritos a mano (ver t36) -->
+<dialog id="tiraDistintaDialog" class="small" aria-labelledby="tiraDistintaTitle">
+  <div class="panel-head"><h2 id="tiraDistintaTitle">La línea de Fénix trae datos distintos</h2></div>
+  <div class="panel-body">
+    <p>Estos datos los habías escrito a mano y la línea que acabas de pegar trae otra cosa. Elige cuál se queda:</p>
+    <ul id="tiraDistintaLista" style="margin:8px 0 0 18px;"></ul>
+  </div>
+  <div class="form-actions">
+    <button class="btn ghost" id="tiraDistintaMios" type="button">Dejar lo que escribí</button>
+    <button class="btn primary" id="tiraDistintaFenix" type="button">Usar lo de Fénix</button>
+  </div>
+</dialog>
+
 <!-- Dialog: copia manual (respaldo si el portapapeles del navegador está bloqueado) -->
 <dialog id="manualCopyDialog" class="small" aria-labelledby="manualCopyLabel">
   <div class="panel-head"><h2 id="manualCopyLabel">Copia este contenido</h2></div>
@@ -7423,8 +7436,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     });
     // El tipo y el número de documento tienen sus propias casillas: van a sus columnas, para que
     // la línea nunca vuelva a dejarlos vacíos al guardar.
-    parts[10] = cleanSpaces(document.getElementById("cc_tipoId").value || "");
-    parts[11] = cleanSpaces(document.getElementById("cc_idNum").value || "");
+    // Si la casilla está vacía se deja lo que ya traía la línea (una línea pegada antes, por
+    // ejemplo): una casilla en blanco nunca borra lo que vino de Fénix.
+    var tdoc = cleanSpaces(document.getElementById("cc_tipoId").value || "");
+    var ndoc = cleanSpaces(document.getElementById("cc_idNum").value || "");
+    if(tdoc) parts[10] = tdoc;
+    if(ndoc) parts[11] = ndoc;
     while(parts.length && !cleanSpaces(parts[parts.length-1])) parts.pop();
     cp.value = parts.join("\t");
     tiraArmadaAMano = true;
@@ -7442,9 +7459,39 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return '<div class="bd-item'+(v?"":" empty")+'"><div class="k">'+c.label+'</div><div class="v">'+escapeHtml(v||"—")+'</div></div>';
     }).join("");
   }
+  // Si lo que había lo escribió ella en las casillas a mano y la línea pegada trae OTRA cosa, no
+  // se reemplaza en silencio: se le muestran las diferencias y elige.
+  var ETIQUETAS_A_MANO = {comparendoCompleto:"N.° de comparendo", cod:"Infracción", imposicion:"Fecha de comparendo",
+    notificacion:"Fecha de notificación", medio:"Tipo de comparendo", estado:"Estado", placa:"Placa",
+    tipoId:"Tipo de documento", idNum:"N.° documento"};
+  var tiraDistintaAntes = null;
+  function casillasEscritasAMano(){
+    var v = {};
+    COMPARENDO_A_MANO.forEach(function(m){ v[m.k] = cleanSpaces(document.getElementById(m.id).value || ""); });
+    v.tipoId = cleanSpaces(document.getElementById("cc_tipoId").value || "");
+    v.idNum = cleanSpaces(document.getElementById("cc_idNum").value || "");
+    return v;
+  }
+  function mismoDato(a, b){ return String(a||"").toUpperCase().replace(/\s+/g," ") === String(b||"").toUpperCase().replace(/\s+/g," "); }
   document.getElementById("cc_comparendo").addEventListener("input", function(){
+    var antes = tiraArmadaAMano ? casillasEscritasAMano() : null;
     tiraArmadaAMano = false; // se pegó o se escribió la línea directamente
-    renderBreakdown(parseComparendoLine(this.value));
+    var nuevo = parseComparendoLine(this.value);
+    if(antes){
+      var distintos = Object.keys(ETIQUETAS_A_MANO).filter(function(k){
+        return antes[k] && nuevo[k] && !mismoDato(antes[k], nuevo[k]);
+      });
+      if(distintos.length){
+        tiraDistintaAntes = {valores: antes, campos: distintos};
+        document.getElementById("tiraDistintaLista").innerHTML = distintos.map(function(k){
+          return "<li><b>" + escapeHtml(ETIQUETAS_A_MANO[k]) + "</b>: escribiste <b>" + escapeHtml(antes[k]) +
+                 "</b>, Fénix trae <b>" + escapeHtml(nuevo[k]) + "</b></li>";
+        }).join("");
+        var dlgTira = document.getElementById("tiraDistintaDialog");
+        if(!dlgTira.open) dlgTira.showModal();
+      }
+    }
+    renderBreakdown(nuevo);
     renderInsights();
   });
   document.getElementById("cc_formato").addEventListener("input", renderInsights);
@@ -8440,6 +8487,42 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     pendingNombreConfirm = {rec:rec, clave:clave, callback:callback};
     document.getElementById("nombreMismatchDialog").showModal();
   }
+  document.getElementById("tiraDistintaFenix").addEventListener("click", function(){
+    // Lo de Fénix se queda; las casillas de documento también toman lo de la línea.
+    var nuevo = parseComparendoLine(document.getElementById("cc_comparendo").value);
+    if(tiraDistintaAntes){
+      tiraDistintaAntes.campos.forEach(function(k){
+        if(k === "tipoId") document.getElementById("cc_tipoId").value = nuevo.tipoId || "";
+        if(k === "idNum") document.getElementById("cc_idNum").value = nuevo.idNum || "";
+      });
+    }
+    tiraDistintaAntes = null;
+    document.getElementById("tiraDistintaDialog").close();
+  });
+  document.getElementById("tiraDistintaMios").addEventListener("click", function(){
+    // Lo escrito a mano vuelve a su columna; lo demás de la línea pegada se conserva.
+    var d = tiraDistintaAntes; tiraDistintaAntes = null;
+    document.getElementById("tiraDistintaDialog").close();
+    if(!d) return;
+    d.campos.forEach(function(k){
+      if(k === "tipoId"){ document.getElementById("cc_tipoId").value = d.valores.tipoId; return; }
+      if(k === "idNum"){ document.getElementById("cc_idNum").value = d.valores.idNum; return; }
+      var m = COMPARENDO_A_MANO.filter(function(x){ return x.k === k; })[0];
+      if(m) document.getElementById(m.id).value = d.valores[k];
+    });
+    var cp = document.getElementById("cc_comparendo");
+    var parts = String(cp.value || "").split("\t");
+    while(parts.length < 13) parts.push("");
+    d.campos.forEach(function(k){
+      var m = COMPARENDO_A_MANO.filter(function(x){ return x.k === k; })[0];
+      if(k === "tipoId") parts[10] = d.valores.tipoId;
+      else if(k === "idNum") parts[11] = d.valores.idNum;
+      else if(m && k !== "placa") parts[m.pos] = d.valores[k];
+    });
+    cp.value = parts.join("\t");
+    if(d.campos.indexOf("placa") !== -1){ escribirTiraDesdeCasillas(); }
+    else { renderBreakdown(parseComparendoLine(cp.value)); renderInsights(); }
+  });
   document.getElementById("nombreMismatchYes").addEventListener("click", function(){
     if(!pendingNombreConfirm) return;
     pendingNombreConfirm.rec._nombreConfirmado = pendingNombreConfirm.clave;
