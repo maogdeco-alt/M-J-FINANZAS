@@ -14,21 +14,92 @@ El problema que resuelve: en una resolución de 30-40 páginas los mismos datos
 se repiten decenas de veces y la concordancia de género se arrastra de la
 resolución anterior. Aquí se digita una vez y concuerda solo.
 
-## Instalación
+## Instalación y arranque
+
+### En Windows (lo normal en la oficina)
+
+1. Instale Python 3.10 o superior desde [python.org](https://www.python.org/downloads/),
+   **marcando la casilla "Add Python to PATH"** al instalarlo.
+2. Doble clic en **`instalar.bat`** — una sola vez. Instala los componentes y
+   crea la plantilla de ejemplo.
+3. Doble clic en **`iniciar.bat`**. Abre solo en ese equipo, en
+   `http://localhost:8501`.
+
+La ventana negra que queda abierta **es la app**: si se cierra, la app se
+apaga. Minimícela, no la cierre.
+
+### Para toda la oficina
+
+En el equipo que hará de servidor, doble clic en **`iniciar_servidor.bat`**.
+La ventana muestra la IP de ese equipo; los demás sustanciadores entran desde
+su navegador a `http://esa-ip:8501`. No hay que instalar nada en los demás
+equipos — solo necesitan el navegador.
+
+Para que quede visible hay que permitir el puerto 8501 en el Firewall de
+Windows del equipo servidor (Firewall → Reglas de entrada → Nueva regla →
+Puerto → TCP 8501 → Permitir, solo para la red privada de la oficina).
+
+### En Linux o macOS
 
 ```bash
 cd curaduria
-python -m venv .venv && source .venv/bin/activate   # opcional
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+python crear_plantilla_ejemplo.py
+./iniciar.sh            # solo este equipo
+./iniciar.sh --red      # visible para la oficina
 ```
+
+## Dónde se aloja (y dónde no)
+
+**Netlify, Vercel y GitHub Pages no sirven**, y no es cuestión de
+configuración. Esos servicios alojan sitios estáticos y funciones de vida
+corta; Streamlit es un proceso de Python que queda corriendo y mantiene un
+WebSocket abierto con el navegador para re-ejecutar el script en cada clic.
+Sin ese proceso vivo no hay app.
+
+Además, estas resoluciones llevan cédulas, matrículas y direcciones de
+ciudadanos, en expedientes **en trámite**. Alojarlas en un servicio público
+las saca de la red de la curaduría y entra en el terreno de la Ley 1581 de
+2012. El camino va para el otro lado: que no salgan de la oficina.
+
+| Etapa | Dónde corre | Cuándo |
+|---|---|---|
+| **Local** | El PC de cada sustanciador | Para empezar. `iniciar.bat`. |
+| **Red de la oficina** | Un PC de la curaduría | Centralizado: una sola biblioteca de bloques para todos. `iniciar_servidor.bat`. |
+| **Servidor interno** | Servidor o VM de la entidad | Si crece: arranque automático, respaldo, usuarios. |
+
+Es el **mismo código** en las tres: solo cambia la dirección de escucha. Se
+empieza local sin botar trabajo.
+
+### Si crece a servidor interno
+
+Para que la app arranque sola con el equipo, sin que nadie tenga que entrar a
+darle doble clic:
+
+- **Windows**: con [NSSM](https://nssm.cc/) se registra como servicio
+  (`nssm install Resoluciones`), apuntando a `python -m streamlit run app.py`.
+  Alternativa sin instalar nada: Programador de tareas → al iniciar el
+  sistema → ejecutar `iniciar_servidor.bat`.
+- **Linux**: una unidad `systemd` con `Restart=always`.
+- Detrás de Nginx o IIS como proxy inverso si quieren quitar el `:8501` de la
+  dirección, o poner HTTPS con un certificado de la entidad.
+
+### Cuando varios trabajan a la vez
+
+Los formularios son **independientes por persona**: lo que digita una
+sustanciadora no se le aparece a otra. La **biblioteca de bloques sí es
+compartida**, que es justamente lo que se quiere: un párrafo que mejore una
+persona queda disponible para todas. Los guardados se escriben de forma
+atómica, así que dos guardados simultáneos no corrompen el archivo — en el
+peor caso se pierde el último, nunca la biblioteca.
+
+Lo que conviene respaldar: la carpeta `biblioteca/` y la carpeta
+`plantillas/`. Es todo lo que la app guarda en disco.
 
 ## Uso
 
-```bash
-streamlit run app.py
-```
-
-Abre en `http://localhost:8501`. Las cinco pestañas siguen el orden de trabajo:
+Las cinco pestañas siguen el orden de trabajo:
 
 | Pestaña | Para qué |
 |---|---|
@@ -40,6 +111,13 @@ Abre en `http://localhost:8501`. Las cinco pestañas siguen el orden de trabajo:
 
 En la barra lateral van los datos del despacho (que no cambian entre
 resoluciones), la plantilla y el modo de armado.
+
+El orden de la pestaña 1 sigue la lectura de la propia resolución: primero el
+acto y el trámite, luego quién lo pide, dónde está el predio, quién lo
+diseñó, y por último qué pasó en el trámite (oficios, autos, planos). Así la
+información genérica fija —matrícula inmobiliaria, ficha catastral, cédulas,
+expediente— se digita una sola vez al principio y de ahí la toma todo el
+documento.
 
 ## Los tres modos de armado
 

@@ -15,7 +15,9 @@ Hay dos capas:
 from __future__ import annotations
 
 import json
+import os
 import re
+import tempfile
 import unicodedata
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -152,9 +154,31 @@ class Biblioteca:
             original = base.get(bloque.id)
             if original is None or original != bloque.a_dict():
                 propios.append(bloque.a_dict())
-        self.archivo_usuario.parent.mkdir(parents=True, exist_ok=True)
-        self.archivo_usuario.write_text(
-            json.dumps(propios, ensure_ascii=False, indent=2), encoding="utf-8")
+        self._escribir_atomico(
+            self.archivo_usuario,
+            json.dumps(propios, ensure_ascii=False, indent=2))
+
+    @staticmethod
+    def _escribir_atomico(destino: Path, contenido: str) -> None:
+        """Escribe por archivo temporal y reemplaza.
+
+        Si la app corre en el equipo que hace de servidor, dos sustanciadores
+        pueden guardar un bloque casi al mismo tiempo. Reemplazar el archivo de
+        una sola operación evita quedarse con un JSON a medio escribir: se
+        pierde a lo sumo el último guardado, nunca la biblioteca entera.
+        """
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        descriptor, temporal = tempfile.mkstemp(
+            dir=destino.parent, prefix=f".{destino.name}.", suffix=".tmp")
+        try:
+            with os.fdopen(descriptor, "w", encoding="utf-8") as archivo:
+                archivo.write(contenido)
+                archivo.flush()
+                os.fsync(archivo.fileno())
+            os.replace(temporal, destino)
+        except BaseException:
+            Path(temporal).unlink(missing_ok=True)
+            raise
 
     def _leer_base_cruda(self) -> dict[str, dict]:
         if not self.archivo_base or not self.archivo_base.exists():
