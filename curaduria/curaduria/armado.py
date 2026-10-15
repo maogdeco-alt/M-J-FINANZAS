@@ -16,6 +16,7 @@ no tenga que ir a buscar cada dato en el expediente.
 from __future__ import annotations
 
 import copy
+from pathlib import Path
 from typing import Iterable, Mapping, Sequence
 
 from docx import Document
@@ -23,10 +24,11 @@ from docx.document import Document as DocumentoDocx
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml.ns import qn
-from docx.shared import Pt, RGBColor
+from docx.shared import Cm, Pt, RGBColor
 from docx.text.paragraph import Paragraph
 
 from .bloques import Bloque
+from .marca import LOGO_MEMBRETE
 from .plantilla import ETIQUETA, recorrer_parrafos, rellenar
 
 ANCLA_ENCABEZADO = "encabezado"
@@ -60,6 +62,31 @@ def seccion_de(bloque: Bloque) -> str:
     if bloque.categoria == "cierre":
         return "cierre"
     return "considerando"
+
+
+def poner_membrete(doc: DocumentoDocx, logo: "Path | None" = None,
+                   ancho_cm: float = 7.0) -> bool:
+    """Pone el logo de la curaduría en el encabezado de todas las páginas.
+
+    Si la plantilla ya trae membrete propio no se toca: solo se pone cuando el
+    encabezado está vacío, para no duplicarlo.
+    """
+    ruta = logo or LOGO_MEMBRETE
+    if not ruta or not Path(ruta).exists():
+        return False
+    puesto = False
+    for seccion in doc.sections:
+        encabezado = seccion.header
+        if any(p.text.strip() for p in encabezado.paragraphs):
+            continue
+        if any(r.element.findall(qn("a:blip")) for p in encabezado.paragraphs
+               for r in p.runs):
+            continue
+        parrafo = encabezado.paragraphs[0]
+        parrafo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        parrafo.add_run().add_picture(str(ruta), width=Cm(ancho_cm))
+        puesto = True
+    return puesto
 
 
 # --- Inserción de párrafos --------------------------------------------------
@@ -257,12 +284,15 @@ def insertar_hoja_datos(doc: DocumentoDocx,
 
 
 def documento_hoja_datos(filas: Sequence[tuple[str, str, str]],
-                         titulo: str, subtitulo: str = "") -> DocumentoDocx:
+                         titulo: str, subtitulo: str = "",
+                         membrete: bool = True) -> DocumentoDocx:
     """Hoja de datos como documento independiente, para imprimir o adjuntar."""
     doc = Document()
     estilo = doc.styles["Normal"]
     estilo.font.name = "Arial"
     estilo.font.size = Pt(10)
+    if membrete:
+        poner_membrete(doc, ancho_cm=6.0)
     construir_hoja_datos(doc, filas, titulo, subtitulo)
     doc.add_paragraph()
     nota = doc.add_paragraph()
@@ -280,12 +310,15 @@ def documento_hoja_datos(filas: Sequence[tuple[str, str, str]],
 def armar_desde_bloques(bloques: Sequence[Bloque], datos: Mapping[str, str],
                         hoja_datos: Sequence[tuple[str, str, str]] | None = None,
                         titulo_hoja: str = "HOJA DE DATOS DEL EXPEDIENTE",
-                        subtitulo_hoja: str = "") -> tuple[DocumentoDocx, set[str]]:
+                        subtitulo_hoja: str = "",
+                        membrete: bool = True) -> tuple[DocumentoDocx, set[str]]:
     """Construye la resolución completa a partir del catálogo de bloques."""
     doc = Document()
     estilo = doc.styles["Normal"]
     estilo.font.name = "Arial"
     estilo.font.size = Pt(11)
+    if membrete:
+        poner_membrete(doc)
 
     if hoja_datos:
         construir_hoja_datos(doc, hoja_datos, titulo_hoja, subtitulo_hoja)

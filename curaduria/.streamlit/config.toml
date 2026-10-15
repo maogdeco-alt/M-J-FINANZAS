@@ -2,30 +2,26 @@
 # el equipo que haga de servidor en la red de la oficina.
 
 [server]
-# No abre el navegador solo cuando corre como servicio.
 headless = true
 port = 8501
 # 0.0.0.0 escucha también en la red local. Cambie a 127.0.0.1 si quiere que
 # la app solo se vea en el propio equipo.
 address = "0.0.0.0"
-# Las plantillas de Word rara vez pasan de 10 MB.
 maxUploadSize = 25
-# La sesión no se cae mientras se diligencia un formulario largo.
-enableStaticServing = false
 
 [browser]
 # Nada de telemetría: los datos no salen de la oficina.
 gatherUsageStats = false
 
 [theme]
+# Los colores salen del logo de la Curaduría Urbana No. 2 de Ibagué.
 base = "light"
-primaryColor = "#1F4E79"
+primaryColor = "#BC2025"
 backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F2F5F9"
+secondaryBackgroundColor = "#F4F4F6"
 textColor = "#1A1A1A"
 font = "sans serif"
 
 [client]
-# Los errores salen completos en pantalla, para poder reportarlos.
 showErrorDetails = true
 toolbarMode = "minimal"

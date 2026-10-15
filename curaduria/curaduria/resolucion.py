@@ -232,7 +232,6 @@ class Resolucion:
     notificacion: Notificacion = field(default_factory=Notificacion)
     vigencia_meses: int = 36
     prorroga_meses: int = 12
-    observaciones: str = ""
     extras: dict[str, str] = field(default_factory=dict)
 
     # --- Derivados --------------------------------------------------------
@@ -426,7 +425,6 @@ class Resolucion:
             "vigencia_meses": str(self.vigencia_meses),
             "prorroga": f"{entero_a_letras(self.prorroga_meses)} "
                         f"({self.prorroga_meses}) meses",
-            "observaciones": self.observaciones,
 
             # Despacho
             "curaduria": despacho.nombre_curaduria,

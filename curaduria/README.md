@@ -110,12 +110,20 @@ Las cinco pestañas siguen el orden de trabajo:
 
 | Pestaña | Para qué |
 |---|---|
-| **1 · Datos de la resolución** | Los datos generales, con indicador de avance y corrección en vivo. |
-| **2 · Bloques de texto** | Qué párrafos lleva *esta* resolución. El catálogo viene filtrado por trámite y marca los obligatorios. |
+| **1 · Datos** | Los datos generales, en seis bloques numerados, con indicador de avance y corrección en vivo. |
+| **2 · Párrafos** | Qué párrafos lleva *esta* resolución. El catálogo viene filtrado por trámite y marca los obligatorios. |
 | **3 · Generar** | Revisión, validaciones y descarga del `.docx` (y de la hoja de datos por separado). |
-| **4 · Biblioteca** | Crear, editar y retirar bloques. Lo suyo queda guardado. |
-| **5 · Configuración** | Los datos del despacho. Se llenan una vez y no se vuelven a digitar. |
-| **6 · Etiquetas** | Todas las etiquetas con su valor actual, para armar o corregir la plantilla. |
+| **Ajustes** | Configuración del despacho, plantillas, biblioteca y etiquetas. Se tocan una vez, no todos los días. |
+
+## Identidad visual
+
+Los colores salen del logo de la curaduría: rojo `#BC2025`, vinotinto
+`#7F1617` y gris `#78787A`. Todo lo visual está en `curaduria/marca.py`, así
+que cambiar un color es cambiar una línea. El logo va en el encabezado de la
+app, en la barra lateral y **en el membrete de los documentos que genera la
+app** (si la plantilla ya trae su propio membrete, no se duplica).
+
+Para cambiar el logo: reemplace `assets/logo.png` y `assets/logo_membrete.png`.
 
 En la barra lateral van los datos del despacho (que no cambian entre
 resoluciones), la plantilla y el modo de armado.
@@ -365,8 +373,11 @@ curaduria/
 ├── revisar_plantilla.py        audita una plantilla antes de usarla
 ├── respaldar.bat               copia biblioteca y plantillas
 ├── app.py                      formulario Streamlit (solo UI)
+├── ui.py                       piezas de interfaz y campos que no se borran
+├── assets/                     logo de la curaduría
 ├── crear_plantilla_ejemplo.py  genera la plantilla con anclas
 ├── curaduria/
+│   ├── marca.py                colores, CSS y logo
 │   ├── configuracion.py        Nivel 0: los datos del despacho
 │   ├── formato.py              normalización y avisos de los campos
 │   ├── catalogo.py             trámites, modalidades y usos (Decreto 1077)
@@ -383,7 +394,7 @@ curaduria/
 │   └── plantilla.py            relleno de .docx conservando formato
 ├── biblioteca/                 bloques base y los suyos
 ├── plantillas/                 sus plantillas maestras .docx
-└── tests/                      234 pruebas, sin Streamlit
+└── tests/                      250 pruebas (16 de la interfaz)
 ```
 
 La lógica no depende de Streamlit: `app.py` solo recoge datos y llama al

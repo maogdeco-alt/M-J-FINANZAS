@@ -49,7 +49,7 @@ Doble clic en **`iniciar.bat`**. Se abre el navegador en
 
 ### 5. Llenar la configuración del despacho
 
-Pestaña **5 · Configuración**: curaduría, municipio, departamento, código
+Pestaña **Ajustes → Configuración**: curaduría, municipio, departamento, código
 DANE, nombre de quien firma, tratamiento (Curadora / Curador), si está en
 provisionalidad, nombre de la sustanciadora y sus iniciales. Clic en
 **Guardar configuración**.
@@ -116,7 +116,7 @@ plantilla → Preparar esta plantilla.)*
 
 ## Parte D · Hacer una resolución
 
-### 8. Llenar los datos (pestaña 1)
+### 8. Llenar los datos (pestaña 1 · Datos)
 
 Arriba hay una barra que dice **cuántos datos van listos y cuáles faltan**.
 Se llena de arriba abajo:
@@ -143,12 +143,12 @@ el cuadro con una raya.
 
 ### 9. Elegir los párrafos y generar
 
-**Pestaña 2** — el catálogo viene filtrado por el trámite y los obligatorios
+**Pestaña 2 · Párrafos** — el catálogo viene filtrado por el trámite y los obligatorios
 ya marcados. Marque lo que aplique al caso: ¿hubo citación a vecinos?
 ¿intervino un tercero? ¿es VIS? Cada bloque tiene una nota de cuándo se usa y
 un botón *Ver texto* que lo muestra con los datos ya puestos.
 
-**Pestaña 3** — en rojo lo que impide generar, en amarillo lo que conviene
+**Pestaña 3 · Generar** — en rojo lo que impide generar, en amarillo lo que conviene
 revisar. Clic en **Generar documento de Word** → **Descargar resolución**.
 
 Ábralo en Word y termine las precisiones propias de la solicitud: el
@@ -158,7 +158,7 @@ documento es 100% editable.
 
 ## Para el día a día
 
-- **Sus propios párrafos**: pestaña 4 · Biblioteca. Guarde los que use seguido
+- **Sus propios párrafos**: Ajustes → Biblioteca. Guarde los que use seguido
   con una nota de cuándo aplican. Quedan disponibles en la pestaña 2 y **no se
   pierden** al actualizar la app.
 - **Respaldo**: doble clic en `respaldar.bat` una vez a la semana. Copia
