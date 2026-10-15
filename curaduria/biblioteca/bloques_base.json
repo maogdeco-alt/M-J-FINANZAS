@@ -130,7 +130,7 @@
     ],
     "orden": 240,
     "origen": "plantilla_modelo_construccion",
-    "texto": "Que, en concordancia con el Acuerdo Municipal No. 002 del 08 de mayo de 2014 y el Decreto Municipal No. 1000-0696 del 06 de noviembre de 2014, la Curadora Urbana No. 2 de Ibagué remitió a la Secretaría de Planeación Municipal el Oficio No. 260XXX del XX de______ de 2026, la información requerida y soportes del proyecto con posibilidad de PARTICIPACIÓN DE PLUSVALÍA; y posteriormente, mediante oficio No. 1210-XXXXX del XX de ________ de 2026, radicado en este despacho bajo el No. 260XXXX del XX de _________de 2026, la Secretaría de Planeación Municipal, dio respuesta."
+    "texto": "Que, en concordancia con el Acuerdo Municipal No. 002 del 08 de mayo de 2014 y el Decreto Municipal No. 1000-0696 del 06 de noviembre de 2014, la Curadora Urbana No. 2 de Ibagué remitió a la Secretaría de Planeación Municipal el Oficio No. 260XXX del XX de______ de 2026, la información requerida y soportes del proyecto con posibilidad de PARTICIPACIÓN DE PLUSVALÍA; y posteriormente, mediante oficio No. 1210-XXXXX del {{fecha_larga}}, radicado en este despacho bajo el No. 260XXXX del XX de _________de 2026, la Secretaría de Planeación Municipal, dio respuesta."
   },
   {
     "id": "citacion_vecinos",
@@ -182,7 +182,7 @@
     ],
     "orden": 280,
     "origen": "plantilla_modelo_construccion",
-    "texto": "Que la solicitante, con radicado en correspondencia bajo No. 2XXXXX del XX de ____________ de 2026, presentó fotografías de la valla o aviso instalada, en la que se advierte a terceros sobre la iniciación del trámite administrativo tendiente a la expedición de la licencia solicitada, indicando el número de radicación, el tipo de trámite, la autoridad ante la cual se tramita la solicitud, el uso y características básicas del proyecto, de conformidad con lo  establecido en el  parágrafo 1 del Artículo 2.2.6.1.2.2.1 del Decreto 1077 de 2015,  con el fin de que éstos, se constituyeran en parte y pudieran hacer valer sus derechos, en los términos previstos en la Ley 1437 de 2011, sin que se hicieran presentes."
+    "texto": "Que la solicitante, con radicado en correspondencia bajo No. 2XXXXX del {{fecha_larga}}, presentó fotografías de la valla o aviso instalada, en la que se advierte a terceros sobre la iniciación del trámite administrativo tendiente a la expedición de la licencia solicitada, indicando el número de radicación, el tipo de trámite, la autoridad ante la cual se tramita la solicitud, el uso y características básicas del proyecto, de conformidad con lo  establecido en el  parágrafo 1 del Artículo 2.2.6.1.2.2.1 del Decreto 1077 de 2015,  con el fin de que éstos, se constituyeran en parte y pudieran hacer valer sus derechos, en los términos previstos en la Ley 1437 de 2011, sin que se hicieran presentes."
   },
   {
     "id": "publicacion_boletin",
@@ -195,7 +195,7 @@
     ],
     "orden": 290,
     "origen": "plantilla_modelo_construccion",
-    "texto": "Que por no haber sido posible la comunicación personal con los señores PROPIETARIO,  POSEEDOR, TENEDOR O RESIDENTE (Manzana Y Lote 14 Urbanización Hacienda Piedra Pintada), debido a la devolución del servicio de correo certificado por la causal “Cerrado”, se efectuó la CITACION POR AVISO publicado en el Boletín de Curadores urbanos de Ibagué No. 26-XXXX, fijado el XX de ____ de 2026, por espacio de cinco (5) días, con el fin de que éste se constituya en parte y pueda hacer valer sus derechos, en los términos previstos en la Ley 1437 de 2011 sin que ninguno se hiciera presente, desfijándose el XX de __________ de 2026."
+    "texto": "Que por no haber sido posible la comunicación personal con los señores PROPIETARIO,  POSEEDOR, TENEDOR O RESIDENTE (Manzana Y Lote 14 Urbanización Hacienda Piedra Pintada), debido a la devolución del servicio de correo certificado por la causal “Cerrado”, se efectuó la CITACION POR AVISO publicado en el Boletín de Curadores urbanos de Ibagué No. 26-XXXX, fijado el {{fecha_larga}}, por espacio de cinco (5) días, con el fin de que éste se constituya en parte y pueda hacer valer sus derechos, en los términos previstos en la Ley 1437 de 2011 sin que ninguno se hiciera presente, desfijándose el {{fecha_larga}}."
   },
   {
     "id": "intervienen_terceros",
@@ -247,7 +247,7 @@
     ],
     "orden": 330,
     "origen": "plantilla_modelo_construccion",
-    "texto": "Que la Curadora Urbana No. 2 de Ibagué, remitió el Acta de Observaciones, mediante Oficio radicado No.25004243, entregada personalmente el XX de _____________ de 2026, de acuerdo al Art. 2.2.6.1.2.2.4 del Decreto 1077 del de 2015 en la cual se informa al solicitante sobre las actualizaciones, correcciones o aclaraciones que debe realizar el proyecto y los documentos adicionales que debe aportar para decidir sobre la solicitud."
+    "texto": "Que la Curadora Urbana No. 2 de Ibagué, remitió el Acta de Observaciones, mediante Oficio radicado No.25004243, entregada personalmente el {{fecha_larga}}, de acuerdo al Art. 2.2.6.1.2.2.4 del Decreto 1077 del de 2015 en la cual se informa al solicitante sobre las actualizaciones, correcciones o aclaraciones que debe realizar el proyecto y los documentos adicionales que debe aportar para decidir sobre la solicitud."
   },
   {
     "id": "adenda",
@@ -273,7 +273,7 @@
     ],
     "orden": 350,
     "origen": "plantilla_modelo_construccion",
-    "texto": "Que el solicitante presentó solicitud de ampliación de plazo para atender las observaciones efectuadas, mediante oficio con recibido No._________ del XX de ____________ de 2026; en consecuencia, la Curadora Urbana No. 2 de Ibagué, amplía el plazo mediante Auto No. 73001-2-26-0XXX de la misma fecha, por quince (15) días hábiles, es decir, hasta el XX de ______ de 2026."
+    "texto": "Que el solicitante presentó solicitud de ampliación de plazo para atender las observaciones efectuadas, mediante oficio con recibido No._________ del {{fecha_larga}}; en consecuencia, la Curadora Urbana No. 2 de Ibagué, amplía el plazo mediante Auto No. 73001-2-26-0XXX de la misma fecha, por quince (15) días hábiles, es decir, hasta el {{fecha_larga}}."
   },
   {
     "id": "respuesta_observaciones",
@@ -394,7 +394,7 @@
     ],
     "orden": 440,
     "origen": "plantilla_modelo_construccion",
-    "texto": "Que mediante Oficio No.2600XXXX del 7 de mayo de 2026 la Curadora urbana No.2 de Ibagué, emitió pronunciamiento de viabilidad, de acuerdo con lo establecido en el parágrafo 1 del artículo 2.2.6.1.2.3.1 del Decreto 1077 de 2015, el cual fue debidamente comunicado al titular el XX de _____ de 2026 y se le requiere acreditar el pago del Impuesto de Delineación Urbana, para lo cual se entrega el certificado IDU No. 26-0174 del 07 de mayo de 2026.\n\nQue la interesada mediante escrito radicado bajo el consecutivo de correspondencia No. 260XXXX del XX de ____ de 2026 acreditó el pago con el Recibo No. 26010410000XXX, mediante el cual el Municipio de Ibagué, liquido cobro y recaudó el impuesto Delineación Urbana para el predio con ESTRATO DOS (2) – USO RESIDENCIAL en un área de 161.83 por valor de ________= cancelado el XX de ___________ de 2026 en Banco _______________."
+    "texto": "Que mediante Oficio No.2600XXXX del 7 de mayo de 2026 la Curadora urbana No.2 de Ibagué, emitió pronunciamiento de viabilidad, de acuerdo con lo establecido en el parágrafo 1 del artículo 2.2.6.1.2.3.1 del Decreto 1077 de 2015, el cual fue debidamente comunicado al titular el {{fecha_larga}} y se le requiere acreditar el pago del Impuesto de Delineación Urbana, para lo cual se entrega el certificado IDU No. 26-0174 del 07 de mayo de 2026.\n\nQue la interesada mediante escrito radicado bajo el consecutivo de correspondencia No. 260XXXX del {{fecha_larga}} acreditó el pago con el Recibo No. 26010410000XXX, mediante el cual el Municipio de Ibagué, liquido cobro y recaudó el impuesto Delineación Urbana para el predio con ESTRATO DOS (2) – USO RESIDENCIAL en un área de 161.83 por valor de ________= cancelado el {{fecha_larga}} en Banco _______________."
   },
   {
     "id": "reliquidacion",
@@ -433,7 +433,7 @@
     ],
     "orden": 470,
     "origen": "plantilla_modelo_construccion",
-    "texto": "Que mediante Oficio No. 25000XXXX de ___________la Curadora urbana No.2 de Ibagué, emitió pronunciamiento de viabilidad, de acuerdo a lo establecido en el parágrafo 1 del artículo 2.2.6.1.2.3.1 del Decreto 1077 de 2015, el cual fue debidamente comunicado al titular el XX de _______ de 2026; así mismo se le comunica que el presente tramite no genera Expensas por tratarse de aprobación de licencias de construcción individual de vivienda de interés social unifamiliar y/o  bifamiliar en los estratos 1, 2 y 3, de conformidad con el artículo 2.2.6.6.8.12 del Decreto 1077 de 2015., y se le requiere acreditar el pago del Impuesto de Delineación Urbana, para lo cual se entrega el certificado IDU No. 26-0XXX9 del X de _________ de 2026."
+    "texto": "Que mediante Oficio No. 25000XXXX de ___________la Curadora urbana No.2 de Ibagué, emitió pronunciamiento de viabilidad, de acuerdo a lo establecido en el parágrafo 1 del artículo 2.2.6.1.2.3.1 del Decreto 1077 de 2015, el cual fue debidamente comunicado al titular el {{fecha_larga}}; así mismo se le comunica que el presente tramite no genera Expensas por tratarse de aprobación de licencias de construcción individual de vivienda de interés social unifamiliar y/o  bifamiliar en los estratos 1, 2 y 3, de conformidad con el artículo 2.2.6.6.8.12 del Decreto 1077 de 2015., y se le requiere acreditar el pago del Impuesto de Delineación Urbana, para lo cual se entrega el certificado IDU No. 26-0XXX9 del X de {{fecha_larga}}."
   },
   {
     "id": "exento_idu",
@@ -446,7 +446,7 @@
     ],
     "orden": 480,
     "origen": "plantilla_modelo_construccion",
-    "texto": "Que el apoderado allegó con recibido radicado No. _______ del XX de ________ de 2026 el oficio No. 1340-2026 – 0_______ del XX de ________ de 2026, expedido por la secretaria de Hacienda – Dirección de Rentas, en el cual Certifica que el inmueble identificado con ficha catastral No.01-04-0231-0005-000 está en un sector con estrato Dos (2) Bajo, por tanto, al peticionario no se le liquidará el valor del impuesto de delineación urbana, como quiera que no fue determinado por el Concejo Municipal de Ibagué la base gravable del impuesto de delineación urbana para el estrato 1 y 2.\n\n/   y  corresponde a los programas y soluciones de vivienda de interés prioritaria y/o vivienda de interés social dirigida a los estratos 1,2 y 3, por lo cual se encuentra exento del pago de impuesto de delineación urbana, en los términos del literal c) del artículo 2º del Acuerdo 010 de 2009.    Así mismo, allega Resolución No. 1340-2026-000634 del 16 de septiembre de 2026 expedida por la secretaria de Hacienda – Dirección de Rentas, “Por medio del cual se decide una solicitud de exención en el pago por concepto de Impuesto de Delineación Urbana”, y resuelve CONCEDER la exención del pago por concepto de IDU."
+    "texto": "Que el apoderado allegó con recibido radicado No. _______ del {{fecha_larga}} el oficio No. 1340-2026 – 0_______ del {{fecha_larga}}, expedido por la secretaria de Hacienda – Dirección de Rentas, en el cual Certifica que el inmueble identificado con ficha catastral No.01-04-0231-0005-000 está en un sector con estrato Dos (2) Bajo, por tanto, al peticionario no se le liquidará el valor del impuesto de delineación urbana, como quiera que no fue determinado por el Concejo Municipal de Ibagué la base gravable del impuesto de delineación urbana para el estrato 1 y 2.\n\n/   y  corresponde a los programas y soluciones de vivienda de interés prioritaria y/o vivienda de interés social dirigida a los estratos 1,2 y 3, por lo cual se encuentra exento del pago de impuesto de delineación urbana, en los términos del literal c) del artículo 2º del Acuerdo 010 de 2009.    Así mismo, allega Resolución No. 1340-2026-000634 del 16 de septiembre de 2026 expedida por la secretaria de Hacienda – Dirección de Rentas, “Por medio del cual se decide una solicitud de exención en el pago por concepto de Impuesto de Delineación Urbana”, y resuelve CONCEDER la exención del pago por concepto de IDU."
   },
   {
     "id": "exento_institucional",

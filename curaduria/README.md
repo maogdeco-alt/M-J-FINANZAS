@@ -361,6 +361,7 @@ curaduria/
 ├── iniciar.bat                 arranca la app en este equipo
 ├── iniciar_servidor.bat        arranca la app para la oficina
 ├── verificar.py                comprueba la instalación de punta a punta
+├── preparar_plantilla.py       convierte una plantilla real en plantilla de la app
 ├── revisar_plantilla.py        audita una plantilla antes de usarla
 ├── respaldar.bat               copia biblioteca y plantillas
 ├── app.py                      formulario Streamlit (solo UI)
@@ -376,12 +377,13 @@ curaduria/
 │   ├── gramatica.py            concordancia de género y número
 │   ├── numeros.py              números a letras, formato de cifras
 │   ├── fechas.py               fechas de acto administrativo
-│   ├── auditoria.py            revisión de plantillas
+│   ├── auditoria.py            revisión y conversión de plantillas
+│   ├── preparacion.py          anclas, literales y preparación completa
 │   ├── genero_nombres.py       sugerencia de sexo por nombre
 │   └── plantilla.py            relleno de .docx conservando formato
 ├── biblioteca/                 bloques base y los suyos
 ├── plantillas/                 sus plantillas maestras .docx
-└── tests/                      212 pruebas, sin Streamlit
+└── tests/                      234 pruebas, sin Streamlit
 ```
 
 La lógica no depende de Streamlit: `app.py` solo recoge datos y llama al
@@ -391,17 +393,44 @@ lotes sin tocar la interfaz.
 ## Herramientas de línea de comandos
 
 ```bash
-python verificar.py                              # ¿quedó bien la instalación?
-python revisar_plantilla.py plantillas/x.docx    # ¿está lista esta plantilla?
-python crear_plantilla_ejemplo.py                # plantilla modelo con anclas
-./respaldar.sh                                   # copia biblioteca y plantillas
+python verificar.py                                   # ¿quedó bien la instalación?
+python revisar_plantilla.py plantillas/x.docx         # ¿está lista esta plantilla?
+python preparar_plantilla.py plantillas/x.docx        # qué haría para dejarla lista
+python preparar_plantilla.py plantillas/x.docx --aplicar
+python crear_plantilla_ejemplo.py                     # plantilla modelo con anclas
+./respaldar.sh                                        # copia biblioteca y plantillas
 ```
 
-`revisar_plantilla.py` es la herramienta para convertir una plantilla real:
-reporta las etiquetas mal escritas (que quedarían impresas en la resolución),
-si tiene las anclas de sección, y **cada espacio en blanco manual con la
-etiqueta que sugiere poner en su lugar**. Lo mismo se ve dentro de la app, en
-la barra lateral → *Revisar esta plantilla*.
+## Preparar una plantilla real
+
+```bash
+python preparar_plantilla.py plantillas/mi_plantilla.docx            # vista previa
+python preparar_plantilla.py plantillas/mi_plantilla.docx --aplicar  # escribe la copia
+```
+
+Un solo comando hace las tres cosas que si no habría que hacer a mano, y
+siempre escribe un archivo nuevo (`mi_plantilla_lista.docx`):
+
+1. **Espacios en blanco → etiquetas.** `XXXX`, `____` y
+   `XX de ___ de 2026` se cambian por la etiqueta que corresponde. Una fecha
+   partida en tres blancos queda en una sola `{{fecha_larga}}`, y
+   `73001-2-26-0XXX` absorbe su prefijo para que el número no salga repetido.
+2. **Datos del despacho → etiquetas.** El nombre de la curadora y el
+   municipio escritos literalmente pasan a `{{curador}}` y `{{municipio}}`, y
+   de ahí en adelante salen de la configuración.
+3. **Anclas de sección.** Recorta el catálogo de párrafos y deja
+   `{{encabezado}}`, `{{considerandos}}`, `{{resuelve}}` y `{{cierre}}`. Los
+   párrafos no se pierden: ya están en la biblioteca, y de ahí se escogen
+   según el caso en vez de borrarlos a mano en cada resolución.
+
+Sobre la plantilla modelo de construcción: **73 de 100 espacios convertidos,
+26 menciones del municipio, 174 párrafos recortados, 4 anclas, 1 espacio sin
+resolver**. Lo que no tiene una etiqueta segura se deja con la raya y se
+reporta: una etiqueta equivocada imprime el dato de otro campo sin que se
+note, una raya se ve.
+
+`revisar_plantilla.py` hace solo el diagnóstico, sin cambiar nada. Las dos
+cosas están también en la app: barra lateral → *Revisar esta plantilla*.
 
 ## Pruebas
 

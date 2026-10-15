@@ -22,6 +22,7 @@ from docx import Document
 from docx.document import Document as DocumentoDocx
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+from docx.oxml.ns import qn
 from docx.shared import Pt, RGBColor
 from docx.text.paragraph import Paragraph
 
@@ -132,6 +133,32 @@ def filas_hoja_datos(datos: Mapping[str, str],
     return filas
 
 
+def _poner_bordes(tabla) -> None:
+    """Pone la rejilla sin depender del estilo "Table Grid".
+
+    Una plantilla guardada desde el formato viejo de Word puede no traer ese
+    estilo definido, y entonces asignarlo falla. Los bordes se escriben
+    directamente para que el cuadro se vea igual en cualquier plantilla.
+    """
+    try:
+        tabla.style = "Table Grid"
+        return
+    except KeyError:
+        pass
+
+    propiedades = tabla._tbl.tblPr
+    bordes = propiedades.find(qn("w:tblBorders"))
+    if bordes is None:
+        bordes = propiedades.makeelement(qn("w:tblBorders"), {})
+        propiedades.append(bordes)
+    for lado in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        borde = bordes.makeelement(qn(f"w:{lado}"), {
+            qn("w:val"): "single", qn("w:sz"): "4",
+            qn("w:space"): "0", qn("w:color"): "999999",
+        })
+        bordes.append(borde)
+
+
 def _marcar_pendiente(celda, texto: str) -> None:
     """Las celdas sin dato quedan con una raya diligenciable, no vacías."""
     parrafo = celda.paragraphs[0]
@@ -162,7 +189,7 @@ def construir_hoja_datos(doc: DocumentoDocx,
         detalle.font.size = Pt(9)
 
     tabla = doc.add_table(rows=0, cols=2)
-    tabla.style = "Table Grid"
+    _poner_bordes(tabla)
     tabla.alignment = WD_TABLE_ALIGNMENT.CENTER
 
     seccion_actual = None

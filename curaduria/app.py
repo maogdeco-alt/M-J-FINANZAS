@@ -24,6 +24,7 @@ from curaduria.catalogo import GRUPOS, TRAMITES, USOS, Solicitud, tramites_por_g
 from curaduria.configuracion import Configuracion
 from curaduria.genero_nombres import sugerir_genero
 from curaduria.gramatica import TIPOS_DOCUMENTO, Titular
+from curaduria.preparacion import preparar
 from curaduria.profesionales import ROLES, Profesional
 from curaduria.resolucion import (CUBIERTAS, RESPONSABLES, SENTIDOS,
                                   Actuaciones, Inmueble, Notificacion,
@@ -140,6 +141,13 @@ def leer_profesionales(tabla: pd.DataFrame) -> list[Profesional]:
     return profesionales
 
 
+def valores_del_despacho(config: Configuracion) -> dict[str, str]:
+    """Los datos del despacho que pueden estar escritos literalmente."""
+    valores = {"curador": config.curador, "sustanciador": config.sustanciador,
+               "municipio": config.municipio}
+    return {clave: valor for clave, valor in valores.items() if valor.strip()}
+
+
 def plantillas_disponibles() -> list[Path]:
     if not RUTA_PLANTILLAS.exists():
         return []
@@ -215,6 +223,43 @@ with st.sidebar:
                                        if h.sugerencia else ""}
                         for h in revision_plantilla.blancos[:40]]),
                         width="stretch", height=220)
+
+                necesita_preparar = bool(revision_plantilla.blancos) or not \
+                    revision_plantilla.anclas
+                if necesita_preparar and st.button("Preparar esta plantilla",
+                                                   width="stretch"):
+                    try:
+                        if hasattr(origen_plantilla, "seek"):
+                            origen_plantilla.seek(0)
+                        documento = motor.abrir(origen_plantilla)
+                        informe_preparacion = preparar(
+                            documento, valores_del_despacho(config))
+                        memoria_plantilla = io.BytesIO()
+                        documento.save(memoria_plantilla)
+                        memoria_plantilla.seek(0)
+                    except Exception as error:
+                        st.error(f"No pude preparar la plantilla: {error}")
+                    else:
+                        st.success(informe_preparacion.resumen())
+                        if informe_preparacion.nota_estructura:
+                            st.info(informe_preparacion.nota_estructura)
+                        if informe_preparacion.pendientes:
+                            st.caption(
+                                f"{len(informe_preparacion.pendientes)} "
+                                "espacios se quedan con la raya: no encontré "
+                                "una etiqueta segura.")
+                        nombre_base = getattr(origen_plantilla, "name",
+                                              "plantilla")
+                        nombre_base = Path(str(nombre_base)).stem
+                        st.download_button(
+                            "Descargar la plantilla lista",
+                            data=memoria_plantilla,
+                            file_name=f"{nombre_base}_lista.docx",
+                            mime="application/vnd.openxmlformats-officedocument"
+                                 ".wordprocessingml.document",
+                            width="stretch",
+                            help="Guárdela en la carpeta plantillas/ y "
+                                 "elíjala aquí arriba.")
 
     st.divider()
     modo = st.radio("Cómo se arma el documento",

@@ -10,7 +10,7 @@ del run donde arranca cada etiqueta.
 from __future__ import annotations
 
 import re
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, Sequence
 
 from docx import Document
 from docx.document import Document as DocumentoDocx
@@ -70,40 +70,57 @@ def _mapa_de_runs(parrafo: Paragraph) -> tuple[str, list[tuple[int, int, int]]]:
     return "".join(texto), rangos
 
 
-def _reemplazar_en_parrafo(parrafo: Paragraph, datos: Mapping[str, str],
-                           faltantes: set[str]) -> None:
+def reemplazar_tramos(parrafo: Paragraph,
+                      tramos: Sequence[tuple[int, int, str]]) -> bool:
+    """Cambia tramos del texto del párrafo conservando el formato.
+
+    Cada tramo es (inicio, fin, reemplazo) sobre el texto completo del párrafo.
+    El reemplazo se escribe en el run donde empieza el tramo y se vacía lo que
+    ocupaba en los siguientes, que es lo que mantiene la negrita, la fuente y
+    el interlineado del original.
+
+    Es la misma operación que necesita rellenar una etiqueta y que convertir un
+    espacio en blanco en etiqueta, así que vive aquí una sola vez.
+    """
+    if not tramos:
+        return False
     texto, rangos = _mapa_de_runs(parrafo)
-    if "{{" not in texto:
-        return
-
-    coincidencias = list(ETIQUETA.finditer(texto))
-    if not coincidencias:
-        return
-
-    # Texto nuevo para cada run: la etiqueta completa se escribe en el run donde
-    # empieza y se vacía lo que ocupaba en los runs siguientes.
     nuevo = {indice: texto[ini:fin] for ini, fin, indice in rangos}
 
-    for coincidencia in reversed(coincidencias):
-        clave = coincidencia.group(1)
-        if clave in datos:
-            valor = "" if datos[clave] is None else str(datos[clave])
-        else:
-            faltantes.add(clave)
-            continue
-        ini, fin = coincidencia.span()
+    for ini, fin, reemplazo in sorted(tramos, reverse=True):
         for r_ini, r_fin, indice in rangos:
             if r_fin <= ini or r_ini >= fin:
                 continue
             local_ini = max(ini, r_ini) - r_ini
             local_fin = min(fin, r_fin) - r_ini
             fragmento = nuevo[indice]
-            sustituto = valor if r_ini <= ini < r_fin else ""
-            nuevo[indice] = fragmento[:local_ini] + sustituto + fragmento[local_fin:]
+            sustituto = reemplazo if r_ini <= ini < r_fin else ""
+            nuevo[indice] = (fragmento[:local_ini] + sustituto
+                             + fragmento[local_fin:])
 
+    cambiado = False
     for indice, run in enumerate(parrafo.runs):
         if run.text != nuevo[indice]:
             run.text = nuevo[indice]
+            cambiado = True
+    return cambiado
+
+
+def _reemplazar_en_parrafo(parrafo: Paragraph, datos: Mapping[str, str],
+                           faltantes: set[str]) -> None:
+    texto = parrafo.text
+    if "{{" not in texto:
+        return
+
+    tramos: list[tuple[int, int, str]] = []
+    for coincidencia in ETIQUETA.finditer(texto):
+        clave = coincidencia.group(1)
+        if clave not in datos:
+            faltantes.add(clave)
+            continue
+        valor = "" if datos[clave] is None else str(datos[clave])
+        tramos.append((*coincidencia.span(), valor))
+    reemplazar_tramos(parrafo, tramos)
 
 
 def rellenar(doc: DocumentoDocx, datos: Mapping[str, str]) -> set[str]:
