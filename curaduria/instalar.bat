@@ -33,6 +33,17 @@ echo  Creando la plantilla de ejemplo...
 python crear_plantilla_ejemplo.py
 
 echo.
-echo  Listo. Ahora puede usar iniciar.bat
+echo  Comprobando que todo quedo bien...
+python verificar.py
+if errorlevel 1 (
+  echo.
+  echo  Quedaron problemas por resolver. Lealos arriba.
+  echo.
+  pause
+  exit /b 1
+)
+
+echo.
+echo  Instalacion completa. Ahora puede usar iniciar.bat
 echo.
 pause

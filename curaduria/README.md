@@ -14,6 +14,10 @@ El problema que resuelve: en una resolución de 30-40 páginas los mismos datos
 se repiten decenas de veces y la concordancia de género se arrastra de la
 resolución anterior. Aquí se digita una vez y concuerda solo.
 
+> **¿Es la primera vez?** Siga [GUIA_DE_USO.md](GUIA_DE_USO.md): el paso a
+> paso desde un PC sin nada instalado hasta la plantilla real de la curaduría
+> funcionando, escrito para la sustanciadora.
+
 ## Instalación y arranque
 
 ### En Windows (lo normal en la oficina)
@@ -24,6 +28,9 @@ resolución anterior. Aquí se digita una vez y concuerda solo.
    crea la plantilla de ejemplo.
 3. Doble clic en **`iniciar.bat`**. Abre solo en ese equipo, en
    `http://localhost:8501`.
+
+`instalar.bat` termina corriendo `verificar.py`, que genera una resolución de
+prueba completa: si pasa, la app sirve de verdad y no solo quedó instalada.
 
 La ventana negra que queda abierta **es la app**: si se cierra, la app se
 apaga. Minimícela, no la cierre.
@@ -290,6 +297,13 @@ consecutivo.
 
 ```
 curaduria/
+├── GUIA_DE_USO.md              paso a paso para la sustanciadora
+├── instalar.bat                instalación por una sola vez (Windows)
+├── iniciar.bat                 arranca la app en este equipo
+├── iniciar_servidor.bat        arranca la app para la oficina
+├── verificar.py                comprueba la instalación de punta a punta
+├── revisar_plantilla.py        audita una plantilla antes de usarla
+├── respaldar.bat               copia biblioteca y plantillas
 ├── app.py                      formulario Streamlit (solo UI)
 ├── crear_plantilla_ejemplo.py  genera la plantilla con anclas
 ├── curaduria/
@@ -301,16 +315,32 @@ curaduria/
 │   ├── gramatica.py            concordancia de género y número
 │   ├── numeros.py              números a letras, formato de cifras
 │   ├── fechas.py               fechas de acto administrativo
+│   ├── auditoria.py            revisión de plantillas
 │   ├── genero_nombres.py       sugerencia de sexo por nombre
 │   └── plantilla.py            relleno de .docx conservando formato
 ├── biblioteca/                 bloques base y los suyos
 ├── plantillas/                 sus plantillas maestras .docx
-└── tests/                      140 pruebas, sin Streamlit
+└── tests/                      156 pruebas, sin Streamlit
 ```
 
 La lógica no depende de Streamlit: `app.py` solo recoge datos y llama al
 paquete `curaduria`. Eso permite reutilizarla desde un script o un proceso por
 lotes sin tocar la interfaz.
+
+## Herramientas de línea de comandos
+
+```bash
+python verificar.py                              # ¿quedó bien la instalación?
+python revisar_plantilla.py plantillas/x.docx    # ¿está lista esta plantilla?
+python crear_plantilla_ejemplo.py                # plantilla modelo con anclas
+./respaldar.sh                                   # copia biblioteca y plantillas
+```
+
+`revisar_plantilla.py` es la herramienta para convertir una plantilla real:
+reporta las etiquetas mal escritas (que quedarían impresas en la resolución),
+si tiene las anclas de sección, y **cada espacio en blanco manual con la
+etiqueta que sugiere poner en su lugar**. Lo mismo se ve dentro de la app, en
+la barra lateral → *Revisar esta plantilla*.
 
 ## Pruebas
 

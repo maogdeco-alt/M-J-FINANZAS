@@ -14,6 +14,7 @@ import streamlit as st
 
 from curaduria import armado
 from curaduria import plantilla as motor
+from curaduria.auditoria import auditar
 from curaduria.bloques import CATEGORIAS, Biblioteca, Bloque
 from curaduria.catalogo import (GRUPOS, TRAMITES, USOS, Solicitud,
                                 tramites_por_grupo)
@@ -114,7 +115,10 @@ with st.sidebar:
 
     st.divider()
     st.header("Plantilla")
-    subida = st.file_uploader("Subir plantilla (.docx)", type="docx")
+    subida = st.file_uploader(
+        "Subir plantilla (.docx)", type="docx",
+        help="Si su plantilla es .doc (formato viejo), ábrala en Word y use "
+             "Archivo → Guardar como → Documento de Word (*.docx).")
     disponibles = plantillas_disponibles()
     elegida = None
     if disponibles:
@@ -124,6 +128,44 @@ with st.sidebar:
         if seleccion != nombres[0]:
             elegida = RUTA_PLANTILLAS / seleccion
     origen_plantilla = subida if subida is not None else elegida
+
+    if origen_plantilla is not None:
+        with st.expander("Revisar esta plantilla"):
+            try:
+                if hasattr(origen_plantilla, "seek"):
+                    origen_plantilla.seek(0)
+                informe_plantilla = auditar(motor.abrir(origen_plantilla))
+            except Exception as error:
+                st.error(f"No pude leer la plantilla: {error}")
+            else:
+                st.caption(informe_plantilla.resumen())
+                if informe_plantilla.etiquetas_desconocidas:
+                    st.error(
+                        "Etiquetas que la app no conoce (quedarían impresas "
+                        "tal cual): "
+                        + ", ".join(f"`{{{{{c}}}}}`" for c in
+                                    informe_plantilla.etiquetas_desconocidas))
+                if informe_plantilla.anclas:
+                    st.success("Anclas: "
+                               + ", ".join(f"`{{{{{a}}}}}`"
+                                           for a in informe_plantilla.anclas))
+                else:
+                    st.warning(
+                        "Sin anclas de sección: los bloques no se insertarán. "
+                        "Agregue `{{considerandos}}` y `{{resuelve}}` donde "
+                        "deban ir.")
+                if informe_plantilla.blancos:
+                    st.warning(
+                        f"{len(informe_plantilla.blancos)} espacios se "
+                        "llenarían a mano. Cámbielos por la etiqueta "
+                        "sugerida:")
+                    st.dataframe(pd.DataFrame([
+                        {"párrafo": h.parrafo, "en blanco": h.texto,
+                         "contexto": h.contexto[-60:],
+                         "sugerencia": f"{{{{{h.sugerencia}}}}}"
+                                       if h.sugerencia else ""}
+                        for h in informe_plantilla.blancos[:40]]),
+                        width="stretch", height=240)
 
     modo = st.radio(
         "Cómo se arma el documento",
