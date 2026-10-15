@@ -7,6 +7,7 @@ pasa a plural y el género mixto se resuelve en masculino (regla del español).
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 MASCULINO = "M"
@@ -111,6 +112,22 @@ TIPOS_DOCUMENTO = {
 }
 
 
+def formato_documento(numero: str) -> str:
+    """Pone puntos de miles a un documento: "79351573" -> "79.351.573".
+
+    Un NIT conserva su dígito de verificación: "900123456-1".
+    """
+    texto = (numero or "").strip()
+    if not texto:
+        return ""
+    cuerpo, _, verificacion = texto.partition("-")
+    limpio = re.sub(r"[^\d]", "", cuerpo)
+    if not limpio:
+        return texto
+    formateado = f"{int(limpio):,}".replace(",", ".")
+    return f"{formateado}-{verificacion}" if verificacion else formateado
+
+
 @dataclass
 class Titular:
     """Una persona (o persona jurídica) que figura en la resolución."""
@@ -129,12 +146,12 @@ class Titular:
         tipo = TIPOS_DOCUMENTO.get(self.tipo_documento, self.tipo_documento)
         if not self.numero_documento:
             return tipo
-        return f"{tipo} No. {self.numero_documento}"
+        return f"{tipo} No. {formato_documento(self.numero_documento)}"
 
     def documento_corto(self) -> str:
         if not self.numero_documento:
             return self.tipo_documento
-        return f"{self.tipo_documento} {self.numero_documento}"
+        return f"{self.tipo_documento} {formato_documento(self.numero_documento)}"
 
     def frase_identificacion(self) -> str:
         """"JUAN PÉREZ, identificado con cédula de ciudadanía No. 79.000.000"."""

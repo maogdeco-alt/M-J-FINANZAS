@@ -1,0 +1,796 @@
+[
+  {
+    "id": "preambulo",
+    "titulo": "Preámbulo (competencia)",
+    "categoria": "encabezado",
+    "obligatorio": true,
+    "orden": 10,
+    "aplica_a": [
+      "*"
+    ],
+    "nota": "Encabeza toda resolución. Las facultades no cambian.",
+    "texto": "{{curador_tratamiento_largo}} en ejercicio de las funciones otorgadas por la Ley 388 de 1997 y el Decreto Único Nacional 1077 de 2015 y,",
+    "origen": "nucleo"
+  },
+  {
+    "id": "reparto",
+    "titulo": "Reparto previo a la radicación",
+    "categoria": "tramite",
+    "obligatorio": false,
+    "orden": 100,
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "nota": "Solo para proyectos de entidades del Estado o VIS/VIP individual (Art. 2.2.6.6.6.1). Requiere número y fecha de reparto.",
+    "texto": "Que previa a la radicación en cumplimiento de lo establecido en el Artículo 2.2.6.6.6.1 del Decreto 1077 de 2015, al tratarse de solicitud de Licencia de Construcción y/o acto de Reconocimiento en proyectos de entidades del estado, o los particulares para proyectos de vivienda de interés social individual (VIS/VIP), la solicitud fue sometida a reparto, asignándose a este despacho, de conformidad con el consecutivo No. {{reparto_numero}} de fecha {{reparto_fecha_larga}}.",
+    "origen": "nucleo"
+  },
+  {
+    "id": "poder",
+    "titulo": "Poder especial al apoderado",
+    "categoria": "titularidad",
+    "obligatorio": false,
+    "orden": 110,
+    "aplica_a": [
+      "*"
+    ],
+    "nota": "Cuando el titular actúa por apoderado. Concuerda en género y número con los titulares registrados.",
+    "texto": "Que {{articulo}} {{tratamiento}} {{identificacion}} {{verbo_presentar}} escrito donde otorga poder especial, amplio y suficiente a {{apoderado_identificacion}}, para que adelante los trámites y se notifique de los actos administrativos encaminados a la obtención de la licencia.",
+    "origen": "nucleo"
+  },
+  {
+    "id": "solicitud",
+    "titulo": "Solicitud (considerando principal)",
+    "categoria": "tramite",
+    "obligatorio": true,
+    "orden": 120,
+    "aplica_a": [
+      "*"
+    ],
+    "nota": "El considerando que concentra casi todos los datos del expediente.",
+    "texto": "Que {{solicitante_frase}}, bajo radicación No. {{radicado}} del {{fecha_radicado_larga}}, se asignó el Expediente No. {{expediente}} de la misma fecha, quedando en legal y debida forma el {{fecha_debida_forma_larga}}, solicita {{tramite_acto}} {{modalidades}}, destinada a {{destinacion}} en {{pisos}} ({{pisos_cifra}}) pisos, con cubierta en {{cubierta}}, del predio ubicado en {{direccion}}, en la Ciudad de {{municipio}}, identificado con Matrícula Inmobiliaria No. {{matricula}} y Ficha Catastral No. {{ficha_catastral}}.",
+    "origen": "nucleo"
+  },
+  {
+    "id": "tradicion",
+    "titulo": "Certificado de tradición y libertad",
+    "categoria": "titularidad",
+    "obligatorio": false,
+    "orden": 130,
+    "aplica_a": [
+      "*"
+    ],
+    "nota": "Verificación del folio de matrícula: anotación, escritura y notaría.",
+    "texto": "Que revisado el certificado de tradición matrícula inmobiliaria No. {{matricula}} expedido el {{folio_fecha_larga}}, se observa en la anotación No. {{folio_anotacion}}, conforme a la Escritura Pública No. {{escritura_numero}} del {{escritura_fecha}} de la {{escritura_notaria}} de {{municipio}}, que {{articulo}} {{propietario}} {{verbo_ser}} {{nombres}}.",
+    "origen": "nucleo"
+  },
+  {
+    "id": "declaracion_extraproceso",
+    "titulo": "DECLARACION EXTRAPROCESO",
+    "categoria": "titularidad",
+    "obligatorio": false,
+    "nota": "Cuando la titularidad se acredita por declaración juramentada de posesión (no por folio).",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 200,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que el apoderado, allega escrito de la Declaración Juramentada por parte de la señora BERTILDA TORRES DE VARGAS, identificado con cédula de ciudadanía 38.215.650 mediante Declaración Extraproceso No. 2478-2022 de la Notaria Octava del Círculo de Ibagué, calendada  26 de septiembre de 2022, se declara poseedora del inmueble de manera quieta, pública e ininterrumpida de la casa de habitación ubicada en la Avenida Ambalá No. 42 – 15 Barrio Córdoba Parte Baja, de la Ciudad de Ibagué; igualmente allega Edicto Emplaza torio publicado en el Periódico EL ESPECTADOR, AVISOS JUDICIALES, del 2 de octubre de 2022, a quienes consideren ser titular(es) de los derechos reales sobre el inmueble identificado con ficha catastral No. 01-07-0160-0059-000 y matrícula inmobiliaria No. 350-38297."
+  },
+  {
+    "id": "vis",
+    "titulo": "VIS",
+    "categoria": "vivienda_interes",
+    "obligatorio": false,
+    "nota": "Proyecto destinado a Vivienda de Interés Social.",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 210,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que allega Declaración de Vivienda donde manifiesta bajo la gravedad de juramento y para efectos de lo dispuesto en el Artículo 293 de la Ley 2294 de 2023, que el proyecto sometido a consideración se destinará a Vivienda de Interés Social VIS.\n\nQue el Artículo 293 de la Ley 2294 de 2023, establece que la vivienda de interés social debe reunir elementos que aseguren su habitabilidad, estándares de calidad y diseño urbanístico, arquitectónico y de construcción.  El valor máximo de una VIVIENDA DE INTERES SOCIAL no excederá los ciento treinta y cinco (135) salarios mínimos legales mensuales vigentes establecida por la Ley."
+  },
+  {
+    "id": "vip",
+    "titulo": "VIP",
+    "categoria": "vivienda_interes",
+    "obligatorio": false,
+    "nota": "Proyecto destinado a Vivienda de Interés Prioritario.",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 220,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que allega Declaración de Vivienda donde manifiesta bajo la gravedad de juramento y para efectos de lo dispuesto en el el Artículo 293 de la Ley 2294 de 2023, que el proyecto sometido a consideración se destinará a VIVIENDA DE INTERÉS PRIORITARIO- VIP\n\nQue el Artículo 293 de la Ley 2294 de 2023, establece que la vivienda de interés social debe reunir elementos que aseguren su habitabilidad, estándares de calidad y diseño urbanístico, arquitectónico y de construcción. El valor máximo de una VIVIENDA DE INTERÉS PRIORITARIO - VIP no excederá los salarios mínimos legales mensuales vigentes establecida por la Ley."
+  },
+  {
+    "id": "vobo_administracion",
+    "titulo": "Vo. Bo. ADMINISTRACION",
+    "categoria": "soportes",
+    "obligatorio": false,
+    "nota": "Predio en conjunto o propiedad horizontal: aprobación de la administración.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 230,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que la Administración del Conjunto Cerrado Bijao del Vergel, dio aprobación de los planos arquitectónicos del proyecto Manzana 1 Lote 4."
+  },
+  {
+    "id": "oficio_plusvalia",
+    "titulo": "OFICIO DE PLUSVALIA",
+    "categoria": "plusvalia",
+    "obligatorio": false,
+    "nota": "Cuando el proyecto tiene posibilidad de participación en plusvalía.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 240,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que, en concordancia con el Acuerdo Municipal No. 002 del 08 de mayo de 2014 y el Decreto Municipal No. 1000-0696 del 06 de noviembre de 2014, la Curadora Urbana No. 2 de Ibagué remitió a la Secretaría de Planeación Municipal el Oficio No. 260XXX del XX de______ de 2026, la información requerida y soportes del proyecto con posibilidad de PARTICIPACIÓN DE PLUSVALÍA; y posteriormente, mediante oficio No. 1210-XXXXX del XX de ________ de 2026, radicado en este despacho bajo el No. 260XXXX del XX de _________de 2026, la Secretaría de Planeación Municipal, dio respuesta."
+  },
+  {
+    "id": "citacion_vecinos",
+    "titulo": "CITACION VECINOS",
+    "categoria": "terceros",
+    "obligatorio": false,
+    "nota": "Caso normal: se citó a vecinos y ninguno se hizo parte.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 250,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que se dio cumplimiento a lo ordenado por el Art. 2.2.6.1.2.2.1 del Decreto Nacional 1077 de 2015, “Citación a Vecinos: … La citación a vecinos se hará por correo certificado conforme a la información suministrada por el (la) solicitante de la licencia…”, esta solicitud fue comunicada a los vecinos colindantes de la obra, cuyas direcciones suministró la solicitante, sin que ninguno se hiciera parte."
+  },
+  {
+    "id": "citacion_intervencion",
+    "titulo": "CITACION INTERVENCION",
+    "categoria": "terceros",
+    "obligatorio": false,
+    "nota": "Se citó a vecinos y la comunidad se hizo parte con observaciones.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 260,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que se dio cumplimiento a lo ordenado por el Art. 2.2.6.1.2.2.1 del Decreto Nacional 1077 de 2015, “Citación a Vecinos: “…La citación a vecinos se hará por correo certificado conforme a la información suministrada por el (la) solicitante de la licencia…”, esta solicitud fue comunicada a los vecinos colindantes de la obra, cuyas direcciones suministró la solicitante, y se hizo presente mediante oficio recibido y radicado en correspondencia bajo No. 2504067 calendado noviembre 20 de 2026, la comunidad, quienes se identificaron como “habitantes de la calle 143 barrio salado”, en el cual dejan en  conocimiento  al despacho una observación referente con las aguas lluvia que desembocan en los callejones de la calle 143 del barrio salado, y a su vez solicitan que la persona encargada de la supervisión de la construcción tenga en cuenta que ese es el único recurso de desboque de aguas lluvias, por lo que solicitan supervisar el lugar y dar solución.\n\nQue dicha solicitud fue atendida por este despacho mediante oficio No. 26000432 del 11 de febrero de 2026, por medio del cual se les indica la competencia del curador urbano, las normas sobre las cuales se basa la intervención de terceros dentro de un proceso de licenciamiento urbanístico,  y se reitera la disposición del expediente para que acudan a revisarlo y prestar las observaciones y objeciones que considere pertinentes, reiterando que estas deben contener las pruebas que pretenda hacer valer y deberán fundamentarse únicamente en la aplicación de las normas jurídicas, urbanísticas, de edificabilidad o estructurales referentes a la solicitud.  Asi las cosas, la  respuesta  del Despacho, fue dada de forma completa, clara y de fondo al peticionario, por lo que este despacho se atiene a lo resuelto en la mencionada respuesta.\n\nQue la apoderada, con radicado en correspondencia bajo No. 2502241 del 7 de julio de 2026, presentó una fotografía de la valla o aviso instalada, en la que se advierte a terceros sobre la iniciación del trámite administrativo tendiente a la expedición de la licencia solicitada, con el fin igualmente de que éstos se constituyeran en parte y pudieran hacer valer sus derechos, en los términos previstos en la Ley 1437 de 2011, indicando el número de radicación, el tipo de trámite, la autoridad ante la cual se tramita la solicitud, el uso y características básicas del proyecto, sin que se hicieran presente."
+  },
+  {
+    "id": "sin_vecinos_colindantes",
+    "titulo": "CUANDO NO COLINDAN CON VECINOS",
+    "categoria": "terceros",
+    "obligatorio": false,
+    "nota": "El predio colinda solo con vías: no hubo citación a vecinos.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 270,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que el solicitante no anexa información de vecinos colindantes, por cuanto los colindantes corresponden a las vías Carrera 2 (Norte), Carrera 1B (Sur) Calle 76 (Oriente) y Calle 75 (Occidente), como se evidencia en los planos arquitectónicos No.1 DE 20 de LOCALIZACION; por lo tanto, esta solicitud no tuvo notificación a vecinos como lo ordenado por la Ley 9ª de 1989, el Art. 37 de la Ley 1437 de 2011 y el Art. 2.2.6.1.2.2.1 del Decreto Nacional 1077 de 2015."
+  },
+  {
+    "id": "presentacion_valla",
+    "titulo": "PRESENTACION VALLA",
+    "categoria": "terceros",
+    "obligatorio": false,
+    "nota": "Se radicó fotografía de la valla y no se presentaron terceros.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 280,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que la solicitante, con radicado en correspondencia bajo No. 2XXXXX del XX de ____________ de 2026, presentó fotografías de la valla o aviso instalada, en la que se advierte a terceros sobre la iniciación del trámite administrativo tendiente a la expedición de la licencia solicitada, indicando el número de radicación, el tipo de trámite, la autoridad ante la cual se tramita la solicitud, el uso y características básicas del proyecto, de conformidad con lo  establecido en el  parágrafo 1 del Artículo 2.2.6.1.2.2.1 del Decreto 1077 de 2015,  con el fin de que éstos, se constituyeran en parte y pudieran hacer valer sus derechos, en los términos previstos en la Ley 1437 de 2011, sin que se hicieran presentes."
+  },
+  {
+    "id": "publicacion_boletin",
+    "titulo": "PUBLICACION VECINOS EN BOLETIN",
+    "categoria": "terceros",
+    "obligatorio": false,
+    "nota": "Correo devuelto: citación por aviso en el Boletín de Curadores.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 290,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que por no haber sido posible la comunicación personal con los señores PROPIETARIO,  POSEEDOR, TENEDOR O RESIDENTE (Manzana Y Lote 14 Urbanización Hacienda Piedra Pintada), debido a la devolución del servicio de correo certificado por la causal “Cerrado”, se efectuó la CITACION POR AVISO publicado en el Boletín de Curadores urbanos de Ibagué No. 26-XXXX, fijado el XX de ____ de 2026, por espacio de cinco (5) días, con el fin de que éste se constituya en parte y pueda hacer valer sus derechos, en los términos previstos en la Ley 1437 de 2011 sin que ninguno se hiciera presente, desfijándose el XX de __________ de 2026."
+  },
+  {
+    "id": "intervienen_terceros",
+    "titulo": "INTERVIENEN TERCEROS",
+    "categoria": "terceros",
+    "obligatorio": false,
+    "nota": "Un tercero se constituyó en parte. Incluye la respuesta del despacho y el marco normativo.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 300,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que la señora ORFILIA GOMEZ DE AVILA con CC. 28.533.548, mediante el oficio radicado con el No. 2502574 de 31 de julio de 2026, como vecino colindante ubicado en la Carrera 7 No. 29  - 71 Barrio Belalcázar de la ciudad de Ibagué, solicita ser parte y presentar objeciones y observaciones  respecto de la solicitud, manifestando haberse visto afectada por el ruido producido por la Iglesia durante sus servicios religiosos, y que de darse la autorización para la demolición total y obra nueva en el predio, se verían inmersos en ruidos, desechos de construcción, contaminación auditiva y otros propios de la operación en referencia, por lo que solicita hacer valer sus derechos como vecinos colindantes.\n\nQue, en vista de lo anterior, la Curadora Urbana No. 2 del Municipio de Ibagué, mediante el oficio con número de radicado 25002822 del 14 de agosto de 2026, dio respuesta a la petición, a través de la cual, realiza diversos requerimientos a partir de la solicitud principal de ser parte y presentar objeciones y observaciones respecto del trámite, además de distintas situaciones que expone en su escrito, por lo que se le informa que no es competencia de la Curadora Urbana realizar inspecciones o visitas a los predios, para ejercer control sobre las obras realizadas con ocasión a una construcción que se deriva del otorgamiento de Licencia. Así mismo, le da a conocer el procedimiento para intervención de terceros y les informa la disposición del expediente para consulta, para que si lo consideraran pertinente presentar objeciones soportadas en la norma urbanística.\n\nQue el 2.2.6.1.2.2.2 del Decreto Nacional 1077 de 2015, establece:\n\nIntervención de terceros. Toda persona interesada en formular objeciones a la expedición de una licencia urbanística, podrá hacerse parte en el trámite administrativo desde la fecha de la radicación de la solicitud hasta antes de la expedición del acto administrativo que resuelva la solicitud. Dicho acto sólo podrá ser expedido una vez haya transcurrido un término mínimo de cinco (5) días hábiles, contados a partir del día siguiente a la fecha de la citación a los vecinos colindantes o de la publicación cuando esta fuere necesaria y, en el caso de los demás terceros, a partir del día siguiente a la fecha en que se radique la fotografía donde conste la instalación de la valla o aviso de que trata el parágrafo 1 del artículo anterior."
+  },
+  {
+    "id": "sin_objeciones",
+    "titulo": "NO PRESENTO OBJECIONES",
+    "categoria": "terceros",
+    "obligatorio": false,
+    "nota": "Cierre de la intervención cuando el tercero no presentó oposición normativa.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 310,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Por lo antes mencionado, así las cosas, se evidencio que no hubo comunicado por parte de la señora Orfilia Gómez De Ávila manifestando oposición al proyecto soportadas en la norma urbanística, y se resuelve dicha intervención; por tanto, será tenida en cuenta para notificación como tercero interviniente."
+  },
+  {
+    "id": "consulta_norma",
+    "titulo": "CONSULTA DE NORMA",
+    "categoria": "tramite",
+    "obligatorio": false,
+    "nota": "Se consultó a Planeación y se suspendieron términos.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 320,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que la Curadora Urbana No. 2 de Ibagué, remitió solicitud con oficio radicado No. 24002518 del 18 de julio de 2024, a la Secretaría de Planeación Municipal, consulta las secciones viales que permitan determinar claramente el paramento de construcción del inmueble en cuestión, con radicado PISAMI 2024-062359 del 19/07/2024, y consecuentemente, mediante Auto No. 73001-2-24-0224 de la misma fecha, suspendió los términos que tiene para estudio y trámite de licenciamiento, por diez (10) días hábiles, es decir hasta el 1 de agosto de 2024. Posteriormente con Oficio No. 1220-58763 del 2 de agosto de 2024, radicado en este despacho bajo el No. 2402794 del 6 de agosto de 2024, de la Secretaría de Planeación Municipal envía respuesta a la solicitud de Sección Vial para definición de niveles y paramentos.\n\nSin que a la fecha hubiera respuesta a la consulta, por lo que se resolverá lo pertinente con la información disponible en el presente expediente."
+  },
+  {
+    "id": "acta_observaciones",
+    "titulo": "ACTA DE OBSERVACIONES",
+    "categoria": "tramite",
+    "obligatorio": false,
+    "nota": "Se remitió acta de observaciones al solicitante.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 330,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que la Curadora Urbana No. 2 de Ibagué, remitió el Acta de Observaciones, mediante Oficio radicado No.25004243, entregada personalmente el XX de _____________ de 2026, de acuerdo al Art. 2.2.6.1.2.2.4 del Decreto 1077 del de 2015 en la cual se informa al solicitante sobre las actualizaciones, correcciones o aclaraciones que debe realizar el proyecto y los documentos adicionales que debe aportar para decidir sobre la solicitud."
+  },
+  {
+    "id": "adenda",
+    "titulo": "ADENDA",
+    "categoria": "tramite",
+    "obligatorio": false,
+    "nota": "Se complementó el acta de observaciones con una adenda.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 340,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que el 26 de junio de 2026, el despacho de la Curadora Urbana No.2, emite Adenda al acta de observaciones con oficio No. 25002016, complementando el Acta de Observaciones."
+  },
+  {
+    "id": "ampliacion_plazo",
+    "titulo": "AMPLIACION DE PLAZO",
+    "categoria": "tramite",
+    "obligatorio": false,
+    "nota": "El solicitante pidió ampliación de plazo y se concedió por auto.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 350,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que el solicitante presentó solicitud de ampliación de plazo para atender las observaciones efectuadas, mediante oficio con recibido No._________ del XX de ____________ de 2026; en consecuencia, la Curadora Urbana No. 2 de Ibagué, amplía el plazo mediante Auto No. 73001-2-26-0XXX de la misma fecha, por quince (15) días hábiles, es decir, hasta el XX de ______ de 2026."
+  },
+  {
+    "id": "respuesta_observaciones",
+    "titulo": "RESPUESTA  A LAS OBSEVACIONES",
+    "categoria": "tramite",
+    "obligatorio": false,
+    "nota": "Respuesta al acta de observaciones. Incluye la lista de documentos aportados: deje solo los que apliquen.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 360,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que el apoderado del titular de la solicitud, mediante documento radicado con recibido No.250XXXX el XX de_________ de 2026, allegó a la Curadora Urbana No. 2 de Ibagué, las correcciones y documentos correspondientes al acta de observaciones, dando cumplimiento a los requerimientos contenidos en el acta de observaciones,\n\nRESPUESTA  A LAS OBSEVACIONES con documentos aportados\n\nQue el apoderado del titular de la solicitud, mediante documento radicado con recibido No.___  de _____________de 20XX, allegó a la Curadora Urbana No. 2 de Ibagué, las correcciones y documentos correspondientes al acta de observaciones, dando cumplimiento a los requerimientos contenidos en el acta de observaciones, entre las cuales adjunta:\n\nNuevas Página 1,2 y 3 del Formulario Único Nacional FUN\n\nAnexo Construcción sostenible\n\nCertificación de Nomenclatura Domiciliaria expedida por la Secretaría de Planeación Municipal mediante oficio No. 1220-55140 del 13 de mayo de 2026 del predio identificado con ficha catastral No. 01-01-0108-0022-000 le corresponde la siguiente nomenclatura Calle 6 No. 11 - 60\n\nNueva fotografía de la valla, actualizando nomenclatura\n\nPoder con nota de presentación\n\nOficio aclaratorio de supervisión técnica estructural\n\nQue allega Oficio No. 1220-53540 del 11 de mayo de 2026, de la Secretaría de Planeación Municipal referente a definición de niveles y paramentos del predio objeto de trámite.\n\nRegistro fotográfico de vecinos colindantes\n\nNuevo folio de matrícula No. 350-48288 con Anotación: 004 de Adjudicación en sucesión.\n\nQue allega Declaración de Vivienda donde manifiesta bajo la gravedad de juramento y para efectos de lo dispuesto en el Artículo 293 de la Ley 2294 de 2023, que el proyecto sometido a consideración se destinará a VIVIENDA DE INTERÉS PRIORITARIO- VIP, Que el Artículo 293 de la Ley 2294 de 2023, establece que la vivienda de interés social debe reunir elementos que aseguren su habitabilidad, estándares de calidad y diseño urbanístico, arquitectónico y de construcción. El valor máximo de una VIVIENDA DE INTERÉS PRIORITARIO - VIP no excederá los salarios mínimos legales mensuales vigentes establecida por la Ley.\n\nQue el constructor responsable de la obra el Arquitecto NOLBERTO GONZALEZ CORTES, identificado con CC No.93.377.891 y con Matrícula Profesional No. A16472015-93377891, manifiesta que el proyecto materia de la solicitud cumple a cabalidad con las distancias mínimas de seguridad para las redes eléctricas, establecidas en el RETIE, Reglamento Técnico de Instalaciones Eléctricas, dando cumplimiento a la Resolución No. 40117 del 2 de abril de 2024, emanada del Ministerio de Minas y Energía."
+  },
+  {
+    "id": "revision_independiente",
+    "titulo": "REVISION INDEPENDIENTE D.E.",
+    "categoria": "tecnico",
+    "obligatorio": false,
+    "nota": "Memorial del revisor independiente del diseño estructural.",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 370,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Memorial del Revisor Independiente del Diseño Estructural del Ingeniero civil JULIAN ANDRES PAVA CASTILLO identificado con CC. 1.110.522.189 con matrícula profesional No. 70202-276230, CERTIFICA que el proyecto fue estudiado, revisado y cumple con lo establecido en el Reglamento Colombiano de Construcción Sismo Resistente NSR-10.\n\nEscrito firmado por el Ingeniero Julián Andrés Pava, en calidad de diseñador Estructural del proyecto, manifestando que el predio objeto de trámite no se encuentra entre los tipos de proyectos cuya supervisión técnica es obligatoria, según el artículo 18 de la Ley 400 de 1997, modificado por el artículo 4 de la Ley 1796 de 22016; sin embargo, al tratarse de una intervención al sistema estructural existente, para hacer el reforzamiento de este, se requerirá la supervisión técnica de conformidad con lo establecido en el artículo A.10.1.6 de la N.S.R."
+  },
+  {
+    "id": "amenaza_riesgo",
+    "titulo": "ESTUDIO DE AMENAZA Y RIESGO",
+    "categoria": "tecnico",
+    "obligatorio": false,
+    "nota": "Predio en zona de riesgo: estudio geológico de amenaza y riesgo.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 380,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que según lo establecido en el plano Amenaza y Riesgo que hace parte integral del Decreto 1000-0823 de 2014, mediante el cual se adopta la revisión y ajuste del Plan de Ordenamiento Territorial, se fija al predio una condición de zona de riesgo media por remoción en masa; y en virtud a ello, el interesado en el trámite allegó el estudio Geológico de Amenaza y Riesgo que enfrenta el predio, y con base en la información recopilada dentro de las conclusiones y recomendaciones, se determinó que el predio objeto de estudio presenta una condición de AMENAZA BAJA por fenómenos de remoción en masa. Dicho estudio fue elaborado por un grupo interdisciplinario de profesionales, a saber: EDUARD IVAN SANTOS ARCINIEGAS identificado con CC No.1.110.458.337 con Registro Único de Topógrafo RUTOPO del CPNT Licencia Profesional No.01-14108, el Ingeniero Geólogo JORGE ARMANDO PORRAS RAMIREZ  identificado con CC No. 1.053.767.451 con matrícula profesional No. 4476, bajo la coordinación de la Ingeniera Civil Especialista en Diseño y Construcción de Pavimentos y Especialista en Geotecnia LAURA CAMILA BOBADILLA AMEZQUITA identificada con CC No. 1.006.874.100 con matrícula profesional No.051037-0786640 presentado dicho, se ajusta a la Normas Colombianas de Diseño y Construcción Sismo Resistente de 2010.\n\nQue la Curadora Urbana No. 2, mediante Auto No. 73-001-2-25-0XXX de XX de _________de 2026, prorrogó el plazo para resolver la solicitud de licencia, de conformidad con artículo 9 del Decreto 1203 de 2017, Modifíquese el inciso tercero del artículo 2.2.6.1.2.3.1, termino para resolver las solicitudes de licencias, sus modificaciones y revalidación de licencia. Párrafo 2.- “Cuando el tamaño o la complejidad del proyecto lo ameriten, el plazo para resolver la solicitud de licencia de que trata este artículo podrá prorrogarse por una sola vez hasta por la mitad del término establecido mediante acto administrativo de trámite que solo será comunicado”."
+  },
+  {
+    "id": "resolver_intervencion",
+    "titulo": "RESOLVER INTERVENCION TERCERO",
+    "categoria": "terceros",
+    "obligatorio": false,
+    "nota": "Se resuelve de fondo el escrito del tercero interviniente.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 390,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que, el Despacho entra a resolver el escrito de intervención de la señora Luz Miriam Devia Laguna;  es de indicarle que el Curador Urbano no realiza visitas a los predios materia de la solicitud, la Ley estableció que la vigilancia y control de las obras sigue en poder de la Administración Municipal a través de sus entes de legados en este caso la Dirección de Espacio Público y Control Urbano, según lo establecido en el Decreto Nacional 1077 de 2015, en su Artículo 2.2.6.1.4.11, modificado por el Artículo 14 del Decreto Nacional 1203 de 2017: “Artículo 2.2.6.1.14.11. Competencia del control urbano. Corresponde a los alcaldes municipales o distritales por conducto de los inspectores de policía rurales, urbanos y corregidores, de conformidad con lo dispuesto en la Ley 1801 de 2016 (Código de Policía) o la norma que la modifique, adicione o sustituya, ejercer la vigilancia y control durante la ejecución de las obras, con el fin de aplicar las medidas correctivas para asegurar el cumplimiento de las licencias urbanísticas y de las normas contenidas en el Plan de Ordenamiento Territorial, sin perjuicio de las facultades atribuidas a los funcionarios del Ministerio Público y de las veedurías en defensa tanto del orden jurídico, del ambiente y del patrimonio y espacios públicos, como de los intereses colectivos y de la sociedad en general.”\n\nAcorde con lo anteriormente expuesto, si bien las preocupaciones expuestas en su comunicado pueden ser validas, lo cierto es que las funciones asociadas al control urbano no son de competencia del Curador Urbano, razón por la cual los interesados deberán acudir, de estimarlo pertinente, ante las autoridades competentes para efectos de dilucidar las posibles responsabilidades respecto de los hechos mencionados si es que ellos llegaren a ocurrir  y los posibles perjuicios que ellos podrían causar.\n\nAsí las cosas, es importante mencionar que el Artículo 2.2.6.1.1.15 del Decreto Nacional 1077 de 2015, modificado por el Artículo 5 del Decreto Nacional 1203 de 2017, establece:\n\n“Responsabilidad del titular de la licencia. El titular de la licencia o permiso será el responsable de todas las obligaciones urbanísticas y arquitectónicas adquiridas con ocasión de su expedición y extracontractualmente por los perjuicios que se causaren a terceros en desarrollo de la misma.”;\n\n(negrita y cursiva fuera de texto)\n\nPor lo antes mencionado, así las cosas, se resuelve dicha intervención y por tanto, será tenida en cuenta para notificación como tercero interviniente."
+  },
+  {
+    "id": "normativa_obligatoria",
+    "titulo": "NORMATIVA OBLIGATORIA",
+    "categoria": "normativa",
+    "obligatorio": true,
+    "nota": "Párrafo obligatorio: fuente hídrica y diseño estructural / estudio de suelos.",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 400,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que el predio materia de la solicitud a la luz de los planos oficiales del Plan de Ordenamiento Territorial del Municipio de Ibagué, no se encuentra a menos de treinta (30) metros de fuente hídrica alguna.\n\nDISEÑO ESTRUCTURAL Y ESTUDIO DE SUELO / DE INVESTIGACION MININA / AMENAZA\n\nQue el profesional responsable del diseño estructural de la edificación, el Ingeniero Civil HAROLD EDUARDO SANMIGUEL AHUMADA identificado con CC No.1.110.541.859 y con Matrícula Profesional No.70202-327608, a la Revisión Independiente del diseño estructural del Ingeniero civil JULIAN ANDRES PAVA CASTILLO identificado con CC. 1.110.522.189 con matrícula profesional No. 70202-276230, se ciñó a las exigencias del Reglamento Colombiano de Construcción Sismo Resistente NSR-10 - Ley 400 de 1997, Decreto Nacional 092 del 17 de enero de 2011 y a la recomendación del estudio de suelos, efectuado por el Ingeniero Civil LEONARDO VALDERRAMA identificado con CC 14.318.210 y matrícula profesional No. 70202-084765."
+  },
+  {
+    "id": "normativa_residencial",
+    "titulo": "NORMATIVA RESIDENCIAL",
+    "categoria": "normativa",
+    "obligatorio": false,
+    "nota": "Uso principal residencial y tratamiento urbanístico aplicable.",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 410,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que el predio se encuentra de conformidad con el plano U2.1 adoptados por el Decreto 1000-0823 de 2014, mediante el cual se adopta la revisión y ajuste del Plan de ordenamiento Territorial, tiene asignado como uso principal RESIDENCIAL PRIMARIO; y por estar en Tratamiento CONSOLIDACION POR ESTABILIZACION, según plano U3.1 del mismo Decreto, en virtud de la aplicación del Decreto 1000-0941 de 2021 le aplican las normas de construcción fijadas en el Acuerdo 009 de 2002."
+  },
+  {
+    "id": "normativa_comercio",
+    "titulo": "NORMATIVA COMERCIO",
+    "categoria": "normativa",
+    "obligatorio": false,
+    "nota": "Uso comercial compatible, exigencia de parqueaderos y cumplimiento de normas.",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 420,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que el predio se encuentra de conformidad con el plano U2.1 adoptados por el Decreto 1000-0823 de 2014, mediante el cual se adopta la revisión y ajuste del Plan de ordenamiento Territorial, tiene asignado como uso principal RESIDENCIAL PRIMARIO, el cual, es compatible con el COMERCIO ESPECIAL, cobertura local, según la matriz de compatibilidad vigente, y que hace parte del Acuerdo 116 de 2000.\n\nQue de conformidad con el área de construcción (100 M2) y el uso propuesto, así como, la discriminación de áreas propuestas, destinadas a, la atención a público (25 M2), la administración (21,34 M2) y los servicios (53.66 m2), el proyecto a la luz del Decreto 1000-0865 de 2022, no requiere de parqueaderos privados ni de visitantes, y consecuentemente tampoco tendría exigencia para parqueaderos de motos y bicicletas\n\nQue el proyecto cumple con las normas urbanísticas y arquitectónicas de la ciudad, para el tratamiento Mejoramiento Integral, Consolidación por Implementación, Consolidación por Estabilización, Conservación, Renovación, tales como índices, alturas, uso de suelo, plantas, patios, voladizos, contenidas en el Acuerdo 009 de 2002, también cumple con las Normas de accesibilidad a medios físicos, contenidas en las Normas Técnicas de Construcción – NTC., las normas de evacuación y protección contra incendios contenidas en los títulos “J” y “K” de la Norma Sismo Resistente – NSR-10.\n\nAdemás, cumple con los parámetros fijados en la licencia de urbanización, otorgada mediante resolución No. 73001-2-xx-0XXX de XX________ de 20XX;\n\nAdemás, cumple con el paramento conforme al anexo de demarcación de niveles y paramentos expedido por la secretaría de planeación municipal mediante oficio No. 1220-038428 del 9 de mayo de 2026.\n\nAsí mismo, cumple con las exigencias mínimas de parqueaderos para vehículos, motocicletas y bicicletas de conformidad con lo establecida en el Decreto 1000-0865 de 2022."
+  },
+  {
+    "id": "sin_parqueadero",
+    "titulo": "NO EXIGE PARQUEADERO VIA PEATONAL Y/O BAHIAS PARQUEO",
+    "categoria": "normativa",
+    "obligatorio": false,
+    "nota": "Vivienda unifamiliar sobre vía peatonal o bahía, o VIS: exenta de cupos de parqueo.",
+    "aplica_a": [
+      "construccion"
+    ],
+    "orden": 430,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Así mismo, no puede cumplir con la exigencia de parqueadero para vehículos de conformidad con lo establecido en el Decreto 1000-0865 de 2022;  artículo 1º, parágrafo segundo.-  Se excluye de cumplir con los cupos de parqueo exigido por norma a las viviendas unifamiliares situadas con frente sobre vías peatonales y/o bahías de parqueo en urbanismos aprobados.\n\nAsí mismo, conforme a las exigencias mínimas de parqueaderos para vehículos, motocicletas y bicicletas de conformidad con lo establecido en el Decreto 1000-0865 de 2022,  conforme al Parágrafo segundo. Se excluye de cumplir con los cupos de parqueo exigidos por norma a las viviendas unifamiliares situadas con frente sobre vías peatonales y/o bahías de parqueo en urbanismos aprobados.\n\nAsí mismo se excluye de cumplir con requisito de parqueo por tratarse de vivienda de interés social.\n\nQue el proyecto cumple con las normas urbanísticas y arquitectónicas de la ciudad, para el tratamiento Desarrollo Suelo Urbano, tales como índices, alturas, uso del suelo, voladizos, distancias entre torres, y  patios, contenidas en el Decreto 1000-0823 de 2014, y las normas que lo modifican, reglamentan y complementan; también cumple con los parámetros fijados en la licencia de urbanización, otorgada mediante resolución No. 73001-2-18-0487 de agosto 23 de 2018;  además, cumple con las Normas de accesibilidad a medios físicos, contenidas en las Normas Técnicas de Construcción – NTC.,  las normas de evacuación  y  protección contra incendios contenidas en los títulos  “J” y “K” de la Norma Sismo Resistente – NSR-10. Así mismo, cumple con las exigencias mínimas de parqueaderos para vehículos, motocicletas y bicicletas de conformidad con lo establecida en el 1000-0833 de 2022."
+  },
+  {
+    "id": "pronunciamiento_viabilidad",
+    "titulo": "PRONUNCIAMIENTO VIABILIDAD",
+    "categoria": "expensas",
+    "obligatorio": true,
+    "nota": "Párrafo obligatorio: pronunciamiento de viabilidad y acreditación del pago del IDU.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 440,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que mediante Oficio No.2600XXXX del 7 de mayo de 2026 la Curadora urbana No.2 de Ibagué, emitió pronunciamiento de viabilidad, de acuerdo con lo establecido en el parágrafo 1 del artículo 2.2.6.1.2.3.1 del Decreto 1077 de 2015, el cual fue debidamente comunicado al titular el XX de _____ de 2026 y se le requiere acreditar el pago del Impuesto de Delineación Urbana, para lo cual se entrega el certificado IDU No. 26-0174 del 07 de mayo de 2026.\n\nQue la interesada mediante escrito radicado bajo el consecutivo de correspondencia No. 260XXXX del XX de ____ de 2026 acreditó el pago con el Recibo No. 26010410000XXX, mediante el cual el Municipio de Ibagué, liquido cobro y recaudó el impuesto Delineación Urbana para el predio con ESTRATO DOS (2) – USO RESIDENCIAL en un área de 161.83 por valor de ________= cancelado el XX de ___________ de 2026 en Banco _______________."
+  },
+  {
+    "id": "reliquidacion",
+    "titulo": "RELIQUIDACION",
+    "categoria": "expensas",
+    "obligatorio": false,
+    "nota": "El estrato cambió: se reliquidó el cargo variable.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 450,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que, en atención a los recibos de pago presentados, dicho predio se encuentra en estrato tres (3), por lo que se procede a realizar la reliquidación del cargo variable, mediante oficio No. 26003042 del 11 de septiembre de 2026, y en la misma fecha allegó oficio con radicado No. 2602811, acreditando la totalidad del pago de las expensas - cargo variable, y, por tanto, una vez verificado dicho pago, se expidió la Factura No. FE 4545 del 11 de septiembre de 2026.\n\nQue, igualmente acredito el pago de las expensas - cargo variable, y, por tanto, una vez verificado dicho pago, se expidió la Factura No. FE 4XXX del XX de ___________de 2026."
+  },
+  {
+    "id": "plusvalia_no_inscrita",
+    "titulo": "PLUSVALIA",
+    "categoria": "plusvalia",
+    "obligatorio": false,
+    "nota": "Verificación de que la plusvalía no está inscrita en el folio.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 460,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que, el artículo 181 del Decreto 0019 del 10 de enero de 2012, el cual modificó el artículo 83 de la Ley 388 de 1997, dispuso que, el cobro de la plusvalía sólo será exigible, cuando se haya liquidado e inscrito en el folio de matrícula inmobiliaria; por tanto, una vez consultado el respetivo folio, en la plataforma Ventanilla Única de Registró, se advirtió que, sobre el predio, identificado con el folio de Matricula Inmobiliaria No. 350-74417, NO se encuentra inscrito."
+  },
+  {
+    "id": "sin_expensa_vis",
+    "titulo": "NO GENERA EXPENSA UNIFAMILIAR – BIFAMILIAR VIS",
+    "categoria": "expensas",
+    "obligatorio": false,
+    "nota": "VIS unifamiliar o bifamiliar en estratos 1, 2 y 3: no genera expensas.",
+    "aplica_a": [
+      "construccion"
+    ],
+    "orden": 470,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que mediante Oficio No. 25000XXXX de ___________la Curadora urbana No.2 de Ibagué, emitió pronunciamiento de viabilidad, de acuerdo a lo establecido en el parágrafo 1 del artículo 2.2.6.1.2.3.1 del Decreto 1077 de 2015, el cual fue debidamente comunicado al titular el XX de _______ de 2026; así mismo se le comunica que el presente tramite no genera Expensas por tratarse de aprobación de licencias de construcción individual de vivienda de interés social unifamiliar y/o  bifamiliar en los estratos 1, 2 y 3, de conformidad con el artículo 2.2.6.6.8.12 del Decreto 1077 de 2015., y se le requiere acreditar el pago del Impuesto de Delineación Urbana, para lo cual se entrega el certificado IDU No. 26-0XXX9 del X de _________ de 2026."
+  },
+  {
+    "id": "exento_idu",
+    "titulo": "EXENTO PAGO DE IMPUESTO",
+    "categoria": "expensas",
+    "obligatorio": false,
+    "nota": "Estrato 1 o 2, o VIS/VIP: exento del impuesto de delineación urbana.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 480,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que el apoderado allegó con recibido radicado No. _______ del XX de ________ de 2026 el oficio No. 1340-2026 – 0_______ del XX de ________ de 2026, expedido por la secretaria de Hacienda – Dirección de Rentas, en el cual Certifica que el inmueble identificado con ficha catastral No.01-04-0231-0005-000 está en un sector con estrato Dos (2) Bajo, por tanto, al peticionario no se le liquidará el valor del impuesto de delineación urbana, como quiera que no fue determinado por el Concejo Municipal de Ibagué la base gravable del impuesto de delineación urbana para el estrato 1 y 2.\n\n/   y  corresponde a los programas y soluciones de vivienda de interés prioritaria y/o vivienda de interés social dirigida a los estratos 1,2 y 3, por lo cual se encuentra exento del pago de impuesto de delineación urbana, en los términos del literal c) del artículo 2º del Acuerdo 010 de 2009.    Así mismo, allega Resolución No. 1340-2026-000634 del 16 de septiembre de 2026 expedida por la secretaria de Hacienda – Dirección de Rentas, “Por medio del cual se decide una solicitud de exención en el pago por concepto de Impuesto de Delineación Urbana”, y resuelve CONCEDER la exención del pago por concepto de IDU."
+  },
+  {
+    "id": "exento_institucional",
+    "titulo": "EXENTO INSTITUCIONAL DEL ESTADO",
+    "categoria": "expensas",
+    "obligatorio": false,
+    "nota": "Predio de entidad pública con uso institucional: exento de IDU.",
+    "aplica_a": [
+      "*"
+    ],
+    "orden": 490,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Que el apoderado allegó oficio recibido en este Despacho bajo el radicado No. XXXX del X de ____de 2024, expedido por la Secretaría de Hacienda Municipal, Grupo de Rentas oficio No. 1340-2023-0XXX de XX de_____  de 2024, según lo establecido en el literal A) del artículo 2º del Acuerdo 010 de 2009, el MUNICIPIO DE IBAGUE con NIT. 800.113.389, propietario del predio identificado con Ficha Catastral No. 01-10-0061-0001-000, el uso propuesto corresponde a INSTITUCIONAL, por tanto, está Exento de pago del impuesto de Delineación Urbana.\n\nNo pago de IDU -PISCINAS\n\nQue no se exigió la acreditación del pago de impuesto de delineación urbana, en cuanto a la aprobación de la piscina, considerando que la misma, no corresponde a una edificación de conformidad con lo establecido en el artículo primero del Acuerdo 010 del 19 de mayo de 2009 el cual fue reglamentado mediante Decreto 1-0344 del 09 de junio de 2009 y Modificado por el Acuerdo 0001 del 14 de febrero de 2017.\n\nEn virtud de lo anterior, la Curadora Urbana No. 2 de Ibagué (P),"
+  },
+  {
+    "id": "art_otorgar",
+    "titulo": "Artículo 1 — parte resolutiva",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "orden": 590,
+    "aplica_a": [
+      "*"
+    ],
+    "nota": "El artículo que otorga, niega o archiva. Concuerda con los titulares.",
+    "texto": "Artículo 1.- {{sentido_verbo}} {{tramite_acto}} a {{identificacion}}, destinada a {{destinacion}} en {{pisos}} ({{pisos_cifra}}) pisos con cubierta en {{cubierta}}, del predio ubicado en {{direccion}}, en la Ciudad de {{municipio}}, identificado con Matrícula Inmobiliaria No. {{matricula}} y Ficha Catastral No. {{ficha_catastral}}, {{modalidades}}:",
+    "origen": "nucleo"
+  },
+  {
+    "id": "art_otorgar_areas",
+    "titulo": "Artículo 1 — detalle de áreas e índices",
+    "categoria": "resuelve",
+    "obligatorio": false,
+    "orden": 595,
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "nota": "El literal con áreas por piso, índices permitidos y propuestos, y los profesionales responsables.",
+    "texto": "OBRA NUEVA en un lote de terreno de {{area_lote}} m² y un área de construcción total de {{area_construida}} m², con un índice de construcción permitido de {{indice_construccion_permitido}} y propuesto de {{indice_construccion_propuesto}}, y un índice de ocupación permitido de {{indice_ocupacion_permitido}} y propuesto de {{indice_ocupacion_propuesto}}; de conformidad con los planos del proyecto arquitectónico presentados por {{proyectista}}, al Diseño Estructural y de elementos no estructurales de {{estructural}} y el estudio de suelos de {{suelos}}.",
+    "origen": "nucleo"
+  },
+  {
+    "id": "par_correcciones_rojo",
+    "titulo": "Parágrafo 1 — correcciones en rojo sobre los planos",
+    "categoria": "resuelve",
+    "obligatorio": false,
+    "nota": "Solo si la curadora hizo correcciones a mano alzada.",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 600,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Parágrafo 1.- El proyecto se aprueba con correcciones en rojo efectuadas por la Curadora Urbana a mano alzada sobre los planos, referente a:\n\nEn plano arquitectónico A 1 DE 2, indicando nomenclatura vial en plantas arquitectónicas, localización y cortes arquitectónicos.\n\nSe corrige numeración del plano arquitectónico 2 DE 2 y se adiciona AREA A RECONOCER Y REFORZAR EN 1 PISO.\n\nSe corrige la nomenclatura en planos estructurales CALLE 53 No. 2 A - 02"
+  },
+  {
+    "id": "par_planos_integrales",
+    "titulo": "Parágrafo 2 — planos que hacen parte integral",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "Ajuste las cantidades de planos y tomos al expediente.",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 610,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Parágrafo 2.- Los planos: 14 arquitectónicos, 36 estructurales, 8 planos ruta de evacuación, 26 planos red contra incendios, 8 tomos de memorias de cálculo, 1 Informe Revisor Independiente, , 2 tomos del estudio de suelos, harán parte integral de la presente resolución y llevarán el sello de aprobación."
+  },
+  {
+    "id": "par_sin_espacio_publico",
+    "titulo": "Parágrafo 3 — no autoriza intervención del espacio público",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 620,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Parágrafo 3.- La presente licencia no implica autorización para ninguna clase de intervención en el espacio público."
+  },
+  {
+    "id": "par_responsabilidad_disenos",
+    "titulo": "Parágrafo 4 — responsabilidad de los diseños (NSR-10 A.1.5)",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 630,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Parágrafo 4.- De conformidad con lo establecido en el numeral A.1.5 – Diseños, planos, memorias y estudios, del Reglamento Colombiano de Construcciones Sismo Resistentes NSR-10, la responsabilidad de los diseños de los diferentes elementos que componen la edificación, recae en los profesionales bajo cuya dirección se elaboran los diferentes diseños."
+  },
+  {
+    "id": "par_certificado_nomenclatura",
+    "titulo": "Parágrafo 5 — actualización de nomenclatura ante notaría",
+    "categoria": "resuelve",
+    "obligatorio": false,
+    "nota": "Solo si se aportó certificado de nomenclatura.",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 640,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Parágrafo 5.- El titular de la licencia, deberá realizar ante la notaría el trámite de actualización de nomenclatura, conforme al certificado de nomenclatura aportado al expediente, expedido por la secretaría de Planeación Municipal, con el fin quede inscrito el acto en el folio de matrícula inmobiliaria ante la oficina de registro de instrumentos públicos."
+  },
+  {
+    "id": "art_plazo",
+    "titulo": "Artículo 2 — plazo y vigencia",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 650,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Artículo 2.- PLAZO: la presente licencia de construcción tendrá una vigencia de treinta y seis (36) meses, contados a partir de la fecha de su ejecutoria del presente acto administrativo, plazo que podrá prorrogarse por una sola vez y por doce (12) meses, para lo cual la prórroga deberá ser solicitada a más tardar treinta (30) días hábiles antes del vencimiento de la respectiva licencia, para lo cual deberá radicarse con la documentación completa; la solicitud deberá acompañarse de la manifestación bajo la gravedad del juramento de la iniciación de obra por parte del urbanizador o constructor responsable.  Igualmente, por una sola vez, podrá obtener la revalidación de la licencia vencida, siempre y cuando el proyecto mantenga las condiciones originales con que fue aprobado inicialmente, que no haya transcurrido un término mayor a dos (2) meses desde el vencimiento de la licencia que se pretende revalidar."
+  },
+  {
+    "id": "art_constructor",
+    "titulo": "Artículo 3 — constructor responsable",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 660,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Artículo 3.- El constructor responsable de la ejecución de las obras que trata la presente licencia será el Arquitecto __________________________ identificado con CC __________ y con Matrícula Profesional No. _________, quien deberá responder porque la obra se adelante de acuerdo con el proyecto arquitectónico aprobado y la construcción de la estructura se ejecute de acuerdo con lo establecido en el Reglamento Colombiano de Construcción Sismo Resistente “NSR-10” (Ley 400 de 1997 - Decreto Nacional 092 del 17 de enero de 2011). Adicionalmente y según lo señalado en el Art. 20 de la Ley 400 de 1997 y en el Art. A.10.1.6 del Decreto Nacional 092 del 17 de enero de 2011, NSR-10."
+  },
+  {
+    "id": "art_constructor_paragrafos",
+    "titulo": "Artículo 3 — parágrafos 1 a 6 (constructor)",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "Van inmediatamente después del artículo 3.",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 665,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Parágrafo 5.- El titular de la licencia, deberá realizar ante la notaría el trámite de actualización de nomenclatura, conforme al certificado de nomenclatura aportado al expediente, expedido por la secretaría de Planeación Municipal, con el fin quede inscrito el acto en el folio de matrícula inmobiliaria ante la oficina de registro de instrumentos públicos.\n\nParágrafo 1.- Se previene para todos los efectos al constructor, de que atienda las disposiciones legales y reglamentarias de las autoridades ambientales que se requieran para ejecutar las actividades contenidas en el proyecto, por lo cual deberán tramitar las autorizaciones y demás similares requeridas para tal fin de ser necesario.\n\nParágrafo 2.- De conformidad con lo establecido en el numeral 8 del Artículo 2.2.6.1.2.3.6. Decreto Nacional 1077 de 2015. Obligaciones del titular de la licencia. El curador urbano o la autoridad encargada de estudiar, tramitar y expedir licencias, deberá indicar al titular, el cumplimiento de las siguientes obligaciones: Designar en un término máximo de 15 días hábiles al profesional que reemplazará a aquel que se desvinculó de la ejecución de los diseños o de la ejecución de la obra. Hasta tanto se designe el nuevo profesional, el que asumirá la obligación del profesional saliente será el titular de la licencia.\n\nParágrafo 3.- La obra autorizada debe contar con la instalación de los equipos, sistemas e implementos de bajo consumo de agua, establecidos en la Ley 373 de 1997 y sus decretos reglamentarios.\n\nParágrafo 4.- De conformidad con lo establecido en el numeral J.1.1.3. Del NSR-10, la responsabilidad del cumplimiento del Título J – Requisitos de protección contra el fuego en edificaciones y el Título K – Otros requisitos complementarios, recae en el profesional que figura como constructor del proyecto para la solicitud de la licencia de construcción.\n\nParágrafo 5.- Así mismo el Constructor responsable deberá presentar ante las respectivas empresas prestadoras de servicio de Agua y de Energía, la autodeclaración de cumplimiento de los porcentajes de ahorro con la aplicación de las medidas implementadas."
+  },
+  {
+    "id": "art_obligaciones_mancomunadas",
+    "titulo": "Artículo 4 — ejecución segura de la obra",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 670,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Artículo 4.- El titular de la licencia propietario de la edificación y el constructor responsable se comprometen mancomunadamente a ejecutar la obra de forma tal que se garantice tanto la salubridad de las personas como la estabilidad de los terrenos, edificaciones y elementos constitutivos del espacio público, para lo cual adoptaran procedimientos que reúnan las condiciones de seguridad suficientes para evitar daños a terceros y proteger la integridad de los peatones o transeúntes, a construir y/o instalar las defensas y estructuras provisionales necesarias para la seguridad de los obreros, vehículos y propiedades vecinas. En el momento que se presenten situaciones de integridad, la administración municipal podrá suspender en forma indefinida la obra, hasta tanto, se compruebe que se han tomado las medidas y acciones que minimicen la existencia de riesgo que atenten contra la integridad y seguridad de la comunidad."
+  },
+  {
+    "id": "art_obligaciones_titular",
+    "titulo": "Artículo 5 — obligaciones del titular (lista a-k)",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 680,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Artículo 5.- El titular de la presente licencia deberá cumplir con las obligaciones urbanísticas y arquitectónicas que se deriven de ella y responderá por los perjuicios causados a terceros con motivo de la ejecución de las obras (Art. 60 Decreto Nacional 2150 de 1995 y Art. 2.2.6.1.1.15 Decreto Nacional 1077 de 2015), tales como:\n\nMantener en la obra la licencia y los planos aprobados, y exhibirlos cuando sean requeridos por la autoridad competente.\n\nCumplir con el programa de manejo ambiental de materiales y elementos a los que hace referencia la Resolución número 541 de 1994 del Ministerio del Medio Ambiente, o el acto que la modifique o sustituya, para aquellos proyectos que no requieren licencia ambiental, o planes de manejo, recuperación o restauración ambiental, de conformidad con el decreto único del sector ambiente y desarrollo sostenible en materia de licenciamiento ambiental.\n\nCuando se trate de licencias de construcción, solicitar la Autorización de Ocupación de Inmuebles al concluir las obras de edificación en los términos que establece el artículo 2.2.6.1.4.1 del presente decreto.\n\nGarantizar durante el desarrollo de la obra la participación del diseñador estructural del proyecto y del ingeniero geotecnista responsables de los planos y estudios aprobados, con el fin de que atiendan las consultas y aclaraciones que solicite el constructor y/o supervisor técnico independiente. Las consultas y aclaraciones deberán incorporarse en la bitácora del proyecto y/o en las actas de supervisión.\n\nDesignar en un término máximo de 15 días hábiles al profesional que reemplazará a aquel que se desvinculó de la ejecución de los diseños o de la ejecución de la obra. Hasta tanto se designe el nuevo profesional, el que asumirá la obligación del profesional saliente será el titular de la licencia.\n\nRealizar los controles de calidad para los diferentes materiales y elementos que señalen las normas de construcción sismorresistentes.\n\nInstalar los equipos, sistemas e implementos de bajo consumo de agua, establecidos en la Ley 373 de 1997 o la norma que la adicione, modifique o sustituya.\n\nCumplir con las normas vigentes de carácter nacional, municipal o distrital sobre eliminación de barreras arquitectónicas para personas en situación de discapacidad.\n\nCumplir con las disposiciones contenidas en las normas de construcción sismo-resistente vigente.\n\nDar cumplimiento a las disposiciones sobre construcción sostenible que adopte el Ministerio de Vivienda, Ciudad y Territorio o los municipios o distritos en ejercicio de sus competencias.\n\nEn todo caso y en el marco del cumplimiento de lo autorizado por la presente licencia de construcción modalidad obra nueva, el Titular de esta y el constructor responsable, deberá ejecutar las medidas pasivas y/o activas que permitan alcanzar los porcentajes de ahorro de agua y energía mínimos, establecidos en la resolución 0549 de julio 10 de 2015. Así mismo el Constructor Responsable deberá presentar ante las respectivas empresas prestadoras de servicio de agua y de energía la autodeclaración de cumplimiento de los porcentajes de ahorro con la aplicación de las medidas implementarias."
+  },
+  {
+    "id": "art_espacio_publico",
+    "titulo": "Artículo 6 — prohibición de ocupar andenes y vías",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 690,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Artículo 6.- Esta totalmente prohibidos ocupar en forma permanente los andenes y vías públicas con tierra, materiales de construcción, residuos, desechos, malezas, o con cualquier otro material, o arrojarlos en las cunetas, desagües o canales de sistemas de alcantarillado y en general sobre el espacio público, conducta por la cual serán sancionados por la autoridad competente con suspensión en forma inmediata e indefinida de la obra, con el único propósito de garantizar el uso, goce y disfrute del espacio público y solo se autorizara la continuación de los trabajos hasta tanto se haya obtenido su recuperación. Cuando con la ejecución del proyecto se cause daños a andenes, sardineles o vías públicas, el propietario deberá repararlos so pena de las sanciones legales. Ninguna constructora o persona que se encuentre adelantando construcción podrá dejar escombros y desechos en la calle o si no serán sujetos a las sanciones establecidas en la Ley 1259 de 2008."
+  },
+  {
+    "id": "art_obligaciones_paragrafos",
+    "titulo": "Artículo 5 — parágrafos (andenes y ventanas)",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "Van inmediatamente después del artículo 5.",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 695,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Parágrafo 6.- Sin perjuicio de la competencia de la autoridad municipal, el Constructor Responsable y el titular de la presente licencia, deben dar cumplimiento a las obligaciones referentes al Sistema de Seguridad Social para con todos y cada uno de sus trabajadores de la construcción a su servicio al tenor de lo dispuesto en el Art. 25 del Decreto Nacional 1703 de 2002. Los trabajadores pondrán en conocimiento de la Curadora Urbana No. 2 de Ibagué cuando no se dé cumplimiento a este requisito quien informará de dicha circunstancia a la Superintendencia Nacional de Salud con el fin de que inicie las investigaciones y aplique las sanciones a que haya lugar.\n\nParágrafo 1.- El titular deberá construir los andenes continuos y a nivel, sin generar obstáculos con los predios colindantes y deben ser tratados con materiales duros y antideslizantes en seco y en mojado de conformidad con lo establecido en el Art. 2.2.3.4.1.1 y articulo 2.2.3.4.1.2 del Decreto Nacional 1077 de 2015."
+  },
+  {
+    "id": "art_sanciones",
+    "titulo": "Artículo 7 — sanciones y certificación técnica de ocupación",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 700,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Artículo 7.- La violación a cualquiera de los enunciados de esta resolución por parte del propietario o el constructor del proyecto conllevarán a la aplicación de las sanciones consagradas en las Leyes 9 de 1989, 388 y 400 de 1997, 810 de 2003 y en el Decreto 33 de 1998; igualmente la presente autorización será suspendida y la obra sellada, por la entidad que ejerce el control urbano o autoridad competente, en el momento en que se compruebe que esta no se ajusta a las especificaciones y diseños de los planos aprobados y/o sellados o que incumpla cualquiera de las normas contenidas en el Plan de Ordenamiento Territorial, Decreto Municipal 1000 – 0823 de 2014 y en la Normativa General de Usos del Suelo, Construcciones y Urbanizaciones, Acuerdo Municipal 009 de 2002."
+  },
+  {
+    "id": "art_servicios_publicos",
+    "titulo": "Artículo 8 — aprobación de planos ante empresas de servicios",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 710,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Artículo 8.- Para obtener el derecho a la prestación de los servicios públicos, el titular de la presente licencia deberá tramitar la aprobación de los planos correspondientes ante las empresas respectivas."
+  },
+  {
+    "id": "art_sanciones_ley",
+    "titulo": "Artículo 9 — sanciones (Leyes 388, 400 y 1801)",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 720,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Artículo 9- La violación a cualquiera de los enunciados de esta resolución por parte del propietario de la obra o del ejecutante del proyecto conllevara a la aplicación de las sanciones consagradas en la Ley 388 de 1997, en la Ley 400 de 1997 y en la Ley 1801 de 2016"
+  },
+  {
+    "id": "art_sin_pronunciamiento_linderos",
+    "titulo": "Artículo 10 — no se pronuncia sobre linderos ni dominio",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 730,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Artículo 10.- La presente licencia no implica pronunciamiento alguno sobre los linderos del predio ni la titularidad de su dominio ni las características de su posesión."
+  },
+  {
+    "id": "art_valla_obra",
+    "titulo": "Artículo 11 — aviso durante la ejecución de la obra",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 740,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Artículo 11.- El titular de la licencia está obligado a instalar un aviso durante el término de ejecución de las obras, cuya dimensión mínima será de un metro (1.00 m) por setenta (70) centímetros, localizada en lugar visible desde la vía pública más importante sobre la cual tenga frente o límite el desarrollo o construcción que haya sido objeto de la licencia. En caso de obras que se desarrollen en edificios o conjunto sometidos al régimen de propiedad horizontal se instalará un aviso en la cartelera principal del edificio o conjunto, o en un lugar de amplia circulación que determine la administración. En caso de obras menores se instalará un aviso de treinta (30) centímetros por cincuenta (50) centímetros. El aviso deberá indicar al menos: 1. La clase y número de identificación de la licencia, y la autoridad que la expidió. 2. El nombre o razón social del titular de la licencia. 3. La dirección del inmueble. 4. Vigencia de la licencia. 5. Descripción del tipo de obra que se adelanta, haciendo referencia especialmente al uso o usos autorizados, metros de construcción, altura total de las edificaciones, número de estacionamientos y número de unidades habitacionales, comerciales o de otros usos. La valla o aviso se instalará antes de la iniciación de cualquier tipo de obra, emplazamiento de campamentos o maquinaria, entre otros, y deberá permanecer instalado durante todo el tiempo de la ejecución de la obra. (Art. 2.2.6.1.4.9 Decreto Nacional 1077 de 2015."
+  },
+  {
+    "id": "art_recursos",
+    "titulo": "Artículo 12 — recursos de reposición y apelación",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 750,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Artículo 12.- Contra la presente Resolución proceden los recursos señalados en el Art. 74 del C.P.A.C.A., tales como el de reposición ante el mismo Curador Urbano No. 2 y el de apelación para ante la Secretaría de Planeación Municipal de Ibagué, dentro de los diez (10) días hábiles siguientes a la fecha de la publicación y notificación correspondiente."
+  },
+  {
+    "id": "art_publicacion",
+    "titulo": "Artículo 13 — publicación para la ejecutoria",
+    "categoria": "resuelve",
+    "obligatorio": true,
+    "nota": "",
+    "aplica_a": [
+      "construccion",
+      "reconocimiento"
+    ],
+    "orden": 760,
+    "origen": "plantilla_modelo_construccion",
+    "texto": "Artículo 13.- Para contabilizar los términos de ejecutoria del presente Acto Administrativo, el titular deberá publicar en un periódico de amplia circulación en el Municipio de Ibagué, o en cualquier otro medio de comunicación hablado o escrito de acuerdo al Art. 73 de la Ley 1437 de 2011, la parte resolutiva de la presente resolución."
+  },
+  {
+    "id": "cierre",
+    "titulo": "Cierre y firma",
+    "categoria": "cierre",
+    "obligatorio": true,
+    "orden": 800,
+    "aplica_a": [
+      "*"
+    ],
+    "nota": "Fecha de expedición y firma de la curadora.",
+    "texto": "NOTIFÍQUESE, PUBLÍQUESE Y CÚMPLASE\n\nExpedida en {{municipio}}, a los {{fecha_letras}}\n\n\n{{curador}}\n{{curador_tratamiento}}",
+    "origen": "nucleo"
+  },
+  {
+    "id": "notificacion",
+    "titulo": "Constancia de notificación personal",
+    "categoria": "cierre",
+    "obligatorio": true,
+    "orden": 810,
+    "aplica_a": [
+      "*"
+    ],
+    "nota": "Bloque de notificación con el notificado y la sustanciadora.",
+    "texto": "En la fecha ____________________ siendo las: ____________ se notifica personalmente del contenido del presente acto, haciéndose entrega de copia íntegra, auténtica y gratuita del mismo.\n\n{{notificado_rotulo}}\t\t\t\tEl notificador\n\n\n{{notificado_nombre}}\t\t\t\t{{sustanciador}}\n{{notificado_documento}}\t\t\t\tSustanciadora",
+    "origen": "nucleo"
+  },
+  {
+    "id": "pie_archivo",
+    "titulo": "Pie de archivo",
+    "categoria": "cierre",
+    "obligatorio": true,
+    "orden": 820,
+    "aplica_a": [
+      "*"
+    ],
+    "nota": "Radicado de archivo y las iniciales de quien proyectó.",
+    "texto": "Archivo - RAD # {{expediente}}\nProyectó: {{sustanciador_iniciales}}",
+    "origen": "nucleo"
+  }
+]

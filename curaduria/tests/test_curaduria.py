@@ -206,15 +206,31 @@ def test_listar_etiquetas_del_documento():
 # --- Resolución ------------------------------------------------------------
 
 def _resolucion_valida():
+    from curaduria.catalogo import Solicitud
+    from curaduria.profesionales import Profesional
+    from curaduria.resolucion import Despacho
     return Resolucion(
-        numero="01-2-0456",
+        numero="73001-2-26-0456",
         fecha=date(2026, 10, 15),
-        radicado="11001-1-26-0123",
-        fecha_radicado=date(2026, 9, 1),
+        radicado="2600789",
+        fecha_radicado=date(2026, 3, 10),
+        consecutivo_expediente="54",
+        solicitud=Solicitud("construccion", ["obra_nueva"],
+                            ["vivienda_unifamiliar"]),
+        despacho=Despacho(curador="SANDRA DEL PILAR PARDO SUAREZ",
+                          sustanciador="GLORIA INES LOZANO TRUJILLO",
+                          sustanciador_iniciales="gilt /S"),
         titulares=[Titular("MARÍA GÓMEZ", "F", "CC", "41000000")],
-        inmueble=Inmueble(direccion="CL 10 # 5-20", municipio="Tunja",
-                          matricula_inmobiliaria="070-123456",
+        inmueble=Inmueble(direccion="CL 10 # 5-20",
+                          matricula_inmobiliaria="350-123456",
+                          ficha_catastral="01-09-1014-0013-000",
                           area_lote=120.5, area_construida=85.0, pisos=2),
+        profesionales=[
+            Profesional("proyectista", "FERNANDA GARCÍA", "F", "93383328",
+                        "25700-55387"),
+            Profesional("constructor", "NOLBERTO GONZÁLEZ", "M", "93377891",
+                        "A16472015"),
+        ],
     )
 
 
@@ -223,11 +239,11 @@ def test_resolucion_valida_sin_errores():
 
 
 def test_errores_detectados():
-    r = Resolucion()
-    errores = r.errores()
+    errores = Resolucion().errores()
     assert any("número de la resolución" in e for e in errores)
     assert any("al menos un titular" in e for e in errores)
     assert any("matrícula inmobiliaria" in e for e in errores)
+    assert any("quien firma" in e for e in errores)
 
 
 def test_error_documento_repetido():
@@ -242,6 +258,78 @@ def test_error_radicado_posterior():
     assert any("posterior" in e for e in r.errores())
 
 
+def test_error_matricula_mal_formada():
+    r = _resolucion_valida()
+    r.inmueble.matricula_inmobiliaria = "350123456"
+    assert any("350-123456" in e for e in r.errores())
+
+
+def test_error_ficha_catastral_mal_formada():
+    r = _resolucion_valida()
+    r.inmueble.ficha_catastral = "01-09-1014"
+    assert any("01-09-1014-0013-000" in e for e in r.errores())
+
+
+def test_error_demolicion_sin_area():
+    r = _resolucion_valida()
+    r.solicitud.modalidades_ids = ["demolicion_total"]
+    assert any("área a demoler" in e for e in r.errores())
+
+
+def test_error_indice_propuesto_mayor_al_permitido():
+    r = _resolucion_valida()
+    r.inmueble.indice_ocupacion_permitido = "0,60"
+    r.inmueble.indice_ocupacion_propuesto = "0,75"
+    assert any("supera el permitido" in e for e in r.errores())
+
+
+def test_indices_iguales_no_son_error():
+    r = _resolucion_valida()
+    r.inmueble.indice_construccion_permitido = "2.5"
+    r.inmueble.indice_construccion_propuesto = "2.5"
+    assert not any("supera el permitido" in e for e in r.errores())
+
+
+def test_error_profesional_sin_matricula():
+    r = _resolucion_valida()
+    r.profesionales[0].matricula = ""
+    assert any("matrícula profesional" in e for e in r.errores())
+
+
+def test_error_falta_constructor():
+    r = _resolucion_valida()
+    r.profesionales = [p for p in r.profesionales if p.rol != "constructor"]
+    assert any("constructor responsable" in e for e in r.errores())
+
+
+def test_advertencia_titulares_mixtos():
+    r = _resolucion_valida()
+    r.titulares.append(Titular("JUAN PÉREZ", "M", "CC", "79000000"))
+    assert any("distinto sexo" in a for a in r.advertencias())
+
+
+def test_advertencia_vis_sin_estrato():
+    r = _resolucion_valida()
+    r.solicitud.usos_ids = ["vis_unifamiliar"]
+    assert any("sin estrato" in a for a in r.advertencias())
+
+
+def test_expediente_se_arma_con_el_codigo_dane():
+    assert _resolucion_valida().expediente == "73001-2-26-0054"
+
+
+def test_expediente_manual_tiene_prioridad():
+    r = _resolucion_valida()
+    r.expediente_manual = "73001-2-26-9999"
+    assert r.expediente == "73001-2-26-9999"
+
+
+def test_expediente_vacio_sin_consecutivo():
+    r = _resolucion_valida()
+    r.consecutivo_expediente = ""
+    assert r.expediente == ""
+
+
 def test_etiquetas_de_la_resolucion():
     e = _resolucion_valida().etiquetas()
     assert e["articulo"] == "la"
@@ -250,28 +338,91 @@ def test_etiquetas_de_la_resolucion():
     assert e["area_lote_letras"] == "ciento veinte con cincuenta m2 (120,50 m2)"
     assert e["pisos"] == "dos"
     assert e["vigencia"] == "treinta y seis (36) meses"
+    assert e["expediente"] == "73001-2-26-0054"
+    assert e["tramite_completo"] == (
+        "Licencia de CONSTRUCCIÓN en la modalidad de OBRA NUEVA")
+    assert e["sentido_verbo"] == "OTORGAR"
+    assert e["documentos"] == "CC 41.000.000"
+
+
+def test_etiqueta_tratamiento_del_despacho():
+    e = _resolucion_valida().etiquetas()
+    assert e["curador_tratamiento_largo"] == (
+        "La Curadora Urbana No. 2 del Municipio de Ibagué (P)")
+    assert e["curador_tratamiento"] == "Curadora Urbana No. 2 de Ibagué (P)"
+
+
+def test_etiquetas_de_profesionales_concuerdan():
+    e = _resolucion_valida().etiquetas()
+    assert e["proyectista"].startswith("la Arquitecta FERNANDA GARCÍA, "
+                                       "identificada con")
+    assert e["constructor"].startswith("el Arquitecto NOLBERTO GONZÁLEZ, "
+                                       "identificado con")
+    assert "93.383.328" in e["proyectista"]
+
+
+def test_frase_solicitante_con_apoderado():
+    from curaduria.resolucion import Apoderado
+    r = _resolucion_valida()
+    r.apoderado = Apoderado("JUAN PABLO VARGAS", "M", "1110454615")
+    frase = r.frase_solicitante()
+    assert frase.startswith("el señor JUAN PABLO VARGAS, identificado con CC. "
+                            "No. 1.110.454.615")
+    assert frase.endswith("en calidad de apoderado del trámite")
+
+
+def test_frase_solicitante_sin_apoderado():
+    assert _resolucion_valida().frase_solicitante().startswith("MARÍA GÓMEZ,")
 
 
 def test_campos_libres_se_agregan():
     r = _resolucion_valida()
-    r.extras = {"expediente": "EXP-99"}
-    assert r.etiquetas()["expediente"] == "EXP-99"
+    r.extras = {"expediente_fisico": "EXP-99"}
+    assert r.etiquetas()["expediente_fisico"] == "EXP-99"
 
 
 def test_nombre_archivo():
     assert _resolucion_valida().nombre_archivo() == \
-        "Resolucion_01-2-0456_15-10-2026.docx"
+        "Resolucion_73001-2-26-0456_15-10-2026.docx"
+    assert _resolucion_valida().nombre_archivo("hoja-datos").endswith(
+        "_hoja-datos.docx")
+
+
+def test_secciones_hoja_datos_cubren_los_datos_clave():
+    r = _resolucion_valida()
+    claves = {clave for _, campos in r.secciones_hoja_datos()
+              for _, clave in campos}
+    for clave in ("resolucion_numero", "expediente", "matricula",
+                  "ficha_catastral", "nombres", "proyectista_nombre",
+                  "idu_certificado", "sustanciador"):
+        assert clave in claves, clave
+
+
+def test_subtitulo_hoja_datos():
+    assert "Expediente 73001-2-26-0054" in \
+        _resolucion_valida().subtitulo_hoja_datos()
+
+
+def test_formato_documento():
+    from curaduria.gramatica import formato_documento
+    assert formato_documento("79351573") == "79.351.573"
+    assert formato_documento("900123456-1") == "900.123.456-1"
+    assert formato_documento("") == ""
+    assert formato_documento("sin numero") == "sin numero"
 
 
 def test_plantilla_maestra_se_rellena_completa(tmp_path):
-    """La plantilla de ejemplo no debe dejar ninguna etiqueta sin dato."""
+    """La plantilla de ejemplo no debe dejar etiquetas de datos sin resolver."""
     import crear_plantilla_ejemplo
 
     ruta = tmp_path / "p.docx"
     crear_plantilla_ejemplo.construir().save(ruta)
     doc = plantilla.abrir(ruta)
-    faltantes = plantilla.rellenar(doc, _resolucion_valida().etiquetas())
-    assert faltantes == set()
+    etiquetas = _resolucion_valida().etiquetas()
+    faltantes = plantilla.rellenar(doc, etiquetas)
+    # Las anclas de sección no son datos: las llenan los bloques.
+    assert faltantes == {"encabezado", "considerandos", "resuelve", "cierre"}
     texto = "\n".join(p.text for p in plantilla.recorrer_parrafos(doc))
-    assert "{{" not in texto
-    assert "la propietaria MARÍA GÓMEZ" in texto
+    assert "73001-2-26-0054" in texto
+    assert "Licencia de CONSTRUCCIÓN en la modalidad de OBRA NUEVA" in texto
+    assert "Curaduría Urbana No. 2 de Ibagué" in texto

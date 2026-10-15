@@ -1,13 +1,18 @@
-# Automatizador de Resoluciones (Curaduría)
+# Automatizador de Resoluciones (Curaduría Urbana)
 
-Mini-app local: un formulario web que recoge los datos fijos de una resolución
-(matrículas, documentos, áreas, fechas), **resuelve la concordancia de género y
-número por sí solo** y genera el Word 100% editable a partir de una plantilla
-maestra.
+Mini-app local para armar resoluciones. Hace tres cosas:
+
+1. **Un cuadro de datos** que se diligencia una sola vez por expediente, antes
+   de que el sustanciador abra el Word.
+2. **Una biblioteca de párrafos** con el texto de la plantilla modelo, marcado
+   por tipo de trámite: se escoge qué considerandos aplican y se descarta el
+   resto, en vez de borrar a mano media resolución.
+3. **El Word armado y editable**, con el género, las fechas, los números en
+   letras y el expediente ya resueltos.
 
 El problema que resuelve: en una resolución de 30-40 páginas los mismos datos
-se repiten decenas de veces, y cada repetición es una oportunidad de error de
-digitación. Aquí se digitan una vez.
+se repiten decenas de veces y la concordancia de género se arrastra de la
+resolución anterior. Aquí se digita una vez y concuerda solo.
 
 ## Instalación
 
@@ -23,114 +28,211 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Se abre en `http://localhost:8501`. Flujo:
+Abre en `http://localhost:8501`. Las cinco pestañas siguen el orden de trabajo:
 
-1. En la barra lateral, elija la plantilla maestra (o súbala).
-2. Llene los cinco bloques del formulario: acto, curaduría, titulares, predio,
-   proyecto.
-3. Revise el bloque **6. Revisión**: muestra cómo quedará redactado el texto y
-   qué género/número se aplicó. Si falta algo, lo señala en rojo.
-4. **Generar resolución en Word** → **Descargar .docx**.
+| Pestaña | Para qué |
+|---|---|
+| **1 · Hoja de datos** | El cuadro: acto, trámite, titulares, predio, profesionales, actuaciones. |
+| **2 · Bloques de texto** | Qué párrafos lleva *esta* resolución. El catálogo viene filtrado por trámite y marca los obligatorios. |
+| **3 · Generar** | Revisión, validaciones y descarga del `.docx` (y de la hoja de datos por separado). |
+| **4 · Biblioteca** | Crear, editar y retirar bloques. Lo suyo queda guardado. |
+| **5 · Etiquetas** | Todas las etiquetas con su valor actual, para armar o corregir la plantilla. |
+
+En la barra lateral van los datos del despacho (que no cambian entre
+resoluciones), la plantilla y el modo de armado.
+
+## Los tres modos de armado
+
+- **Plantilla + bloques** (recomendado): la plantilla aporta la estructura y el
+  formato; los bloques elegidos se insertan en sus anclas.
+- **Solo bloques**: sin plantilla, el documento se construye completo desde el
+  catálogo. Útil para un acto corto.
+- **Solo plantilla**: el comportamiento clásico de rellenar etiquetas.
+
+## El catálogo de trámites
+
+Sigue el Decreto Único Nacional 1077 de 2015 y la Ley 388 de 1997, con la
+distinción entre licencia, modalidad y uso, porque de ella depende qué bloques
+tienen sentido:
+
+- **Licencias urbanísticas**: Urbanización (desarrollo, saneamiento,
+  reurbanización), Parcelación, Subdivisión (rústica, rural, urbana, loteo),
+  Construcción y Intervención y Ocupación del Espacio Público.
+- **Licencia de construcción**: las nueve modalidades independientes o
+  combinables — obra nueva, ampliación, adecuación, modificación,
+  restauración, reforzamiento estructural, demolición (total o parcial),
+  reconstrucción y cerramiento.
+- **Reconocimiento de la existencia de edificaciones**.
+- **Otras actuaciones** (Art. 2.2.6.1.3.1): ajuste de cotas y áreas, planos de
+  alinderamiento, modificación de urbanizaciones aceptadas, piscinas,
+  movimiento de tierras, concepto de norma, concepto de uso del suelo, copias
+  certificadas de planos, prórrogas, revalidaciones y modificación de licencia
+  vigente.
+
+La app valida las combinaciones: Subdivisión admite una sola modalidad por
+acto, demolición total y parcial son excluyentes, y una licencia que exige
+modalidad no se genera sin ella.
+
+## La biblioteca de bloques
+
+Son **59 bloques**. Los del catálogo salen de la plantilla modelo de
+construcción, **con su texto jurídico textual** — no se reescribió nada. Cada
+uno guarda tres datos que el Word no puede guardar: a qué trámites aplica, si
+es obligatorio y una nota de cuándo se usa.
+
+Organizados en: encabezado y solicitud · actuaciones del trámite · titularidad
+y poderes · VIS/VIP · soportes · vecinos y terceros · soportes técnicos ·
+normativa urbanística · plusvalía · expensas, IDU y exenciones · parte
+resolutiva · cierre y notificación · notas propias.
+
+Dos capas en disco:
+
+- `biblioteca/bloques_base.json` — el catálogo de la curaduría, versionado con
+  la app.
+- `biblioteca/bloques_usuario.json` — lo que usted cree o ajuste. **No se
+  pierde al actualizar la app**, y editar un bloque del catálogo nunca toca el
+  archivo base.
+
+Un bloque del catálogo no se borra: se retira y se puede restaurar. Los
+propios sí se borran.
 
 ## La plantilla maestra
 
-Es un `.docx` normal de Word con etiquetas `{{nombre}}` donde van los datos
-variables. Para partir de un modelo con todas las etiquetas puestas:
+Un `.docx` de Word con etiquetas `{{nombre}}`. Para partir de un modelo:
 
 ```bash
-python crear_plantilla_ejemplo.py
-# -> plantillas/plantilla_maestra.docx
+python crear_plantilla_ejemplo.py     # -> plantillas/plantilla_maestra.docx
 ```
 
-Abra ese archivo, pegue el texto real de sus resoluciones y conserve las
-etiquetas. Las etiquetas funcionan en el cuerpo, en tablas, en encabezados y en
-pies de página, y **se conserva el formato** (negrita, fuente, interlineado).
-Una etiqueta partida en varios *runs* de Word —algo frecuente cuando se la
-escribió con el corrector encima— también se reemplaza bien.
+Las etiquetas funcionan en el cuerpo, en tablas, en encabezados y en pies, y
+**se conserva el formato** (negrita, fuente, interlineado). Una etiqueta
+partida en varios *runs* de Word —frecuente cuando se escribió con el
+corrector encima— también se reemplaza bien.
 
-La app lista todas las etiquetas con su valor actual en el panel final, y avisa
-si la plantilla usa una etiqueta para la que no hay dato (la deja intacta en
-lugar de borrarla silenciosamente).
+### Anclas de sección
 
-### Etiquetas de datos
+Marcan dónde entran los bloques:
+
+| Ancla | Qué recibe |
+|---|---|
+| `{{encabezado}}` | El preámbulo de competencia. |
+| `{{considerandos}}` | Todos los considerandos elegidos, en el orden del catálogo. |
+| `{{resuelve}}` | Artículos y parágrafos. |
+| `{{cierre}}` | Firma, notificación y pie de archivo. |
+| `{{hoja_datos}}` | El cuadro de datos. Sin esta ancla, el cuadro encabeza el documento seguido de un salto de página. |
+
+Si falta un ancla, sus bloques se suman a la vecina (el encabezado a los
+considerandos, el cierre a la parte resolutiva) y la app lo informa: nada se
+pierde en silencio.
+
+## Etiquetas de datos
 
 | Etiqueta | Ejemplo |
 |---|---|
-| `{{resolucion_numero}}`, `{{radicado}}` | `01-2-0456` |
+| `{{resolucion_numero}}`, `{{radicado}}`, `{{expediente}}` | `73001-2-26-0456`, `2600789`, `73001-2-26-0054` |
 | `{{fecha}}`, `{{fecha_larga}}`, `{{fecha_letras}}` | `15/10/2026`, `15 de octubre de 2026`, `quince (15) de octubre de dos mil veintiséis (2026)` |
-| `{{fecha_radicado}}` y sus variantes | igual que arriba |
-| `{{nombres}}` | `JUAN PÉREZ y MARÍA GÓMEZ` |
-| `{{documentos}}` | `CC 79000000 y CC 41000000` |
-| `{{identificacion}}` | `JUAN PÉREZ, identificado con cédula de ciudadanía No. 79.000.000 y MARÍA GÓMEZ, identificada con…` |
-| `{{calidad}}` | `en calidad de propietarios` |
-| `{{direccion}}`, `{{barrio}}`, `{{municipio}}`, `{{departamento}}` | |
-| `{{matricula}}`, `{{cedula_catastral}}`, `{{chip}}` | |
-| `{{area_lote}}`, `{{area_lote_letras}}` | `120,50`, `ciento veinte con cincuenta m2 (120,50 m2)` |
-| `{{area_construida}}`, `{{area_construida_letras}}` | |
-| `{{pisos}}`, `{{pisos_cifra}}` | `dos`, `2` |
-| `{{vigencia}}` | `treinta y seis (36) meses` |
-| `{{curaduria}}`, `{{curador}}`, `{{curador_tratamiento}}` | `Curadora Urbana` |
-| `{{proyectista}}`, `{{matricula_profesional}}`, `{{observaciones}}` | |
+| `{{tramite_acto}}`, `{{modalidades}}`, `{{tramite_completo}}` | `Licencia de CONSTRUCCIÓN`, `en las modalidades de DEMOLICIÓN TOTAL y OBRA NUEVA` |
+| `{{destinacion}}` | `VIVIENDA UNIFAMILIAR` |
+| `{{nombres}}`, `{{documentos}}` | `MARÍA GÓMEZ y JUAN PÉREZ`, `CC 41.000.000 y CC 79.000.000` |
+| `{{identificacion}}` | `MARÍA GÓMEZ, identificada con cédula de ciudadanía No. 41.000.000 y JUAN PÉREZ, identificado con…` |
+| `{{solicitante_frase}}` | El apoderado si lo hay; si no, los titulares con su calidad. |
+| `{{apoderado_identificacion}}` | `el señor JUAN PABLO VARGAS, identificado con CC. No. 1.110.454.615` |
+| `{{direccion}}`, `{{barrio}}`, `{{municipio}}`, `{{estrato}}` | |
+| `{{matricula}}`, `{{ficha_catastral}}`, `{{chip}}` | `350-250605`, `01-09-1014-0013-000` |
+| `{{area_lote}}`, `{{area_lote_letras}}` | `150,00`, `ciento cincuenta m2 (150,00 m2)` |
+| `{{area_construida_letras}}`, `{{area_demoler_letras}}` | |
+| `{{pisos}}`, `{{pisos_cifra}}`, `{{cubierta}}` | `dos`, `2`, `teja` |
+| `{{indice_ocupacion_permitido}}` / `_propuesto` | y los de construcción |
+| `{{proyectista}}`, `{{estructural}}`, `{{constructor}}`, … | `la Arquitecta FERNANDA GARCÍA, identificada con CC No. 93.383.328 y con Matrícula Profesional No. 25700-55387` |
+| `{{idu_certificado}}`, `{{factura_numero}}`, `{{auto_numero}}` | |
+| `{{planos_arquitectonicos}}`, `{{tomos_memorias}}` | |
+| `{{vigencia}}`, `{{prorroga}}` | `treinta y seis (36) meses` |
+| `{{curador}}`, `{{curador_tratamiento}}`, `{{curador_tratamiento_largo}}` | `Curadora Urbana No. 2 de Ibagué (P)`, `La Curadora Urbana No. 2 del Municipio de Ibagué (P)` |
+| `{{sustanciador}}`, `{{sustanciador_iniciales}}`, `{{notificado_nombre}}` | |
 
-### Etiquetas gramaticales
+Cada fecha trae sus variantes `_larga`, `_letras`, `_dia`, `_mes`, `_anio`.
+El número de expediente se arma como `73001-2-26-0054` con el código DANE, el
+número de curaduría, el año del radicado y el consecutivo.
 
-Se resuelven a partir del sexo de los titulares y de cuántos son. Con una
-titular mujer `{{articulo}} {{propietario}}` sale "la propietaria"; con dos
-titulares, "los propietarios".
+## Etiquetas gramaticales
 
-`{{articulo}}` · `{{articulo_indefinido}}` · `{{contraccion_de}}` (del / de la) ·
-`{{contraccion_a}}` (al / a la) · `{{tratamiento}}` (señor/señora) ·
-`{{tratamiento_abrev}}` · `{{propietario}}` · `{{poseedor}}` · `{{apoderado}}` ·
-`{{solicitante}}` · `{{titular}}` · `{{interesado}}` · `{{identificado}}` ·
-`{{representado}}` · `{{notificado}}` · `{{obligado}}` · `{{citado}}` ·
-`{{mismo}}` · `{{este}}` · `{{aquel}}` · `{{cuyo}}` · `{{pronombre}}` ·
-`{{quien}}` · `{{posesivo}}` · `{{documento}}` · y los verbos
-`{{verbo_ser}}` · `{{verbo_obrar}}` · `{{verbo_solicitar}}` ·
-`{{verbo_presentar}}` · `{{verbo_deber}}` · `{{verbo_podra}}` ·
-`{{verbo_acreditar}}` · `{{verbo_actuar}}` · `{{verbo_aportar}}`.
+Se resuelven con el sexo de los titulares y cuántos son. Con una titular mujer
+`{{articulo}} {{propietario}}` sale "la propietaria"; con dos, "los
+propietarios".
 
-Cada una tiene su versión capitalizada para inicio de párrafo: `{{Articulo}}`,
-`{{Propietario}}`, `{{Quien}}`…
+`{{articulo}}` · `{{articulo_indefinido}}` · `{{contraccion_de}}` (del / de la)
+· `{{contraccion_a}}` (al / a la) · `{{tratamiento}}` (señor/señora) ·
+`{{propietario}}` · `{{poseedor}}` · `{{apoderado}}` · `{{solicitante}}` ·
+`{{titular}}` · `{{interesado}}` · `{{identificado}}` · `{{representado}}` ·
+`{{notificado}}` · `{{obligado}}` · `{{citado}}` · `{{mismo}}` · `{{este}}` ·
+`{{aquel}}` · `{{cuyo}}` · `{{pronombre}}` · `{{quien}}` · `{{posesivo}}` ·
+`{{documento}}` · y los verbos `{{verbo_ser}}` · `{{verbo_obrar}}` ·
+`{{verbo_solicitar}}` · `{{verbo_presentar}}` · `{{verbo_deber}}` ·
+`{{verbo_podra}}` · `{{verbo_acreditar}}` · `{{verbo_actuar}}` ·
+`{{verbo_aportar}}`.
+
+Cada una tiene su versión capitalizada para inicio de párrafo:
+`{{Articulo}}`, `{{Propietario}}`, `{{Quien}}`…
 
 ### Reglas aplicadas
 
-- Un solo titular → singular, con el género de esa persona.
-- Varios titulares → plural; si el grupo es mixto, masculino genérico
-  (`los propietarios`), como manda la concordancia del español.
-- Persona jurídica (NIT) → se identifica en femenino ("identificada con NIT…"),
-  porque concuerda con "la sociedad".
-- Los nombres y documentos se enumeran en lenguaje natural: `A`, `A y B`,
+- Un titular → singular con su género. Varios → plural; grupo mixto →
+  masculino genérico (`los propietarios`), como manda la concordancia.
+- Persona jurídica (NIT) → "identificada con NIT…", que concuerda con "la
+  sociedad". El NIT conserva su dígito de verificación.
+- Los documentos se escriben con puntos de miles: `28.514.217`.
+- Los profesionales concuerdan por separado: "la Arquitecta … identificada
+  con", "el Ingeniero Civil … identificado con".
+- Nombres y documentos se enumeran en lenguaje natural: `A`, `A y B`,
   `A, B y C`.
-- El sexo se **sugiere** a partir del nombre de pila (botón *Sugerir sexo por
-  nombre*), pero siempre queda editable: la sugerencia es una ayuda, no una
-  decisión.
+- El sexo se **sugiere** por el nombre de pila (botón *Sugerir sexo por
+  nombre*) y queda editable: es una ayuda, no una decisión.
 
-## Validaciones antes de generar
+## Validaciones
 
-El botón de generar está bloqueado hasta que no haya: número y fecha de
-resolución, al menos un titular con nombre y documento, y matrícula
-inmobiliaria. Además avisa si un documento está repetido entre titulares o si
-el radicado quedó con fecha posterior a la resolución.
+Bloquean la generación:
+
+- Número y fecha de la resolución, y nombre de quien firma.
+- Al menos un titular, con nombre y documento; sin documentos repetidos.
+- Matrícula inmobiliaria con la forma `350-123456` y ficha catastral
+  `01-09-1014-0013-000`.
+- Modalidad indicada cuando el trámite la exige, sin combinaciones inválidas.
+- Área a demoler si hay demolición total; área construida si hay obra nueva.
+- Índice propuesto que no supere el permitido.
+- Profesional sin matrícula; falta de proyectista o constructor en una
+  licencia de construcción que se otorga.
+- Radicado posterior a la resolución, o legal y debida forma anterior al
+  radicado.
+
+Avisan sin bloquear: titulares de distinto sexo, proyecto VIS/VIP sin estrato,
+predio con amenaza o riesgo, falta del certificado IDU, expediente sin
+consecutivo.
 
 ## Arquitectura
 
 ```
 curaduria/
 ├── app.py                      formulario Streamlit (solo UI)
-├── crear_plantilla_ejemplo.py  genera la plantilla de muestra
+├── crear_plantilla_ejemplo.py  genera la plantilla con anclas
 ├── curaduria/
-│   ├── gramatica.py            concordancia de género y número, titulares
+│   ├── catalogo.py             trámites, modalidades y usos (Decreto 1077)
+│   ├── bloques.py              biblioteca de párrafos y su persistencia
+│   ├── armado.py               hoja de datos e inserción en el Word
+│   ├── resolucion.py           modelo, validaciones y etiquetas
+│   ├── profesionales.py        roles y concordancia de títulos
+│   ├── gramatica.py            concordancia de género y número
 │   ├── numeros.py              números a letras, formato de cifras
 │   ├── fechas.py               fechas de acto administrativo
-│   ├── plantilla.py            relleno de .docx conservando formato
-│   └── resolucion.py           modelo y diccionario de etiquetas
+│   ├── genero_nombres.py       sugerencia de sexo por nombre
+│   └── plantilla.py            relleno de .docx conservando formato
+├── biblioteca/                 bloques base y los suyos
 ├── plantillas/                 sus plantillas maestras .docx
-└── tests/                      pruebas de la lógica (sin Streamlit)
+└── tests/                      140 pruebas, sin Streamlit
 ```
 
-La lógica no depende de Streamlit: `app.py` solo recoge datos y los pasa al
-paquete `curaduria`. Eso permite reutilizarla desde un script o un lote sin
-tocar la interfaz.
+La lógica no depende de Streamlit: `app.py` solo recoge datos y llama al
+paquete `curaduria`. Eso permite reutilizarla desde un script o un proceso por
+lotes sin tocar la interfaz.
 
 ## Pruebas
 
@@ -142,5 +244,5 @@ python -m pytest tests -q
 ## Datos y privacidad
 
 Todo corre en la máquina local: la app no envía datos a ningún servicio. Los
-documentos generados se entregan por el navegador y no se guardan en disco
-salvo que usted los descargue.
+documentos se entregan por el navegador y no se guardan en disco salvo que
+usted los descargue. Lo único que se escribe es su biblioteca de bloques.
