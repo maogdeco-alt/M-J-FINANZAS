@@ -1,8 +1,19 @@
 @echo off
 REM Arranca la app para toda la oficina, desde el equipo que hace de servidor.
 REM Los demas entran desde su navegador a http://IP-DE-ESTE-EQUIPO:8501
-
+setlocal
 cd /d "%~dp0"
+
+set PY=python
+%PY% -c "import sys" >nul 2>nul
+if errorlevel 1 set PY=py
+%PY% -c "import sys" >nul 2>nul
+if errorlevel 1 (
+  echo  ERROR: no encontre Python. Ejecute primero instalar.bat
+  pause
+  exit /b 1
+)
+
 echo.
 echo  Iniciando el Automatizador de Resoluciones en modo servidor...
 echo.
@@ -14,5 +25,5 @@ echo.
 echo  NO CIERRE ESTA VENTANA: si la cierra, la app deja de responder
 echo  para todos.
 echo.
-python -m streamlit run app.py --server.address 0.0.0.0
+%PY% -m streamlit run app.py --server.address 0.0.0.0
 pause
