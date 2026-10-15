@@ -36,6 +36,22 @@ RE_MATRICULA = re.compile(r"^\d{3}-\d{4,8}$")
 
 
 @dataclass
+class EstadoCampo:
+    """Un campo del formulario y si ya quedó listo."""
+
+    nombre: str
+    listo: bool
+    detalle: str = ""
+    critico: bool = True      # si no es crítico, se puede generar sin él
+
+    @property
+    def icono(self) -> str:
+        if self.listo:
+            return "✓"
+        return "✕" if self.critico else "○"
+
+
+@dataclass
 class Despacho:
     """La curaduría que expide el acto."""
 
@@ -104,14 +120,37 @@ class Inmueble:
     amenaza_riesgo: str = ""
 
 
+# Quién radica la solicitud. Puede o no ser el propietario, y de eso depende
+# toda la frase del considerando principal.
+RESPONSABLES = {
+    "titular": "El titular (propietario) radica directamente",
+    "apoderado": "Un apoderado con poder especial",
+    "representante": "El representante legal de una persona jurídica",
+}
+
+
 @dataclass
-class Apoderado:
+class Responsable:
+    """Quién radica: el propio titular, un apoderado o un representante."""
+
+    tipo: str = "titular"
     nombre: str = ""
     genero: str = "M"
     documento: str = ""
 
+    @property
+    def propio(self) -> bool:
+        """El titular radica por sí mismo: no hay datos extra que pedir."""
+        return self.tipo == "titular"
+
+    @property
+    def calidad(self) -> str:
+        return {"apoderado": "apoderado del trámite",
+                "representante": "representante legal"}.get(self.tipo, "")
+
     def frase(self) -> str:
-        if not self.nombre.strip():
+        """"el señor X, identificado con CC. No. N, en calidad de apoderado…"."""
+        if self.propio or not self.nombre.strip():
             return ""
         participio = "identificada" if self.genero == "F" else "identificado"
         articulo = "la" if self.genero == "F" else "el"
@@ -120,7 +159,14 @@ class Apoderado:
         texto = f"{articulo} {tratamiento} {self.nombre}"
         if documento:
             texto += f", {participio} con CC. No. {documento}"
-        return texto
+        calidad = self.calidad
+        if self.tipo == "representante":
+            calidad = f"representante legal {{de_titular}}"
+        return f"{texto}, en calidad de {calidad}"
+
+
+# Nombre anterior, para no romper código que ya lo usaba.
+Apoderado = Responsable
 
 
 @dataclass
@@ -179,7 +225,7 @@ class Resolucion:
     solicitud: Solicitud = field(default_factory=Solicitud)
     despacho: Despacho = field(default_factory=Despacho)
     titulares: list[Titular] = field(default_factory=list)
-    apoderado: Apoderado = field(default_factory=Apoderado)
+    responsable: Responsable = field(default_factory=Responsable)
     inmueble: Inmueble = field(default_factory=Inmueble)
     profesionales: list[Profesional] = field(default_factory=list)
     actuaciones: Actuaciones = field(default_factory=Actuaciones)
@@ -204,13 +250,29 @@ class Resolucion:
         return Concordancia(self.titulares)
 
     def frase_solicitante(self) -> str:
-        """Quién solicita: el apoderado si lo hay, o los titulares."""
+        """Quién radica la solicitud, con su calidad.
+
+        Si radica el propio titular, se nombra a los titulares con su calidad;
+        si radica un apoderado o un representante legal, se nombra a esa
+        persona y se deja constancia de a quién representa.
+        """
         concordancia = self.concordancia
-        if self.apoderado.nombre.strip():
-            return (f"{self.apoderado.frase()} en calidad de apoderado del "
-                    f"trámite")
-        return f"{concordancia.identificacion_completa()}, " \
-               f"{concordancia.frase_calidad()}"
+        propios = (f"{concordancia.identificacion_completa()}, "
+                   f"{concordancia.frase_calidad()}")
+        if self.responsable.propio or not self.responsable.nombre.strip():
+            return propios
+        frase = self.responsable.frase()
+        if self.responsable.tipo == "representante":
+            frase = frase.replace("{de_titular}",
+                                  f"de {concordancia.nombres()}")
+        return frase
+
+    def frase_responsable_sola(self) -> str:
+        """El responsable sin la mención de a quién representa."""
+        frase = self.responsable.frase()
+        if not frase:
+            return ""
+        return frase.replace(" {de_titular}", "").replace("{de_titular}", "")
 
     # --- Validación -------------------------------------------------------
 
@@ -235,6 +297,21 @@ class Resolucion:
                       if t.numero_documento.strip()]
         for doc in sorted({d for d in documentos if documentos.count(d) > 1}):
             problemas.append(f"El documento {doc} está repetido entre los titulares.")
+
+        if not self.responsable.propio:
+            if not self.responsable.nombre.strip():
+                problemas.append(
+                    f"Indicó que radica {self.responsable.calidad}, pero falta "
+                    "su nombre.")
+            if not self.responsable.documento.strip():
+                problemas.append(
+                    f"Falta el documento de quien radica "
+                    f"({self.responsable.nombre or 'sin nombre'}).")
+        if self.responsable.tipo == "representante" and not any(
+                t.es_juridica for t in self.titulares):
+            problemas.append(
+                "Indicó representante legal, pero ningún titular es persona "
+                "jurídica (NIT).")
 
         problemas.extend(self.solicitud.errores())
 
@@ -292,13 +369,6 @@ class Resolucion:
             if profesional.nombre.strip() and not profesional.matricula.strip():
                 problemas.append(
                     f"{profesional.nombre} no tiene matrícula profesional.")
-        if (self.solicitud.tramite_id == "construccion"
-                and self.sentido == "otorgar"):
-            roles = {p.rol for p in self.profesionales if p.nombre.strip()}
-            for rol, nombre in (("proyectista", "proyectista arquitectónico"),
-                                ("constructor", "constructor responsable")):
-                if rol not in roles:
-                    problemas.append(f"Falta el {nombre}.")
         return problemas
 
     def advertencias(self) -> list[str]:
@@ -317,8 +387,19 @@ class Resolucion:
             avisos.append(
                 "Predio con condición de amenaza o riesgo: recuerde el bloque "
                 "del estudio geológico.")
-        if not self.actuaciones.idu_certificado and self.sentido == "otorgar":
-            avisos.append("Sin certificado IDU registrado.")
+        if (self.solicitud.tramite_id == "construccion"
+                and self.sentido == "otorgar"):
+            roles = {p.rol for p in self.profesionales if p.nombre.strip()}
+            faltan = [nombre for rol, nombre in
+                      (("proyectista", "proyectista arquitectónico"),
+                       ("constructor", "constructor responsable"))
+                      if rol not in roles]
+            if faltan:
+                avisos.append(
+                    "Sin " + unir_con_y(faltan) + ": el artículo resolutivo "
+                    "los menciona, así que saldrán con raya para completarlos "
+                    "en Word. Si los registra, el título y el participio "
+                    "concuerdan solos.")
         if not self.expediente:
             avisos.append(
                 "Sin número de expediente: indique el consecutivo para que se "
@@ -365,9 +446,13 @@ class Resolucion:
             "identificacion": concordancia.identificacion_completa(),
             "calidad": concordancia.frase_calidad(),
             "cantidad_titulares": entero_a_letras(len(self.titulares)),
-            "apoderado_nombre": self.apoderado.nombre,
-            "apoderado_documento": formato_documento(self.apoderado.documento),
-            "apoderado_identificacion": self.apoderado.frase(),
+            "responsable_tipo": RESPONSABLES.get(self.responsable.tipo, ""),
+            "responsable_nombre": self.responsable.nombre,
+            "responsable_calidad": self.responsable.calidad,
+            "apoderado_nombre": self.responsable.nombre,
+            "apoderado_documento": formato_documento(
+                self.responsable.documento),
+            "apoderado_identificacion": self.frase_responsable_sola(),
             "solicitante_frase": self.frase_solicitante(),
 
             # Predio
@@ -453,6 +538,135 @@ class Resolucion:
         datos.update(etiquetas_profesionales(self.profesionales))
         datos.update({k: v for k, v in self.extras.items() if k})
         return datos
+
+    # --- Avance del formulario -------------------------------------------
+
+    def estado_campos(self) -> list["EstadoCampo"]:
+        """Los campos del Nivel 1, uno por uno, con su estado.
+
+        Es lo que alimenta el indicador de avance: la sustanciadora ve en todo
+        momento qué le falta, sin tener que llegar al final para descubrirlo.
+        Los campos que el trámite no necesita no se cuentan.
+        """
+        inmueble = self.inmueble
+        solicitud = self.solicitud
+        tramite = solicitud.tramite
+        modalidades = set(solicitud.modalidades_ids)
+
+        campos: list[EstadoCampo] = [
+            EstadoCampo("Tipo de trámite", bool(tramite.nombre),
+                        tramite.nombre),
+        ]
+
+        if tramite.modalidades:
+            campos.append(EstadoCampo(
+                "Modalidad", bool(solicitud.modalidades_ids),
+                solicitud.frase_modalidades() or "sin elegir"))
+
+        campos += [
+            EstadoCampo("Destinación / uso", bool(solicitud.usos_ids),
+                        solicitud.frase_usos() or "sin elegir"),
+            EstadoCampo("Resolución y fecha",
+                        bool(self.numero.strip()) and self.fecha is not None,
+                        self.numero or "sin número"),
+            EstadoCampo("Radicado y fecha",
+                        bool(self.radicado.strip())
+                        and self.fecha_radicado is not None,
+                        self.radicado or "sin radicado"),
+            EstadoCampo("Expediente", bool(self.expediente),
+                        self.expediente or "falta el consecutivo"),
+            EstadoCampo("Titulares", self._titulares_completos(),
+                        self._detalle_titulares()),
+            EstadoCampo("Quién radica", self._responsable_completo(),
+                        self._detalle_responsable()),
+        ]
+
+        if tramite.requiere_predio:
+            campos += [
+                EstadoCampo("Matrícula inmobiliaria",
+                            bool(inmueble.matricula_inmobiliaria.strip()),
+                            inmueble.matricula_inmobiliaria or "sin matrícula"),
+                EstadoCampo("Ficha catastral",
+                            bool(inmueble.ficha_catastral.strip()),
+                            inmueble.ficha_catastral or "sin ficha",
+                            critico=False),
+                EstadoCampo("Dirección", bool(inmueble.direccion.strip()),
+                            inmueble.direccion or "sin dirección"),
+            ]
+
+        if tramite.id in ("construccion", "reconocimiento"):
+            campos.append(EstadoCampo(
+                "Pisos y cubierta", bool(inmueble.pisos),
+                f"{inmueble.pisos} piso(s), cubierta en {inmueble.cubierta}"
+                if inmueble.pisos else "sin pisos"))
+
+        # Áreas: solo las que la modalidad elegida exige.
+        if modalidades & {"obra_nueva", "ampliacion", "adecuacion",
+                          "modificacion"} or tramite.id == "reconocimiento":
+            campos.append(EstadoCampo(
+                "Área del lote y construida",
+                bool(inmueble.area_lote) and bool(inmueble.area_construida),
+                f"lote {formato_cifra(inmueble.area_lote)} m² · construida "
+                f"{formato_cifra(inmueble.area_construida)} m²"))
+        if modalidades & {"demolicion_total", "demolicion_parcial"}:
+            campos.append(EstadoCampo(
+                "Área a demoler", bool(inmueble.area_demoler),
+                f"{formato_cifra(inmueble.area_demoler)} m²"
+                if inmueble.area_demoler else "sin área"))
+
+        # Condicionales: solo cuando el caso los pide.
+        if modalidades & {"obra_nueva", "ampliacion"}:
+            campos.append(EstadoCampo(
+                "Índices (permitido y propuesto)",
+                bool(inmueble.indice_ocupacion_permitido.strip())
+                and bool(inmueble.indice_ocupacion_propuesto.strip()),
+                "ocupación "
+                f"{inmueble.indice_ocupacion_propuesto or '—'} de "
+                f"{inmueble.indice_ocupacion_permitido or '—'}",
+                critico=False))
+        if solicitud.vivienda_interes:
+            campos.append(EstadoCampo(
+                f"Estrato (proyecto {solicitud.vivienda_interes})",
+                bool(str(inmueble.estrato).strip()),
+                str(inmueble.estrato) or "sin estrato", critico=False))
+
+        return campos
+
+    def _titulares_completos(self) -> bool:
+        return bool(self.titulares) and all(
+            t.nombre.strip() and t.numero_documento.strip()
+            for t in self.titulares)
+
+    def _detalle_titulares(self) -> str:
+        if not self.titulares:
+            return "sin titulares"
+        incompletos = [t for t in self.titulares
+                       if not t.nombre.strip() or not t.numero_documento.strip()]
+        if incompletos:
+            return f"{len(incompletos)} sin completar"
+        concordancia = self.concordancia
+        return (f"{len(self.titulares)}: "
+                f"{concordancia.palabra('articulo')} "
+                f"{concordancia.palabra('propietario')}")
+
+    def _responsable_completo(self) -> bool:
+        if self.responsable.propio:
+            return self._titulares_completos()
+        return bool(self.responsable.nombre.strip()
+                    and self.responsable.documento.strip())
+
+    def _detalle_responsable(self) -> str:
+        if self.responsable.propio:
+            return "el propio titular"
+        if not self.responsable.nombre.strip():
+            return f"falta el {self.responsable.calidad}"
+        return f"{self.responsable.nombre} ({self.responsable.calidad})"
+
+    @property
+    def avance(self) -> tuple[int, int]:
+        """(campos listos, campos en total) del Nivel 1."""
+        campos = self.estado_campos()
+        return sum(1 for c in campos if c.listo), len(campos)
 
     # --- Hoja de datos ----------------------------------------------------
 

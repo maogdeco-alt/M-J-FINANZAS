@@ -110,21 +110,79 @@ Las cinco pestañas siguen el orden de trabajo:
 
 | Pestaña | Para qué |
 |---|---|
-| **1 · Hoja de datos** | El cuadro: acto, trámite, titulares, predio, profesionales, actuaciones. |
+| **1 · Datos de la resolución** | Los datos generales, con indicador de avance y corrección en vivo. |
 | **2 · Bloques de texto** | Qué párrafos lleva *esta* resolución. El catálogo viene filtrado por trámite y marca los obligatorios. |
 | **3 · Generar** | Revisión, validaciones y descarga del `.docx` (y de la hoja de datos por separado). |
 | **4 · Biblioteca** | Crear, editar y retirar bloques. Lo suyo queda guardado. |
-| **5 · Etiquetas** | Todas las etiquetas con su valor actual, para armar o corregir la plantilla. |
+| **5 · Configuración** | Los datos del despacho. Se llenan una vez y no se vuelven a digitar. |
+| **6 · Etiquetas** | Todas las etiquetas con su valor actual, para armar o corregir la plantilla. |
 
 En la barra lateral van los datos del despacho (que no cambian entre
 resoluciones), la plantilla y el modo de armado.
 
-El orden de la pestaña 1 sigue la lectura de la propia resolución: primero el
-acto y el trámite, luego quién lo pide, dónde está el predio, quién lo
-diseñó, y por último qué pasó en el trámite (oficios, autos, planos). Así la
-información genérica fija —matrícula inmobiliaria, ficha catastral, cédulas,
-expediente— se digita una sola vez al principio y de ahí la toma todo el
-documento.
+## Qué datos se piden (y qué no)
+
+El formulario pide solo los datos **generales** de los que se deriva el resto
+del documento. Un dato que aparece una o dos veces en el acto se escribe más
+rápido en Word que en un formulario, así que no se pide: sale en el cuadro con
+una raya.
+
+### Nivel 0 — Se llenan una vez en la vida (pestaña 5)
+
+Curaduría, municipio, departamento, código DANE, quién firma, su tratamiento,
+quién sustancia y sus iniciales. En la plantilla modelo estos datos aparecen
+cerca de **cincuenta veces**; quedan guardados en `configuracion.json` y no se
+vuelven a digitar.
+
+### Nivel 1 — Lo que se llena por resolución (pestaña 1)
+
+| Dato | Qué deriva la app sola |
+|---|---|
+| Tipo de trámite | Nombre del acto y qué bloques aplican |
+| Modalidad(es) | "en las modalidades de… y…", y qué áreas pedir |
+| Destinación / uso | Detecta VIS/VIP y activa esos bloques |
+| Resolución y fecha | La fecha en letras y el nombre del archivo |
+| Radicado y fecha | Cuatro formatos de fecha a partir de uno |
+| Consecutivo | El expediente completo: `73001-2-26-0054` |
+| Titulares (nombre, sexo, documento) | **Toda la concordancia** del documento |
+| Quién radica | La frase completa del considerando principal |
+| Matrícula inmobiliaria | |
+| Ficha catastral | |
+| Dirección | |
+| Pisos, cubierta y áreas | Las áreas en letras y en cifra |
+
+**El formulario se encoge según el trámite.** Un concepto de uso del suelo no
+pide pisos ni índices; una demolición pide el área a demoler; los índices solo
+aparecen en obra nueva o ampliación; el estrato, solo si el proyecto es
+VIS o VIP.
+
+Arriba del formulario hay un indicador de **cuántos datos van listos** y
+cuáles faltan, para no descubrirlo al final.
+
+### Fuera del formulario
+
+Oficios, autos, certificado IDU, factura, escritura, notaría, anotación del
+folio, cantidad de planos y los profesionales. Están en *Datos adicionales
+(opcionales)* por si se quieren aprovechar, pero lo que quede vacío sale en el
+cuadro con raya para completarlo en Word.
+
+## Corrección en vivo
+
+Los campos se corrigen solos al salir de ellos, y debajo dicen qué pasó:
+
+| Se escribe | Queda |
+|---|---|
+| `350250605` | `350-250605` |
+| `010910140013000` | `01-09-1014-0013-000` |
+| `maría gómez de rojas` | `MARÍA GÓMEZ DE ROJAS` |
+| `79351573` | `79.351.573` |
+| `cra 2 sur no 28-57` | `Carrera 2 Sur No. 28-57` |
+| `2.600.789` | `2600789` |
+| `54` (consecutivo) | `0054` |
+
+Y avisa sin bloquear cuando algo se ve incompleto: una matrícula de cinco
+dígitos, una ficha a la que le faltan siete, un NIT sin dígito de
+verificación, un nombre sin apellido.
 
 ## Los tres modos de armado
 
@@ -279,19 +337,20 @@ Bloquean la generación:
 
 - Número y fecha de la resolución, y nombre de quien firma.
 - Al menos un titular, con nombre y documento; sin documentos repetidos.
+- Nombre y documento de quien radica, si no es el propio titular; y que haya
+  una persona jurídica si se indicó representante legal.
 - Matrícula inmobiliaria con la forma `350-123456` y ficha catastral
   `01-09-1014-0013-000`.
 - Modalidad indicada cuando el trámite la exige, sin combinaciones inválidas.
 - Área a demoler si hay demolición total; área construida si hay obra nueva.
 - Índice propuesto que no supere el permitido.
-- Profesional sin matrícula; falta de proyectista o constructor en una
-  licencia de construcción que se otorga.
+- Profesional sin matrícula.
 - Radicado posterior a la resolución, o legal y debida forma anterior al
   radicado.
 
 Avisan sin bloquear: titulares de distinto sexo, proyecto VIS/VIP sin estrato,
-predio con amenaza o riesgo, falta del certificado IDU, expediente sin
-consecutivo.
+predio con amenaza o riesgo, expediente sin consecutivo, y la falta del
+proyectista o del constructor (que son opcionales: salen con raya).
 
 ## Arquitectura
 
@@ -307,6 +366,8 @@ curaduria/
 ├── app.py                      formulario Streamlit (solo UI)
 ├── crear_plantilla_ejemplo.py  genera la plantilla con anclas
 ├── curaduria/
+│   ├── configuracion.py        Nivel 0: los datos del despacho
+│   ├── formato.py              normalización y avisos de los campos
 │   ├── catalogo.py             trámites, modalidades y usos (Decreto 1077)
 │   ├── bloques.py              biblioteca de párrafos y su persistencia
 │   ├── armado.py               hoja de datos e inserción en el Word
@@ -320,7 +381,7 @@ curaduria/
 │   └── plantilla.py            relleno de .docx conservando formato
 ├── biblioteca/                 bloques base y los suyos
 ├── plantillas/                 sus plantillas maestras .docx
-└── tests/                      156 pruebas, sin Streamlit
+└── tests/                      212 pruebas, sin Streamlit
 ```
 
 La lógica no depende de Streamlit: `app.py` solo recoge datos y llama al

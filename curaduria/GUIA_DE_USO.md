@@ -66,38 +66,45 @@ apaga. Minimícela.
 Para cerrar la app al final del día: cierre esa ventana, o presione
 `Ctrl + C` dentro de ella.
 
-### Paso 6. Llenar los datos del despacho (una vez)
+### Paso 6. Llenar la configuración del despacho (una sola vez en la vida)
 
-En la **barra lateral izquierda**, llene lo que no cambia entre resoluciones:
-curaduría, municipio, departamento, código DANE, nombre de quien firma,
-tratamiento (Curadora / Curador), si está en provisionalidad, nombre de la
-sustanciadora y sus iniciales.
+Vaya a la pestaña **5 · Configuración** y llene lo que no cambia entre
+resoluciones: curaduría, municipio, departamento, código DANE, nombre de quien
+firma, tratamiento (Curadora / Curador), si está en provisionalidad, nombre de
+la sustanciadora y sus iniciales. Clic en **Guardar configuración**.
 
-> Estos datos se vuelven a escribir cada vez que se arranca la app. Si quiere
-> dejarlos fijos para siempre, dígalo y se precargan en el código: es un
-> cambio de dos minutos.
+Estos datos aparecen cerca de cincuenta veces en una resolución. **No hay que
+volver a escribirlos nunca**: quedan en `configuracion.json` y la app los carga
+al arrancar. Si la curadora cambia, se corrigen aquí y listo.
 
-### Paso 7. Pestaña 1 · Hoja de datos
+### Paso 7. Pestaña 1 · Datos de la resolución
 
-Llene el cuadro en el orden en que viene, que es el orden en que se lee el
-expediente:
+Arriba hay una barra que dice **cuántos datos van listos y cuáles faltan**. No
+hay que adivinar: se llena de arriba abajo y la barra avanza.
 
-1. **Acto** — número de resolución, fechas, radicado y el *consecutivo del
-   expediente*. El número completo (`73001-2-26-0054`) se arma solo con el
-   código DANE, la curaduría, el año del radicado y ese consecutivo.
-2. **Trámite** — grupo, trámite, modalidades (en construcción se pueden
-   marcar varias) y destinación.
-3. **Vigencia y cierre** — meses de vigencia y prórroga, y a quién se
-   notifica.
-4. **Titulares** — una fila por persona. El botón *Sugerir sexo por nombre*
-   lo propone; **verifíquelo siempre**. Con dos o más titulares todo el texto
-   pasa a plural solo.
-5. **Predio** — dirección, matrícula, ficha catastral, estrato, áreas, pisos,
-   índices.
-6. **Profesionales** — una fila por profesional, con su rol. El título y el
-   participio concuerdan solos: *"la Arquitecta … identificada con"*.
-7. **Actuaciones** (desplegable) — oficios, autos, IDU, factura, cantidad de
-   planos. Lo que no tenga, déjelo vacío.
+1. **Qué se solicita** — grupo, trámite, modalidades (en construcción se
+   pueden combinar) y destinación. Si elige un uso VIS o VIP, la app lo avisa
+   y activa esos bloques.
+2. **Identificación del acto** — número y fecha de la resolución, radicado y
+   su fecha, y el *consecutivo del expediente*. El número completo
+   (`73001-2-26-0054`) se arma solo.
+3. **Titulares y quién radica** — una fila por persona. El botón *Sugerir sexo
+   por el nombre* lo propone; **verifíquelo siempre**. Con dos o más titulares
+   todo el texto pasa a plural solo. Debajo, *¿quién radica la solicitud?*:
+   el propio titular, un apoderado o el representante legal — y solo entonces
+   se piden sus datos.
+4. **Predio** — matrícula, ficha catastral, dirección y barrio.
+5. **El proyecto** — pisos, cubierta y **solo las áreas que la modalidad
+   elegida necesita**. Una demolición pide el área a demoler; una obra nueva,
+   los índices.
+6. **Datos adicionales (opcionales)** — profesionales, tratamiento
+   urbanístico, observaciones. Nada de esto es obligatorio: lo que deje vacío
+   sale en el cuadro con una raya para completarlo en Word.
+
+**Los campos se corrigen solos.** Escriba la matrícula sin guion
+(`350250605`) y queda `350-250605`; escriba un nombre en minúscula y queda en
+mayúscula; la cédula queda con puntos de miles. Si algo se ve incompleto, lo
+avisa debajo del campo sin bloquear nada.
 
 ### Paso 8. Pestaña 2 · Bloques de texto
 

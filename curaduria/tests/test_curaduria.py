@@ -296,10 +296,12 @@ def test_error_profesional_sin_matricula():
     assert any("matrícula profesional" in e for e in r.errores())
 
 
-def test_error_falta_constructor():
+def test_falta_constructor_avisa_pero_no_bloquea():
+    """Los profesionales son opcionales: se pueden escribir en Word."""
     r = _resolucion_valida()
     r.profesionales = [p for p in r.profesionales if p.rol != "constructor"]
-    assert any("constructor responsable" in e for e in r.errores())
+    assert r.errores() == []
+    assert any("constructor responsable" in a for a in r.advertencias())
 
 
 def test_advertencia_titulares_mixtos():
@@ -362,13 +364,40 @@ def test_etiquetas_de_profesionales_concuerdan():
 
 
 def test_frase_solicitante_con_apoderado():
-    from curaduria.resolucion import Apoderado
+    from curaduria.resolucion import Responsable
     r = _resolucion_valida()
-    r.apoderado = Apoderado("JUAN PABLO VARGAS", "M", "1110454615")
+    r.responsable = Responsable("apoderado", "JUAN PABLO VARGAS", "M",
+                                "1110454615")
     frase = r.frase_solicitante()
     assert frase.startswith("el señor JUAN PABLO VARGAS, identificado con CC. "
                             "No. 1.110.454.615")
     assert frase.endswith("en calidad de apoderado del trámite")
+    assert r.errores() == []
+
+
+def test_frase_solicitante_con_representante_legal():
+    from curaduria.resolucion import Responsable
+    r = _resolucion_valida()
+    r.titulares = [Titular("CONSTRUCTORA XYZ S.A.S.", "M", "NIT",
+                           "900123456-1")]
+    r.responsable = Responsable("representante", "ANA RUIZ", "F", "41000001")
+    frase = r.frase_solicitante()
+    assert "en calidad de representante legal de CONSTRUCTORA XYZ S.A.S." in frase
+    assert r.errores() == []
+
+
+def test_representante_sin_persona_juridica_es_error():
+    from curaduria.resolucion import Responsable
+    r = _resolucion_valida()
+    r.responsable = Responsable("representante", "ANA RUIZ", "F", "41000001")
+    assert any("persona jurídica" in e for e in r.errores())
+
+
+def test_responsable_sin_documento_es_error():
+    from curaduria.resolucion import Responsable
+    r = _resolucion_valida()
+    r.responsable = Responsable("apoderado", "JUAN VARGAS", "M", "")
+    assert any("Falta el documento de quien radica" in e for e in r.errores())
 
 
 def test_frase_solicitante_sin_apoderado():
@@ -426,3 +455,87 @@ def test_plantilla_maestra_se_rellena_completa(tmp_path):
     assert "73001-2-26-0054" in texto
     assert "Licencia de CONSTRUCCIÓN en la modalidad de OBRA NUEVA" in texto
     assert "Curaduría Urbana No. 2 de Ibagué" in texto
+
+
+# --- Avance del formulario (Nivel 1) --------------------------------------
+
+def test_el_formulario_se_encoge_segun_el_tramite():
+    from curaduria.catalogo import Solicitud
+
+    construccion = _resolucion_valida()
+    construccion.solicitud = Solicitud("construccion", ["obra_nueva"],
+                                       ["vivienda_unifamiliar"])
+    concepto = Resolucion(solicitud=Solicitud("concepto_uso"))
+    assert len(concepto.estado_campos()) < len(construccion.estado_campos())
+    nombres = {c.nombre for c in concepto.estado_campos()}
+    assert "Pisos y cubierta" not in nombres
+
+
+def test_la_demolicion_pide_el_area_a_demoler():
+    from curaduria.catalogo import Solicitud
+
+    r = _resolucion_valida()
+    r.solicitud = Solicitud("construccion", ["demolicion_total"])
+    assert "Área a demoler" in {c.nombre for c in r.estado_campos()}
+    r.solicitud = Solicitud("construccion", ["cerramiento"])
+    assert "Área a demoler" not in {c.nombre for c in r.estado_campos()}
+
+
+def test_los_indices_solo_en_obra_nueva_o_ampliacion():
+    from curaduria.catalogo import Solicitud
+
+    r = _resolucion_valida()
+    r.solicitud = Solicitud("construccion", ["obra_nueva"])
+    assert any("Índices" in c.nombre for c in r.estado_campos())
+    r.solicitud = Solicitud("construccion", ["demolicion_total"])
+    assert not any("Índices" in c.nombre for c in r.estado_campos())
+
+
+def test_el_estrato_aparece_solo_en_vis_o_vip():
+    from curaduria.catalogo import Solicitud
+
+    r = _resolucion_valida()
+    assert not any("Estrato" in c.nombre for c in r.estado_campos())
+    r.solicitud = Solicitud("construccion", ["obra_nueva"], ["vip"])
+    assert any("Estrato (proyecto VIP)" in c.nombre for c in r.estado_campos())
+
+
+def test_avance_cuenta_los_campos_listos():
+    r = _resolucion_valida()
+    listos, total = r.avance
+    assert 0 < listos <= total
+    r.numero = ""
+    menos, _ = r.avance
+    assert menos < listos
+
+
+def test_el_detalle_de_titulares_dice_la_concordancia():
+    r = _resolucion_valida()
+    campo = next(c for c in r.estado_campos() if c.nombre == "Titulares")
+    assert campo.detalle == "1: la propietaria"
+    r.titulares.append(Titular("JUAN PÉREZ", "M", "CC", "79000000"))
+    campo = next(c for c in r.estado_campos() if c.nombre == "Titulares")
+    assert campo.detalle == "2: los propietarios"
+
+
+def test_quien_radica_el_propio_titular():
+    r = _resolucion_valida()
+    campo = next(c for c in r.estado_campos() if c.nombre == "Quién radica")
+    assert campo.listo and campo.detalle == "el propio titular"
+
+
+def test_quien_radica_apoderado_incompleto():
+    from curaduria.resolucion import Responsable
+
+    r = _resolucion_valida()
+    r.responsable = Responsable("apoderado")
+    campo = next(c for c in r.estado_campos() if c.nombre == "Quién radica")
+    assert not campo.listo
+    assert "falta el apoderado" in campo.detalle
+
+
+def test_la_ficha_catastral_no_es_critica():
+    r = _resolucion_valida()
+    campo = next(c for c in r.estado_campos()
+                 if c.nombre == "Ficha catastral")
+    assert campo.critico is False
