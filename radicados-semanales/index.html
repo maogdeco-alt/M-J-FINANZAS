@@ -2917,7 +2917,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   var DEFAULT_SETTINGS = {
     required: {formato:true, comparendo:true, direccion:false, res:false, fechaRes:false, comentario:false},
     exemptFormato: "T6",
-    formatCategories: ["T1","T5","T6","T10","T11","T14","AGENDAMIENTO","DEVUELTO","PRORROGA","PRORROGA SDA"],
+    formatCategories: ["T1","T5","T6","T10","T11","T14","AGENDAMIENTO","DEVUELTO"],
     // Diccionario clasificación → plantilla, tomado de la fórmula TIPO de tu hoja MASIVA y completado
     // con DEVUELTO y AGENDAMIENTO (que la fórmula original no contemplaba). Editable en Ajustes.
     formatToPlantilla: {
@@ -2927,8 +2927,6 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       "T10": "PETICION OSCURA",
       "T11": "FOTO EXTEMPO CON RES Y ANEXOS",
       "T14": "T14",
-      "PRORROGA": "PRORROGA",
-      "PRORROGA SDA": "PRORROGA SDA",
       "DEVUELTO": "DEVUELTO",
       "AGENDAMIENTO": "AGENDAMIENTO"
     },
@@ -4429,12 +4427,27 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // ---------- ajustes: campos obligatorios + categorías + reglas imperativas ----------
   // Aplica los valores por defecto a un objeto de ajustes parcial/crudo (de localStorage o de la
   // nube) — mismo merge en los dos casos, para que un ajuste incompleto nunca deje campos sueltos.
+  // PRORROGA y PRORROGA SDA se ELIMINARON como clasificación el 04-11-2026, a pedido de la
+  // usuaria ("elimina totalmente porroga y porroga sda"). Quien ya las tenía en sus Ajustes
+  // guardados (navegador o nube) las seguiría viendo si solo se quitaran de los valores por
+  // defecto: por eso se filtran aquí, al leer cualquier Ajuste. Un radicado que ya estuviera
+  // clasificado así queda PENDIENTE ("no es una clasificación de la lista") hasta reclasificarlo.
+  // El historial ya archivado no se toca.
+  var CLASIFICACIONES_ELIMINADAS = ["PRORROGA", "PRORROGA SDA"];
+  function esClasificacionEliminada(c){
+    var n = String(c == null ? "" : c).toUpperCase().replace(/\s+/g, " ").trim();
+    return CLASIFICACIONES_ELIMINADAS.indexOf(n) >= 0;
+  }
   function mergeSettings(parsed){
-    return (parsed && Object.keys(parsed).length) ? Object.assign({}, DEFAULT_SETTINGS, parsed, {
+    var out = (parsed && Object.keys(parsed).length) ? Object.assign({}, DEFAULT_SETTINGS, parsed, {
       required: Object.assign({}, DEFAULT_SETTINGS.required, (parsed&&parsed.required)||{}),
-      formatCategories: (parsed && parsed.formatCategories && parsed.formatCategories.length) ? parsed.formatCategories : DEFAULT_SETTINGS.formatCategories.slice(),
+      formatCategories: (parsed && parsed.formatCategories && parsed.formatCategories.length) ? parsed.formatCategories.slice() : DEFAULT_SETTINGS.formatCategories.slice(),
       formatToPlantilla: Object.assign({}, DEFAULT_SETTINGS.formatToPlantilla, (parsed&&parsed.formatToPlantilla)||{})
     }) : JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+    out.formatCategories = (out.formatCategories || []).filter(function(c){ return !esClasificacionEliminada(c); });
+    if(!out.formatCategories.length) out.formatCategories = DEFAULT_SETTINGS.formatCategories.slice();
+    Object.keys(out.formatToPlantilla || {}).forEach(function(k){ if(esClasificacionEliminada(k)) delete out.formatToPlantilla[k]; });
+    return out;
   }
   // IMPORTANTE: los Ajustes (alias, cédula, ciudad, categorías...) se guardan bajo una llave
   // separada POR CUENTA (settingsKeyFor), igual que los radicados y el historial — nunca bajo la
@@ -5026,9 +5039,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   document.getElementById("settingsSave").addEventListener("click", function(){
     syncCategoryDraftFromInputs();
     syncPlantillaDraftFromInputs();
-    var cleanCats = categoryDraft.filter(function(c,i){ return c && categoryDraft.indexOf(c)===i; });
+    var cleanCats = categoryDraft.filter(function(c,i){ return c && categoryDraft.indexOf(c)===i && !esClasificacionEliminada(c); });
     var dict = {};
-    plantillaDraft.forEach(function(p){ if(p.code && p.text) dict[p.code] = p.text; });
+    plantillaDraft.forEach(function(p){ if(p.code && p.text && !esClasificacionEliminada(p.code)) dict[p.code] = p.text; });
     var next = {
       required:{},
       exemptFormato: document.getElementById("exemptFormatoInput").value.trim().toUpperCase(),
@@ -9884,7 +9897,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se sube a mano en cada publicación. No se calcula solo a propósito: si se generara con la fecha
   // del navegador diría siempre "hoy" y no distinguiría una versión de otra, que es justo para lo
   // que sirve.
-  var VERSION_APP = "2026-11-04 · rediseño simple: PENDIENTE / LISTO, inicio sin clave";
+  var VERSION_APP = "2026-11-04 · rediseño simple: PENDIENTE / LISTO, inicio sin clave, sin PRORROGA";
   var TIPO_REGLA_TEXTO = {
     estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
     imperativa:  "Imperativa — la app avisa y hay que resolverlo",

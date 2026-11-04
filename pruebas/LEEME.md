@@ -64,6 +64,7 @@ No se edita nunca `pruebas/sitio/index_test.html` a mano: es un archivo generado
 | `t40_inicio_sin_clave.py` | Página de inicio **sin clave** después de la primera vez; la flotante entra sola; y con `mock.py` en modo rotación (como Supabase: cada renovación gasta el token y reusarlo anula la sesión), que las dos ventanas renueven sin anular nada. En la versión del 11-10 la segunda renovación anulaba la sesión y la flotante quedaba «sin conexión al servidor». |
 | `t41_pendiente_o_listo.py` | PENDIENTE / LISTO de punta a punta: no avanza mientras falte algo y dice qué, casilla en rojo, «Dejar pendiente y seguir», «Anterior» sí deja volver, dominio de correo que se aprende una vez, ningún «¿es correcto?», y con todo LISTO descarga directo. |
 | `t42_flotante_al_dia.py` | La flotante igual de estricta que la principal, las dos al día entre sí **sin mensajes**, y el historial de una semana cerrada en la principal visible en la flotante sin recargar. |
+| `t43_sin_prorroga.py` | PRORROGA y PRORROGA SDA eliminadas: no aparecen en el desplegable ni en pantalla, tampoco con Ajustes viejos guardados; un radicado que las tenga queda PENDIENTE y frena la masiva; el historial archivado no se toca. |
 
 ## Reglas de la casa
 

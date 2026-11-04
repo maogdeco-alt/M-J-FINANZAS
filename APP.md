@@ -226,7 +226,7 @@ concreto**: si el dato cambia, vuelve a preguntar.
 ## 6. LAS CLASIFICACIONES
 
 ```
-T1, T5, T6, T10, T11, T14, AGENDAMIENTO, DEVUELTO, PRORROGA, PRORROGA SDA
+T1, T5, T6, T10, T11, T14, AGENDAMIENTO, DEVUELTO (PRORROGA y PRORROGA SDA eliminadas el 04-11-2026)
 ```
 
 - **T10** = petición oscura: va legítimamente sin comparendo y sin destinatario.
@@ -439,8 +439,12 @@ cada cosa»); el historial ahora también se sincroniza entre ventanas (antes la
 una semana cerrada en la principal hasta recargar, t42); los dominios aprendidos se juntan entre
 ventanas en vez de pisarse.
 
-**PRORROGA y PRORROGA SDA**: siguen con las reglas de siempre (comparendo, nombre y correo
-obligatorios; resolución opcional). Pendiente de confirmar con la usuaria.
+**PRORROGA y PRORROGA SDA: ELIMINADAS** (04-11-2026, pedido de la usuaria: "elimina totalmente
+porroga y porroga sda"). No están en los valores por defecto, y `mergeSettings` las filtra de
+cualquier Ajuste guardado (navegador o nube); el guardado de Ajustes tampoco deja volver a
+añadirlas. Un radicado que ya estuviera clasificado así queda PENDIENTE ("no es una clasificación
+de la lista") y no sale en la masiva hasta reclasificarlo. El historial archivado no se toca. Las
+"PRORROGA " del bloque de la mañana son categorías del sheet de Donina, otro dominio: no se tocan.
 
 Pruebas: t40 (inicio sin clave y sesión compartida con rotación de tokens en `mock.py`), t41
-(PENDIENTE/LISTO de punta a punta), t42 (la flotante al día).
+(PENDIENTE/LISTO de punta a punta), t42 (la flotante al día), t43 (sin PRORROGA).
