@@ -34,6 +34,8 @@ def a_mano(pag, i, formato, con_comparendo=True):
     if formato in ("T14", "T1"):
         B.escribir(pag, "#cc_res", "77%04d" % i); B.escribir(pag, "#cc_fechaRes", "26/07/2024")
     B.escribir(pag, "#cc_idNum", "ESCRITO A MANO %d" % i)
+    if formato == "AGENDAMIENTO":   # la plantilla la pide; sin ella el radicado queda PENDIENTE
+        pag.locator('#wrap_pruebas input[value="NO"]').check(); pag.wait_for_timeout(250)
     pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
 
 with sync_playwright() as pw:
@@ -53,9 +55,8 @@ with sync_playwright() as pw:
 
     # se recarga la página: lo escrito a mano tiene que seguir ahí, en su radicado
     pag.reload(wait_until="domcontentloaded")
-    pag.wait_for_selector("#loginEmail", timeout=20000)
-    pag.fill("#loginEmail", "prueba@gmail.com"); pag.fill("#loginPassword", "123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000); pag.wait_for_timeout(1200)
+    B.entrar_en(pag, "prueba@gmail.com")
+    pass; pag.wait_for_timeout(1200)
     guardado = {r.get("radicado"): r for r in pag.evaluate("()=>{const k=Object.keys(localStorage).find(k=>k.startsWith('radicados_semanales_v2::'));return JSON.parse(localStorage.getItem(k)||'[]')}")}
     for i, r in enumerate(RAD, 1):
         g = guardado.get(r, {})

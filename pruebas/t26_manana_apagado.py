@@ -39,8 +39,8 @@ with sync_playwright() as pw:
         .forEach(k=>localStorage.setItem(k,'manana'));
     }""")
     pag.reload(wait_until="domcontentloaded"); pag.wait_for_timeout(1200)
-    pag.fill("#loginEmail","prueba@gmail.com"); pag.fill("#loginPassword","123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(pag, "prueba@gmail.com")
+    pass
     pag.wait_for_timeout(1600)
     ok(not pag.locator("#bloqueManana").is_visible(),
        "con la preferencia vieja puesta en «manana», sigue sin abrirse")
@@ -54,8 +54,8 @@ with sync_playwright() as pw:
         catalogo:[],personas:[],sin:[{rad:'1',cl:'T14'}],ia:[],historial:[],actualizadoEn:123}));
     }""")
     pag.reload(wait_until="domcontentloaded"); pag.wait_for_timeout(1200)
-    pag.fill("#loginEmail","prueba@gmail.com"); pag.fill("#loginPassword","123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(pag, "prueba@gmail.com")
+    pass
     pag.wait_for_timeout(1800)
     guardado = pag.evaluate("()=>localStorage.getItem('radicados_manana_v1::prueba@gmail.com')")
     ok(guardado and "ALEJANDRA" in guardado and '"actualizadoEn":123' in guardado,
@@ -82,7 +82,7 @@ with sync_playwright() as pw:
     print("5) LAS VENTANAS Y BOTONES DE LA TARDE SIGUEN TODOS")
     for ident, nombre in (("#abrirDocumentosBtn","Documentos"), ("#agendaTriggerBtn","Agendamientos"),
                           ("#historialTriggerBtn","Historial"), ("#cerrarSemanaNavBtn","Cerrar semana"),
-                          ("#abrirImportarBtn","Importar"), ("#reglasBtn","Reglas")):
+                          ("#abrirImportarBtn","Importar")):  # Reglas se quitó de la vista el 04-11-2026
         ok(pag.locator(ident).is_visible(), "  sigue el botón de "+nombre)
 
     print("errores js:", err or "ninguno")

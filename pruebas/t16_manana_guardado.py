@@ -26,9 +26,8 @@ def entrar_flotante(ctx):
     f=ctx.new_page(); e=[]
     f.on("pageerror", lambda x: e.append(str(x)))
     f.goto(B.URL_MANANA+"#flotante=1", wait_until="domcontentloaded")
-    f.wait_for_selector("#loginEmail", timeout=20000)
-    f.fill("#loginEmail","prueba@gmail.com"); f.fill("#loginPassword","123456")
-    f.click("#loginBtn"); f.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(f, "prueba@gmail.com")
+    pass
     f.wait_for_timeout(1800)
     return f,e
 with sync_playwright() as pw:
@@ -57,9 +56,8 @@ with sync_playwright() as pw:
 
     print("3) al recargar, todo sigue ahí")
     pag.reload(wait_until="domcontentloaded")
-    pag.wait_for_selector("#loginEmail", timeout=20000)
-    pag.fill("#loginEmail","prueba@gmail.com"); pag.fill("#loginPassword","123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(pag, "prueba@gmail.com")
+    pass
     pag.wait_for_timeout(2000)
     ok(pag.locator("#bloqueManana").is_visible(), "abre directo en el bloque de la mañana (lo recuerda)")
     ok(pag.locator("#manCuentaSin").inner_text().endswith("/ 65"), "las 65 siguen → "+pag.locator("#manCuentaSin").inner_text())
@@ -81,9 +79,8 @@ with sync_playwright() as pw:
 
     print("5) lo que se hace en la flotante llega a la principal")
     pag.reload(wait_until="domcontentloaded")
-    pag.wait_for_selector("#loginEmail", timeout=20000)
-    pag.fill("#loginEmail","prueba@gmail.com"); pag.fill("#loginPassword","123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(pag, "prueba@gmail.com")
+    pass
     pag.wait_for_timeout(2200)
     pag.click('#manTabs button[data-mantab="ia"]'); pag.wait_for_timeout(500)
     pag.uncheck("#manSoloPendientes"); pag.wait_for_timeout(600)

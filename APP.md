@@ -82,8 +82,19 @@ verifica después de cada edición.**
 Todas llevan el correo: dos personas en el mismo computador nunca se mezclan. En Supabase, cada
 persona es una fila con las columnas `records`, `history`, `settings` y `manana`.
 
-La sesión (los tokens) vive **solo en memoria**, nunca en el navegador: al recargar hay que
-entrar de nuevo, a propósito.
+| `radicados_cuenta_v1` | la cuenta recordada: correo, nombre y la sesión de Supabase (desde el 04-11-2026) |
+
+**La sesión se recuerda** (desde el 04-11-2026, a pedido de la usuaria: la app es solo de ella).
+La primera vez se entra con correo y clave; después la app abre en una página de inicio que dice
+«Hola, …» y un botón **Entrar**, sin clave. La flotante entra sola con la misma cuenta.
+
+Las dos ventanas comparten **una sola** sesión guardada en `radicados_cuenta_v1`. Supabase cambia
+el *refresh token* cada vez que se usa y, si alguien vuelve a usar uno ya gastado, anula la sesión
+entera. Antes cada ventana tenía su copia en memoria: con las dos abiertas más de una hora, la
+segunda en renovar usaba un token gastado y la nube dejaba de sincronizar en las dos. Ahora quien
+renueva escribe la sesión nueva ahí, y la otra ventana la adopta antes de renovar (t40). Si aun así
+la nube rechaza la sesión, sale una franja «Conectar» que pide la clave una vez; lo trabajado sigue
+guardado en el navegador mientras tanto.
 
 ---
 
@@ -383,3 +394,53 @@ Lo completo está en `PROTOCOLO.md`. En corto:
 - Flotante: el desglose por formato y el enlace a informes quedan solo en la principal; contadores
   y botones en tamaño mínimo; casillas en 4 columnas. Las explicaciones fijas de cada casilla se
   ven al pasar el cursor.
+
+## 12. REDISEÑO SIMPLE (04-11-2026)
+
+Pedido de la usuaria: «si la información que ingreso no sirve, no es apta o no es clara, NO PUEDE
+SEGUIR DE LARGO la app y al final decirme que algo falta», «cuando le doy descargar a la masiva es
+OBLIGATORIO que la app ya haya estado segura», «quítale los usuarios», «página de inicio SIN clave».
+
+**PENDIENTE / LISTO.** Cada radicado está en uno de dos estados, calculados por `faltasDe(r)`:
+LISTO si no le falta nada, PENDIENTE si le falta algo. `faltasDe` junta en un solo sitio:
+
+- lo que exige su clasificación (fechas, nombre, correo, los datos del comparendo, resolución y su
+  fecha para los formatos de `formatosConResolucionObligatoria`, placa y pruebas en AGENDAMIENTO);
+- la resolución que no es solo el número (antes R29 solo avisaba; ahora frena);
+- un correo con dominio que no está en la lista: frena, con un botón «El dominio … está bien
+  escrito» que lo aprende una vez (`settings.dominiosAprendidos`, se junta entre ventanas);
+- todo hallazgo **grave** del motor de reglas, salvo los de repetidos de comparendo o resolución
+  (es normal que un ciudadano radique varias veces), que ya no frenan;
+- y una red final: la fila que de verdad saldría en el archivo (`recordToMasivaRow`). Si una
+  columna exigida saldría vacía (una fecha que no se entiende, por ejemplo), no está LISTO.
+
+**Al guardar** se pinta la caja «PENDIENTE. Para dejarlo LISTO falta:» con la lista, la casilla en
+rojo y el cursor en la primera. **Guardar y siguiente** no avanza mientras falte algo; si está LISTO
+salta al siguiente PENDIENTE. «Dejar pendiente y seguir» existe para cuando el dato llega después:
+el radicado queda en la cola marcado, nunca se pierde. Tocar un radicado en la cola siempre lleva a
+él, sin preguntas.
+
+**Descargar la masiva** (`generarMasivaFinal`): con un solo PENDIENTE no descarga, dice cuántos
+faltan y abre el primero. El botón ya muestra «faltan N» antes de tocarlo. Con todos LISTOS revisa
+el archivo mismo (I1, I2, I4, I5, I6, I7, I8 sobre las filas armadas) y descarga sin ventanas en
+medio. La plantilla de agendamientos exige igual que cada AGENDAMIENTO esté LISTO. Si la lista
+tiene radicados de dos semanas de asignación, una franja fija arriba lo dice desde que pasa, no al
+descargar, y la masiva no sale hasta arreglarlo.
+
+**Lo que se quitó** (escondido con `hidden data-quitado="04-11-2026"`, no borrado del código):
+la revisión previa y su diálogo, los avisos inmediatos al avanzar, las confirmaciones «es
+correcto», el aviso de reglas cambiadas al entrar, el cambio de usuario y la clave de Ajustes,
+«Revisar una masiva hecha fuera» (para eso está `verificador.html`), «Sacar solo un rango de
+fechas» (saltaba la revisión) y «Borrar todo». Los avisos de «la otra ventana guardó…» tampoco
+salen: la mezcla entre ventanas sigue igual, solo calla.
+
+**Flotante y almacenamiento** (auditados el mismo día): la sesión compartida (ver «Dónde se guarda
+cada cosa»); el historial ahora también se sincroniza entre ventanas (antes la flotante no veía
+una semana cerrada en la principal hasta recargar, t42); los dominios aprendidos se juntan entre
+ventanas en vez de pisarse.
+
+**PRORROGA y PRORROGA SDA**: siguen con las reglas de siempre (comparendo, nombre y correo
+obligatorios; resolución opcional). Pendiente de confirmar con la usuaria.
+
+Pruebas: t40 (inicio sin clave y sesión compartida con rotación de tokens en `mock.py`), t41
+(PENDIENTE/LISTO de punta a punta), t42 (la flotante al día).

@@ -5,7 +5,7 @@
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B
-BLOQUE="2026ER001\t01/09/2026\t03/09/2026\tPERSONA 1"
+BLOQUE="202670000000001\t01/09/2026\t03/09/2026\tPERSONA 1"
 fallos=[]
 def ok(c,m):
     print(("  OK  " if c else "  FALLA  ")+m)
@@ -15,7 +15,7 @@ with sync_playwright() as pw:
     B.entrar(pag); B.importar(pag,BLOQUE)
 
     print("1) DOBLE VERIFICACIÓN para cambiar una regla")
-    pag.click("#reglasBtn"); pag.wait_for_selector("#reglasDialog[open]"); pag.wait_for_timeout(600)
+    B.abrir_reglas(pag); pag.wait_for_selector("#reglasDialog[open]"); pag.wait_for_timeout(600)
     editar = pag.locator("button[data-regla-editar]").first
     ok(editar.count()>0, "hay reglas que se pueden ajustar")
     rid = editar.get_attribute("data-regla-editar")
@@ -54,12 +54,12 @@ with sync_playwright() as pw:
     pag.click("#abrirImportarBtn"); pag.wait_for_timeout(600)
     pag.click("#addOneBtn"); pag.wait_for_timeout(500)
     ok(pag.locator("#addOneDialog[open]").count()==1, "se abre la ventana")
-    pag.fill("#one_radicado","2026ER999"); pag.fill("#one_nombre","PERSONA A MANO")
+    pag.fill("#one_radicado","202670000000999"); pag.fill("#one_nombre","PERSONA A MANO")
     pag.click("#addOneConfirm"); pag.wait_for_timeout(800)
     pag.evaluate("()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close())"); pag.wait_for_timeout(400)
     pag.evaluate("()=>{const b=document.querySelector('#filterTabs button[data-filter=\"all\"]'); if(b) b.click();}")
     pag.wait_for_timeout(400)
-    ok(pag.locator('#queuePanel .queue-item', has_text="2026ER999").count()>0, "y el radicado entra a la cola")
+    ok(pag.locator('#queuePanel .queue-item', has_text="202670000000999").count()>0, "y el radicado entra a la cola")
 
     print("3) calculadora de término")
     if pag.locator("#termCalcBtn").count():

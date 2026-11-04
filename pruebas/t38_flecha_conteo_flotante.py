@@ -21,9 +21,9 @@ with sync_playwright() as pw:
 
     flo = ctx.new_page(); flo.set_viewport_size({"width": 620, "height": 540}); err2 = []
     flo.on("pageerror", lambda e: err2.append(str(e)))
-    flo.goto(B.URL + "#flotante=1", wait_until="domcontentloaded"); flo.wait_for_selector("#loginEmail", timeout=20000)
-    flo.fill("#loginEmail", "prueba@gmail.com"); flo.fill("#loginPassword", "123456")
-    flo.click("#loginBtn"); flo.wait_for_selector("#authDialog", state="hidden", timeout=20000); flo.wait_for_timeout(1500)
+    flo.goto(B.URL + "#flotante=1", wait_until="domcontentloaded")
+    B.entrar_en(flo, "prueba@gmail.com")
+    pass; flo.wait_for_timeout(1500)
     ok(not flo.locator("#openInformesLink").is_visible(), "en la flotante la franja arranca oculta")
     ok(flo.locator("#navsubToggle").is_visible(), "en la flotante hay una flecha para desplegarla")
     if flo.locator("#navsubToggle").is_visible():

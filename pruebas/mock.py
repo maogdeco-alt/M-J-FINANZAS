@@ -65,6 +65,33 @@ class H(BaseHTTPRequestHandler):
         self.send_header("Content-Length","0"); self.end_headers()
     def do_POST(self):
         p, b = self.path, self._body()
+        # MODO ROTACIÓN (04-11-2026, t40): como Supabase de verdad, cada renovación entrega un
+        # refresh_token nuevo y gasta el anterior; si alguien usa uno ya gastado, se ANULA la sesión
+        # entera. Solo se enciende con POST /__rotacion, para no cambiar las demás pruebas.
+        if p.startswith("/__rotacion"):
+            with LOCK: DB["rot"] = {"n": 0, "acc": set(), "ref": set(), "anulada": False, "usuario": None}
+            return self._send(200, {"ok": True})
+        if p.startswith("/__expirar"):
+            with LOCK:
+                if DB.get("rot"): DB["rot"]["acc"].clear()
+            return self._send(200, {"ok": True})
+        if DB.get("rot") and "/auth/v1/token" in p:
+            rot = DB["rot"]
+            with LOCK:
+                if "grant_type=refresh_token" in p:
+                    t = b.get("refresh_token")
+                    if rot["anulada"] or t not in rot["ref"]:
+                        rot["anulada"] = True; rot["acc"].clear(); rot["ref"].clear()
+                        rot.setdefault("reusos", 0); rot["reusos"] += 1
+                        return self._send(400, {"error":"invalid_grant","error_description":"Invalid Refresh Token: Already Used"})
+                    rot["ref"].discard(t); usuario = rot["usuario"]
+                else:
+                    correo = b.get("email","a@gmail.com")
+                    usuario = {"id":uid_de(correo),"email":correo,"user_metadata":{"name":"Prueba"}}
+                    rot["usuario"] = usuario; rot["anulada"] = False
+                rot["n"] += 1; a, r = "tok-%d" % rot["n"], "ref-%d" % rot["n"]
+                rot["acc"].add(a); rot["ref"].add(r)
+            return self._send(200, {"access_token":a,"refresh_token":r,"expires_in":3600,"user":usuario})
         if "/auth/v1/token" in p or "/auth/v1/signup" in p:
             correo = b.get("email","a@gmail.com")
             return self._send(200, {"access_token":"tok","refresh_token":"ref","expires_in":3600,
@@ -77,8 +104,14 @@ class H(BaseHTTPRequestHandler):
             return self._send(201, [DB["filas"][u]])
         return self._send(200, {})
     def do_PUT(self): return self._send(200, {"id":UID})
+    def _token_vencido(self):
+        rot = DB.get("rot")
+        if not rot or "/rest/v1/" not in self.path: return False
+        tok = (self.headers.get("Authorization") or "").replace("Bearer ","")
+        return tok not in rot["acc"]
     def do_PATCH(self):
         p, b = self.path, self._body()
+        if self._token_vencido(): return self._send(401, {"message":"JWT expired"})
         if "/rest/v1/reglas_masivas" in p:
             with LOCK: DB["reglas"].update({k:v for k,v in b.items()})
             return self._send(200, [DB["reglas"]])
@@ -103,11 +136,16 @@ class H(BaseHTTPRequestHandler):
         if self.path.startswith("/__reset"):
             with LOCK:
                 DB["filas"].clear()
+                DB.pop("rot", None)
                 DB["reglas"] = {"params": {}, "bitacora": [], "firma": "", "actualizado": "2026-01-01T00:00:00Z", "actualizado_por": ""}
             return self._send(200, {"ok": True})
         return self._send(200, {})
     def do_GET(self):
         p = self.path
+        if p.startswith("/__rotacion"):
+            rot = DB.get("rot") or {}
+            return self._send(200, {"anulada": bool(rot.get("anulada")), "reusos": rot.get("reusos", 0), "n": rot.get("n", 0)})
+        if self._token_vencido(): return self._send(401, {"message":"JWT expired"})
         if "/rest/v1/profiles" in p: return self._send(200, [{"nombre":"Prueba","correo":"a@gmail.com"}])
         if "/rest/v1/reglas_masivas" in p: return self._send(200, [DB["reglas"]])
         if "/rest/v1/radicados_datos" in p:

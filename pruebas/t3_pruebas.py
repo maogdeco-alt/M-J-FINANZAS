@@ -6,7 +6,7 @@ import base as B, sys, os, openpyxl
 T="\t"
 TIRA = T.join(["11001000000046855268","D01","19/04/2025","","No","COMPARENDERA","VIGENTE",
   "","","","CEDULA DE CIUDADANIA","1886999","JOSE PÉREZ CASTAÑEDA","CALLE 13 36 31 BAHIA 1","ABC123"])
-BLOQUE = "2026ER100\t01/09/2026\t03/09/2026\tJOSE PEREZ CASTANEDA"
+BLOQUE = "202670000000100\t01/09/2026\t03/09/2026\tJOSE PEREZ CASTANEDA"
 fallos=[]
 def ok(c,m):
     print(("  OK  " if c else "  FALLA  ")+m)
@@ -15,7 +15,7 @@ def ok(c,m):
 with sync_playwright() as pw:
     nav,ctx,pag,errores=B.abrir(pw)
     B.entrar(pag); B.importar(pag,BLOQUE)
-    B.ir_a(pag,"2026ER100")
+    B.ir_a(pag,"202670000000100")
 
     print("1) la pregunta solo aparece cuando es AGENDAMIENTO")
     B.escribir(pag,"#cc_formato","T14")

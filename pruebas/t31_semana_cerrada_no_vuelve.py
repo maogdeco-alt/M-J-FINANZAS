@@ -22,9 +22,8 @@ VIEJA = ["2026500000000%02d" % i for i in (1, 2, 3)]
 def bloque(rads, f): return "\n".join("%s\t01/09/2026\t%s\tPERSONA %d" % (r, f, i + 1) for i, r in enumerate(rads))
 def login(p):
     p.goto(URL + ("#flotante=1" if p is not pag else ""), wait_until="domcontentloaded")
-    p.wait_for_selector("#loginEmail", timeout=20000)
-    p.fill("#loginEmail", "prueba@gmail.com"); p.fill("#loginPassword", "123456")
-    p.click("#loginBtn"); p.wait_for_selector("#authDialog", state="hidden", timeout=20000); p.wait_for_timeout(1500)
+    B.entrar_en(p, "prueba@gmail.com")
+    pass; p.wait_for_timeout(1500)
 def lista(p):
     p.evaluate("()=>{const b=document.querySelector('#filterTabs button[data-filter=\"all\"]'); if(b) b.click();}")
     p.wait_for_timeout(300)

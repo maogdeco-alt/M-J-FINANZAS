@@ -28,7 +28,9 @@ CAMPOS = ["#cc_idNum", "#cc_res", "#cc_direccion"]
 def valor(campo, i, n):
     if campo == "#cc_res": return "%d%04d" % (i, n)                 # el radicado va al principio
     if campo == "#cc_direccion": return "r%dv%d@gmail.com" % (i, n)
-    return "RAD%d-V%d" % (i, n)
+    # N.° de documento: solo dígitos, el radicado al principio. (Era "RAD1-V3": desde el 04-11-2026
+    # un documento con letras deja el radicado PENDIENTE y la flotante ya no pasa de largo.)
+    return "%d%05d" % (i, n)
 
 def ir(pag, rad):
     if "flotante=1" in pag.url:
@@ -56,21 +58,20 @@ with sync_playwright() as pw:
         B.ir_a(pag, r); B.pegar_tira(pag, tira(i))
         B.escribir(pag, "#cc_formato", "T14"); B.escribir(pag, "#cc_direccion", "r%dv0@gmail.com" % i)
         B.escribir(pag, "#cc_res", "%d0000" % i); B.escribir(pag, "#cc_fechaRes", "26/07/2024")
-        B.escribir(pag, "#cc_idNum", "RAD%d-V0" % i)
+        B.escribir(pag, "#cc_idNum", "%d00000" % i)
         pag.click("#cc_save"); pag.wait_for_timeout(350); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
     pag.wait_for_timeout(1500)
 
     flo = ctx.new_page(); err2 = []
     flo.on("pageerror", lambda e: err2.append(str(e)))
     flo.goto(B.URL + "#flotante=1", wait_until="domcontentloaded")
-    flo.wait_for_selector("#loginEmail", timeout=20000)
-    flo.fill("#loginEmail", "prueba@gmail.com"); flo.fill("#loginPassword", "123456")
-    flo.click("#loginBtn"); flo.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(flo, "prueba@gmail.com")
+    pass
     flo.wait_for_timeout(1500)
 
     esperado = {}
     for i in range(1, N + 1):
-        esperado[(i, "#cc_idNum")] = "RAD%d-V0" % i
+        esperado[(i, "#cc_idNum")] = "%d00000" % i
         esperado[(i, "#cc_res")] = "%d0000" % i
         esperado[(i, "#cc_direccion")] = "r%dv0@gmail.com" % i
 
@@ -115,7 +116,7 @@ with sync_playwright() as pw:
         for c in ("idNum", "res", "direccion"):
             s = str(rec.get(c, ""))
             dueno = None
-            if c == "idNum" and s.startswith("RAD"): dueno = int(s[3:s.index("-")])
+            if c == "idNum" and s: dueno = int(s[0])
             if c == "direccion" and s.startswith("r"): dueno = int(s[1:s.index("v")])
             if c == "res" and s: dueno = int(s[0])
             if dueno is not None and dueno != i: cruzados.append("%s %s = %r (es del %d)" % (r[-2:], c, s, dueno))

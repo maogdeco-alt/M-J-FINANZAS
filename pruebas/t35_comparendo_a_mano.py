@@ -38,9 +38,8 @@ with sync_playwright() as pw:
     flo = ctx.new_page(); err2 = []
     flo.on("pageerror", lambda e: err2.append(str(e)))
     flo.goto(B.URL + "#flotante=1", wait_until="domcontentloaded")
-    flo.wait_for_selector("#loginEmail", timeout=20000)
-    flo.fill("#loginEmail", "prueba@gmail.com"); flo.fill("#loginPassword", "123456")
-    flo.click("#loginBtn"); flo.wait_for_selector("#authDialog", state="hidden", timeout=20000); flo.wait_for_timeout(1500)
+    B.entrar_en(flo, "prueba@gmail.com")
+    pass; flo.wait_for_timeout(1500)
     if flo.locator("#captureEmptyVerTodos").is_visible(): flo.click("#captureEmptyVerTodos"); flo.wait_for_timeout(400)
     for _ in range(3):
         if RAD[1] in flo.locator("#cc_radicadoLabel").inner_text(): break
@@ -49,9 +48,8 @@ with sync_playwright() as pw:
     a_mano(flo, 2, "COMPARENDERA"); flo.wait_for_timeout(1500); flo.close()
 
     pag.reload(wait_until="domcontentloaded")
-    pag.wait_for_selector("#loginEmail", timeout=20000)
-    pag.fill("#loginEmail", "prueba@gmail.com"); pag.fill("#loginPassword", "123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000); pag.wait_for_timeout(1200)
+    B.entrar_en(pag, "prueba@gmail.com")
+    pass; pag.wait_for_timeout(1200)
     B.ir_a(pag, RAD[1])
     ok(pag.input_value("#m_cod") == "C22" and pag.input_value("#m_medio") == "COMPARENDERA",
        "tras recargar, la principal muestra lo que llenó la flotante → %r / %r" % (pag.input_value("#m_cod"), pag.input_value("#m_medio")))

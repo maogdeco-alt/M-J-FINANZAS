@@ -5,7 +5,7 @@ import base as B, sys
 T="\t"
 TIRA = T.join(["11001000000046855268","D01","19/04/2025","","No","COMPARENDERA","VIGENTE",
   "","","","CEDULA DE CIUDADANIA","1886999","JOSE PEREZ CASTANEDA","CALLE 13 36 31 BAHIA 1","ABC123"])
-BLOQUE = "2026ER800\t01/09/2026\t03/09/2026\tJOSE PEREZ CASTANEDA\n2026ER801\t01/09/2026\t03/09/2026\tOTRA PERSONA"
+BLOQUE = "202670000000800\t01/09/2026\t03/09/2026\tJOSE PEREZ CASTANEDA\n202670000000801\t01/09/2026\t03/09/2026\tOTRA PERSONA"
 fallos=[]
 def ok(c,m):
     print(("  OK  " if c else "  FALLA  ")+m)
@@ -21,9 +21,8 @@ with sync_playwright() as pw:
     flo.on("pageerror", lambda e: err_flo.append("pageerror: "+str(e)))
     flo.on("console", lambda m: err_flo.append("console."+m.type+": "+m.text) if m.type=="error" else None)
     flo.goto(B.URL + "#flotante=1", wait_until="domcontentloaded")
-    flo.wait_for_selector("#loginEmail", timeout=20000)
-    flo.fill("#loginEmail","prueba@gmail.com"); flo.fill("#loginPassword","123456")
-    flo.click("#loginBtn"); flo.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(flo, "prueba@gmail.com")
+    pass
     flo.wait_for_timeout(1200)
 
     print("1) arranca en modo compacto")
@@ -31,7 +30,7 @@ with sync_playwright() as pw:
     ok(flo.locator("#captureForm").is_visible(), "el formulario de captura se ve")
 
     print("2) la tira de Fénix se separa igual de bien aquí")
-    ok(B.ir_a_compacto(flo,"2026ER800"), "se llega al radicado con Siguiente")
+    ok(B.ir_a_compacto(flo,"202670000000800"), "se llega al radicado con Siguiente")
     B.pegar_tira(flo, TIRA)
     d = B.desglose(flo)
     ok(d.get("PLACA")=="ABC123", "la placa sale bien en la flotante → "+repr(d.get("PLACA")))
@@ -49,11 +48,10 @@ with sync_playwright() as pw:
     flo.wait_for_timeout(900)
     # la ventana principal, recargada, tiene que ver lo mismo
     pag.reload(wait_until="domcontentloaded")
-    pag.wait_for_selector("#loginEmail", timeout=20000)
-    pag.fill("#loginEmail","prueba@gmail.com"); pag.fill("#loginPassword","123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(pag, "prueba@gmail.com")
+    pass
     pag.wait_for_timeout(1200)
-    B.ir_a(pag,"2026ER800")
+    B.ir_a(pag,"202670000000800")
     ok(pag.input_value("#cc_formato").strip().upper()=="AGENDAMIENTO", "el formato llegó a la principal → "+repr(pag.input_value("#cc_formato")))
     ok(pag.input_value("#cc_direccion").strip()=="jose@gmail.com", "el correo llegó → "+repr(pag.input_value("#cc_direccion")))
     ok(pag.locator('#wrap_pruebas input[value="SI"]').is_checked(), "y la respuesta de las pruebas también")

@@ -6,7 +6,8 @@
 #   2. en la cola y en el formulario se ve que NO tiene fecha de asignación, y el término dice
 #      "sin dato" (no se calcula con una fecha inventada);
 #   3. lo trabajado sigue ahí al recargar, y también desde la ventana flotante;
-#   4. la masiva lo trae, con las casillas de fecha VACÍAS (ninguna fecha inventada);
+#   4. (desde el 04-11-2026, con su visto bueno) la masiva NO sale mientras falte la fecha de
+#      asignación: el radicado queda PENDIENTE y dice qué le falta; al completarlo, sale;
 #   5. cerrar la semana lo cierra con los demás y queda en el historial.
 # Datos inventados; ningún dato real de ciudadanos.
 import sys, os, openpyxl
@@ -57,9 +58,8 @@ with sync_playwright() as pw:
     flo = ctx.new_page(); err2 = []
     flo.on("pageerror", lambda e: err2.append(str(e)))
     flo.goto(B.URL + "#flotante=1", wait_until="domcontentloaded")
-    flo.wait_for_selector("#loginEmail", timeout=20000)
-    flo.fill("#loginEmail", "prueba@gmail.com"); flo.fill("#loginPassword", "123456")
-    flo.click("#loginBtn"); flo.wait_for_selector("#authDialog", state="hidden", timeout=20000); flo.wait_for_timeout(1500)
+    B.entrar_en(flo, "prueba@gmail.com")
+    pass; flo.wait_for_timeout(1500)
     if flo.locator("#captureEmptyVerTodos").is_visible(): flo.click("#captureEmptyVerTodos"); flo.wait_for_timeout(400)
     for _ in range(4):
         if RAD[0] in flo.locator("#cc_radicadoLabel").inner_text(): break
@@ -69,32 +69,35 @@ with sync_playwright() as pw:
     flo.close()
 
     pag.reload(wait_until="domcontentloaded")
-    pag.wait_for_selector("#loginEmail", timeout=20000)
-    pag.fill("#loginEmail", "prueba@gmail.com"); pag.fill("#loginPassword", "123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000); pag.wait_for_timeout(1200)
+    B.entrar_en(pag, "prueba@gmail.com")
+    pass; pag.wait_for_timeout(1200)
     g = guardados(pag)
     ok(g.get(RAD[0], {}).get("idNum") == "SOLO EL NUMERO, DESDE LA FLOTANTE", "tras recargar, el 01 tiene lo de la flotante → %r" % g.get(RAD[0], {}).get("idNum"))
     ok(g.get(RAD[1], {}).get("res") == "770002", "y el 02 conserva su resolución")
 
     pag.evaluate("()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close())")
+    ok(B.descargar(pag) is None, "la masiva NO sale con radicados sin fecha de asignación")
+    ok("faltan 2" in pag.locator("#masivaListaBadge").inner_text(), "y el botón dice que faltan los dos → "+pag.locator("#masivaListaBadge").inner_text())
+    B.ir_a(pag, RAD[0]); pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag)
+    f = " | ".join(B.faltas(pag))
+    ok("fecha de asignación" in f, "y el radicado dice que le falta la fecha de asignación → "+f[:160])
+    # ahora llegan los datos y se completan, a mano
+    for r, nombre, correo in ((RAD[0], "PERSONA UNO", "uno@gmail.com"), (RAD[1], "PERSONA DOS", "dos@gmail.com")):
+        B.ir_a(pag, r)
+        pag.evaluate("()=>document.querySelectorAll('#captureForm details').forEach(d=>d.open=true)")
+        B.escribir(pag, "#cc_fechaRadicacion", "01/09/2026"); B.escribir(pag, "#cc_fechaAsignacion", "03/09/2026")
+        B.escribir(pag, "#cc_nombre", nombre)
+        if r == RAD[0]: B.escribir(pag, "#cc_direccion", correo)
+        guardar(pag)
+        ok(B.esta_listo(pag), r[-2:] + " queda LISTO al completarlo → " + " | ".join(B.faltas(pag))[:160])
     salida = os.path.join(os.environ.get("TMPDIR", "/tmp"), "t33_masiva.xlsx")
-    with pag.expect_download(timeout=30000) as dl:
-        pag.click("#descargarMasivaBtn"); pag.wait_for_timeout(1500)
-        if pag.locator("#preflightDialog[open]").count():
-            rp = pag.locator("#preflightDialog").inner_text()
-            print("   revisión previa:", rp[:400].replace("\n", " | "))
-            ok("fecha de asignación está vacía" in rp, "la revisión previa avisa que la fecha de asignación sale en blanco")
-            pag.click("#preflightProceed")
-    dl.value.save_as(salida)
-    ws = openpyxl.load_workbook(salida).active
-    filas = [[("" if c is None else str(c)) for c in f] for f in ws.iter_rows(values_only=True)]
-    cab, cuerpo = filas[0], {f[0]: f for f in filas[1:]}
-    ok(sorted(cuerpo) == RAD, "la masiva trae los dos → " + str(sorted(k[-2:] for k in cuerpo)))
-    for r in RAD:
-        f = cuerpo.get(r)
-        if f:
-            ok(f[1] == "" and f[8] == "", "%s: fecha de radicación y de asignación VACÍAS en la masiva → %r / %r" % (r[-2:], f[1], f[8]))
-            print("   fila %s:" % r[-2:], dict((h, v) for h, v in zip(cab, f) if v))
+    ruta = B.descargar(pag, ruta=salida, espera=20000)
+    ok(ruta is not None, "y ahora la masiva sale")
+    if ruta:
+        ws = openpyxl.load_workbook(salida).active
+        filas = [[("" if c is None else str(c)) for c in f] for f in ws.iter_rows(values_only=True)]
+        cuerpo = {f[0]: f for f in filas[1:]}
+        ok(sorted(cuerpo) == RAD, "con los dos → " + str(sorted(k[-2:] for k in cuerpo)))
 
     pag.click("#cerrarSemanaNavBtn"); pag.wait_for_timeout(600); pag.click("#confirmOk"); pag.wait_for_timeout(2500)
     ok(pag.locator("#statTotal").inner_text().strip() == "0", "cerrar la semana los cierra → quedan %s" % pag.locator("#statTotal").inner_text())

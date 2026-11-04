@@ -16,7 +16,7 @@ if not os.path.exists(SHEET):
 T="\t"
 TIRA=T.join(["11001000000046855268","C02","19/04/2025","19/04/2025","No","CAMARAS SALVAVIDAS","VIGENTE",
   "","","","CEDULA DE CIUDADANIA","1886999","PERSONA 1","ABC123"])
-BLOQUE="\n".join("2026ER%03d\t01/09/2026\t03/09/2026\tPERSONA %d"%(i,i) for i in (1,2,3))
+BLOQUE="\n".join("202670000000%03d\t01/09/2026\t03/09/2026\tPERSONA %d"%(i,i) for i in (1,2,3))
 fallos=[]
 def ok(c,m):
     print(("  OK  " if c else "  FALLA  ")+m)
@@ -56,7 +56,7 @@ with sync_playwright() as pw:
 
     print("1) se llena el bloque de la TARDE (la masiva)")
     B.importar(pag,BLOQUE)
-    B.ir_a(pag,"2026ER001"); B.pegar_tira(pag,TIRA)
+    B.ir_a(pag,"202670000000001"); B.pegar_tira(pag,TIRA)
     B.escribir(pag,"#cc_formato","T14"); B.escribir(pag,"#cc_direccion","p@gmail.com")
     B.escribir(pag,"#cc_res","1368706"); B.escribir(pag,"#cc_fechaRes","26/07/2024")
     pag.click("#cc_save"); pag.wait_for_timeout(700); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
@@ -95,7 +95,7 @@ with sync_playwright() as pw:
     manana_antes = claves_de(foto_local(pag), "manana")
     nube_antes2 = foto_nube()
     pag.click("#selBloqueTarde"); pag.wait_for_timeout(600)
-    B.ir_a(pag,"2026ER002"); B.pegar_tira(pag,TIRA.replace("46855268","46855999").replace("1886999","52000111"))
+    B.ir_a(pag,"202670000000002"); B.pegar_tira(pag,TIRA.replace("46855268","46855999").replace("1886999","52000111"))
     B.escribir(pag,"#cc_formato","T14"); B.escribir(pag,"#cc_direccion","otro@gmail.com")
     B.escribir(pag,"#cc_res","999111"); B.escribir(pag,"#cc_fechaRes","26/07/2024")
     pag.click("#cc_save"); pag.wait_for_timeout(900); B.confirmar_nombre(pag); B.cerrar_alerta(pag)

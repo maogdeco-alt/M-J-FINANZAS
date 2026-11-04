@@ -59,13 +59,13 @@ with sync_playwright() as pw:
     flo = ctx.new_page(); err2 = []
     flo.on("pageerror", lambda e: err2.append(str(e)))
     flo.goto(B.URL + "#flotante=1", wait_until="domcontentloaded")
-    flo.wait_for_selector("#loginEmail", timeout=20000)
-    flo.fill("#loginEmail", CORREO); flo.fill("#loginPassword", "123456")
-    flo.click("#loginBtn"); flo.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(flo, CORREO)
+    pass
     flo.wait_for_timeout(1500)
-    # La flotante abre en el primer pendiente, que es el 002: ese se trabaja ahí.
-    ok(RAD[1] in flo.locator("#cc_radicadoLabel").inner_text(),
-       "la flotante abre en el 002 → " + flo.locator("#cc_radicadoLabel").inner_text())
+    # La flotante abre en el primer PENDIENTE. Desde el 04-11-2026 el 001 también lo es (su N.° de
+    # documento de prueba es texto largo, R22), así que se va al 002 con «Siguiente», como ella.
+    ok(B.ir_a_compacto(flo, RAD[1]),
+       "la flotante llega al 002 → " + flo.locator("#cc_radicadoLabel").inner_text())
     B.pegar_tira(flo, tira(2)); B.escribir(flo, "#cc_formato", "T14")
     B.escribir(flo, "#cc_idNum", "DOS EN LA FLOTANTE")
     flo.click("#cc_save"); flo.wait_for_timeout(500); B.confirmar_nombre(flo); B.cerrar_alerta(flo)

@@ -8,7 +8,7 @@ T="\t"
 def tira(i,man=False): return T.join(["1100100000004685%04d"%i,"C02","19/04/2025","19/04/2025","No",
   "COMPARENDERA" if man else "CAMARAS SALVAVIDAS","VIGENTE","","","","CEDULA DE CIUDADANIA",
   "520000%03d"%i,"PERSONA %d"%i,"ABC%03d"%i])
-BLOQUE="\n".join("2026ER%03d\t01/09/2026\t03/09/2026\tPERSONA %d"%(i,i) for i in (1,2,3))
+BLOQUE="\n".join("202670000000%03d\t01/09/2026\t03/09/2026\tPERSONA %d"%(i,i) for i in (1,2,3))
 fallos=[]
 def ok(c,m):
     print(("  OK  " if c else "  FALLA  ")+m)
@@ -17,11 +17,11 @@ def ok(c,m):
 def preparar(pag):
     B.importar(pag,BLOQUE)
     for i in (1,2):
-        B.ir_a(pag,"2026ER%03d"%i); B.pegar_tira(pag,tira(i))
+        B.ir_a(pag,"202670000000%03d"%i); B.pegar_tira(pag,tira(i))
         B.escribir(pag,"#cc_formato","T14"); B.escribir(pag,"#cc_direccion","p%d@gmail.com"%i)
         B.escribir(pag,"#cc_res","13687%02d"%i); B.escribir(pag,"#cc_fechaRes","26/07/2024")
         pag.click("#cc_save"); pag.wait_for_timeout(450); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
-    B.ir_a(pag,"2026ER003"); B.pegar_tira(pag,tira(3,True))
+    B.ir_a(pag,"202670000000003"); B.pegar_tira(pag,tira(3,True))
     B.escribir(pag,"#cc_formato","AGENDAMIENTO"); B.escribir(pag,"#cc_direccion","p3@gmail.com")
     pag.locator('#wrap_pruebas input[value="NO"]').check(); pag.wait_for_timeout(250)
     pag.click("#cc_save"); pag.wait_for_timeout(550); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
@@ -59,12 +59,14 @@ with sync_playwright() as pw:
     ok(filas.count()>0, "la semana queda archivada en el historial (%d fila/s)" % filas.count())
     pag.evaluate("()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close())"); pag.wait_for_timeout(300)
 
-    print("4) el botón de siempre, dentro de Documentos, sigue haciendo lo mismo")
+    print("4) el segundo botón («Nueva semana (borrar todo)», en Documentos) se quitó el 04-11-2026:")
+    print("   hacía lo mismo que «Cerrar semana». Queda uno solo, y sigue funcionando igual otra vez")
     preparar(pag)
     pag.click("#abrirDocumentosBtn"); pag.wait_for_timeout(600)
-    ok(pag.locator("#clearAllBtn").is_visible(), "sigue ahí donde estaba")
-    pag.click("#clearAllBtn"); pag.wait_for_timeout(700)
-    ok(pag.locator("#confirmDialog[open]").count()==1, "y abre el mismo aviso")
+    ok(not pag.locator("#clearAllBtn").is_visible(), "en Documentos ya no está")
+    pag.evaluate("()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close())"); pag.wait_for_timeout(300)
+    pag.click("#cerrarSemanaNavBtn"); pag.wait_for_timeout(700)
+    ok(pag.locator("#confirmDialog[open]").count()==1, "el de arriba abre el mismo aviso")
     pag.click("#confirmOk"); pag.wait_for_timeout(1300)
     pag.evaluate("()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close())"); pag.wait_for_timeout(400)
     ok(pag.locator("#queuePanel .queue-item").count()==0, "y cierra la semana igual")

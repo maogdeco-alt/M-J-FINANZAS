@@ -7,7 +7,7 @@ T="\t"; NBSP=" "; ZWSP="​"
 TIRA = T.join(["  11001000000046855268 ","D01 "," 19/04/2025","19/04/2025","No",
   "CAMARAS SALVAVIDAS"+NBSP,"VIGENTE","","","","CEDULA DE"+NBSP+"CIUDADANIA","  1886999  ",
   "JOSE"+ZWSP+"  PÉREZ   CASTAÑEDA ","ABC123 "])
-BLOQUE = "2026ER200\t01/09/2026\t03/09/2026\tJOSE PEREZ CASTANEDA\n2026ER201\t01/09/2026\t03/09/2026\tSEGUNDA PERSONA"
+BLOQUE = "202670000000200\t01/09/2026\t03/09/2026\tJOSE PEREZ CASTANEDA\n202670000000201\t01/09/2026\t03/09/2026\tSEGUNDA PERSONA"
 fallos=[]
 def ok(c,m):
     print(("  OK  " if c else "  FALLA  ")+m)
@@ -16,7 +16,7 @@ def ok(c,m):
 with sync_playwright() as pw:
     nav,ctx,pag,errores=B.abrir(pw)
     B.entrar(pag); B.importar(pag,BLOQUE)
-    B.ir_a(pag,"2026ER200")
+    B.ir_a(pag,"202670000000200")
     B.pegar_tira(pag, TIRA)
     B.escribir(pag,"#cc_formato","T14")
     B.escribir(pag,"#cc_direccion","  persona"+NBSP+"@gmail.com  ")
@@ -26,13 +26,17 @@ with sync_playwright() as pw:
     pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag)
     pag.click("#cc_saveNext"); pag.wait_for_timeout(600); B.confirmar_nombre(pag)
     av = " | ".join(B.avisos_alerta(pag))
-    ok("ESPACIO adentro" in av, "avisa del espacio dentro del correo → "+av[:120])
+    ok("espacio adentro" in av.lower(), "avisa del espacio dentro del correo → "+av[:120])
     B.cerrar_alerta(pag)
     # ahora se corrige y se sigue
-    B.ir_a(pag,"2026ER200")
+    B.ir_a(pag,"202670000000200")
     B.escribir(pag,"#cc_direccion","persona@gmail.com")
     pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
-    # el segundo radicado se queda sin clasificar a propósito: no entra en la masiva
+    # el segundo radicado se devuelve: queda LISTO pero no entra en la masiva. (Desde el 04-11-2026
+    # uno sin clasificar ya no se queda atrás en silencio: frena la descarga, eso lo prueba t41.)
+    B.ir_a(pag,"202670000000201")
+    B.escribir(pag,"#cc_formato","DEVUELTO")
+    pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag)
 
     with pag.expect_download(timeout=25000) as dl:
         pag.click("#descargarMasivaBtn"); pag.wait_for_timeout(900)

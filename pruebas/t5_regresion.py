@@ -10,10 +10,10 @@ ELECT  = T.join(["11001000000046855269","C02","01/03/2025","02/03/2025","No","CA
 CERRADO= T.join(["11001000000046855270","F","01/03/2025","02/03/2025","No","COMPARENDERA","CERRADO",
   "","","","CEDULA DE CIUDADANIA","79123456","LUIS RUIZ","DEF456"])
 BLOQUE = "\n".join([
- "2026ER900\t01/09/2026\t03/09/2026\tJOSE PEREZ CASTANEDA",
- "2026ER901\t01/09/2026\t03/09/2026\tANA MARIA GOMEZ",
- "2026ER902\t01/09/2026\t03/09/2026\tLUIS RUIZ",
- "2026ER903\t01/09/2026\t03/09/2026\tCARMEN DIAZ",
+ "202670000000900\t01/09/2026\t03/09/2026\tJOSE PEREZ CASTANEDA",
+ "202670000000901\t01/09/2026\t03/09/2026\tANA MARIA GOMEZ",
+ "202670000000902\t01/09/2026\t03/09/2026\tLUIS RUIZ",
+ "202670000000903\t01/09/2026\t03/09/2026\tCARMEN DIAZ",
 ])
 fallos=[]
 def ok(c,m):
@@ -29,7 +29,7 @@ with sync_playwright() as pw:
     ok(pag.locator("#queuePanel .queue-item").count()==4, "los 4 radicados entraron a la cola")
 
     print("2) la sección de REGLAS")
-    pag.click("#reglasBtn"); pag.wait_for_selector("#reglasDialog[open]"); pag.wait_for_timeout(400)
+    B.abrir_reglas(pag); pag.wait_for_selector("#reglasDialog[open]"); pag.wait_for_timeout(400)
     txt = pag.locator("#reglasDialog").inner_text()
     for r in ["R01","R05","R06","R07","R08","R09","R10","R11","R15","R16","R17","R18","R19","R20","R21","R22","R23","R24"]:
         ok(r in txt, "está " + r)
@@ -38,30 +38,34 @@ with sync_playwright() as pw:
     pag.evaluate("()=>document.getElementById('reglasDialog').close()"); pag.wait_for_timeout(200)
 
     print("3) las reglas imperativas de siempre")
-    B.ir_a(pag,"2026ER902"); B.pegar_tira(pag, CERRADO)
+    B.ir_a(pag,"202670000000902"); B.pegar_tira(pag, CERRADO)
     B.escribir(pag,"#cc_formato","T14"); B.escribir(pag,"#cc_direccion","luis@gmail.com")
     pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag)
     pag.click("#cc_saveNext"); pag.wait_for_timeout(600)
-    t = pag.locator("#toast").inner_text() if pag.locator("#toast").count() else ""
+    t = B.toast(pag) + " | " + " | ".join(B.faltas(pag))
     ok("DEVUELTO" in t, "código F / estado CERRADO siguen obligando DEVUELTO → "+t[:90])
     B.cerrar_alerta(pag)
 
     print("4) un radicado normal, clasificado, entra en la masiva")
-    B.ir_a(pag,"2026ER901"); B.pegar_tira(pag, ELECT)
+    B.ir_a(pag,"202670000000901"); B.pegar_tira(pag, ELECT)
     B.escribir(pag,"#cc_formato","T14"); B.escribir(pag,"#cc_direccion","ana@gmail.com")
     B.escribir(pag,"#cc_res","1368706"); B.escribir(pag,"#cc_fechaRes","26/07/2024")
     pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
 
     print("5) un AGENDAMIENTO NUNCA entra en la masiva")
-    B.ir_a(pag,"2026ER900"); B.pegar_tira(pag, MANUAL)
+    B.ir_a(pag,"202670000000900"); B.pegar_tira(pag, MANUAL)
     B.escribir(pag,"#cc_formato","AGENDAMIENTO"); B.escribir(pag,"#cc_direccion","jose@gmail.com")
     pag.locator('#wrap_pruebas input[value="SI"]').check(); pag.wait_for_timeout(300)
     pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
 
     print("6) DEVUELTO tampoco")
-    B.ir_a(pag,"2026ER902")
+    B.ir_a(pag,"202670000000902")
     B.escribir(pag,"#cc_formato","DEVUELTO")
     pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
+
+    # el cuarto también queda resuelto: con uno solo pendiente la masiva ya no sale (t41)
+    B.ir_a(pag,"202670000000903"); B.escribir(pag,"#cc_formato","DEVUELTO")
+    pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag)
 
     with pag.expect_download(timeout=25000) as dl:
         pag.click("#descargarMasivaBtn"); pag.wait_for_timeout(1000)
@@ -70,12 +74,14 @@ with sync_playwright() as pw:
     ws=openpyxl.load_workbook(ruta).active
     rads=[ws.cell(row=i,column=1).value for i in range(2,ws.max_row+1)]
     print("      radicados en la masiva:", rads)
-    ok(rads==["2026ER901"], "solo el clasificado normal: ni el AGENDAMIENTO ni el DEVUELTO")
+    ok(rads==["202670000000901"], "solo el clasificado normal: ni el AGENDAMIENTO ni el DEVUELTO")
 
     print("7) las ventanas de siempre abren sin romperse")
     for btn,dlg in [("#agendaTriggerBtn","#agendaDialog"),("#abrirDocumentosBtn","#documentosDialog"),
                     ("#abrirImportarBtn","#importDialog"),("#reglasBtn","#reglasDialog")]:
-        pag.click(btn); pag.wait_for_timeout(500)
+        if btn=="#reglasBtn": B.abrir_reglas(pag)
+        else: pag.click(btn)
+        pag.wait_for_timeout(500)
         ok(pag.locator(dlg+"[open]").count()==1, "abre "+dlg)
         pag.evaluate("(d)=>document.querySelector(d).close()", dlg); pag.wait_for_timeout(250)
 

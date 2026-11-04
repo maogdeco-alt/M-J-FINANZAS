@@ -79,14 +79,10 @@ with sync_playwright() as pw:
     flo = ctx.new_page(); err2 = []
     flo.on("pageerror", lambda e: err2.append(str(e)))
     flo.goto(B.URL + "#flotante=1", wait_until="domcontentloaded")
-    flo.wait_for_selector("#loginEmail", timeout=20000)
-    flo.fill("#loginEmail", "prueba@gmail.com"); flo.fill("#loginPassword", "123456")
-    flo.click("#loginBtn"); flo.wait_for_selector("#authDialog", state="hidden", timeout=20000); flo.wait_for_timeout(1500)
+    B.entrar_en(flo, "prueba@gmail.com")
+    pass; flo.wait_for_timeout(1500)
     if flo.locator("#captureEmptyVerTodos").is_visible(): flo.click("#captureEmptyVerTodos"); flo.wait_for_timeout(400)
-    for _ in range(6):
-        if RAD[1] in flo.locator("#cc_radicadoLabel").inner_text(): break
-        lab = flo.locator("#cc_radicadoLabel").inner_text()
-        flo.click("#cc_next" if int(lab.strip()[-2:]) < 2 else "#cc_prev"); flo.wait_for_timeout(300); B.confirmar_nombre(flo); B.cerrar_alerta(flo)
+    B.ir_a_compacto(flo, RAD[1])
     ok(RAD[1] in flo.locator("#cc_radicadoLabel").inner_text(), "la flotante está en el 02")
     B.pegar_tira(flo, tira(2))
     ok(casillas(flo) == LLENAS(2), "en la flotante también se llenan solas → %s" % casillas(flo))
@@ -97,11 +93,19 @@ with sync_playwright() as pw:
     ok(casillas(pag) == LLENAS(2), "y la principal ve lo que se pegó en la flotante → %s" % casillas(pag))
 
     pag.evaluate("()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close())")
+    # Desde el 04-11-2026 la masiva sale solo con todo LISTO: se completa lo que no viene en la tira
+    # (fechas, nombre del solicitante, correo), como haría ella con un radicado de solo número.
+    for i, r in enumerate(RAD, 1):
+        B.ir_a(pag, r)
+        pag.evaluate("()=>document.querySelectorAll('#captureForm details').forEach(d=>d.open=true)")
+        if not pag.locator("#cc_fechaAsignacion").is_visible(): pag.click("#baseEditToggle")
+        B.escribir(pag, "#cc_fechaRadicacion", "01/10/2026"); B.escribir(pag, "#cc_fechaAsignacion", "05/10/2026")
+        B.escribir(pag, "#cc_nombre", "PERSONA %d" % i); B.escribir(pag, "#cc_direccion", "persona%d@gmail.com" % i)
+        if not pag.input_value("#cc_res"): B.escribir(pag, "#cc_res", "77000%d" % i); B.escribir(pag, "#cc_fechaRes", "26/07/2024")
+        guardar(pag)
+        ok(B.esta_listo(pag), "%02d queda LISTO → %s" % (i, " | ".join(B.faltas(pag))[:160]))
     salida = os.path.join(os.environ.get("TMPDIR", "/tmp"), "t36_masiva.xlsx")
-    with pag.expect_download(timeout=30000) as dl:
-        pag.click("#descargarMasivaBtn"); pag.wait_for_timeout(1500)
-        if pag.locator("#preflightDialog[open]").count(): pag.click("#preflightProceed")
-    dl.value.save_as(salida)
+    ok(B.descargar(pag, ruta=salida, espera=20000) is not None, "la masiva sale")
     ws = openpyxl.load_workbook(salida).active
     cuerpo = {f[0]: [("" if c is None else str(c)) for c in f] for f in ws.iter_rows(min_row=2, values_only=True)}
     for i in (1, 2):

@@ -842,6 +842,11 @@
   .aviso-imperativas{border:1.5px solid var(--stamp);border-left-width:5px;border-radius:9px;
     background:var(--stamp-soft);padding:10px 13px;margin-top:8px;}
   .aviso-imperativas[hidden]{display:none;}
+  .aviso-imperativas.listo{border-color:var(--ok, #0f7a4d);background:transparent;}
+  .aviso-imperativas.listo b{display:inline;color:var(--ok, #0f7a4d);margin-right:6px;}
+  .navbadge.faltan{background:var(--stamp);color:#fff;}
+  #avisoSemanas{margin:8px 16px;}
+  .aviso-imperativas .faltas-acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
   .aviso-imperativas b{display:block;color:var(--stamp);font-size:0.86rem;margin-bottom:5px;}
   .aviso-imperativas ul{margin:0;padding-left:19px;}
   .aviso-imperativas li{font-size:0.85rem;line-height:1.45;margin-bottom:3px;}
@@ -1289,6 +1294,7 @@
 <body>
 
 <div class="institutional-bar"></div>
+<div id="avisoSemanas" class="data-safety-banner warn" role="alert" hidden></div>
 <div id="dataSafetyBanner" class="data-safety-banner" role="alert" hidden>
   <div class="dsb-icon">⚠</div>
   <div class="dsb-body">
@@ -1333,11 +1339,11 @@
       <!-- Las reglas, a un clic y con nombre propio. Van fuera de Ajustes a propósito: Ajustes es lo
            que se configura, y esto es lo que la app OBLIGA. Mezclarlas daría a entender que una
            regla es una preferencia más. -->
-      <button class="btn reglas-btn" id="reglasBtn" type="button" title="Ver las reglas que la app aplica y su bitácora de cambios">
+      <button class="btn reglas-btn" id="reglasBtn" hidden type="button" title="Ver las reglas que la app aplica y su bitácora de cambios">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M5 7h14M7 7l-3 6h6zM17 7l-3 6h6zM8 21h8"/></svg>
         <span class="btn-label">Reglas</span>
       </button>
-      <button class="user-badge" id="userBadge" type="button" title="Cambiar de usuario">
+      <button class="user-badge" id="userBadge" type="button" title="La app es solo suya: entra sin clave" tabindex="-1" style="cursor:default;">
         <span class="avatar" id="userAvatar" aria-hidden="true">—</span>
         <span id="userLabel">Iniciar sesión</span>
       </button>
@@ -1384,13 +1390,13 @@
           <div class="num" id="statTotal">0</div>
           <div class="label">Importados</div>
         </div>
-        <div class="stat-card pend" title="Igual que en tu Excel: pendiente = FORMATO vacío">
+        <div class="stat-card pend" title="Pendiente = le falta algo o tiene un dato mal. Mientras haya pendientes, la masiva no se descarga.">
           <div class="num" id="statPend">0</div>
           <div class="label">Pendientes</div>
         </div>
-        <div class="stat-card ok">
+        <div class="stat-card ok" title="Listo = clasificado, completo y sin ningún dato mal">
           <div class="num" id="statDone">0</div>
-          <div class="label">Completos</div>
+          <div class="label">Listos</div>
         </div>
         <div class="stat-card">
           <div class="num" id="statPct">0%</div>
@@ -1464,7 +1470,7 @@
         </div>
         <div class="filter-tabs" id="filterTabs">
           <button data-filter="pend" class="active">Pendientes</button>
-          <button data-filter="done">Completos</button>
+          <button data-filter="done">Listos</button>
           <button data-filter="all">Todos</button>
         </div>
         <button class="icon-btn" id="toggleQueueBtn" type="button" title="Ocultar la lista de la cola para que el formulario ocupe toda la pantalla -- útil en ventanas pequeñas" aria-label="Ocultar la cola de radicados"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
@@ -2219,13 +2225,13 @@
 
       <div class="hr"></div>
 
-      <h4 class="subhead">Revisar una masiva que hiciste FUERA de la app</h4>
+<div hidden data-quitado="04-11-2026">      <h4 class="subhead">Revisar una masiva que hiciste FUERA de la app</h4>
       <p class="panel-desc">Si trabajaste la masiva directamente en Excel, cárgala aquí y la app la revisa <b>fila por fila con las mismas reglas</b> que usa para la suya. Te muestra qué rompe cada regla, tú confirmas una a una las que ya verificaste, y solo entonces se habilita <b>Importar a masiva definitiva</b>. Las columnas se reconocen por su <b>título</b>, no por su posición: aunque estén en otro orden, cada dato entra donde corresponde.</p>
       <div class="toolbar">
         <button class="btn primary" id="abrirAuditarMasivaBtn" type="button">Revisar masiva terminada</button>
       </div>
 
-      <div class="hr"></div>
+      <div class="hr"></div></div>
 
       <h4 class="subhead">Copia de tu tabla de trabajo (25 columnas, orden REVISION_MANUAL)</h4>
       <div class="toolbar">
@@ -2246,7 +2252,7 @@
       <div class="hr"></div>
 
       <div class="toolbar">
-        <button class="btn danger small" id="clearAllBtn" type="button">Nueva semana (borrar todo)</button>
+        <button class="btn danger small" id="clearAllBtn" hidden type="button">Nueva semana (borrar todo)</button>
       </div>
     </div>
   </section>
@@ -2288,7 +2294,7 @@
       <div id="cuadreSemanas"></div>
 
       <div class="hr"></div>
-      <h4 class="subhead">Sacar solo un rango de fechas</h4>
+<div hidden data-quitado="04-11-2026">      <h4 class="subhead">Sacar solo un rango de fechas</h4>
       <p class="panel-desc">Para cuando hay que entregar lo de unos días concretos y no toda la lista: por ejemplo <b>desde el lunes pasado hasta hoy</b>, sin los viejos. Va por <b>fecha de asignación</b>, y de cada radicado sale <b>una sola fila</b> — la asignación más reciente dentro del rango. Esto <b>no cambia</b> el botón normal de la masiva: es una descarga aparte, con su propio nombre de archivo.</p>
       <div class="rango-fechas">
         <label for="cuadreDesde">Desde</label><input type="date" id="cuadreDesde">
@@ -2299,7 +2305,7 @@
         <button class="btn primary" id="cuadreRangoDescargar" type="button">Descargar solo ese rango (.xlsx)</button>
         <button class="btn" id="cuadreRangoCopiar" type="button">Copiar</button>
       </div>
-      <div id="cuadreRango"></div>
+      <div id="cuadreRango"></div></div>
 
       <div class="hr"></div>
       <h4 class="subhead">Cuadre contra ORFEO</h4>
@@ -2385,6 +2391,10 @@
     <h2 id="authTitle">Iniciar sesión</h2>
   </div>
   <div class="panel-body">
+    <div id="inicioCard" style="display:none;text-align:center;">
+      <p style="font-size:1.05rem;margin:4px 0 18px;">Hola, <b id="inicioNombre">—</b></p>
+      <button class="btn primary big" id="inicioEntrarBtn" type="button" style="min-width:200px;justify-content:center;text-align:center;">Entrar</button>
+    </div>
     <div id="authSessionCard" style="display:none;">
       <div class="session-card">
         <span class="avatar" id="authSessionAvatar" aria-hidden="true">—</span>
@@ -2398,7 +2408,7 @@
     </div>
 
     <div id="authFormsBlock">
-      <p class="auth-security-note">Cada cuenta se verifica en el servidor de la entidad (Supabase) — tu contraseña nunca se guarda en este navegador. Tu información queda en la nube y aparece igual sin importar desde qué computador entres. Las cuentas las crea quien administra esta app; si olvidaste tu contraseña, comunícate con esa persona.</p>
+      <p class="auth-security-note" id="authPrimeraVezNota">Solo la primera vez en este computador: escriba su correo y su clave para conectar la copia en la nube. Después la app entra sin clave.</p>
 
       <div id="authLoginTab">
         <div style="display:grid;gap:12px;">
@@ -2445,7 +2455,7 @@
         <div class="account-info" id="accountInfoBox"></div>
       </div>
 
-      <div class="settings-section">
+      <div class="settings-section" hidden data-quitado="04-11-2026">
         <h3>Cambiar mi contraseña</h3>
         <p class="hint">Las cuentas las crea quien administra esta app, con una contraseña inicial. Aquí puedes reemplazarla por una tuya. Si la olvidas más adelante, no hay recuperación por correo — comunícate con quien administra la app para que te asigne una nueva.</p>
         <div style="display:grid;gap:12px;max-width:360px;">
@@ -2679,6 +2689,17 @@
 </dialog>
 
 <!-- Dialog: copia manual (respaldo si el portapapeles del navegador está bloqueado) -->
+<!-- Solo aparece si, con todos los radicados LISTOS, el archivo armado no cumpliera una de las
+     invariantes del PROTOCOLO. No debería pasar nunca: todo se revisó al guardar. Si pasa, no se
+     entrega el archivo y se dice qué radicado y qué. -->
+<dialog id="masivaBloqueadaDialog" class="small" aria-labelledby="masivaBloqueadaTitle">
+  <div class="panel-head"><h2 id="masivaBloqueadaTitle">No se descargó la masiva</h2></div>
+  <div class="panel-body">
+    <p>El archivo armado no pasó la revisión final. Corrija esto y vuelva a descargar:</p>
+    <ul id="masivaBloqueadaLista"></ul>
+  </div>
+  <div class="form-actions"><button class="btn primary" id="masivaBloqueadaCerrar" type="button">Entendido</button></div>
+</dialog>
 <dialog id="manualCopyDialog" class="small" aria-labelledby="manualCopyLabel">
   <div class="panel-head"><h2 id="manualCopyLabel">Copia este contenido</h2></div>
   <div class="panel-body">
@@ -2965,6 +2986,19 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // La sesión (tokens de acceso) vive SOLO en memoria — nunca en localStorage — a propósito:
   // así una recarga de página siempre exige iniciar sesión de nuevo, igual que antes.
   var supaSession = null; // {access_token, refresh_token, user:{id,email,user_metadata}}
+  // La nube rechazó la sesión guardada: se trabaja con lo de este computador (no se pierde nada) y
+  // queda un aviso fijo con el botón para volver a conectar, una sola vez.
+  var nubeDesconectada = false;
+  function marcarNubeDesconectada(){
+    if(nubeDesconectada) return;
+    nubeDesconectada = true;
+    try{
+      showDataSafetyBanner("La copia en la nube se desconectó. Lo que trabaja sigue guardado en este computador. " +
+        "Para que también quede en la nube, toque Conectar y escriba su clave UNA vez.", "warn", "Conectar", function(){
+          abrirInicio(true);
+        });
+    }catch(e){}
+  }
   var supaProfile = null; // {nombre, correo} de la tabla profiles, cacheado tras iniciar sesión
 
   // Freno contra quedarse "pegado" para siempre: un fetch() normal no tiene límite de tiempo -- si
@@ -3027,9 +3061,63 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     return supaFetch("/auth/v1/token?grant_type=password", {method:"POST", body: JSON.stringify({email:email, password:password})})
       .then(function(data){
         supaSession = {access_token:data.access_token, refresh_token:data.refresh_token, user:data.user};
+        guardarCuenta();
         return data;
       });
   }
+  // ---------- LA CUENTA RECORDADA (04-11-2026: la app es de una sola persona) ----------
+  // Pedido de la usuaria: "debe haber una página de inicio pero SIN clave, ya que es solo para mí".
+  // La nube (Supabase) sí necesita una sesión para dejar leer y escribir su fila: por eso la clave
+  // se pide UNA sola vez en cada computador y la sesión queda guardada aquí. Desde entonces la
+  // página de inicio solo tiene el botón "Entrar".
+  //
+  // De paso cierra un hueco real de antes: la principal y la flotante tenían cada una su copia de la
+  // sesión en memoria. Supabase cambia el refresh_token cada vez que se renueva (cada hora) y, si
+  // alguien vuelve a usar el viejo, ANULA la sesión entera. Con las dos ventanas abiertas más de una
+  // hora, la segunda en renovar usaba el token ya gastado y las dos se quedaban sin subir a la nube.
+  // Ahora las dos leen y escriben la sesión en este mismo lugar: la que renueva deja el token nuevo
+  // aquí, y la otra lo toma de aquí en vez de gastar el viejo.
+  var CUENTA_KEY = "radicados_cuenta_v1";
+  function leerCuenta(){
+    try{
+      var c = JSON.parse(localStorage.getItem(CUENTA_KEY) || "null");
+      return (c && c.email && c.session && c.session.refresh_token) ? c : null;
+    }catch(e){ return null; }
+  }
+  function guardarCuenta(){
+    if(!supaSession || !supaSession.user || !supaSession.refresh_token) return;
+    var anterior = leerCuenta();
+    var nombre = (supaProfile && supaProfile.nombre) ||
+      (supaSession.user.user_metadata && supaSession.user.user_metadata.nombre) ||
+      (anterior && anterior.email === supaSession.user.email ? anterior.nombre : "") || "";
+    try{
+      localStorage.setItem(CUENTA_KEY, JSON.stringify({
+        email: String(supaSession.user.email || "").toLowerCase(), nombre: nombre,
+        session: supaSession, guardadaEn: Date.now()
+      }));
+    }catch(e){}
+  }
+  // El correo de quien ya trabajó en este navegador, aunque todavía no haya cuenta recordada (la
+  // primera vez después de esta versión): sale de las llaves donde están guardados sus radicados.
+  function correoYaUsadoAqui(){
+    var c = leerCuenta();
+    if(c) return c.email;
+    var hallados = [];
+    try{
+      for(var i = 0; i < localStorage.length; i++){
+        var k = localStorage.key(i) || "";
+        if(k.indexOf(STORAGE_PREFIX + "::") === 0) hallados.push(k.slice(STORAGE_PREFIX.length + 2));
+      }
+    }catch(e){}
+    return hallados.length === 1 ? hallados[0] : "";
+  }
+  // Otra ventana (la flotante o la principal) renovó la sesión: se toma la suya, nunca la vieja.
+  window.addEventListener("storage", function(ev){
+    if(ev.key !== CUENTA_KEY || !ev.newValue) return;
+    var c = leerCuenta();
+    if(!c || !supaSession || !supaSession.user) return;
+    if(c.session.user && c.session.user.id === supaSession.user.id) supaSession = c.session;
+  });
   // Cambiar la propia contraseña, YA estando adentro con sesión activa -- la única forma de tocar
   // contraseñas en esta app. No hay registro por cuenta propia ni "olvidé mi contraseña" por correo
   // a propósito: las cuentas las crea quien administra el proyecto de Supabase, con una contraseña
@@ -3040,13 +3128,30 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   }
   function supaRefreshSession(){
     if(!supaSession || !supaSession.refresh_token) return Promise.reject(new Error("Sin sesión"));
+    // Si la otra ventana ya la renovó, se parte de la suya: gastar otra vez el token viejo anularía
+    // la sesión de las dos (ver CUENTA_KEY). El de la otra ventana todavía no se ha usado.
+    var guardada = leerCuenta();
+    if(guardada && guardada.session.user && supaSession.user && guardada.session.user.id === supaSession.user.id &&
+       guardada.session.refresh_token !== supaSession.refresh_token){
+      supaSession = guardada.session;
+    }
     return fetchConTiempoLimite(supaConfig.url.replace(/\/$/, "") + "/auth/v1/token?grant_type=refresh_token", {
       method:"POST", headers:{"apikey":supaConfig.anonKey, "Content-Type":"application/json"},
       body: JSON.stringify({refresh_token: supaSession.refresh_token})
     }).then(function(res){
-      return res.json().then(function(data){ if(!res.ok) throw new Error("No se pudo renovar la sesión"); return data; });
+      return res.json().then(function(data){
+        if(!res.ok){
+          // 400/401: Supabase ya no acepta esta sesión (se anuló o venció). Se sigue trabajando
+          // con lo de este computador, y se dice UNA vez, fijo, que hay que volver a conectar.
+          if(res.status === 400 || res.status === 401) marcarNubeDesconectada();
+          throw new Error("No se pudo renovar la sesión");
+        }
+        return data;
+      });
     }).then(function(data){
       supaSession = {access_token:data.access_token, refresh_token:data.refresh_token, user: data.user || (supaSession && supaSession.user)};
+      nubeDesconectada = false;
+      guardarCuenta();
       return data;
     });
   }
@@ -3190,6 +3295,19 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     });
     return { history: history, anadidasDeAqui: nuevas.length };
   }
+  // AUDITORÍA 04-11-2026: el historial no viajaba entre ventanas. Si se cerraba la semana en la
+  // principal, la flotante seguía con el historial viejo en memoria hasta que chocaba con la nube.
+  // No se perdía (el choque junta por fecha de cierre), pero dependía de la nube. Ahora la otra
+  // ventana lo junta en cuanto se escribe, sin quitar nada: las semanas se suman por su cierre.
+  window.addEventListener("storage", function(ev){
+    if(!state.profile.activeUser || ev.key !== historyKeyFor(state.profile.activeUser) || !ev.newValue) return;
+    try{
+      var llegado = JSON.parse(ev.newValue);
+      if(!Array.isArray(llegado)) return;
+      var j = juntarHistoriales(state.history, llegado);
+      if(j.anadidasDeAqui){ state.history = j.history; try{ renderHistory(); refreshHistorialBadge(); }catch(e){} }
+    }catch(e){}
+  });
   // Un radicado que ya está archivado en una semana cerrada, y que nadie tocó DESPUÉS de ese
   // cierre, no pertenece a la lista de trabajo: si aparece ahí es una copia vieja (de la nube o de
   // la otra ventana) que no se enteró del cierre. Se quita para que la semana no vuelva.
@@ -3421,12 +3539,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     dataSyncChannel.onmessage = function(ev){
       if(!ev.data || !ev.data.actualizado) return;
       if(ev.data.actualizado === lastKnownCloudActualizado) return; // ya lo tenemos, nada que avisar
-      toastAction(
-        "Se guardó algo nuevo desde " + (isFlotanteInstance ? "la pestaña principal" : "la ventana flotante") + ".",
-        "Traer lo más reciente",
-        traerLoMasReciente,
-        20000
-      );
+      // 04-11-2026: sin el mensaje "Traer lo más reciente". Los radicados ya llegan solos de la
+      // otra ventana por este mismo navegador (evento storage + lectura antes de cada guardado), y
+      // lo que esta ventana suba después junta lo de la nube sin quitar nada (choque normal, t27).
     };
   }catch(e){}
   // Se llama justo después de que un guardado en la nube se confirma de verdad (setSaveStatus con
@@ -3644,7 +3759,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     if(recuperados){
       // No es un error ni una alarma: es la app haciendo su trabajo. Pero conviene que se vea,
       // para que quede claro que lo escrito en la otra ventana está aquí.
-      toast("Se combinaron " + recuperados + " radicado(s) que habías trabajado en la otra ventana.");
+      // 04-11-2026: sin mensaje. Que las dos ventanas estén al día es lo normal, no una noticia.
       // No se repinta el formulario a lo bruto: si hay algo a medio escribir, solo se refrescan las
       // casillas que no se están tocando (renderCapture() repinta TODO y se llevaría lo escrito).
       setTimeout(function(){
@@ -3783,8 +3898,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       // así ve llegar el avance de la otra ventana.
       try{ if(editando) refrescarCamposNoTocados(); else renderCapture(); }catch(e){}
     }
-    toast(cambiados + " radicado(s) se actualizaron desde la otra ventana." +
-          (activoCambio ? " Incluido el que tienes abierto." : ""));
+    olvidarListos();
   });
   // ---------- LA FOTO DEL FORMULARIO ----------
   // Este es el corazón del arreglo de la pérdida de trabajo entre la ventana flotante y la
@@ -3935,29 +4049,43 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     document.getElementById("userAvatar").textContent = user ? initials(user.name) : "—";
   }
 
-  function openAuthDialog(mandatory){
-    ["loginEmail","loginPassword"].forEach(function(id){ document.getElementById(id).value = ""; });
-    document.getElementById("authCancel").style.display = mandatory ? "none" : "inline-flex";
-
-    // Con sesión activa, lo ÚNICO que se ve es de quién es esa sesión y el botón para cerrarla —
-    // nunca junto con el formulario de entrar/crear cuenta. Cambiar de cuenta en este mismo
-    // navegador exige primero cerrar sesión explícitamente; solo entonces aparece el formulario.
-    var user = currentUser();
-    var showSession = !mandatory && !!user;
-    document.getElementById("authSessionCard").style.display = showSession ? "block" : "none";
-    document.getElementById("authFormsBlock").style.display = showSession ? "none" : "block";
-    // Se limpia el texto también cuando se oculta, no solo el display: aunque esté escondida,
-    // la tarjeta no debe seguir cargando en el HTML el nombre/correo de quien cerró sesión.
-    document.getElementById("authSessionAvatar").textContent = showSession ? initials(user.name) : "—";
-    document.getElementById("authSessionName").textContent = showSession ? user.name : "";
-    document.getElementById("authSessionEmail").textContent = showSession ? user.email : "";
-    document.getElementById("authTitle").textContent = mandatory ? "Bienvenido — inicia sesión" : (showSession ? "Tu cuenta" : "Iniciar sesión");
-
+  // LA PÁGINA DE INICIO. Sin usuarios ni clave: si este computador ya tiene la cuenta recordada,
+  // solo se ve "Hola, <nombre>" y el botón Entrar. La clave se pide únicamente la primera vez (o si
+  // la nube anuló la sesión), para conectar la copia en la nube.
+  // soloConectar: se abre desde el aviso "la nube se desconectó", ya trabajando: no es obligatoria.
+  function abrirInicio(soloConectar){
+    var c = soloConectar ? null : leerCuenta();
     var dlg = document.getElementById("authDialog");
-    dlg.dataset.mandatory = mandatory ? "1" : "0";
+    document.getElementById("authSessionCard").style.display = "none";
+    document.getElementById("inicioCard").style.display = c ? "block" : "none";
+    document.getElementById("authFormsBlock").style.display = c ? "none" : "block";
+    document.getElementById("authCancel").style.display = soloConectar ? "inline-flex" : "none";
+    document.getElementById("inicioNombre").textContent = c ? (c.nombre || c.email) : "";
+    document.getElementById("authTitle").textContent = c ? "Radicados Semanales" :
+      (soloConectar ? "Conectar la copia en la nube" : "Radicados Semanales — primera vez en este computador");
+    document.getElementById("loginPassword").value = "";
+    var em = document.getElementById("loginEmail");
+    if(!em.value) em.value = correoYaUsadoAqui();
+    dlg.dataset.mandatory = soloConectar ? "0" : "1";
     if(!dlg.open) dlg.showModal();
-    setTimeout(function(){ document.getElementById("loginEmail").focus(); }, 30);
+    setTimeout(function(){
+      var foco = c ? document.getElementById("inicioEntrarBtn") : (em.value ? document.getElementById("loginPassword") : em);
+      try{ foco.focus(); }catch(e){}
+    }, 30);
   }
+  function openAuthDialog(){ abrirInicio(false); }
+  // Entrar con la cuenta recordada: la misma ruta de siempre (completeLogin), con la sesión guardada.
+  // Si no hay internet, o la nube no la acepta, se entra igual con lo guardado en este computador.
+  function entrarConCuentaRecordada(c, silencioso){
+    supaSession = c.session;
+    supaProfile = {nombre: c.nombre || "", correo: c.email};
+    completeLogin(!!silencioso);
+  }
+  document.getElementById("inicioEntrarBtn").addEventListener("click", function(){
+    var c = leerCuenta();
+    if(!c){ abrirInicio(false); return; }
+    entrarConCuentaRecordada(c, true);
+  });
 
   // ---------- recuperación de una copia local "plana" de antes de que existieran cuentas ----------
   // Antes de conectar la nube (Supabase), los radicados y el historial se guardaban en este
@@ -4233,7 +4361,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     openAuthDialog(true);
   }
 
-  document.getElementById("userBadge").addEventListener("click", function(){ openAuthDialog(false); });
+  // Ya no hay cambio de usuario: la app es de una sola persona (04-11-2026).
   document.getElementById("authCancel").addEventListener("click", function(){ document.getElementById("authDialog").close(); });
   document.getElementById("authLogout").addEventListener("click", logout);
   document.getElementById("authDialog").addEventListener("cancel", function(e){
@@ -4250,7 +4378,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     }).then(function(profile){
       btn.disabled = false;
       supaProfile = profile;
-      completeLogin();
+      nubeDesconectada = false;
+      guardarCuenta(); // ya con el nombre: desde ahora este computador entra sin clave
+      completeLogin(true);
     }).catch(function(err){
       btn.disabled = false;
       var msg = (err && err.message) || "";
@@ -4343,8 +4473,29 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // skipCloud: ver la nota junto a save() -- mismo motivo: reflejar en este navegador lo que se
   // acaba de traer de la nube (por ejemplo, justo al iniciar sesión) no debería, de paso, disparar
   // una subida a la nube de algo que no cambió.
+  // Los dominios aprendidos se SUMAN con los de la otra ventana, nunca se pisan (una aprende uno, la
+  // otra otro: quedan los dos).
+  function juntarDominiosAprendidos(otros){
+    if(!Array.isArray(otros) || !otros.length) return false;
+    if(!Array.isArray(state.settings.dominiosAprendidos)) state.settings.dominiosAprendidos = [];
+    var cambio = false;
+    otros.forEach(function(d){
+      if(d && state.settings.dominiosAprendidos.indexOf(d) === -1){ state.settings.dominiosAprendidos.push(d); cambio = true; }
+    });
+    return cambio;
+  }
+  window.addEventListener("storage", function(ev){
+    if(!state.profile.activeUser || !state.settings || ev.key !== settingsKeyFor(state.profile.activeUser) || !ev.newValue) return;
+    try{
+      if(juntarDominiosAprendidos((JSON.parse(ev.newValue) || {}).dominiosAprendidos)){
+        olvidarListos();
+        try{ renderQueue(); renderStats(); if(!hayCambiosSinGuardar()) renderCapture(); }catch(e){}
+      }
+    }catch(e){}
+  });
   function saveSettingsToStorage(skipCloud){
     if(!state.profile.activeUser) return;
+    try{ juntarDominiosAprendidos((JSON.parse(localStorage.getItem(settingsKeyFor(state.profile.activeUser)) || "{}") || {}).dominiosAprendidos); }catch(e){}
     try{ localStorage.setItem(settingsKeyFor(state.profile.activeUser), JSON.stringify(state.settings)); if(!skipCloud) queueCloudSync(); }
     catch(e){ showDataSafetyBanner("No se pudieron guardar los Ajustes en este navegador."); }
   }
@@ -4356,6 +4507,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     });
     var activeLabels = REQUIRED_FIELD_META.filter(function(f){ return state.settings.required[f.key]; }).map(function(f){ return f.label; });
     var summary = document.getElementById("requiredSummary");
+    // Desde el 04-11-2026 lo que falta lo dice la caja PENDIENTE de cada radicado; esta línea fija
+    // repetía reglas viejas (y una excepción que ya no aplica igual). Se deja en el documento, oculta.
+    if(summary) summary.hidden = true;
     if(summary){
       summary.textContent = activeLabels.length
         ? "Obligatorios para avanzar: " + activeLabels.join(", ") + ". Excepción: formato " + (state.settings.exemptFormato || "—") + ". Además rigen siempre las reglas imperativas fijas."
@@ -5737,6 +5891,174 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // A row counts as "pendiente por revisar" there if and only if FORMATO is empty — matched here on purpose.
   function isDone(r){ return !!r.formato; }
 
+  // ============================================================
+  // PENDIENTE O LISTO (rediseño del 04-11-2026)
+  // ------------------------------------------------------------
+  // Pedido de la usuaria, palabra por palabra: "si la información que ingreso no sirve, no es apta,
+  // o no es clara, NO PUEDE SEGUIR DE LARGO la app y al final de todo el trabajo decirme que hay
+  // algo que falta o está mal". Por eso cada radicado tiene solo dos estados:
+  //   · LISTO: clasificado, con todo lo que su clasificación exige y sin ningún dato mal.
+  //   · PENDIENTE: todo lo demás. Se ve en la cola y en el contador, nunca es sorpresa.
+  // No hay "confirmar que es correcto": una regla se cumple o se corrige. La masiva solo se puede
+  // descargar con cero pendientes, así que al descargar ya no puede aparecer nada nuevo.
+  //
+  // faltasDe() es el ÚNICO sitio que decide si un radicado está LISTO. Usa el mismo motor de
+  // reglas de siempre (hallazgosDeRegistro) y le suma lo que cada clasificación exige para que su
+  // fila de la masiva (o de la plantilla de agendamientos) salga completa.
+  // ============================================================
+  var CAMPO_A_CASILLA = {
+    radicado:"cc_radicado", nombre:"cc_nombre", fechaRadicacion:"cc_fechaRadicacion",
+    fechaAsignacion:"cc_fechaAsignacion", formato:"cc_formato", direccion:"cc_direccion",
+    comparendo:"cc_comparendo", cod:"m_cod", imposicion:"m_imposicion", notificacion:"m_notificacion",
+    medio:"m_medio", estado:"m_estado", placa:"m_placa", tipoId:"cc_tipoId", idNum:"cc_idNum",
+    res:"cc_res", fechaRes:"cc_fechaRes", pruebas:"cc_pruebasSi"
+  };
+  // Lo que ya dicen estas explicaciones propias, para no repetirlo con el texto largo del motor.
+  var HALLAZGOS_YA_CUBIERTOS = {R06:true, R11:true, R18:true, R24:true};
+  function vacio(v){ return !String(v == null ? "" : v).trim(); }
+  function dominiosAprendidos(){
+    var l = (state.settings && state.settings.dominiosAprendidos) || [];
+    return Array.isArray(l) ? l : [];
+  }
+  function dominioDe(correo){
+    var s = String(correo||"").trim().toLowerCase();
+    return s.indexOf("@") === -1 ? "" : s.split("@").pop();
+  }
+  function faltasDe(r, idxRepetidos){
+    var f = [];
+    function falta(campo, texto, extra){ f.push(Object.assign({campo:campo, texto:texto}, extra || {})); }
+    if(!r) return f;
+    var formato = normalizeFormatoInput(r.formato).toUpperCase();
+    if(!formato){ falta("formato", "Falta la clasificación (FORMATO)."); return f; }
+    if(!formatoEsConocido(formato)){ falta("formato", "\"" + r.formato + "\" no es una clasificación de la lista."); return f; }
+
+    var esDevuelto = formato === "DEVUELTO";
+    var esAgenda = formato === "AGENDAMIENTO";
+    var vaALaMasiva = !paramEnLista("formatosFueraDeLaMasiva", formato);
+    var llevaComparendo = esAgenda || (vaALaMasiva && !paramEnLista("formatosSinComparendo", formato));
+
+    if(vacio(r.radicado)) falta("radicado", "Falta el número de radicado.");
+    if(vacio(r.fechaAsignacion)) falta("fechaAsignacion", "Falta la fecha de asignación.");
+    if(vaALaMasiva && vacio(r.fechaRadicacion)) falta("fechaRadicacion", "Falta la fecha de radicación.");
+    if(!esDevuelto){
+      if(vacio(r.nombreF) && vacio(r.nombre)) falta("nombre", "Falta el nombre del destinatario.");
+      if(vacio(r.direccion)) falta("direccion", "Falta el correo o la dirección de notificación.");
+    }
+    var nadaDelComparendo = ["comparendoCompleto","cod","imposicion","medio","estado","tipoId","idNum"]
+      .every(function(k){ return vacio(r[k]); });
+    if(llevaComparendo && nadaDelComparendo){
+      // Una sola frase, no siete: todo eso llega junto al pegar la línea de Fénix.
+      falta("comparendo", "Falta el comparendo: pegue la línea completa de Fénix (o llene a mano los datos del comparendo).");
+    } else if(llevaComparendo){
+      if(vacio(r.comparendoCompleto)) falta("comparendo", "Falta el número de comparendo.");
+      if(vacio(r.cod)) falta("cod", "Falta la infracción del comparendo.");
+      if(vacio(r.imposicion)) falta("imposicion", "Falta la fecha del comparendo.");
+      if(vacio(r.medio)) falta("medio", "Falta el tipo de comparendo.");
+      if(vaALaMasiva && vacio(r.estado)) falta("estado", "Falta el estado del comparendo.");
+      if(vaALaMasiva && vacio(r.tipoId)) falta("tipoId", "Falta el tipo de documento.");
+      if(vacio(r.idNum)) falta("idNum", "Falta el número de documento.");
+    }
+    if(paramEnLista("formatosConResolucionObligatoria", formato)){
+      if(vacio(r.res)) falta("res", "Falta el número de resolución.");
+      if(vacio(r.fechaRes)) falta("fechaRes", "Falta la fecha de la resolución.");
+    } else if(!vacio(r.res) && vacio(r.fechaRes) && !paramEnLista("formatosSinResolucion", formato)){
+      falta("fechaRes", "Tiene resolución pero le falta la fecha de la resolución.");
+    }
+    if(!vacio(r.res) && !paramEnLista("formatosSinResolucion", formato) && !/^\d+$/.test(String(r.res).trim())){
+      // R29 explica mejor el caso (si parece una fecha o trae texto pegado): se usa su frase.
+      var r29 = null;
+      try{ r29 = (hallazgosDeRegistro(r, {}) || []).filter(function(h){ return h.regla === "R29"; })[0]; }catch(e){}
+      falta("res", r29 ? r29.texto : "La resolución debe ser solo el número, sin fecha ni texto (está \"" + String(r.res).trim() + "\").");
+    }
+    if(esAgenda){
+      if(vacio(r.placa)) falta("placa", "Falta la placa (la pide la plantilla de agendamientos).");
+      if(vacio(r.agendaFormato)) falta("pruebas", "Falta responder si el ciudadano pidió pruebas.");
+    }
+    // Correo con un dominio raro: no se deja pasar, pero si está bien escrito se aprende una vez.
+    if(!esDevuelto && !vacio(r.direccion)){
+      var rc = revisarCorreo(r.direccion);
+      var dom = dominioDe(r.direccion);
+      if(rc.nivel === "aviso" && dominiosAprendidos().indexOf(dom) === -1){
+        falta("direccion", "El correo \"" + String(r.direccion).trim() + "\": " + rc.motivo + ".", {dominio: dom});
+      }
+    }
+    // El motor de reglas de siempre: todo lo grave frena. Los avisos de comparendo o resolución
+    // repetidos NO frenan (es normal que un ciudadano radique varias veces por lo mismo).
+    var hall = [];
+    try{ hall = hallazgosDeRegistro(r, idxRepetidos || indiceDeRepetidos()) || []; }catch(e){ hall = []; }
+    hall.forEach(function(h){
+      if(!h.grave) return;
+      if(h.regla && HALLAZGOS_YA_CUBIERTOS[h.regla]) return;
+      if(/^No tiene número de comparendo|^No tiene nombre de destinatario|^La plantilla de .* falta diligenciar Res/.test(h.texto || "")) return;
+      // El mismo radicado con OTRA fecha de asignación no es un pegado doble: es una reasignación,
+      // dos expedientes de trabajo distintos (t21). Eso lo dice la franja de semanas mezcladas, que
+      // ya frena la masiva; aquí solo frena el pegado doble de verdad, con la misma fecha.
+      if(/está DUPLICADO: aparece también/.test(h.texto || "") && !hayPegadoDoble(r)) return;
+      // El espacio dentro del correo lo dicen dos reglas; basta con una.
+      if(/tiene un ESPACIO adentro/.test(h.texto || "") && hall.some(function(o){ return o.regla === "R26" && o.grave; })) return;
+      falta(h.campo || "", h.texto);
+    });
+    // Si la línea de Fénix llegó con solo el número, sin columnas o cortada, eso se dice UNA vez y
+    // explica todo: no se repite además "falta la infracción", "falta la fecha"... uno por uno.
+    if(hall.some(function(h){ return h.grave && /^R(19|20|21)$/.test(h.regla || ""); })){
+      f = f.filter(function(x){ return !/^(cod|imposicion|medio|estado|tipoId|idNum)$/.test(x.campo); });
+    }
+    // RED FINAL: la fila que de verdad saldría en el archivo. Si con todo lo anterior en orden aún
+    // quedara vacía una columna que esta clasificación exige (una fecha que no se entiende sale en
+    // blanco, por ejemplo), tampoco está LISTO. Así se mira lo que se entrega, no lo que se cree.
+    if(!f.length){
+      try{
+        if(vaALaMasiva){
+          var fila = recordToMasivaRow(r);
+          var exig = [0,1,3,4,5,6,7,8,9,19,20];
+          if(llevaComparendo) exig = exig.concat([2,10,11,12,13,14,21,22]);
+          if(paramEnLista("formatosConResolucionObligatoria", formato)) exig = exig.concat([16,17,18]);
+          exig.forEach(function(i){
+            if(celdaVacia(fila[i])) falta("", "La columna " + MASIVA_HEADERS[i] + " saldría vacía en la masiva.");
+          });
+          if(String(fila[2]) !== String(fila[13])) falta("comparendo", "Las dos columnas COMPARENDO no coinciden.");
+        }
+        if(esAgenda){
+          var filaA = recordToPlantillaAgendaRow(r);
+          COLUMNAS_AGENDA_EXIGIDAS.forEach(function(c){
+            if(c.grave && celdaVacia(filaA[c.i])) falta("", "La columna " + c.etiqueta + " saldría vacía en la plantilla de agendamientos.");
+          });
+        }
+      }catch(e){}
+    }
+    // Sin repetir la misma frase.
+    var vistos = {};
+    return f.filter(function(x){ if(vistos[x.texto]) return false; vistos[x.texto] = true; return true; });
+  }
+  function hayPegadoDoble(r){
+    var rad = String(r.radicado || "").trim(), fa = normalizeDate(r.fechaAsignacion || "");
+    if(!rad) return false;
+    return state.records.some(function(o){
+      return o.id !== r.id && String(o.radicado || "").trim() === rad && normalizeDate(o.fechaAsignacion || "") === fa;
+    });
+  }
+  // Cuánto cuesta: el motor corre una vez por radicado y por vuelta del navegador, no en cada
+  // pintada. El caché se borra solo en la siguiente vuelta: nunca puede quedar un estado viejo.
+  var cacheListo = null;
+  function listosPorId(){
+    if(cacheListo) return cacheListo;
+    var idx = indiceDeRepetidos();
+    var m = {};
+    state.records.forEach(function(r){ if(r && r.id) m[r.id] = faltasDe(r, idx); });
+    cacheListo = m;
+    setTimeout(function(){ cacheListo = null; }, 0);
+    return m;
+  }
+  function olvidarListos(){ cacheListo = null; }
+  function faltasDeRegistro(r){
+    var m = listosPorId();
+    return (r && m[r.id]) || faltasDe(r);
+  }
+  function esListo(r){ return faltasDeRegistro(r).length === 0; }
+  function pendientesDeLaSemana(){
+    return state.records.filter(function(r){ return !esListo(r); });
+  }
+
   // ---------- REGLAS DE NEGOCIO POR FORMATO, EN UN SOLO SITIO ----------
   // Estas dos funciones existen porque la regla estaba escrita DOS VECES: una en la validación del
   // Paso 2 (que sí sabía que una "Petición oscura" T10 puede no tener comparendo) y otra, distinta,
@@ -6291,7 +6613,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function renderStats(){
     var recs = state.records;
     var summary = computeSummary(recs);
-    var total = summary.total, done = summary.done, pend = summary.pend, pct = summary.pct;
+    // Listos y pendientes salen de la MISMA regla que deja o no descargar la masiva (faltasDe).
+    var total = summary.total, done = recs.filter(esListo).length, pend = total - done,
+        pct = total ? Math.round(done/total*100) : 0;
 
     document.getElementById("statTotal").textContent = total;
     document.getElementById("statPend").textContent = pend;
@@ -6382,7 +6706,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       deltas.push(Math.min(delta, PACE_CAP_MS));
     }
     var avgMs = deltas.reduce(function(a,b){ return a+b; }, 0) / deltas.length;
-    var pendientes = state.records.filter(function(r){ return !isDone(r); }).length;
+    var pendientes = state.records.filter(function(r){ return !esListo(r); }).length;
     return {
       avgMinutos: avgMs / 60000,
       pendientes: pendientes,
@@ -6424,15 +6748,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     return countBusinessDays(start, hoy);
   }
   function esPrioritario(rec){
-    if(isDone(rec)) return false; // ya clasificado -- no hace falta seguir marcándolo urgente
+    if(esListo(rec)) return false; // ya LISTO -- no hace falta seguir marcándolo urgente
     var d = diasHabilesTranscurridosDesdeAsignacion(rec);
     return d !== null && d >= UMBRAL_PRIORITARIO_DIAS;
   }
 
   // ---------- queue (Paso 2 list) ----------
   function matchesFilter(r){
-    if(state.filter === "pend") return !isDone(r);
-    if(state.filter === "done") return isDone(r);
+    if(state.filter === "pend") return !esListo(r);
+    if(state.filter === "done") return esListo(r);
     return true;
   }
   function matchesSearch(r, q){
@@ -6448,8 +6772,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         // Prioridad por vencimiento: los pendientes con más días hábiles transcurridos desde su
         // ASIGNACIÓN (el lote más antiguo, ej. el del lunes antes que el del martes) van primero. Los
         // ya clasificados quedan siempre al final de este criterio (valor -1).
-        var aDias = isDone(a) ? -1 : (diasHabilesTranscurridosDesdeAsignacion(a) || 0);
-        var bDias = isDone(b) ? -1 : (diasHabilesTranscurridosDesdeAsignacion(b) || 0);
+        var aDias = esListo(a) ? -1 : (diasHabilesTranscurridosDesdeAsignacion(a) || 0);
+        var bDias = esListo(b) ? -1 : (diasHabilesTranscurridosDesdeAsignacion(b) || 0);
         if(aDias !== bDias) return bDias - aDias;
         // Dentro de un mismo nivel de urgencia (mismo lote, ej. varios asignados el mismo día): antes
         // quedaban en el orden en que se importaron, que en la práctica es casi al azar según cómo
@@ -6474,7 +6798,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       return;
     }
     panel.innerHTML = list.map(function(r){
-      var done = isDone(r);
+      var done = esListo(r);
       var prioritario = esPrioritario(r);
       return '<div class="queue-item'+(r.id===state.activeId?" active":"")+(prioritario?" prioritario":"")+'" data-id="'+r.id+'">'+
         '<span class="dot '+(done?"done":"pend")+'"></span>'+
@@ -7010,7 +7334,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // cerrarlo a mano), sin que renderAll() se lo cambie cada vez que algo se guarda.
   var paso1AutoOpenDone = false;
   function renderAll(){
+    olvidarListos();
     renderStats(); renderQueue(); renderHistory(); renderAgendamientos();
+    try{ pintarAvisoSemanas(); }catch(e){}
     if(!paso1AutoOpenDone){
       paso1AutoOpenDone = true;
       document.getElementById("paso1Accordion").open = state.records.length === 0;
@@ -7427,8 +7753,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       var anterior = state.records.find(function(r){ return r.id === state.activeId; });
       commitCurrentEdits();
       var saltar = function(){ selectRecord(newId); };
-      // noFrenar = true: se salta igual y el aviso queda a la vista, con "Volver y corregir".
-      if(!anterior || gateDeReglas(anterior, saltar, true)) saltar();
+      // Desde el 04-11-2026 no sale ningún aviso aquí: el que se deja atrás queda PENDIENTE, a la
+      // vista en la cola y en el contador, y la masiva no se descarga mientras haya pendientes.
+      saltar();
     }
   });
 
@@ -7981,20 +8308,92 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Las reglas imperativas que este radicado está rompiendo AHORA MISMO, escritas de forma fija
   // debajo del formulario. Se vuelve a pintar cada vez que se dibuja el radicado (que es en cada
   // guardado), así que aparece sola cuando algo se rompe y desaparece sola cuando se arregla.
-  function pintarAvisoImperativas(rec){
+  // LA CAJA "PARA DEJARLO LISTO FALTA". Fija debajo del formulario (nunca un mensaje que se va
+  // solo), siempre con lo que dice faltasDe(). En un radicado recién importado y sin tocar no se
+  // muestra: que esté pendiente ya se ve en la cola, y gritarlo en cada uno sería ruido.
+  // forzar: se acaba de intentar dejarlo listo (Guardar y siguiente): se muestra y se marca en rojo.
+  function pintarAvisoImperativas(rec, forzar){
     var caja = document.getElementById("avisoImperativas");
     if(!caja) return;
-    var v = [];
-    try{ v = rec ? (checkImperativeRules(rec) || []) : []; }catch(e){ v = []; }
-    if(!v.length){ caja.hidden = true; caja.innerHTML = ""; return; }
+    caja.classList.remove("listo");
+    if(!rec){ caja.hidden = true; caja.innerHTML = ""; return; }
+    olvidarListos();
+    var faltas = faltasDe(rec);
+    if(!faltas.length){
+      caja.hidden = false;
+      caja.classList.add("listo");
+      caja.innerHTML = "<b>✓ LISTO</b> Este radicado está completo y sin errores.";
+      return;
+    }
+    if(!forzar && !seTrabajoEsteRadicado(rec)){ caja.hidden = true; caja.innerHTML = ""; return; }
+    clearFieldErrors();
+    faltas.forEach(function(x){ marcarCampoConFalta(x.campo); });
+    var conDominio = faltas.filter(function(x){ return x.dominio; })[0];
     caja.hidden = false;
-    caja.innerHTML = "<b>" + (v.length === 1 ? "Este radicado rompe una regla obligatoria:"
-                                             : "Este radicado rompe " + v.length + " reglas obligatorias:") + "</b><ul>" +
-      v.map(function(x){
-        return "<li>" + (x.regla ? '<span class="ai-regla">' + escapeHtml(x.regla) + "</span> " : "") +
-               escapeHtml(x.message) + "</li>";
-      }).join("") + "</ul>";
+    caja.innerHTML = "<b>PENDIENTE. Para dejarlo LISTO falta:</b><ul>" +
+      faltas.map(function(x){ return "<li>" + escapeHtml(x.texto) + "</li>"; }).join("") + "</ul>" +
+      '<div class="faltas-acciones">' +
+      (conDominio ? '<button class="btn small" type="button" id="faltasDominioOk" data-dominio="' + escapeHtml(conDominio.dominio) +
+                    '">El dominio ' + escapeHtml(conDominio.dominio) + ' está bien escrito</button>' : "") +
+      '<button class="btn small" type="button" id="faltasDejarPendiente">Dejar pendiente y seguir</button>' +
+      "</div>";
   }
+  function marcarCampoConFalta(campo){
+    if(!campo) return;
+    if(/^(comparendo|cod|imposicion|notificacion|medio|estado|placa)$/.test(campo)) markError("wrap_comparendo");
+    var wrap = document.getElementById("wrap_" + campo);
+    if(wrap){ wrap.classList.add("field-error"); return; }
+    var el = document.getElementById(CAMPO_A_CASILLA[campo] || "");
+    if(el && el.parentElement) el.parentElement.classList.add("field-error");
+  }
+  function enfocarPrimeraFalta(faltas){
+    var conCasilla = faltas.filter(function(x){ return CAMPO_A_CASILLA[x.campo]; })[0];
+    var el = conCasilla && document.getElementById(CAMPO_A_CASILLA[conCasilla.campo]);
+    if(el && el.offsetParent === null){
+      // La casilla está dentro de "Llenar a mano los datos del comparendo", cerrado: se abre.
+      var det = el.closest("details"); if(det) det.open = true;
+    }
+    if(el){ try{ el.focus(); el.scrollIntoView({block:"center"}); }catch(e){} }
+  }
+  // El siguiente pendiente después de este (en el orden de la cola), sin contar este.
+  function siguientePendiente(rec){
+    var pend = state.records.filter(function(r){ return r.id !== (rec && rec.id) && !esListo(r); })
+      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    if(!pend.length) return null;
+    return pend.find(function(r){ return (r.order||0) > ((rec && rec.order)||0); }) || pend[0];
+  }
+  function irAlPendiente(next, decirQueFalta){
+    if(!next){ renderAll(); toast("No quedan pendientes: todos los radicados están LISTOS."); return; }
+    if(!matchesFilter(next) || !matchesSearch(next, document.getElementById("searchBox").value.trim())){
+      state.filter = "pend";
+      document.getElementById("searchBox").value = "";
+      Array.prototype.forEach.call(document.querySelectorAll("#filterTabs button"), function(b){
+        b.classList.toggle("active", b.getAttribute("data-filter")==="pend");
+      });
+    }
+    selectRecord(next.id, "cc_formato");
+    renderStats();
+    // Desde la descarga: se abre el radicado Y se dice qué le falta, aunque nunca se haya tocado.
+    if(decirQueFalta) pintarAvisoImperativas(next, true);
+  }
+  document.getElementById("avisoImperativas").addEventListener("click", function(e){
+    var rec = state.records.find(function(r){ return r.id === state.activeId; });
+    if(!rec) return;
+    if(e.target.id === "faltasDejarPendiente"){
+      commitCurrentEdits();
+      var sig = siguientePendiente(rec);
+      if(!sig){ toast("Este es el único radicado pendiente: queda así hasta que lo complete."); return; }
+      irAlPendiente(sig);
+    } else if(e.target.id === "faltasDominioOk"){
+      var dom = e.target.getAttribute("data-dominio");
+      if(!dom) return;
+      commitCurrentEdits();
+      if(!Array.isArray(state.settings.dominiosAprendidos)) state.settings.dominiosAprendidos = [];
+      if(state.settings.dominiosAprendidos.indexOf(dom) === -1) state.settings.dominiosAprendidos.push(dom);
+      saveSettingsToStorage();
+      olvidarListos(); renderAll();
+    }
+  });
 
   // La salida del callejón: quita el filtro y vuelve a dejar todos los radicados a la vista.
   // Se hace aquí, sin depender de las pestañas, porque en la ventana flotante no existen.
@@ -8518,9 +8917,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         }
       }
     }
-    if(refrescadas){
-      toast("Se conservó lo que habías adelantado en la otra ventana (" + refrescadas + " casilla(s)).");
-    }
+    // (Se conservó lo adelantado en la otra ventana: en silencio, es lo normal.)
     rec.tipoComparendo = deriveTipoComparendo(rec.medio); // siempre derivado de MEDIO, nunca elegido a mano
     // Se guarda la marca de tiempo la primera vez que el radicado queda hecho (Formato diligenciado),
     // para poder calcular más adelante el ritmo real de hoy ("¿cuánto me falta en horas?"). Si ya
@@ -8682,116 +9079,59 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     save(); renderAll();
     copyOrShowManually(toTSV([rec]), "Fila copiada — pégala en el Excel con Ctrl+V", "Radicado " + rec.radicado);
   });
-  document.getElementById("cc_save").addEventListener("click", function(){
+  // LOS CUATRO BOTONES, CON UNA SOLA REGLA (04-11-2026). Todo se guarda siempre: nunca se pierde
+  // lo escrito. Lo que cambia es si se puede SEGUIR:
+  //   · "Guardar" guarda y muestra si quedó LISTO o qué le falta. No salta a otro radicado.
+  //   · "Guardar y siguiente pendiente", "Siguiente" y "Anterior": si el radicado ya se trabajó y
+  //     le falta algo, NO siguen. Se quedan aquí, con la casilla en rojo y la frase de qué falta.
+  //     Para dejarlo a medias a propósito está el botón "Dejar pendiente y seguir" de esa caja.
+  //   · Un radicado recién importado y sin tocar se puede pasar de largo: ya está PENDIENTE.
+  // Sin diálogos de "¿es correcto?": una regla se cumple o se corrige.
+  function guardarYDecidir(alTerminar){
     var rec = readCaptureIntoRecord();
     if(!rec) return;
     checkNombreMismatch(rec, function(ok){
       if(!ok){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
-      // IMPORTANTE: las reglas IMPERATIVAS ya NUNCA bloquean el guardado -- solo avisan, fuerte y
-      // claro (letrero grande, ver warnImperative), y marcan en rojo el campo a revisar. A veces no
-      // se alcanza a diligenciar todo de una vez, y perder ese avance por una regla sin cumplir
-      // sería peor que guardarlo incompleto y poder corregirlo después.
-      var imperative = checkImperativeRules(rec);
-      // renderAll() -> renderCapture() limpia los field-error al redibujar el formulario -- por eso
-      // el marcado en rojo se hace DESPUÉS de renderAll(), no antes, si no, renderCapture() lo borra
-      // de inmediato y el campo se ve como si nada estuviera mal (aunque el aviso grande sí salga).
-      save(); renderAll();
-      if(formatoInvalidoPendiente){
-        // El aviso ya lo lanzó readCaptureIntoRecord (ver ahí). Aquí solo se evita el "guardado"
-        // en verde, que contradiría el aviso rojo que acaba de salir.
-        formatoInvalidoPendiente = null;
-      } else if(imperative.length){
-        imperative.forEach(function(v){ v.wraps.forEach(markError); });
-        warnImperative(imperative);
-      } else {
-        toast("Radicado " + rec.radicado + " guardado");
-      }
-      // Vigilancia permanente de datos repetidos: se revisa DESPUÉS de guardar, nunca antes, para
-      // que la alarma no pueda costarle a nadie el avance que acaba de escribir.
-      vigilarRepetidosDe(rec);
-      // "Guardar" a secas NO abre la alerta, a propósito. Es el botón de "lo dejo a medias y sigo
-      // luego": un radicado se llena por partes, y saltar un aviso en cada guardado intermedio
-      // entrenaría a cerrarlo sin leerlo -- que es como se pierde una alarma de verdad.
-      // El freno vive en TODAS las salidas hacia otro radicado (Guardar y siguiente, Siguiente,
-      // Anterior y saltar desde la lista): ahí es donde el dato deja de estar delante de los ojos,
-      // y es lo que se pidió: "NO dejar avanzar al usuario hasta que corrija o confirme".
+      save(); olvidarListos();
+      renderQueue(); renderStats(); renderAgendamientos();
+      if(formatoInvalidoPendiente){ formatoInvalidoPendiente = null; pintarAvisoImperativas(rec, true); return; }
+      var faltas = faltasDe(rec);
+      alTerminar(rec, faltas);
+    });
+  }
+  document.getElementById("cc_save").addEventListener("click", function(){
+    guardarYDecidir(function(rec, faltas){
+      pintarAvisoImperativas(rec, true);
+      toast(faltas.length ? "Guardado. Sigue PENDIENTE: mire lo que falta debajo del formulario."
+                          : "Radicado " + rec.radicado + " guardado y LISTO.");
     });
   });
   document.getElementById("cc_saveNext").addEventListener("click", function(){
-    var rec = readCaptureIntoRecord();
-    if(!rec) return;
-    checkNombreMismatch(rec, function(ok){
-      if(!ok){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
-      clearFieldErrors();
-      var imperative = checkImperativeRules(rec);
-      if(imperative.length){ imperative.forEach(function(v){ v.wraps.forEach(markError); }); }
-      save(); renderQueue(); renderStats(); renderAgendamientos();
-      vigilarRepetidosDe(rec);
-      var check = validateAdvance(rec);
-      if(!check.ok){ warnMissing(check); return; }
-      // Siempre busca en toda la base, no solo en la pestaña/filtro activo, para que el botón
-      // nunca "deje de funcionar" al estar viendo Completos o con una búsqueda escrita.
-      var pending = state.records.filter(function(r){ return !isDone(r); }).sort(function(a,b){ return (a.order||0)-(b.order||0); });
-      if(!pending.length){
-        renderAll();
-        toast("¡Completaste todos los radicados de la semana!");
+    guardarYDecidir(function(rec, faltas){
+      if(faltas.length){
+        pintarAvisoImperativas(rec, true);
+        enfocarPrimeraFalta(faltas);
         return;
       }
-      var next = pending.find(function(r){ return (r.order||0) > (rec.order||0); }) || pending[0];
-      // Si el filtro o la búsqueda activa esconderían al siguiente pendiente, se limpian para que sí se vea en la cola.
-      if(!matchesFilter(next) || !matchesSearch(next, document.getElementById("searchBox").value.trim())){
-        state.filter = "pend";
-        document.getElementById("searchBox").value = "";
-        Array.prototype.forEach.call(document.querySelectorAll("#filterTabs button"), function(b){
-          b.classList.toggle("active", b.getAttribute("data-filter")==="pend");
-        });
+      irAlPendiente(siguientePendiente(rec));
+    });
+  });
+  function moverse(direccion){
+    guardarYDecidir(function(rec, faltas){
+      // Solo frena hacia ADELANTE: volver al anterior no es "seguir de largo", y en la flotante
+      // (que no tiene cola) es la única forma de regresar. Lo escrito queda guardado igual.
+      if(direccion > 0 && faltas.length && seTrabajoEsteRadicado(rec)){
+        pintarAvisoImperativas(rec, true);
+        enfocarPrimeraFalta(faltas);
+        return;
       }
-      if(imperative.length) warnImperative(imperative);
-      // EL FRENO. Ya está guardado: lo que se detiene es el avance al siguiente radicado, no el
-      // guardado. Si hay algo que no cuadra, se corrige aquí o se confirma la anomalía -- las dos
-      // únicas salidas. Nada de llegar al final del día a revisarlo otra vez.
-      var avanzar = function(){
-        if(!imperative.length) toast("Radicado " + rec.radicado + " guardado");
-        selectRecord(next.id, "cc_formato");
-        renderStats();
-      };
-      if(gateDeReglas(rec, avanzar)) avanzar();
+      var otro = findAdjacent(rec, direccion);
+      if(otro) selectRecord(otro.id);
+      else toast("No hay más radicados en esta vista");
     });
-  });
-  document.getElementById("cc_prev").addEventListener("click", function(){
-    var rec = readCaptureIntoRecord();
-    if(!rec) return;
-    clearFieldErrors();
-    var imperativePrev = checkImperativeRules(rec);
-    if(imperativePrev.length){ imperativePrev.forEach(function(v){ v.wraps.forEach(markError); }); }
-    save(); renderQueue(); renderStats(); renderAgendamientos();
-    // El aviso ya no se lanza aquí como mensaje pasajero: las reglas imperativas entran ahora en
-    // el motor de reglas, así que el diálogo de abajo (gateDeReglas) las lista una por una y no se
-    // las puede llevar por delante el siguiente mensaje que salga. Se mantiene el marcado en rojo.
-    var prevRec = findAdjacent(rec, -1);
-    var irAtras = function(){ if(prevRec) selectRecord(prevRec.id); };
-    if(gateDeReglas(rec, irAtras)) irAtras();
-  });
-  document.getElementById("cc_next").addEventListener("click", function(){
-    var rec = readCaptureIntoRecord();
-    if(!rec) return;
-    checkNombreMismatch(rec, function(ok){
-      if(!ok){ toast("No se guardó -- revisa el nombre del solicitante frente al del infractor."); return; }
-      clearFieldErrors();
-      var imperativeNext = checkImperativeRules(rec);
-      if(imperativeNext.length){ imperativeNext.forEach(function(v){ v.wraps.forEach(markError); }); }
-      save(); renderQueue(); renderStats(); renderAgendamientos();
-      var check = validateAdvance(rec);
-      if(!check.ok){ warnMissing(check); return; }
-      if(imperativeNext.length) warnImperative(imperativeNext);
-      var nextRec = findAdjacent(rec, 1);
-      var irAdelante = function(){
-        if(nextRec) selectRecord(nextRec.id);
-        else toast("No hay más radicados en esta vista");
-      };
-      if(gateDeReglas(rec, irAdelante)) irAdelante();
-    });
-  });
+  }
+  document.getElementById("cc_prev").addEventListener("click", function(){ moverse(-1); });
+  document.getElementById("cc_next").addEventListener("click", function(){ moverse(1); });
   document.getElementById("captureForm").addEventListener("keydown", function(e){
     if((e.ctrlKey || e.metaKey) && e.key === "Enter"){
       e.preventDefault();
@@ -9544,7 +9884,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se sube a mano en cada publicación. No se calcula solo a propósito: si se generara con la fecha
   // del navegador diría siempre "hoy" y no distinguiría una versión de otra, que es justo para lo
   // que sirve.
-  var VERSION_APP = "2026-09-30 · dos bloques, separación probada";
+  var VERSION_APP = "2026-11-04 · rediseño simple: PENDIENTE / LISTO, inicio sin clave";
   var TIPO_REGLA_TEXTO = {
     estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
     imperativa:  "Imperativa — la app avisa y hay que resolverlo",
@@ -9593,6 +9933,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // silencio: no se puede tocar el registro sin que este aviso salte al siguiente inicio.
   function revisarFirmaDeLasReglasAlEntrar(){
     if(!state.profile.activeUser) return;
+    // 04-11-2026: las reglas ya no se editan desde la app (quedan fijas en el código y cada cambio
+    // lleva su prueba). El aviso "las reglas cambiaron, acéptelo en Ajustes → Reglas" sobraba: se
+    // deja la firma al día en silencio.
+    guardarFirmaDeLasReglas(); return;
     if(!firmaGuardada()){ guardarFirmaDeLasReglas(); return; }
     if(!reglasCambiaronSinAnotar()) return;
     // Dos casos distintos, y conviene no confundirlos:
@@ -10583,7 +10927,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       fallas.push("no tiene forma de correo válido");
     }else{
       var dom = limpio.split("@").pop().toLowerCase();
-      var buenos = paramLista("dominiosDeCorreoConocidos");
+      var buenos = paramLista("dominiosDeCorreoConocidos").concat(dominiosAprendidos());
       if(buenos.indexOf(dom) === -1 && !/\.(edu|gov|org|mil)\.co$/.test(dom)){
         var mejor = {d:99, dom:""};
         buenos.forEach(function(d){
@@ -11620,7 +11964,23 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     });
     return {total:list.length, problemas:problemas};
   }
+  // Desde el 04-11-2026 la plantilla tampoco tiene revisión al final: se descarga cuando TODOS los
+  // agendamientos están LISTOS (faltasDe ya revisó cada uno, columnas de la plantilla incluidas).
+  // Si falta alguno, se abre el primero. Solo mira los agendamientos: la plantilla corre con el
+  // término del ciudadano y no tiene por qué esperar a que se termine la masiva.
   function conRevisionAgenda(onProceed){
+    commitCurrentEdits();
+    olvidarListos();
+    var pendA = agendamientoList().filter(function(r){ return !esListo(r); });
+    if(pendA.length){
+      toast("Faltan " + pendA.length + " agendamiento(s) por dejar LISTOS. Le abro el primero.");
+      cerrarVentanasAbiertas();
+      irAlPendiente(pendA[0]);
+      return;
+    }
+    onProceed();
+  }
+  function conRevisionAgendaVieja(onProceed){
     var informe = auditarPlantillaAgenda();
     if(!informe.problemas.length){ onProceed(); return; }
     var graves = informe.problemas.filter(function(p){ return p.grave; }).length;
@@ -11714,17 +12074,25 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // La misma cifra, también en el botón del encabezado: dice de un vistazo cuántos van a salir.
     var badge = document.getElementById("masivaListaBadge");
     if(badge){
-      badge.textContent = String(n);
+      // Mientras haya PENDIENTES el botón lo dice de frente: "faltan N". Nunca es sorpresa.
+      var nPend = 0;
+      try{ nPend = pendientesDeLaSemana().length; }catch(e){}
+      badge.textContent = nPend ? ("faltan " + nPend) : String(n);
+      badge.classList.toggle("faltan", !!nPend);
       var btnMas = document.getElementById("descargarMasivaBtn");
-      if(btnMas) btnMas.title = n
-        ? "Descargar la masiva final (.xlsx) — " + n + " radicados clasificados entrarían" +
-          (repesFuera ? " (ya sin " + repesFuera + " fila(s) repetida(s))" : "")
-        : "Todavía no hay radicados clasificados para la masiva";
+      if(btnMas) btnMas.title = nPend
+        ? "Faltan " + nPend + " radicado(s) por dejar LISTOS. La masiva se descarga cuando no quede ninguno."
+        : (n ? "Todos LISTOS: descargar la masiva (.xlsx) con " + n + " radicados" : "Todavía no hay radicados para la masiva");
     }
     // El número NUNCA va solo: al lado dice de dónde sale. Un conteo que no se puede explicar es lo
     // que puso a la usuaria delante de un memorando sin saber qué contestar.
-    document.getElementById("finalDocCount").textContent = n
-      ? n + " radicado" + (n===1?"":"s") + " clasificado" + (n===1?"":"s") + " listo" + (n===1?"":"s") +
+    var nPendDoc = 0;
+    try{ nPendDoc = pendientesDeLaSemana().length; }catch(e){}
+    document.getElementById("finalDocCount").textContent = nPendDoc
+      ? "Faltan " + nPendDoc + " radicado" + (nPendDoc===1?"":"s") + " por dejar LISTO" + (nPendDoc===1?"":"S") +
+        ": la masiva se descarga cuando no quede ninguno · " + state.records.length + " en tu lista"
+      : n
+      ? n + " radicado" + (n===1?"":"s") + " LISTO" + (n===1?"":"S") +
         " para el documento final · de " + state.records.length + " en tu lista" +
         (repesFuera ? " · " + repesFuera + " fila(s) repetida(s) descartada(s)" : "")
       : "Aún no hay radicados clasificados (Formato lleno) para generar el documento final";
@@ -11940,6 +12308,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   document.getElementById("cuadreDesde").addEventListener("change", renderRango);
   document.getElementById("cuadreHasta").addEventListener("change", renderRango);
   document.getElementById("cuadreRangoDescargar").addEventListener("click", function(){
+    if(frenoDeEntrega()) return; // 04-11-2026: ningún camino descarga con pendientes
     var r = renderRango();
     if(!r.filas.length){ toast("Con ese rango no queda ningún radicado"); return; }
     var sufijo = (r.desde ? isoDeFecha(r.desde) : "inicio") + "_a_" + (r.hasta ? isoDeFecha(r.hasta) : "hoy");
@@ -11949,6 +12318,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       (r.sinFecha.length ? " · OJO: " + r.sinFecha.length + " sin fecha legible NO van incluidos" : ""));
   });
   document.getElementById("cuadreRangoCopiar").addEventListener("click", function(){
+    if(frenoDeEntrega()) return;
     var r = renderRango();
     if(!r.filas.length){ toast("Con ese rango no queda ningún radicado"); return; }
     copyOrShowManually(rowsToTSV(MASIVA_HEADERS, r.filas.map(recordToMasivaRow)),
@@ -12056,28 +12426,130 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       ultimoCruce.soloEnOrfeo.length + " solo en ORFEO, " + ultimoCruce.coinciden.length + " en las dos");
   });
 
-  // Los dos caminos que producen el documento que se ENTREGA pasan primero por la revisión previa
-  // (ver conRevisionPrevia / #preflightDialog). Si no hay hallazgos, no estorba: sigue de largo.
-  function generarMasivaFinal(){
-    var eligible = finalDocEligible();
-    if(!eligible.length){ toast("Aún no hay radicados clasificados (con Formato) para el documento final"); return; }
-    conRevisionPrevia(function(){
-      var filename = "MASIVA_" + userSlug() + "_" + new Date().toISOString().slice(0,10);
-      downloadExcel(filename, MASIVA_HEADERS, eligible.map(recordToMasivaRow), "Documento final descargado — " + eligible.length + " radicados");
+  // ============================================================
+  // DESCARGAR LA MASIVA (rediseño del 04-11-2026)
+  // ------------------------------------------------------------
+  // Ya no hay revisión previa con avisos al final. La revisión se hizo radicado por radicado al
+  // guardar (faltasDe), así que aquí solo hay dos casos:
+  //   · Quedan PENDIENTES: no se descarga. Se va directo al primero, que dice qué le falta. El
+  //     botón ya mostraba cuántos faltan, así que no es una sorpresa.
+  //   · Todos LISTOS: se revisa el archivo mismo (las invariantes del PROTOCOLO, sobre las filas
+  //     que de verdad se van a escribir) y se descarga sin ventanas en el medio.
+  // ============================================================
+  function semanasDeLaLista(){
+    var porSemana = {};
+    state.records.forEach(function(r){
+      var d = parseDMY(normalizeDate(r.fechaAsignacion));
+      if(!d) return;
+      var l = lunesDe(d), k = iso8601(l);
+      (porSemana[k] = porSemana[k] || {lunes:l, registros:[]}).registros.push(r);
+    });
+    return Object.keys(porSemana).sort().map(function(k){ return porSemana[k]; });
+  }
+  // Las invariantes del archivo que se entrega (PROTOCOLO.md, Regla 0), sobre las filas ya armadas.
+  function revisarArchivoMasiva(filas, registros){
+    var p = [];
+    if(MASIVA_HEADERS.length !== 27) p.push("El archivo no tiene las 27 columnas.");                    // I8
+    var vistos = {};
+    filas.forEach(function(f, i){
+      var rad = String(f[0]||""), quien = "Radicado " + (rad || "(sin número)") + ": ";
+      if(vistos[rad]) p.push(quien + "sale dos veces.");                                             // I1
+      vistos[rad] = true;
+      if(!/^\d{15}$/.test(rad)) p.push(quien + "no tiene 15 dígitos.");                              // I2
+      var dir = String(f[5]||"").trim();
+      if(dir && revisarCorreo(dir).nivel === "falla") p.push(quien + "el correo \"" + dir + "\" no es válido."); // I5
+      var c = String(f[2]||"").replace(/\D/g, "");
+      if(String(f[2]||"").trim() && (c.length < 6 || c.length > 12)) p.push(quien + "el comparendo no tiene entre 6 y 12 dígitos."); // I6
+      if(String(f[2]) !== String(f[13])) p.push(quien + "las dos columnas COMPARENDO no coinciden.");  // I7
+    });
+    var sem = {};
+    registros.forEach(function(r){
+      var d = parseDMY(normalizeDate(r.fechaAsignacion));
+      sem[d ? iso8601(lunesDe(d)) : "sin fecha"] = true;
+    });
+    if(Object.keys(sem).length > 1) p.push("Las filas son de más de una semana de asignación.");          // I4
+    return p;
+  }
+  function estadoDeLaEntrega(){
+    olvidarListos();
+    var pend = pendientesDeLaSemana();
+    var semanas = semanasDeLaLista();
+    return {pendientes: pend, semanas: semanas, mezcla: semanas.length > 1};
+  }
+  function frenoDeEntrega(){
+    var e = estadoDeLaEntrega();
+    if(e.pendientes.length){
+      var n = e.pendientes.length;
+      toast("Faltan " + n + " radicado" + (n === 1 ? "" : "s") + " por dejar LISTO" + (n === 1 ? "" : "S") +
+            ". La masiva se descarga cuando no quede ninguno. Le abro el primero.");
+      cerrarVentanasAbiertas();
+      irAlPendiente(e.pendientes.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); })[0], true);
+      return true;
+    }
+    if(e.mezcla){
+      cerrarVentanasAbiertas();
+      pintarAvisoSemanas();
+      toast("Su lista tiene radicados de " + e.semanas.length + " semanas de asignación. Mire el aviso de arriba.");
+      return true;
+    }
+    return false;
+  }
+  function cerrarVentanasAbiertas(){
+    ["documentosDialog","agendaDialog","historialDialog"].forEach(function(id){
+      var d = document.getElementById(id); if(d && d.open) d.close();
     });
   }
+  function generarMasivaFinal(){
+    commitCurrentEdits();
+    if(frenoDeEntrega()) return;
+    var eligible = finalDocEligible();
+    if(!eligible.length){ toast("No hay radicados para la masiva (los DEVUELTO y AGENDAMIENTO no van en ella)."); return; }
+    var filas = eligible.map(recordToMasivaRow);
+    var problemas = revisarArchivoMasiva(filas, eligible);
+    if(problemas.length){ mostrarMasivaBloqueada(problemas); return; }
+    registrarEntrega(false);
+    var filename = "MASIVA_" + userSlug() + "_" + new Date().toISOString().slice(0,10);
+    downloadExcel(filename, MASIVA_HEADERS, filas, "Masiva descargada — " + eligible.length + " radicados, todos LISTOS.");
+  }
+  function mostrarMasivaBloqueada(problemas){
+    document.getElementById("masivaBloqueadaLista").innerHTML =
+      problemas.map(function(t){ return "<li>" + escapeHtml(t) + "</li>"; }).join("");
+    document.getElementById("masivaBloqueadaDialog").showModal();
+  }
   document.getElementById("downloadFinalBtn").addEventListener("click", generarMasivaFinal);
-  // El botón del encabezado hace lo MISMO, sin pasar por ninguna ventana: mismo motor, misma
-  // revisión previa, misma constancia y el mismo archivo. No hay dos caminos que puedan discrepar.
   document.getElementById("descargarMasivaBtn").addEventListener("click", generarMasivaFinal);
   document.getElementById("copyFinalBtn").addEventListener("click", function(){
+    commitCurrentEdits();
+    if(frenoDeEntrega()) return;
     var eligible = finalDocEligible();
-    if(!eligible.length){ toast("Aún no hay radicados clasificados (con Formato) para el documento final"); return; }
-    conRevisionPrevia(function(){
-      var text = rowsToTSV(MASIVA_HEADERS, eligible.map(recordToMasivaRow));
-      copyOrShowManually(text, eligible.length + " filas copiadas — pégalas en una hoja nueva de Excel", "Documento final (" + eligible.length + " radicados)");
-    });
+    if(!eligible.length){ toast("No hay radicados para la masiva."); return; }
+    var filas = eligible.map(recordToMasivaRow);
+    var problemas = revisarArchivoMasiva(filas, eligible);
+    if(problemas.length){ mostrarMasivaBloqueada(problemas); return; }
+    copyOrShowManually(rowsToTSV(MASIVA_HEADERS, filas), eligible.length + " filas copiadas — pégalas en una hoja nueva de Excel", "Masiva (" + eligible.length + " radicados)");
   });
+  document.getElementById("masivaBloqueadaCerrar").addEventListener("click", function(){
+    document.getElementById("masivaBloqueadaDialog").close();
+  });
+  // EL AVISO DE SEMANAS MEZCLADAS, ARRIBA Y FIJO. Se ve desde que entra a la lista un radicado de
+  // otra semana de asignación, no al descargar: así se corrige la fecha o se cierra la semana a
+  // tiempo. Mientras esté, la masiva no se descarga (invariante I4).
+  function pintarAvisoSemanas(){
+    var caja = document.getElementById("avisoSemanas");
+    if(!caja) return;
+    var semanas = semanasDeLaLista();
+    if(semanas.length < 2){ caja.hidden = true; caja.innerHTML = ""; return; }
+    caja.hidden = false;
+    caja.innerHTML = "<b>Su lista tiene radicados de " + semanas.length + " semanas de asignación.</b> " +
+      "La masiva es de una sola semana, así que no se descarga así. Revise la fecha de asignación de estos radicados, " +
+      "o cierre primero la semana anterior: " +
+      semanas.map(function(sm){
+        var dom = new Date(sm.lunes.getFullYear(), sm.lunes.getMonth(), sm.lunes.getDate()+6);
+        return "semana del " + ddmm(sm.lunes) + " al " + ddmm(dom) + ": " + sm.registros.length + " (" +
+          sm.registros.slice(0, 6).map(function(r){ return escapeHtml(r.radicado || "?"); }).join(", ") +
+          (sm.registros.length > 6 ? "…" : "") + ")";
+      }).join(" · ") + ".";
+  }
 
   var confirmDialog = document.getElementById("confirmDialog");
   // "Nueva semana" cierra TODO el lote, agendamientos incluidos. Antes los agendamientos pendientes
@@ -12109,10 +12581,10 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // LO PRIMERO, Y EN GRANDE: los que se van a archivar SIN HABERSE ENTREGADO NUNCA.
     // Antes este aviso solo hablaba de agendamientos. Un radicado sin clasificar se archivaba en
     // silencio, y la entidad lo devolvía semanas después preguntando por qué no se le respondió.
-    var sinClas = toClose.filter(function(r){ return !isDone(r); }).length;
+    var sinClas = toClose.filter(function(r){ return !esListo(r); }).length;
     if(sinClas){
-      nota = "OJO: " + sinClas + " radicado(s) se van a archivar SIN CLASIFICAR. Esos nunca salieron en " +
-             "ninguna masiva: si cierras ahora, quedan sin responder. Puedes cancelar y clasificarlos primero. ";
+      nota = "OJO: " + sinClas + " radicado(s) siguen PENDIENTES. Esos no han salido en " +
+             "ninguna masiva: si cierras ahora, quedan sin responder. Puedes cancelar y dejarlos LISTOS primero. ";
     }
     if(agendas){
       nota += "Se cierran también " + agendas + " AGENDAMIENTO" + (agendas===1?"":"S") + ".";
@@ -12218,14 +12690,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // sesión que ya tenía abierta (ver floatModeBtn). Si no llega nada a tiempo -- la pestaña
   // principal no tenía sesión, se cerró antes de que esto cargara, o cualquier otro motivo -- cae
   // al mismo formulario de siempre, sin quedar nunca atascada esperando.
-  if(isFlotanteInstance){
-    // La pestaña principal reintenta el envío cada medio segundo durante ~5s (ver floatModeBtn), así
-    // que aquí se espera un poco más que eso antes de rendirse y pedir login manual -- de sobra para
-    // que este iframe termine de cargar y quede escuchando el canal a tiempo.
-    var flotanteHandoffTimer = setTimeout(function(){ openAuthDialog(true); }, 4000);
+  // La ventana flotante entra sola con la cuenta recordada de este computador: se abre desde la
+  // app ya abierta y no tiene sentido mostrarle la página de inicio. Si no hubiera cuenta recordada
+  // (no debería pasar), espera la sesión que le pasa la principal, como antes.
+  var cuentaAlAbrir = leerCuenta();
+  if(isFlotanteInstance && cuentaAlAbrir){
+    entrarConCuentaRecordada(cuentaAlAbrir, true);
+  } else if(isFlotanteInstance){
+    var flotanteHandoffTimer = setTimeout(function(){ abrirInicio(false); }, 4000);
     try{
-      // Mismo canal que floatModeBtn en la pestaña principal -- ver ahí la nota sobre por qué es
-      // BroadcastChannel y no postMessage a la ventana (no llega, se confirmó aparte).
       var handoffChannel = new BroadcastChannel("radicados_session_handoff");
       handoffChannel.onmessage = function(ev){
         clearTimeout(flotanteHandoffTimer);
@@ -12235,16 +12708,15 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
           supaProfile = ev.data.profile || null;
           completeLogin(true);
         } else {
-          openAuthDialog(true);
+          abrirInicio(false);
         }
       };
     }catch(e){
-      // BroadcastChannel no disponible (navegador muy antiguo) -- cae directo al login normal.
       clearTimeout(flotanteHandoffTimer);
-      openAuthDialog(true);
+      abrirInicio(false);
     }
   } else {
-    openAuthDialog(true);
+    abrirInicio(false);
   }
 
   if(state.storageAvailable === false){

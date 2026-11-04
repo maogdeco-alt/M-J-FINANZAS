@@ -15,9 +15,9 @@ TIRA_SIN = T.join(["11001000000046855270","D01","05/05/2025","06/05/2025","No","
   "VIGENTE","","","","CEDULA DE CIUDADANIA","79123456","LUIS ALBERTO RUIZ","CRA 7 # 90-27"])
 
 BLOQUE = "\n".join([
-  "2026ER001\t01/09/2026\t03/09/2026\tJOSE PEREZ CASTAÑEDA",
-  "2026ER002\t01/09/2026\t03/09/2026\tANA MARIA GOMEZ",
-  "2026ER003\t01/09/2026\t03/09/2026\tLUIS ALBERTO RUIZ",
+  "202670000000001\t01/09/2026\t03/09/2026\tJOSE PEREZ CASTAÑEDA",
+  "202670000000002\t01/09/2026\t03/09/2026\tANA MARIA GOMEZ",
+  "202670000000003\t01/09/2026\t03/09/2026\tLUIS ALBERTO RUIZ",
 ])
 
 fallos = []
@@ -30,7 +30,7 @@ with sync_playwright() as pw:
     B.entrar(pag); B.importar(pag, BLOQUE)
 
     print("1) tira de 15 columnas (dirección antes de la placa)")
-    B.ir_a(pag, "2026ER001"); B.pegar_tira(pag, TIRA_15)
+    B.ir_a(pag, "202670000000001"); B.pegar_tira(pag, TIRA_15)
     d = B.desglose(pag)
     ok(d.get("PLACA") == "ABC123", "la placa es ABC123, no la dirección  → " + repr(d.get("PLACA")))
     ok("CALLE 13" in (d.get("DIRECCIÓN INFRACTOR") or ""), "la dirección va a su propia casilla → " + repr(d.get("DIRECCIÓN INFRACTOR")))
@@ -38,14 +38,14 @@ with sync_playwright() as pw:
     ok(d.get("NOMBRE INFRACTOR") == "JOSE PÉREZ CASTAÑEDA", "el nombre no se corrió → " + repr(d.get("NOMBRE INFRACTOR")))
 
     print("2) tira de 14 columnas (como siempre): nada cambia")
-    B.ir_a(pag, "2026ER002"); B.pegar_tira(pag, TIRA_14)
+    B.ir_a(pag, "202670000000002"); B.pegar_tira(pag, TIRA_14)
     d = B.desglose(pag)
     ok(d.get("PLACA") == "XYZ12D", "la placa sigue siendo XYZ12D → " + repr(d.get("PLACA")))
     ok((d.get("DIRECCIÓN INFRACTOR") or "—") == "—", "sin dirección, la casilla queda vacía → " + repr(d.get("DIRECCIÓN INFRACTOR")))
     ok(d.get("FECHA NOTIF.") == "—", "la notificación vacía se queda vacía, sin inventar nada")
 
     print("3) tira sin placa: NO se inventa una, y se avisa")
-    B.ir_a(pag, "2026ER003"); B.pegar_tira(pag, TIRA_SIN)
+    B.ir_a(pag, "202670000000003"); B.pegar_tira(pag, TIRA_SIN)
     d = B.desglose(pag)
     ok("CRA 7" in (d.get("PLACA") or ""), "se deja tal cual vino (no se borra en silencio) → " + repr(d.get("PLACA")))
     cs = " | ".join(B.chips(pag))

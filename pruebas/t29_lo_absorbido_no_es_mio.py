@@ -37,9 +37,8 @@ with sync_playwright() as pw:
     flo = ctx.new_page(); err2 = []
     flo.on("pageerror", lambda e: err2.append(str(e)))
     flo.goto(B.URL + "#flotante=1", wait_until="domcontentloaded")
-    flo.wait_for_selector("#loginEmail", timeout=20000)
-    flo.fill("#loginEmail", "prueba@gmail.com"); flo.fill("#loginPassword", "123456")
-    flo.click("#loginBtn"); flo.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(flo, "prueba@gmail.com")
+    pass
     flo.wait_for_timeout(1500)
     if flo.locator("#captureEmptyVerTodos").is_visible():
         flo.click("#captureEmptyVerTodos"); flo.wait_for_timeout(400)

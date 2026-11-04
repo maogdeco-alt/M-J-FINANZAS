@@ -10,7 +10,7 @@
 #   R28  Ninguna regla miraba la longitud del comparendo: en la masiva entregada quedó un «11».
 #
 # Cada caso de aquí está copiado de esa masiva (con los datos cambiados, la forma del defecto no).
-import sys, os; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B
 T="\t"
@@ -38,6 +38,12 @@ def avisos(pag):
             try: t.append(loc.first.inner_text())
             except Exception: pass
     return "\n".join(t)
+
+def otra_ventana(js):
+    """El cambio lo hace OTRA ventana, como pasa de verdad: escrito desde la misma página, la app lo
+    pisaba al recargar con lo que tenía en memoria (y es lo correcto: lo de la pantalla manda)."""
+    p2 = ctx.new_page(); p2.goto("http://127.0.0.1:8871/manifest.webmanifest")
+    p2.evaluate(js); p2.close(); pag.wait_for_timeout(800)
 
 with sync_playwright() as pw:
     nav,ctx,pag,err=B.abrir(pw)
@@ -82,53 +88,53 @@ with sync_playwright() as pw:
     B.escribir(pag,"#cc_direccion","ciudadano@gmail.com")
     pag.click("#cc_save"); pag.wait_for_timeout(400); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
     # el comparendo se escribe pegando la tira; se cambia solo ese dato
-    pag.evaluate("""()=>{
+    otra_ventana("""()=>{
       const k = Object.keys(localStorage).find(x=>x.indexOf('radicados_semanales_v2::')===0);
       const l = JSON.parse(localStorage.getItem(k));
-      l.forEach(r=>{ r.comparendoCompleto='11'; r.modificadoEn=Date.now()+60000; });
+      l.forEach(r=>{ if(r.formato!=='T14') return; r.comparendoCompleto='11'; r.modificadoEn=Date.now()+60000; });
       localStorage.setItem(k, JSON.stringify(l));
     }""")
     pag.reload(wait_until="domcontentloaded"); pag.wait_for_timeout(1200)
-    pag.fill("#loginEmail","prueba@gmail.com"); pag.fill("#loginPassword","123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(pag, "prueba@gmail.com")
+    pass
     pag.wait_for_timeout(1500)
-    pag.click("#descargarMasivaBtn"); pag.wait_for_timeout(1500)
-    txt = pag.locator("#preflightLista").inner_text() if pag.locator("#preflightDialog[open]").count() else ""
+    # Desde el 04-11-2026 no hay revisión previa: lo dice la caja PENDIENTE del radicado.
+    B.ir_a(pag,R1); txt = "\n".join(B.faltas(pag))
     ok("11" in txt and "dígito" in txt, "el comparendo «11» se señala → "+txt[txt.find("comparendo"):][:95] if "comparendo" in txt else "NO se señaló")
     if pag.locator("#preflightDialog[open]").count(): pag.click("#preflightCancel")
     pag.wait_for_timeout(400)
 
     print("4) R27 — FORMATO DEL NÚMERO DE RADICADO")
-    pag.evaluate("""()=>{
+    B.ir_a(pag,R2)  # que el radicado que cambia la otra ventana no esté abierto aquí: lo de la pantalla manda
+    otra_ventana("""()=>{
       const k = Object.keys(localStorage).find(x=>x.indexOf('radicados_semanales_v2::')===0);
       const l = JSON.parse(localStorage.getItem(k));
-      l.forEach(r=>{ r.comparendoCompleto='52559342'; r.radicado='20266120370658'; r.modificadoEn=Date.now()+90000; });
+      l.forEach(r=>{ if(r.formato!=='T14') return; r.comparendoCompleto='52559342'; r.radicado='20266120370658'; r.modificadoEn=Date.now()+90000; });
       localStorage.setItem(k, JSON.stringify(l));
     }""")
     pag.reload(wait_until="domcontentloaded"); pag.wait_for_timeout(1200)
-    pag.fill("#loginEmail","prueba@gmail.com"); pag.fill("#loginPassword","123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(pag, "prueba@gmail.com")
+    pass
     pag.wait_for_timeout(1500)
-    pag.click("#descargarMasivaBtn"); pag.wait_for_timeout(1500)
-    txt2 = pag.locator("#preflightLista").inner_text() if pag.locator("#preflightDialog[open]").count() else ""
+    B.ir_a(pag,"20266120370658"); txt2 = "\n".join(B.faltas(pag))
     ok("14 dígitos" in txt2 or "14 d" in txt2, "un radicado de 14 dígitos se señala")
     ok("15" in txt2, "y dice cuántos debería tener")
     if pag.locator("#preflightDialog[open]").count(): pag.click("#preflightCancel")
     pag.wait_for_timeout(400)
 
     print("5) un radicado de 15 dígitos no molesta")
-    pag.evaluate("""()=>{
+    B.ir_a(pag,R2)  # que el radicado que cambia la otra ventana no esté abierto aquí: lo de la pantalla manda
+    otra_ventana("""()=>{
       const k = Object.keys(localStorage).find(x=>x.indexOf('radicados_semanales_v2::')===0);
       const l = JSON.parse(localStorage.getItem(k));
-      l.forEach(r=>{ r.radicado='202661203706582'; r.modificadoEn=Date.now()+120000; });
+      l.forEach(r=>{ if(r.formato!=='T14') return; r.radicado='202661203706582'; r.modificadoEn=Date.now()+120000; });
       localStorage.setItem(k, JSON.stringify(l));
     }""")
     pag.reload(wait_until="domcontentloaded"); pag.wait_for_timeout(1200)
-    pag.fill("#loginEmail","prueba@gmail.com"); pag.fill("#loginPassword","123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(pag, "prueba@gmail.com")
+    pass
     pag.wait_for_timeout(1500)
-    pag.click("#descargarMasivaBtn"); pag.wait_for_timeout(1500)
-    txt3 = pag.locator("#preflightLista").inner_text() if pag.locator("#preflightDialog[open]").count() else ""
+    B.ir_a(pag,R1); txt3 = "\n".join(B.faltas(pag))
     ok("dígitos y deberían ser" not in txt3, "no se queja de un radicado correcto")
     ok("dígito(s). Un comparendo" not in txt3, "ni del comparendo correcto")
 
@@ -136,7 +142,7 @@ with sync_playwright() as pw:
     # La revisión previa puede haber quedado abierta: se cierra antes de tocar nada más.
     if pag.locator("#preflightDialog[open]").count():
         pag.click("#preflightCancel"); pag.wait_for_timeout(400)
-    pag.click("#reglasBtn"); pag.wait_for_timeout(1200)
+    B.abrir_reglas(pag); pag.wait_for_timeout(1200)
     cat = pag.locator("body").inner_text()
     for r in ("R26","R27","R28"):
         ok(r in cat, r+" aparece en el catálogo de reglas")
