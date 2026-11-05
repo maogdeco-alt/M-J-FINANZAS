@@ -65,6 +65,8 @@ No se edita nunca `pruebas/sitio/index_test.html` a mano: es un archivo generado
 | `t41_pendiente_o_listo.py` | PENDIENTE / LISTO de punta a punta: no avanza mientras falte algo y dice qué, casilla en rojo, «Dejar pendiente y seguir», «Anterior» sí deja volver, dominio de correo que se aprende una vez, ningún «¿es correcto?», y con todo LISTO descarga directo. |
 | `t42_flotante_al_dia.py` | La flotante igual de estricta que la principal, las dos al día entre sí **sin mensajes**, y el historial de una semana cerrada en la principal visible en la flotante sin recargar. |
 | `t43_sin_prorroga.py` | PRORROGA y PRORROGA SDA eliminadas: no aparecen en el desplegable ni en pantalla, tampoco con Ajustes viejos guardados; un radicado que las tenga queda PENDIENTE y frena la masiva; el historial archivado no se toca. |
+| `t44_sesenta_dos_ventanas.py` | Jornada de 60 radicados: principal (1–30) y flotante (31–60) escribiendo a la vez casilla por casilla, recarga de la principal y cierre de golpe de la flotante. Exige: frena en cada radicado incompleto y dice qué falta; nada perdido ni cruzado (navegador, flotante y nube); 60 LISTOS; masiva con una fila por radicado y sus datos. |
+| `t45_reglas_fijas.py` | Reglas aflojadas guardadas en la nube o en el navegador NO se aplican: un T1 sin resolución y un T6 sin comparendo siguen PENDIENTES. |
 
 ## Reglas de la casa
 

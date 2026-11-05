@@ -446,5 +446,13 @@ añadirlas. Un radicado que ya estuviera clasificado así queda PENDIENTE ("no e
 de la lista") y no sale en la masiva hasta reclasificarlo. El historial archivado no se toca. Las
 "PRORROGA " del bloque de la mañana son categorías del sheet de Donina, otro dominio: no se tocan.
 
+**Reglas fijas en el código** (05-11-2026, auditoría antes de una jornada de 60 radicados). La app
+seguía aplicando encima de los valores de `REGLAS_PARAMS_DEFAULT` los parámetros guardados en la nube
+(fila `reglas_masivas`) y en el navegador (`radicados_reglas_params_v1::area`), aunque desde el
+rediseño ya no se editan ni se ven. Con una copia aflojada en la nube, un T1 sin resolución salía
+LISTO (t45). Ahora `REGLAS_FIJAS_EN_EL_CODIGO = true`: mandan siempre los valores del código; la nube
+solo aporta la bitácora. Además `faltasDe` ya no deja pasar un radicado si el motor de reglas o el
+armado de la fila fallan por dentro: queda PENDIENTE con "No lo dé por bueno: avise".
+
 Pruebas: t40 (inicio sin clave y sesión compartida con rotación de tokens en `mock.py`), t41
-(PENDIENTE/LISTO de punta a punta), t42 (la flotante al día), t43 (sin PRORROGA).
+(PENDIENTE/LISTO de punta a punta), t42 (la flotante al día), t43 (sin PRORROGA), t44 (jornada de 60 radicados con las dos ventanas a la vez), t45 (reglas fijas).

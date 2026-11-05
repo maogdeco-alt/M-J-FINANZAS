@@ -5998,7 +5998,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     // El motor de reglas de siempre: todo lo grave frena. Los avisos de comparendo o resolución
     // repetidos NO frenan (es normal que un ciudadano radique varias veces por lo mismo).
     var hall = [];
-    try{ hall = hallazgosDeRegistro(r, idxRepetidos || indiceDeRepetidos()) || []; }catch(e){ hall = []; }
+    try{ hall = hallazgosDeRegistro(r, idxRepetidos || indiceDeRepetidos()) || []; }
+    catch(e){ hall = []; falta("", "La app no pudo revisar este radicado (" + (e && e.message || "error") + "). No lo dé por bueno: avise."); }
     hall.forEach(function(h){
       if(!h.grave) return;
       if(h.regla && HALLAZGOS_YA_CUBIERTOS[h.regla]) return;
@@ -6037,7 +6038,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
             if(c.grave && celdaVacia(filaA[c.i])) falta("", "La columna " + c.etiqueta + " saldría vacía en la plantilla de agendamientos.");
           });
         }
-      }catch(e){}
+      }catch(e){ falta("", "La app no pudo armar la fila de este radicado para revisarla (" + (e && e.message || "error") + "). No lo dé por bueno: avise."); }
     }
     // Sin repetir la misma frase.
     var vistos = {};
@@ -6168,6 +6169,12 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   function reglasParamsKey(){ return REGLAS_PARAMS_KEY + "::area"; }
   function reglasBitacoraKey(){ return REGLAS_BITACORA_KEY + "::area"; }
   function reglasFirmaKey(){ return REGLAS_FIRMA_KEY + "::area"; }
+  // REGLAS FIJAS EN EL CÓDIGO (05-11-2026). Desde el rediseño del 04-11 las reglas no se editan en
+  // la app: cada cambio se hace aquí y lleva su prueba. Pero la app seguía aplicando ENCIMA los
+  // parámetros guardados en la nube (fila reglas_masivas, de cuando cuatro personas las editaban) y
+  // en el navegador: una copia vieja allí podía aflojar una regla sin que nadie lo viera -- un T1
+  // sin resolución salía LISTO (reproducido, t45). Ahora mandan SIEMPRE los valores de arriba.
+  var REGLAS_FIJAS_EN_EL_CODIGO = true;
   var reglasParams = JSON.parse(JSON.stringify(REGLAS_PARAMS_DEFAULT));
   var reglasBitacora = [];
   // disponible: null = todavía no se ha mirado · true = las reglas vienen del área · false = esta
@@ -6178,13 +6185,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     reglasParams = JSON.parse(JSON.stringify(REGLAS_PARAMS_DEFAULT));
     reglasBitacora = [];
     try{
-      var raw = localStorage.getItem(reglasParamsKey());
-      if(raw){
-        var guardado = JSON.parse(raw);
-        Object.keys(REGLAS_PARAMS_DEFAULT).forEach(function(k){
-          if(guardado[k] !== undefined) reglasParams[k] = guardado[k];
-        });
-      }
+      // 05-11-2026: la copia de parámetros guardada en este navegador YA NO se aplica. Las reglas
+      // son las del código (ver REGLAS_FIJAS_EN_EL_CODIGO). Solo se sigue leyendo la bitácora.
       var rawB = localStorage.getItem(reglasBitacoraKey());
       if(rawB){
         var b = JSON.parse(rawB);
@@ -6216,9 +6218,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         // no tiene definido un parámetro (por ejemplo porque la regla es nueva en esta versión de la
         // app), ese parámetro queda en su valor original en vez de quedar indefinido.
         reglasParams = JSON.parse(JSON.stringify(REGLAS_PARAMS_DEFAULT));
-        Object.keys(REGLAS_PARAMS_DEFAULT).forEach(function(k){
-          if(p[k] !== undefined) reglasParams[k] = p[k];
-        });
+        if(!REGLAS_FIJAS_EN_EL_CODIGO){
+          Object.keys(REGLAS_PARAMS_DEFAULT).forEach(function(k){
+            if(p[k] !== undefined) reglasParams[k] = p[k];
+          });
+        }
         reglasBitacora = Array.isArray(fila.bitacora) ? fila.bitacora : [];
         reglasArea.disponible = true;
         reglasArea.motivo = "";
@@ -9897,7 +9901,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
   // Se sube a mano en cada publicación. No se calcula solo a propósito: si se generara con la fecha
   // del navegador diría siempre "hoy" y no distinguiría una versión de otra, que es justo para lo
   // que sirve.
-  var VERSION_APP = "2026-11-04 · rediseño simple: PENDIENTE / LISTO, inicio sin clave, sin PRORROGA";
+  var VERSION_APP = "2026-11-04 · rediseño simple: PENDIENTE / LISTO, inicio sin clave, sin PRORROGA, reglas fijas";
   var TIPO_REGLA_TEXTO = {
     estructural: "Estructural — sostiene la entrega, no se afloja desde aquí",
     imperativa:  "Imperativa — la app avisa y hay que resolverlo",
