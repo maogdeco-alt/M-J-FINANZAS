@@ -13,7 +13,7 @@
   mismo código que produjo el archivo no comprueba nada. Si la app se equivoca, esto tiene que
   poder decirlo.
 
-  Comprueba las NUEVE INVARIANTES de PROTOCOLO.md sobre el .xlsx YA GENERADO. Da un veredicto
+  Comprueba las DIEZ INVARIANTES de PROTOCOLO.md sobre el .xlsx YA GENERADO. Da un veredicto
   APTO / NO APTO y la lista de cada caso. Funciona sin internet y sin instalar nada: se abre con
   doble clic y los archivos nunca salen del computador.
 
@@ -160,7 +160,7 @@
 <div id="salida"></div>
 
 <p class="nota">
-  Las nueve invariantes están definidas en <b>PROTOCOLO.md</b>, Regla 0. Se añaden, nunca se quitan:
+  Las diez invariantes están definidas en <b>PROTOCOLO.md</b>, Regla 0. Se añaden, nunca se quitan:
   cada fallo que aparezca en el trabajo se convierte en una invariante nueva. Un «APTO» aquí no
   garantiza que la app esté bien — garantiza que <b>este archivo</b> cumple lo que se le exige a lo
   que se entrega, que es lo que de verdad importa.
@@ -366,7 +366,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     "RESOLUCION","FECHA Res","ANEXO","PLANTILLA","USUARIO","TIPO DE DOCUMENTO","NUMERO DE DOCUMENTO",
     "RES. SALIDA","FECHA RES. SALIDA","PLACA","ANEXO"];
 
-  // ============================ LAS NUEVE INVARIANTES ============================
+  // ============================ LAS DIEZ INVARIANTES ============================
   function verificar(){
     var m = A.masiva, o = A.orfeo, g = A.agenda;
     var iRad = col(m.titulos, ["RADICADO"]);
@@ -376,6 +376,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
     var iComp1 = col(m.titulos, ["COMPARENDO"], 1);
     var iComp2 = col(m.titulos, ["COMPARENDO"], 2);
     var iNombre = col(m.titulos, ["REMITENTE_DESTINATARIO","NOMBRE Y APELLIDO"]);
+    var iRes = col(m.titulos, ["RESOLUCION"]);
 
     var filas = m.datos.map(function(d){
       return {
@@ -386,7 +387,8 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         asigCrudo: iAsig > -1 ? texto(d.celdas[iAsig]) : "",
         correo: iCorreo > -1 ? texto(d.celdas[iCorreo]) : "",
         comp1: iComp1 > -1 ? texto(d.celdas[iComp1]) : "",
-        comp2: iComp2 > -1 ? texto(d.celdas[iComp2]) : ""
+        comp2: iComp2 > -1 ? texto(d.celdas[iComp2]) : "",
+        res: iRes > -1 ? d.celdas[iRes] : ""
       };
     }).filter(function(f){ return f.rad || f.nombre; });
 
@@ -562,6 +564,25 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
         }));
     })();
 
+    // --- I10: la resolución va sola (caso real de la masiva del 02-10-2026) ---
+    (function(){
+      if(iRes === -1){ add("I10","Toda resolución es solo el número","nd","la masiva no trae columna RESOLUCION",[]); return; }
+      var malas = [];
+      filas.forEach(function(f){
+        var v = f.res;
+        if(v instanceof Date){ malas.push({f:f, v:v.toLocaleDateString("es-CO"), motivo:"es una FECHA, no el número"}); return; }
+        var t = texto(v);
+        if(!t || /^\d+$/.test(t)) return;
+        malas.push({f:f, v:t, motivo: /^\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{1,4}(\s|T|$)/.test(t) ? "parece una FECHA, no el número" : "trae texto pegado"});
+      });
+      add("I10", "Toda resolución es solo el número",
+        malas.length ? "aviso" : "pasa",
+        malas.length ? malas.length + " resolución(es) mal escritas: el ANEXO sale con eso adentro" : "todas son solo el número",
+        malas.map(function(x){
+          return "fila " + x.f.fila + ": resolución «" + x.v + "» " + x.motivo + " — " + x.f.rad + " — " + x.f.nombre;
+        }));
+    })();
+
     return {filas: filas.length, invariantes: inv};
   }
 
@@ -574,7 +595,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 
     if(fallan.length){
       h += '<div class="veredicto noapto"><h2>NO APTO PARA ENTREGAR</h2>' +
-           '<p>Falla ' + fallan.length + ' de las 9 invariantes: ' +
+           '<p>Falla ' + fallan.length + ' de las ' + res.invariantes.length + ' invariantes: ' +
            fallan.map(function(i){ return i.id; }).join(", ") +
            '. Abajo está cada caso, con el número de fila.</p></div>';
     }else if(avisan.length || nd.length){
@@ -584,7 +605,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
            'Ninguna invariante está rota.</p></div>';
     }else{
       h += '<div class="veredicto apto"><h2>APTO PARA ENTREGAR</h2>' +
-           '<p>Las 9 invariantes se cumplen sobre las ' + res.filas + ' filas del archivo.</p></div>';
+           '<p>Las ' + res.invariantes.length + ' invariantes se cumplen sobre las ' + res.filas + ' filas del archivo.</p></div>';
     }
 
     h += '<div class="cifras">' +
@@ -594,7 +615,7 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
          '<div><b>' + (9 - fallan.length - nd.length) + '/9</b><span>invariantes en regla</span></div>' +
          '</div>';
 
-    h += '<section class="panel"><h2>2 · Las nueve invariantes</h2>' +
+    h += '<section class="panel"><h2>2 · Las diez invariantes</h2>' +
          '<p class="desc">Se comprueban sobre el archivo ya generado. No dependen de que la app esté bien.</p>' +
          '<table class="inv"><thead><tr><th></th><th>Invariante</th><th>Estado</th><th>Resultado</th></tr></thead><tbody>';
     res.invariantes.forEach(function(i){

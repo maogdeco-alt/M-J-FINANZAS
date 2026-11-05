@@ -9,9 +9,10 @@
 # de AGOSTO. La app no dijo nada porque no tenía nada que decir -- para ella la palabra "semana" no
 # existía. Se descubrió cruzando a mano contra ORFEO, un mes después.
 #
-# No se bloquea la entrega: hay motivos legítimos para entregar dos semanas juntas. Lo que no puede
-# volver a pasar es entregarlas sin saberlo.
-import sys, os; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
+# Hasta el 04-11-2026 no se bloqueaba la entrega (se avisaba y se ofrecía bajar una sola semana).
+# Desde el rediseño simple, con su visto bueno, SÍ se bloquea: la masiva es de una semana, y una
+# lista con dos lo dice desde que pasa, en una franja fija arriba, no al final.
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B, openpyxl
 T="\t"
@@ -41,56 +42,42 @@ with sync_playwright() as pw:
         pag.click("#cc_save"); pag.wait_for_timeout(450); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
     pag.wait_for_timeout(700)
 
-    print("1) LA REVISIÓN PREVIA AVISA DE QUE SON DOS SEMANAS")
-    pag.click("#descargarMasivaBtn"); pag.wait_for_timeout(1600)
-    ok(pag.locator("#preflightDialog[open]").count()==1, "la revisión se abre")
-    res = pag.locator("#preflightResumen").inner_text()
-    lista = pag.locator("#preflightLista").inner_text()
-    ok("MEZCLA 2 SEMANAS" in res.upper(), "el resumen lo dice → "+res[res.upper().find("MEZCLA")-10:][:95])
-    ok("semana del" in lista, "y desglosa cada semana")
-    ok(lista.count("radicado(s)") >= 2, "con su cantidad cada una")
-    ok(pag.locator('button[data-preflight-semana]').count()==2, "con un botón por semana para bajar solo esa")
+    print("1) LA FRANJA DE ARRIBA DICE QUE SON DOS SEMANAS, SIN TOCAR NADA")
+    franja = pag.locator("#avisoSemanas")
+    ok(franja.is_visible(), "la franja se ve")
+    t = franja.inner_text()
+    ok("2 semanas" in t, "dice cuántas semanas → "+t[:90])
+    ok(t.count("semana del") == 2, "y desglosa cada semana")
+    ok("24-08-2026" in t and "28-09-2026" in t, "con sus fechas → "+t[-200:])
+    ok(all(r in t for r in AHORA+AGOSTO), "y los radicados de cada una")
 
-    print("2) EL BOTÓN LLEVA AL CUADRE CON EL RANGO DE ESA SEMANA PUESTO")
-    pag.locator('button[data-preflight-semana]').first.click(); pag.wait_for_timeout(1200)
-    ok(pag.locator("#cuadreDialog[open]").count()==1, "abre el cuadre")
-    d1, d2 = pag.input_value("#cuadreDesde"), pag.input_value("#cuadreHasta")
-    ok(d1=="2026-09-28" and d2=="2026-10-04", "con la semana más reciente puesta → "+d1+" a "+d2)
-    rango = pag.locator("#cuadreRango").inner_text()
-    ok("2" in rango.split("\n")[0], "y dice que saldrían 2 → "+rango.split("\n")[0][:70])
+    print("2) LA MASIVA NO SALE ASÍ")
+    ok(B.descargar(pag) is None, "no se descarga")
+    ok("semanas" in B.toast(pag), "y dice por qué → "+B.toast(pag)[:90])
 
-    print("3) LA DESCARGA ACOTADA TRAE SOLO ESA SEMANA")
-    with pag.expect_download(timeout=25000) as dl:
-        pag.click("#cuadreRangoDescargar"); pag.wait_for_timeout(1500)
-    ruta=os.path.join(os.path.dirname(__file__),"masiva_una_semana.xlsx"); dl.value.save_as(ruta)
-    ws=openpyxl.load_workbook(ruta).active
-    rads=[str(ws.cell(row=i,column=1).value) for i in range(2,ws.max_row+1)]
-    ok(sorted(rads)==sorted(AHORA), "solo los dos de esta semana → "+str(rads))
-    for a in AGOSTO: ok(a not in rads, "  no lleva el de agosto "+a)
-
-    print("4) CON UNA SOLA SEMANA NO ESTORBA")
-    pag.click("#cuadreClose"); pag.wait_for_timeout(400)
-    # Se mueven los dos de agosto a la misma semana que los otros. (Borrarlos por almacenamiento
-    # no sirve: la copia de la nube los devuelve en la siguiente fusión, que es exactamente lo que
-    # la app debe hacer. Hay que subir la marca de tiempo para que mande lo que se escribe aquí.)
-    pag.evaluate("""(ags)=>{
+    print("3) CON UNA SOLA SEMANA, LA FRANJA SE VA Y LA MASIVA SALE")
+    # Se mueven los dos de agosto a la misma semana que los otros, desde OTRA ventana (escrito desde
+    # esta misma página, la app lo pisaría al recargar con lo que tiene en pantalla). Se sube la marca
+    # de tiempo para que mande lo que se escribe aquí.
+    B.ir_a(pag, AHORA[0])
+    p2 = ctx.new_page(); p2.goto("http://127.0.0.1:8871/manifest.webmanifest")
+    p2.evaluate("""(ags)=>{
       const k = Object.keys(localStorage).find(x=>x.indexOf('radicados_semanales_v2::')===0);
       const l = JSON.parse(localStorage.getItem(k));
       l.forEach(r=>{ if(ags.indexOf(r.radicado)>-1){ r.fechaAsignacion='29-09-2026'; r.modificadoEn=Date.now()+60000; } });
       localStorage.setItem(k, JSON.stringify(l));
     }""", AGOSTO)
+    p2.close(); pag.wait_for_timeout(1000)
     pag.reload(wait_until="domcontentloaded"); pag.wait_for_timeout(1200)
-    pag.fill("#loginEmail","prueba@gmail.com"); pag.fill("#loginPassword","123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(pag, "prueba@gmail.com")
     pag.wait_for_timeout(1600)
-    pag.click("#descargarMasivaBtn"); pag.wait_for_timeout(1600)
-    if pag.locator("#preflightDialog[open]").count():
-        res2 = pag.locator("#preflightResumen").inner_text()
-        ok("MEZCLA" not in res2.upper(), "con una sola semana ya no avisa → "+res2[:80])
-        ok(pag.locator('button[data-preflight-semana]').count()==0, "y no pinta el bloque de semanas")
-        pag.click("#preflightCancel")
-    else:
-        ok(True, "con una sola semana ni siquiera abre la revisión")
+    ok(not pag.locator("#avisoSemanas").is_visible(), "la franja se fue sola")
+    ruta = B.descargar(pag, ruta=os.path.join(os.path.dirname(__file__),"masiva_una_semana.xlsx"), espera=20000)
+    ok(ruta is not None, "y la masiva sale")
+    if ruta:
+        ws=openpyxl.load_workbook(ruta).active
+        rads=[str(ws.cell(row=i,column=1).value) for i in range(2,ws.max_row+1)]
+        ok(sorted(rads)==sorted(AHORA+AGOSTO), "con los cuatro → "+str(rads))
 
     print("errores js:", err or "ninguno")
     if err: fallos.append("errores de JavaScript")

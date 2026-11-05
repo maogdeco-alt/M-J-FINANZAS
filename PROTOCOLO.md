@@ -14,7 +14,7 @@ pruebas: se apoya en **invariantes sobre el archivo que se entrega** y en **dato
 
 ## REGLA 0 — Qué significa "la app está bien"
 
-No es una opinión. Son nueve propiedades que **todo** archivo de masiva entregado debe cumplir.
+No es una opinión. Son once propiedades que **todo** archivo de masiva entregado debe cumplir.
 Se comprueban sobre el .xlsx ya generado, no sobre el código. Cualquiera puede verificarlas, con
 la app o sin ella.
 
@@ -29,6 +29,8 @@ la app o sin ella.
 | I7 | Las dos columnas COMPARENDO coinciden fila por fila | comparación |
 | I8 | 27 columnas, con los títulos exactos y en el mismo orden | comparar con la cabecera patrón |
 | I9 | Ningún radicado asignado esa semana se queda fuera sin motivo registrado | cruce inverso: ORFEO → archivo, y cada ausencia explicada (agendamiento, devuelto, o salió de la bandeja) |
+| I10 | Toda resolución es solo el número: ni una fecha en su lugar ni texto pegado | expresión regular (aviso en el verificador; en la app frena desde el 04-11-2026) |
+| I11 | Ningún archivo sale con un solo radicado PENDIENTE: todo lo que se entrega pasó por `faltasDe` al guardar | la app no descarga con pendientes (t41); el verificador repite I1–I10 sobre el archivo |
 
 **Si un cambio rompe una invariante, no sale. Sin excepciones y sin discusión.**
 
@@ -57,6 +59,11 @@ octubre de 2026, cada invariante tiene su regla dentro de la app donde es posibl
 | I7 dos columnas COMPARENDO | las escribe el mismo dato | por construcción |
 | I8 27 columnas | las escribe MASIVA_HEADERS | por construcción |
 | I9 ninguno sin responder | radicados sin clasificar | revisión previa; el cruce contra ORFEO lo cierra |
+| I10 resolución solo el número | **R29** (nueva, 11-10-2026) | al avanzar y en la revisión previa; avisa, no bloquea |
+| I11 nada sale pendiente | `faltasDe` + `frenoDeEntrega` (04-11-2026) | al guardar cada radicado; la descarga no sale con pendientes |
+
+**Desde el 04-11-2026 ya no hay revisión previa ni avisos al final:** todo lo de la columna «Dónde
+avisa» se revisa al guardar cada radicado, y lo grave lo deja PENDIENTE. Ver APP.md, sección 12.
 
 Las invariantes se añaden, nunca se quitan. Cada fallo real que aparezca en el trabajo se
 convierte en una invariante nueva ese mismo día.
@@ -135,7 +142,7 @@ una versión rota porque volver atrás daba miedo.
 - Un cambio por despliegue. Si se juntan cinco cambios y algo sale mal, no se sabe cuál fue.
 - **Nunca** se despliega el día de la entrega de la masiva.
 - El mejor momento es el lunes temprano: queda la semana entera para notar algo raro.
-- Después de desplegar, la primera masiva se revisa con las nueve invariantes **antes** de
+- Después de desplegar, la primera masiva se revisa con las once invariantes **antes** de
   entregarla.
 
 ---
@@ -162,8 +169,9 @@ Vale ante un memorando aunque el programa tenga fallos.
 - [ ] `./pruebas/correr_todo.sh` → TODAS LAS PRUEBAS PASAN
 - [ ] Si el cambio toca qué filas salen: diff antes/después sobre datos reales, con cada
       diferencia explicada
-- [ ] Las nueve invariantes se cumplen en una masiva generada con la versión nueva
+- [ ] Las once invariantes se cumplen en una masiva generada con la versión nueva
 - [ ] La configuración de Supabase está intacta (url y anonKey sin tocar)
+- [ ] Ninguna prueba se SALTÓ en la corrida (t15–t18 se saltan sin `pruebas/sheet_donina.xlsx`)
 - [ ] Guardado el `.zip` de la versión anterior
 - [ ] Commit con el mensaje explicando el cambio de comportamiento
 - [ ] No es viernes ni día de entrega
@@ -204,6 +212,20 @@ Si alguna vez hay que decidir entre los dos bloques, **el de la tarde manda**: e
 lo que se entrega y por lo que se responde.
 
 ---
+
+## LA PRINCIPAL Y LA FLOTANTE TAMPOCO SE PISAN
+
+Las dos ventanas comparten el navegador y la misma fila de Supabase. Desde el 10 de octubre de
+2026 se exige, con pruebas que manejan las dos a la vez:
+
+- que lo escrito en una **nunca vuelva a un valor anterior** por algo que haga la otra (t29);
+- que **ningún radicado reciba datos de otro**, ni trabajando rápido en las dos (t28);
+- que las dos **sigan subiendo a la nube** aunque choquen, y que lo archivado no resucite (t27).
+- que una semana cerrada **no vuelva** a la lista al entrar otra vez, y que su historial no se
+  pierda, aunque el cierre no haya alcanzado a subir a la nube (t31).
+
+`mock.py` tiene que portarse como la Supabase real. Un servidor de pruebas más permisivo que el
+de verdad esconde justo los fallos que importan: así se escondió durante semanas el de la nube.
 
 ## QUÉ HACER CUANDO ALGO SALE MAL
 

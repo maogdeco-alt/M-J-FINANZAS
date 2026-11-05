@@ -1,0 +1,56 @@
+# LA RESOLUCIÓN ESCRITA COMO FECHA O CON TEXTO PEGADO (R29, 11-10-2026)
+#
+# En la masiva entregada el 02-10-2026 salieron dos resoluciones mal puestas, sin que ninguna regla
+# avisara: una quedó como FECHA ("12/8/2025") y otra con texto pegado ("<número> del 11 de marzo de
+# 2026"). El ANEXO salió "Res. 12/8/2025 de 2025" y "… de 2026 de 2026". Aquí se exige que la app
+# lo diga, y que una resolución bien escrita no dispare nada. Datos inventados; la forma del defecto
+# es la real. Hasta el 04-11-2026 avisaba sin bloquear; desde el rediseño simple el radicado queda
+# PENDIENTE y la masiva no sale hasta corregirlo.
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from playwright.sync_api import sync_playwright
+import base as B
+T = "\t"
+def tira(i): return T.join(["1100100000004685%04d" % i, "C29", "19/04/2025", "21/04/2025", "No", "CAMARAS SALVAVIDAS", "VIGENTE",
+                            "", "", "", "CEDULA DE CIUDADANIA", "5200000%d" % i, "PERSONA %d" % i, "ABC12%d" % i])
+CASOS = [("202670000000011", "12/8/2025",                          "fecha"),
+         ("202670000000012", "2103738236 del 11 de marzo de 2026", "texto"),
+         ("202670000000013", "202542116795856",                    "bien"),
+         ("202670000000014", "1368701",                            "bien")]
+fallos = []
+def ok(c, m):
+    print(("  OK  " if c else "  FALLA  ") + m)
+    if not c: fallos.append(m)
+with sync_playwright() as pw:
+    nav, ctx, pag, err = B.abrir(pw)
+    B.entrar(pag)
+    B.importar(pag, "\n".join("%s\t01/10/2026\t05/10/2026\tPERSONA %d" % (r, i) for i, (r, _, _) in enumerate(CASOS, 1)))
+    for i, (rad, res, _) in enumerate(CASOS, 1):
+        B.ir_a(pag, rad); B.pegar_tira(pag, tira(i))
+        B.escribir(pag, "#cc_formato", "T11"); B.escribir(pag, "#cc_direccion", "persona%d@gmail.com" % i)
+        B.escribir(pag, "#cc_res", res); B.escribir(pag, "#cc_fechaRes", "12/08/2025")
+        pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
+
+    print("1) cada radicado lo dice en su caja PENDIENTE")
+    bloques = {}
+    for rad, _, _ in CASOS:
+        B.ir_a(pag, rad); bloques[rad] = " | ".join(B.faltas(pag))
+    ok("parece una FECHA" in bloques[CASOS[0][0]], "avisa que la resolución «12/8/2025» parece una fecha → "+bloques[CASOS[0][0]][:100])
+    ok("texto pegado" in bloques[CASOS[1][0]], "avisa que la resolución trae texto pegado")
+    ok(not bloques[CASOS[2][0]] and not bloques[CASOS[3][0]], "y las resoluciones bien escritas no disparan nada → %r" % [bloques[CASOS[2][0]], bloques[CASOS[3][0]]])
+    print("2) la masiva no sale hasta corregirlas; corregidas, salen las 4")
+    ok(B.descargar(pag) is None, "no sale con las dos mal escritas")
+    for rad, bien in ((CASOS[0][0], "1368711"), (CASOS[1][0], "2103738236")):
+        B.ir_a(pag, rad); B.escribir(pag, "#cc_res", bien)
+        pag.click("#cc_save"); pag.wait_for_timeout(500); B.confirmar_nombre(pag)
+    ruta = B.descargar(pag, ruta=os.path.join(os.environ.get("TMPDIR", "/tmp"), "t39_masiva.xlsx"), espera=20000)
+    import openpyxl
+    filas = list(openpyxl.load_workbook(ruta).active.iter_rows(min_row=2, values_only=True)) if ruta else []
+    ok(len(filas) == 4, "salen las 4 filas → %d" % len(filas))
+    print("3) la regla está en el catálogo de Ajustes")
+    B.abrir_reglas(pag); pag.wait_for_timeout(1200)
+    ok("R29" in pag.locator("body").inner_text(), "R29 aparece en el catálogo de reglas")
+    ok(not err, "sin errores de JavaScript → %r" % err)
+    nav.close()
+print("RESULTADO:", "TODO BIEN" if not fallos else str(len(fallos)) + " FALLA(S)")
+sys.exit(1 if fallos else 0)

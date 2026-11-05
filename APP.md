@@ -47,10 +47,10 @@ radicados-semanales/
   supabase/migrations/  el SQL de la base
   README.md             instalación y uso
   INSTRUCTIVO_PRIORITARIOS.md
-PROTOCOLO.md            las 9 invariantes y las 6 reglas de cambio
+PROTOCOLO.md            las 10 invariantes y las 6 reglas de cambio
 APP.md                  este documento
 PROYECTO_CLAUDE.md      cómo montar el proyecto de Claude
-pruebas/                28 pruebas automáticas (ver §8)
+pruebas/                37 pruebas automáticas (ver §8)
 ```
 
 ### Configuración que NUNCA se toca
@@ -82,8 +82,19 @@ verifica después de cada edición.**
 Todas llevan el correo: dos personas en el mismo computador nunca se mezclan. En Supabase, cada
 persona es una fila con las columnas `records`, `history`, `settings` y `manana`.
 
-La sesión (los tokens) vive **solo en memoria**, nunca en el navegador: al recargar hay que
-entrar de nuevo, a propósito.
+| `radicados_cuenta_v1` | la cuenta recordada: correo, nombre y la sesión de Supabase (desde el 04-11-2026) |
+
+**La sesión se recuerda** (desde el 04-11-2026, a pedido de la usuaria: la app es solo de ella).
+La primera vez se entra con correo y clave; después la app abre en una página de inicio que dice
+«Hola, …» y un botón **Entrar**, sin clave. La flotante entra sola con la misma cuenta.
+
+Las dos ventanas comparten **una sola** sesión guardada en `radicados_cuenta_v1`. Supabase cambia
+el *refresh token* cada vez que se usa y, si alguien vuelve a usar uno ya gastado, anula la sesión
+entera. Antes cada ventana tenía su copia en memoria: con las dos abiertas más de una hora, la
+segunda en renovar usaba un token gastado y la nube dejaba de sincronizar en las dos. Ahora quien
+renueva escribe la sesión nueva ahí, y la otra ventana la adopta antes de renovar (t40). Si aun así
+la nube rechaza la sesión, sale una franja «Conectar» que pide la clave una vez; lo trabajado sigue
+guardado en el navegador mientras tanto.
 
 ---
 
@@ -177,6 +188,7 @@ sitios a la vez. Los parámetros se editan en Ajustes, con doble verificación y
 | **R26** | Notificación | captura | El correo se comprueba de verdad, no solo si tiene arroba. |
 | **R27** | Datos únicos | captura | El radicado tiene que ser 15 dígitos y solo dígitos. |
 | **R28** | Comparendo | captura | Un comparendo tiene entre 6 y 12 dígitos. |
+| **R29** | Resolución | captura | La resolución va sola: ni una fecha en su lugar ni texto pegado. Avisa, no bloquea. |
 
 ### Parámetros editables (Ajustes → Reglas)
 
@@ -214,7 +226,7 @@ concreto**: si el dato cambia, vuelve a preguntar.
 ## 6. LAS CLASIFICACIONES
 
 ```
-T1, T5, T6, T10, T11, T14, AGENDAMIENTO, DEVUELTO, PRORROGA, PRORROGA SDA
+T1, T5, T6, T10, T11, T14, AGENDAMIENTO, DEVUELTO (PRORROGA y PRORROGA SDA eliminadas el 04-11-2026)
 ```
 
 - **T10** = petición oscura: va legítimamente sin comparendo y sin destinatario.
@@ -235,7 +247,7 @@ T1, T5, T6, T10, T11, T14, AGENDAMIENTO, DEVUELTO, PRORROGA, PRORROGA SDA
 
 ## 7. LAS NUEVE INVARIANTES Y EL VERIFICADOR
 
-`PROTOCOLO.md` define nueve propiedades que **todo archivo entregado** debe cumplir. Se comprueban
+`PROTOCOLO.md` define diez propiedades que **todo archivo entregado** debe cumplir. Se comprueban
 sobre el `.xlsx` ya generado, sin la app:
 
 1. Ningún radicado repetido
@@ -267,7 +279,7 @@ Dentro de la app: **Documentos → ¿De dónde sale este número?**
 
 ## 8. LAS PRUEBAS
 
-26 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
+37 suites con navegador más 2 sin navegador (el Excel con cuadrícula), todas contra el `index.html` de verdad (`preparar.sh` rehace la copia en
 cada corrida). Manejan la app **por la interfaz**, con clics y teclado, como la usuaria.
 
 ```bash
@@ -285,6 +297,13 @@ Lo que defiende cada una está en `pruebas/LEEME.md`. Las que más importan:
 - **t24** · correo, radicado y comparendo, caso por caso
 - **t25** · la masiva avisa cuando mezcla semanas
 - **t26** · el bloque de la mañana, apagado de verdad
+- **t27–t30** · principal y flotante a la vez: nada se pierde, nada se cruza, las dos suben a la nube
+- **t31** · una semana cerrada no vuelve y su historial no se pierde, aunque el cierre no haya subido
+- **t32** · solo los números de radicado: entran y se llenan a mano
+- **t37** · sin Comentario en pantalla (lo guardado se conserva), flotante compacta y fila de la masiva a la vista
+- **t36** · la tira de Fénix sigue llenando todo sola; si choca con lo escrito a mano, pregunta
+- **t35** · todo a mano, sin línea de Fénix: cada casilla a su columna de la masiva
+- **t33** · sin fecha de asignación: se trabaja igual, se marca «sin fecha», término «sin dato», la masiva lo avisa
 
 `pruebas/caso_2oct/` guarda la masiva, el reporte de ORFEO y los agendamientos de aquella semana
 **anonimizados**, conservando la forma exacta de cada defecto. **Nunca se suben datos de
@@ -305,6 +324,16 @@ memorando, y todos siguen el mismo patrón.
 | 124 radicados de agosto en la masiva del 2 de octubre | La masiva exportaba «todo lo que haya»: la palabra «semana» no existía para la app | Aviso de semanas mezcladas + descarga por rango (t25) |
 | 34 correos rotos entregados sin una alerta | La regla era, literal, «¿tiene una arroba?» | R26: estructura, lo que sobre delante, espacios y dominio por parecido (t24) |
 | Un comparendo entregado como «11» | Ninguna regla miraba la longitud | R28, midiendo el número **corto**, que es el que sale al archivo (t24) |
+| Con la principal y la flotante abiertas, una dejaba de subir a la nube y mostraba «Se guardó desde otro lugar» el resto del día | Cada ventana sube con la marca de la última vez; en cuanto sube la otra, la marca queda vieja y Supabase rechaza la subida. La ventana rechazada se rendía. El servidor de mentira de las pruebas aceptaba todo, así que nadie lo vio | Al chocar, se trae la nube, se junta sin quitar nada (lo archivado no resucita) y se vuelve a subir (t27). `mock.py` ahora aplica el filtro como el real |
+| Un correo corregido en la flotante volvía al anterior, sin aviso | Lo que una ventana traía de la otra quedaba contado como «cambio hecho aquí», y en su siguiente guardado pisaba la corrección más nueva | La referencia de la mezcla se mueve con lo que se trae (t28 lo encontró, t29 lo fija) |
+| Restaurar un punto de restauración deshacía lo corregido después | Los dos argumentos de la mezcla iban al revés: mandaba el dato viejo del punto | Manda lo de ahora; el punto solo rellena huecos, como dice la pantalla (t30) |
+| Una semana cerrada volvía a la lista al entrar otra vez, y el historial quedaba vacío | Al iniciar sesión el historial de la nube **reemplazaba** al de este navegador, y los radicados de la copia vieja de la nube se sumaban a la lista. Si el cierre no alcanzó a subir (choque entre ventanas, o sin conexión), la semana volvía entera y su archivo se perdía | Al entrar, los historiales se juntan por fecha de cierre, y un radicado ya archivado que nadie tocó después del cierre no vuelve a la lista (t31) |
+| Una lista de solo números de radicado no metía ninguno | La importación exigía 4 columnas (radicado, dos fechas, nombre) | Una línea que es solo un radicado de 15 dígitos entra con lo demás vacío, el informe lo dice y las casillas de fechas y nombre se abren solas (t32). La primera lista real llegó con comillas y espacios en los extremos: se quitan, y lo que no sea 15 dígitos dice por qué no entra (t34) |
+| Con solo los radicados no había dónde escribir los datos del comparendo | Esas columnas solo salían de la línea de Fénix pegada | Casillas «Llenar a mano los datos del comparendo» (número, infracción, fechas, tipo, estado, placa). Escriben en su columna de la misma línea, así que reglas, masiva, nube y flotante no cambian (t35) |
+
+Los cinco últimos se encontraron el 10-10-2026, en la auditoría tras el despliegue del bloque de la
+mañana. Ninguno lo causó ese bloque: estaban antes. Pero los tres son justo «cruza información» y
+«no guarda lo que trabajo», que es lo que se notó.
 
 **El patrón**: ninguno era un error de cálculo. Todos eran **algo que la app no miraba**, y que
 por tanto pasaba en silencio hasta que lo encontraba otra persona semanas después.
@@ -347,3 +376,83 @@ Lo completo está en `PROTOCOLO.md`. En corto:
 6. **Nunca desplegar en viernes ni el día de la entrega.** El lunes temprano.
 7. **ORFEO manda.** La app nunca es la fuente de verdad sobre si se entregó todo.
 8. Si una prueba falla, **mirar primero si la equivocada es la prueba**. Ya ha pasado varias veces.
+
+## Pantalla (11-10-2026)
+
+- La casilla **Comentario** salió de la pantalla a pedido de la usuaria: no va a la masiva ni a la
+  plantilla. La casilla sigue oculta en el documento para que lo ya guardado se conserve al
+  guardar, y sigue saliendo en las descargas internas (historial, control de agendamientos). Ya no
+  se puede marcar como obligatoria.
+- Las pruebas que escribían en Comentario (t8, t14, t20, t21, t27–t33) escriben ahora en
+  **N.° documento**, que va por el mismo camino de guardado y mezcla entre ventanas. En t8 los
+  valores son cortos para no chocar con R22 (un N.° documento de más de 15 caracteres frena
+  «Siguiente», y la prueba terminaba escribiendo en otro radicado).
+- Debajo de las casillas está **la fila de la masiva** del radicado abierto: lo que la app pone
+  sola (TIPO, COMPARENDO corto, ANEXO, ciudad, departamento, ASIGNADOS_A, USUARIO) y, plegada, la
+  fila completa de 27 columnas. Solo muestra; se arma con `recordToMasivaRow` sobre lo que hay en
+  pantalla. t37 exige que sea idéntica a la del archivo.
+- Flotante: el desglose por formato y el enlace a informes quedan solo en la principal; contadores
+  y botones en tamaño mínimo; casillas en 4 columnas. Las explicaciones fijas de cada casilla se
+  ven al pasar el cursor.
+
+## 12. REDISEÑO SIMPLE (04-11-2026)
+
+Pedido de la usuaria: «si la información que ingreso no sirve, no es apta o no es clara, NO PUEDE
+SEGUIR DE LARGO la app y al final decirme que algo falta», «cuando le doy descargar a la masiva es
+OBLIGATORIO que la app ya haya estado segura», «quítale los usuarios», «página de inicio SIN clave».
+
+**PENDIENTE / LISTO.** Cada radicado está en uno de dos estados, calculados por `faltasDe(r)`:
+LISTO si no le falta nada, PENDIENTE si le falta algo. `faltasDe` junta en un solo sitio:
+
+- lo que exige su clasificación (fechas, nombre, correo, los datos del comparendo, resolución y su
+  fecha para los formatos de `formatosConResolucionObligatoria`, placa y pruebas en AGENDAMIENTO);
+- la resolución que no es solo el número (antes R29 solo avisaba; ahora frena);
+- un correo con dominio que no está en la lista: frena, con un botón «El dominio … está bien
+  escrito» que lo aprende una vez (`settings.dominiosAprendidos`, se junta entre ventanas);
+- todo hallazgo **grave** del motor de reglas, salvo los de repetidos de comparendo o resolución
+  (es normal que un ciudadano radique varias veces), que ya no frenan;
+- y una red final: la fila que de verdad saldría en el archivo (`recordToMasivaRow`). Si una
+  columna exigida saldría vacía (una fecha que no se entiende, por ejemplo), no está LISTO.
+
+**Al guardar** se pinta la caja «PENDIENTE. Para dejarlo LISTO falta:» con la lista, la casilla en
+rojo y el cursor en la primera. **Guardar y siguiente** no avanza mientras falte algo; si está LISTO
+salta al siguiente PENDIENTE. «Dejar pendiente y seguir» existe para cuando el dato llega después:
+el radicado queda en la cola marcado, nunca se pierde. Tocar un radicado en la cola siempre lleva a
+él, sin preguntas.
+
+**Descargar la masiva** (`generarMasivaFinal`): con un solo PENDIENTE no descarga, dice cuántos
+faltan y abre el primero. El botón ya muestra «faltan N» antes de tocarlo. Con todos LISTOS revisa
+el archivo mismo (I1, I2, I4, I5, I6, I7, I8 sobre las filas armadas) y descarga sin ventanas en
+medio. La plantilla de agendamientos exige igual que cada AGENDAMIENTO esté LISTO. Si la lista
+tiene radicados de dos semanas de asignación, una franja fija arriba lo dice desde que pasa, no al
+descargar, y la masiva no sale hasta arreglarlo.
+
+**Lo que se quitó** (escondido con `hidden data-quitado="04-11-2026"`, no borrado del código):
+la revisión previa y su diálogo, los avisos inmediatos al avanzar, las confirmaciones «es
+correcto», el aviso de reglas cambiadas al entrar, el cambio de usuario y la clave de Ajustes,
+«Revisar una masiva hecha fuera» (para eso está `verificador.html`), «Sacar solo un rango de
+fechas» (saltaba la revisión) y «Borrar todo». Los avisos de «la otra ventana guardó…» tampoco
+salen: la mezcla entre ventanas sigue igual, solo calla.
+
+**Flotante y almacenamiento** (auditados el mismo día): la sesión compartida (ver «Dónde se guarda
+cada cosa»); el historial ahora también se sincroniza entre ventanas (antes la flotante no veía
+una semana cerrada en la principal hasta recargar, t42); los dominios aprendidos se juntan entre
+ventanas en vez de pisarse.
+
+**PRORROGA y PRORROGA SDA: ELIMINADAS** (04-11-2026, pedido de la usuaria: "elimina totalmente
+porroga y porroga sda"). No están en los valores por defecto, y `mergeSettings` las filtra de
+cualquier Ajuste guardado (navegador o nube); el guardado de Ajustes tampoco deja volver a
+añadirlas. Un radicado que ya estuviera clasificado así queda PENDIENTE ("no es una clasificación
+de la lista") y no sale en la masiva hasta reclasificarlo. El historial archivado no se toca. Las
+"PRORROGA " del bloque de la mañana son categorías del sheet de Donina, otro dominio: no se tocan.
+
+**Reglas fijas en el código** (05-11-2026, auditoría antes de una jornada de 60 radicados). La app
+seguía aplicando encima de los valores de `REGLAS_PARAMS_DEFAULT` los parámetros guardados en la nube
+(fila `reglas_masivas`) y en el navegador (`radicados_reglas_params_v1::area`), aunque desde el
+rediseño ya no se editan ni se ven. Con una copia aflojada en la nube, un T1 sin resolución salía
+LISTO (t45). Ahora `REGLAS_FIJAS_EN_EL_CODIGO = true`: mandan siempre los valores del código; la nube
+solo aporta la bitácora. Además `faltasDe` ya no deja pasar un radicado si el motor de reglas o el
+armado de la fila fallan por dentro: queda PENDIENTE con "No lo dé por bueno: avise".
+
+Pruebas: t40 (inicio sin clave y sesión compartida con rotación de tokens en `mock.py`), t41
+(PENDIENTE/LISTO de punta a punta), t42 (la flotante al día), t43 (sin PRORROGA), t44 (jornada de 60 radicados con las dos ventanas a la vez), t45 (reglas fijas).

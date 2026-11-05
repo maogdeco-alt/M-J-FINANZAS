@@ -27,12 +27,26 @@ def abrir(pw, headless=True):
 def entrar(pag, correo="prueba@gmail.com", clave="123456", limpio=True, url=None):
     if limpio: reiniciar()
     pag.goto(url or URL, wait_until="domcontentloaded")
-    pag.wait_for_selector("#loginEmail", timeout=20000)
-    pag.fill("#loginEmail", correo)
-    pag.fill("#loginPassword", clave)
-    pag.click("#loginBtn")
-    pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    entrar_en(pag, correo, clave)
     pag.wait_for_timeout(700)
+
+def entrar_en(pag, correo="prueba@gmail.com", clave="123456"):
+    """La página de inicio (04-11-2026): la primera vez en el computador pide correo y clave; después
+    solo tiene el botón Entrar; la ventana flotante entra sola. Esto sirve para los tres casos."""
+    pag.wait_for_function("""()=>{
+      const d=document.getElementById('authDialog'); if(!d) return false;
+      const vis=(id)=>{const e=document.getElementById(id); return !!(e && e.offsetParent);};
+      if(d.open && (vis('loginEmail') || vis('inicioEntrarBtn'))) return true;
+      const u=document.getElementById('userLabel');
+      return !d.open && u && u.textContent && u.textContent!=='Iniciar sesión';
+    }""", timeout=20000)
+    if pag.locator("#inicioEntrarBtn:visible").count():
+        pag.click("#inicioEntrarBtn")
+    elif pag.locator("#loginEmail:visible").count():
+        pag.fill("#loginEmail", correo)
+        pag.fill("#loginPassword", clave)
+        pag.click("#loginBtn")
+    pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
 
 def importar(pag, bloque):
     # Importar vive en su propia ventana (se abre con el botón del encabezado), igual que para ella.
@@ -92,7 +106,13 @@ def ir_a_compacto(pag, radicado, vueltas=20):
         # que puede hacer una persona en esa ventana: no hay cola ni buscador.
         boton = "#cc_next" if not pag.locator("#cc_next").is_disabled() else "#cc_prev"
         if pag.locator(boton).is_disabled(): break
+        antes = pag.locator("#cc_radicadoLabel").inner_text()
         pag.click(boton); pag.wait_for_timeout(350); confirmar_nombre(pag); cerrar_alerta(pag)
+        # Desde el 04-11-2026 «Siguiente» no deja atrás un radicado trabajado y PENDIENTE: para
+        # seguir sin terminarlo está «Dejar pendiente y seguir», como lo haría ella.
+        if boton == "#cc_next" and pag.locator("#cc_radicadoLabel").inner_text() == antes \
+           and pag.locator("#faltasDejarPendiente:visible").count():
+            pag.click("#faltasDejarPendiente"); pag.wait_for_timeout(450); confirmar_nombre(pag)
     return radicado in pag.locator("#cc_radicadoLabel").inner_text()
 
 def pegar_tira(pag, tira):
@@ -140,6 +160,43 @@ def desglose(pag):
         out[k] = v
     return out
 
+def faltas(pag):
+    """Lo que la caja PENDIENTE dice que falta para dejar el radicado LISTO (04-11-2026)."""
+    if not pag.locator("#avisoImperativas:visible:not(.listo)").count(): return []
+    return [t.strip() for t in pag.locator("#avisoImperativas li").all_inner_texts()]
+
+def esta_listo(pag):
+    return pag.locator("#avisoImperativas.listo:visible").count() > 0
+
 def avisos_alerta(pag):
-    if not pag.locator("#alertaInmediataDialog[open]").count(): return []
-    return [t.strip() for t in pag.locator("#alertaInmediataLista .alerta-item").all_inner_texts()]
+    """Lo que la app dice que está mal en el radicado abierto. Desde el 04-11-2026 ya no hay aviso
+    emergente al avanzar: lo dice la caja PENDIENTE. Se leen los dos sitios para que las pruebas
+    viejas sigan exigiendo que el problema SE DIGA, esté donde esté."""
+    out = []
+    if pag.locator("#alertaInmediataDialog[open]").count():
+        out += [t.strip() for t in pag.locator("#alertaInmediataLista .alerta-item").all_inner_texts()]
+    return out + faltas(pag)
+
+def descargar(pag, boton="#descargarMasivaBtn", ruta=None, espera=8000):
+    """Pulsa descargar y guarda el archivo. Devuelve la ruta, o None si la app NO lo dejó salir."""
+    try:
+        with pag.expect_download(timeout=espera) as dl:
+            pag.click(boton)
+        if ruta is None:
+            import os, tempfile
+            ruta = os.path.join(tempfile.mkdtemp(), dl.value.suggested_filename)
+        dl.value.save_as(ruta)
+        return ruta
+    except Exception:
+        return None
+
+def toast(pag):
+    t = pag.locator("#toast")
+    return t.inner_text() if t.count() else ""
+
+
+def abrir_reglas(pag):
+    """El catálogo de reglas ya no tiene botón a la vista (04-11-2026: las reglas quedan fijas), pero
+    sigue en la app y las pruebas lo siguen leyendo para comprobar que ninguna regla se perdió."""
+    pag.evaluate("()=>document.getElementById('reglasBtn').click()")
+    pag.wait_for_timeout(300)

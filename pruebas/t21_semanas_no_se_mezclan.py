@@ -10,7 +10,10 @@
 #
 # REGLA QUE SE VIGILA AQUÍ: solo se juntan las filas que son la MISMA asignación -- mismo radicado
 # Y misma fecha de asignación. Si la fecha difiere, salen las dos y la app lo avisa.
-import sys, os; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
+#
+# Desde el 04-11-2026 una lista con dos semanas de asignación no descarga la masiva (invariante I4):
+# lo dice una franja fija arriba, con los radicados de cada semana, y no descarta ninguno.
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B, openpyxl
 T="\t"
@@ -35,6 +38,7 @@ with sync_playwright() as pw:
     B.ir_a(pag,REASIG); B.pegar_tira(pag,TIRA)
     B.escribir(pag,"#cc_formato","AGENDAMIENTO"); B.escribir(pag,"#cc_direccion","jose@gmail.com")
     B.escribir(pag,"#cc_res","1368711"); B.escribir(pag,"#cc_fechaRes","26/07/2024")
+    pag.locator('#wrap_pruebas input[value="SI"]').check(); pag.wait_for_timeout(250)
     pag.click("#cc_save"); pag.wait_for_timeout(600); B.confirmar_nombre(pag); B.cerrar_alerta(pag)
     B.ir_a(pag,OTRO); B.pegar_tira(pag,TIRA.replace("46855268","46855269"))
     B.escribir(pag,"#cc_formato","T14"); B.escribir(pag,"#cc_direccion","dos@gmail.com")
@@ -52,12 +56,12 @@ with sync_playwright() as pw:
       nuevo.id = 'reasignado_de_esta_semana';
       nuevo.fechaAsignacion = '05-10-2026';     // ESTA semana
       nuevo.modificadoEn = Date.now()+1000;
-      nuevo.res = ''; nuevo.fechaRes = ''; nuevo.direccion = '';   // apenas empezado
+      nuevo.res = ''; nuevo.fechaRes = '';   // apenas empezado (un agendamiento no lleva resolución)
       nuevo.formato = 'AGENDAMIENTO';
       lista.push(nuevo);
       localStorage.setItem(k, JSON.stringify(lista));
     }""", REASIG)
-    B.ir_a(pag,OTRO); B.escribir(pag,"#cc_comentario","x"); pag.click("#cc_save")
+    B.ir_a(pag,OTRO); B.escribir(pag,"#cc_idNum","x"); pag.click("#cc_save")
     pag.wait_for_timeout(900); B.cerrar_alerta(pag)
     ok(pag.locator("#queuePanel .queue-item").count()==3, "la lista tiene 3 filas")
 
@@ -65,10 +69,8 @@ with sync_playwright() as pw:
     pag.click("#agendaTriggerBtn"); pag.wait_for_timeout(700)
     cuenta = pag.locator("#agendaDocCount").inner_text()
     ok("2 radicados" in cuenta, "cuenta los 2 agendamientos, no 1 → "+cuenta)
-    with pag.expect_download(timeout=25000) as dl:
-        pag.click("#downloadAgendaBtn"); pag.wait_for_timeout(1500)
-        if pag.locator("#preflightDialog[open]").count(): pag.click("#preflightProceed")
-    ruta=os.path.join(os.path.dirname(__file__),"agenda_semanas.xlsx"); dl.value.save_as(ruta)
+    ruta=B.descargar(pag, boton="#downloadAgendaBtn", ruta=os.path.join(os.path.dirname(__file__),"agenda_semanas.xlsx"), espera=20000)
+    ok(ruta is not None, "la plantilla sale → "+B.toast(pag)[:100])
     ws=openpyxl.load_workbook(ruta).active
     filas=[[str(ws.cell(row=i,column=c).value or "") for c in range(1,ws.max_column+1)]
            for i in range(2,ws.max_row+1)]
@@ -84,25 +86,23 @@ with sync_playwright() as pw:
     pag.evaluate("""(rad)=>{
       const k = Object.keys(localStorage).find(x=>x.indexOf('radicados_semanales_v2::')===0);
       const lista = JSON.parse(localStorage.getItem(k));
-      lista.forEach(r=>{ if(r.radicado===rad){ r.formato='T14'; r.modificadoEn = Date.now()+60000; } });
+      lista.forEach(r=>{ if(r.radicado===rad){ r.formato='T14'; r.res = r.res || '1368712'; r.fechaRes = r.fechaRes || '26/07/2024'; r.modificadoEn = Date.now()+60000; } });
       localStorage.setItem(k, JSON.stringify(lista));
     }""", REASIG)
     pag.reload(wait_until="domcontentloaded"); pag.wait_for_timeout(1200)
-    pag.fill("#loginEmail","prueba@gmail.com"); pag.fill("#loginPassword","123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(pag, "prueba@gmail.com")
+    pass
     pag.wait_for_timeout(1500)
     ok(pag.locator("#masivaListaBadge").inner_text()=="3",
        "los 3 entran a la masiva (no se descartó ninguno) → "+pag.locator("#masivaListaBadge").inner_text())
-    pag.click("#descargarMasivaBtn"); pag.wait_for_timeout(1500)
-    ok(pag.locator("#preflightDialog[open]").count()==1, "la revisión previa se abre")
-    res = pag.locator("#preflightResumen").inner_text()
-    lista = pag.locator("#preflightLista").inner_text()
-    ok("OJO CON LAS SEMANAS" in res, "avisa de las dos asignaciones → "+res[:140])
-    ok("28-09-2026" in lista and "05-10-2026" in lista, "mostrando las DOS fechas")
-    ok("no decide por ti" in lista or "NO decide por ti" in res, "y dice que no decide por ella")
-    pag.click("#preflightCancel"); pag.wait_for_timeout(400)
+    ok(B.descargar(pag) is None, "la masiva NO sale con dos semanas mezcladas")
+    franja = pag.locator("#avisoSemanas")
+    ok(franja.is_visible(), "una franja fija arriba lo dice")
+    t = franja.inner_text()
+    ok("2 semanas" in t and "28-09-2026" in t and "05-10-2026" in t, "con las dos semanas → "+t[-260:])
+    ok(t.count(REASIG)==2, "y nombra las dos asignaciones del mismo radicado, sin descartar ninguna")
 
-    print("4) UN PEGADO DOBLE DE VERDAD (misma fecha) SÍ SE JUNTA")
+    print("4) UN PEGADO DOBLE DE VERDAD (misma fecha) TAMPOCO PASA CALLADO")
     pag.evaluate("""(rad)=>{
       const k = Object.keys(localStorage).find(x=>x.indexOf('radicados_semanales_v2::')===0);
       const lista = JSON.parse(localStorage.getItem(k));
@@ -114,34 +114,16 @@ with sync_playwright() as pw:
       localStorage.setItem(k, JSON.stringify(lista));
     }""", OTRO)
     pag.reload(wait_until="domcontentloaded"); pag.wait_for_timeout(1200)
-    pag.fill("#loginEmail","prueba@gmail.com"); pag.fill("#loginPassword","123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(pag, "prueba@gmail.com")
     pag.wait_for_timeout(1500)
     pag.evaluate("""()=>{const b=document.querySelector('#filterTabs button[data-filter="all"]'); if(b) b.click();}""")
     pag.wait_for_timeout(400)
     ok(pag.locator("#queuePanel .queue-item").count()==4,
-       "hay 4 filas en la lista → "+str(pag.locator("#queuePanel .queue-item").count()))
-    ok(pag.locator("#masivaListaBadge").inner_text()=="3",
-       "pero a la masiva van 3: el pegado doble sí se juntó → "+pag.locator("#masivaListaBadge").inner_text())
-    with pag.expect_download(timeout=25000) as dl2:
-        pag.click("#descargarMasivaBtn"); pag.wait_for_timeout(1500)
-        if pag.locator("#preflightDialog[open]").count(): pag.click("#preflightProceed")
-    ruta2=os.path.join(os.path.dirname(__file__),"masiva_semanas.xlsx"); dl2.value.save_as(ruta2)
-    ws2=openpyxl.load_workbook(ruta2).active
-    rads=[str(ws2.cell(row=i,column=1).value) for i in range(2,ws2.max_row+1)]
-    ok(len(rads)==3, "el archivo trae 3 filas → "+str(rads))
-    ok(rads.count(REASIG)==2, "las DOS asignaciones del reasignado siguen ahí → "+str(rads.count(REASIG)))
-    ok(rads.count(OTRO)==1, "y el pegado doble sale una sola vez → "+str(rads.count(OTRO)))
-
-    print("5) la fila que sale del pegado doble es la que tiene el trabajo hecho")
-    col = {ws2.cell(row=1,column=c).value: c for c in range(1, ws2.max_column+1)}
-    cRes = next((c for t,c in col.items() if t and "RESOLUCION" in str(t).upper()), None)
-    if cRes:
-        fila = next(i for i in range(2,ws2.max_row+1) if str(ws2.cell(row=i,column=1).value)==OTRO)
-        ok(str(ws2.cell(row=fila,column=cRes).value or "").strip()=="1368722",
-           "conserva la resolución → "+str(ws2.cell(row=fila,column=cRes).value))
-    else:
-        ok(False, "no se encontró la columna de resolución")
+       "hay 4 filas en la lista, ninguna se borró sola → "+str(pag.locator("#queuePanel .queue-item").count()))
+    ok(pag.locator("#masivaListaBadge").inner_text().startswith("faltan"),
+       "y el botón de la masiva dice que faltan → "+pag.locator("#masivaListaBadge").inner_text())
+    B.ir_a(pag, OTRO)
+    ok("DUPLICADO" in " ".join(B.faltas(pag)) or len(B.faltas(pag))>0, "la fila repetida dice por qué → "+" | ".join(B.faltas(pag))[:120])
 
     print("errores js:", err or "ninguno")
     if err: fallos.append("errores de JavaScript")

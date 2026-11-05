@@ -52,7 +52,7 @@ with sync_playwright() as pw:
     for i in range(filas.count()):
         c = filas.nth(i).locator("td")
         est[c.nth(0).inner_text().strip()] = (c.nth(2).inner_text().strip(), c.nth(3).inner_text().strip())
-    ok(len(est) == 9, "se evalúan las 9 invariantes → " + str(len(est)))
+    ok(len(est) == 10, "se evalúan las 10 invariantes → " + str(len(est)))
 
     print("3) invariante por invariante")
     ok(est["I1"][0] == "PASA",  "I1 ningún radicado repetido")
@@ -64,6 +64,9 @@ with sync_playwright() as pw:
     ok(est["I7"][0] == "PASA",  "I7 las dos columnas COMPARENDO coinciden")
     ok(est["I8"][0] == "PASA",  "I8 cabecera de 27 columnas correcta")
     ok(est["I9"][0] == "FALLA" and est["I9"][1].startswith("1 "),   "I9 → " + est["I9"][1][:60])
+    # I10 (11-10-2026): las dos resoluciones mal escritas de la masiva real (una como fecha, otra
+    # con texto pegado). Es aviso, no falla: el veredicto lo siguen dando las otras.
+    ok(est.get("I10", ("",""))[0] == "AVISO" and est["I10"][1].startswith("2 "), "I10 → " + str(est.get("I10")))
 
     print("4) lo que falla se ve SIN tener que desplegarlo")
     texto = pag.inner_text("#salida")
@@ -82,8 +85,9 @@ with sync_playwright() as pw:
     ruta = os.path.join(os.path.dirname(__file__), "informe_verificador.xlsx"); dl.value.save_as(ruta)
     wb = openpyxl.load_workbook(ruta)
     ok("RESUMEN" in wb.sheetnames, "trae la hoja RESUMEN")
-    ok(len([h for h in wb.sheetnames if h.startswith("I")]) == 5,
-       "una hoja por cada invariante que falla → " + str(wb.sheetnames))
+    # 5 que fallan + I10, que es aviso pero trae sus casos (desde el 11-10-2026)
+    ok(len([h for h in wb.sheetnames if h.startswith("I")]) == 6,
+       "una hoja por cada invariante con casos (5 fallan, I10 avisa) → " + str(wb.sheetnames))
 
     print("7) con una masiva limpia solo debe quedar el problema DE VERDAD, no una alarma que siempre suena")
     # OJO con lo que se espera aquí: limpiar la masiva NO hace aparecer el radicado que nunca se

@@ -9,7 +9,7 @@
 # Esta prueba reproduce esa fusión por el camino real (otra ventana escribe en el almacenamiento y
 # fusionarConLoGuardado la trae) y comprueba: que el archivo sale con una sola fila por radicado,
 # que la pantalla lo dice, y que el cuadre explica el número y cruza contra ORFEO.
-import sys, os; sys.path.insert(0,"/home/user/M-J-FINANZAS/pruebas")
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from playwright.sync_api import sync_playwright
 import base as B, openpyxl
 T="\t"
@@ -57,21 +57,28 @@ with sync_playwright() as pw:
       localStorage.setItem(k, JSON.stringify(lista.concat(copias)));
     }""", [R1,R2])
     # Un guardado cualquiera de ESTA ventana dispara la fusión con lo que dejó la otra.
-    B.ir_a(pag,R3); B.escribir(pag,"#cc_comentario","x"); pag.click("#cc_save")
+    B.ir_a(pag,R3); B.escribir(pag,"#cc_idNum","x"); pag.click("#cc_save")
     pag.wait_for_timeout(900); B.cerrar_alerta(pag)
     filas = pag.locator("#queuePanel .queue-item").count()
     ok(filas==5, "la lista tiene ahora 5 filas para 3 radicados → "+str(filas))
 
-    print("2) EL NÚMERO DE LA MASIVA NO SE INFLA")
+    print("2) EL NÚMERO DE LA MASIVA NO SE INFLA: un radicado repetido deja PENDIENTES sus filas")
+    # Desde el 04-11-2026 un radicado repetido se frena siempre (lo aprobó ella): el contador no
+    # dice 5, dice que faltan, y cada fila repetida dice por qué.
     badge = pag.locator("#masivaListaBadge").inner_text()
-    ok(badge=="3", "el contador sigue en 3, no en 5 → "+badge)
+    ok(badge.startswith("faltan"), "el contador no dice 5: dice que faltan → "+badge)
+    B.ir_a(pag,R1)
+    f=" | ".join(B.faltas(pag))
+    ok(R1 in f or "repetid" in f.lower() or "dos veces" in f.lower() or "más de una" in f.lower(),
+       "la fila dice que el radicado está repetido → "+f[:140])
     pag.click("#abrirDocumentosBtn"); pag.wait_for_timeout(600)
     cuenta = pag.locator("#finalDocCount").inner_text()
-    ok("de 5 en tu lista" in cuenta, "y dice de cuántas filas sale → "+cuenta)
-    ok("repetida" in cuenta, "nombrando las repetidas → "+cuenta)
+    ok("5 en tu lista" in cuenta, "y dice de cuántas filas sale → "+cuenta)
     aviso = pag.locator("#finalDocRepesAviso")
     ok(aviso.is_visible(), "con un aviso aparte a la vista")
     ok("2 caso" in aviso.inner_text(), "que cuenta los casos → "+aviso.inner_text()[:90])
+    pag.evaluate("()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close())"); pag.wait_for_timeout(300)
+    pag.click("#abrirDocumentosBtn"); pag.wait_for_timeout(400)
 
     print("3) EL CUADRE EXPLICA EL NÚMERO Y LA SUMA CUADRA")
     pag.click("#abrirCuadreBtn"); pag.wait_for_timeout(600)
@@ -95,13 +102,13 @@ with sync_playwright() as pw:
     ok(FALTANTE in cruce, "y el que falta por trabajar ("+FALTANTE+")")
 
     print("4b) EL CRUCE LEE RADICADOS CON LETRAS Y CON BASURA ALREDEDOR")
-    # El primer lector buscaba "el primer número largo" y con radicados tipo 2026ER001234 no
+    # El primer lector buscaba "el primer número largo" y con radicados tipo 202670000001234 no
     # encontraba ninguno: la lista salía vacía y el cruce decía que TODO sobraba.
-    pag.fill("#cuadreOrfeo", "RADICADO\tNOMBRE\n"+R1+"\tJOSE AUGUSTO LOAIZA\n  "+R2+"  ,algo\n2026ER001234;otro")
+    pag.fill("#cuadreOrfeo", "RADICADO\tNOMBRE\n"+R1+"\tJOSE AUGUSTO LOAIZA\n  "+R2+"  ,algo\n202670000001234;otro")
     pag.click("#cuadreCruzar"); pag.wait_for_timeout(500)
     cruce2 = pag.locator("#cuadreCruce").inner_text()
     ok("3" in cruce2.split("\n")[0], "lee los 3 (encabezado fuera) → "+cruce2.split("\n")[0])
-    ok("2026ER001234" in cruce2, "incluido el que lleva letras")
+    ok("202670000001234" in cruce2, "incluido el que lleva letras")
 
     print("4c) SI NO ENTIENDE LO PEGADO, LO DICE EN VEZ DE DECIR QUE TODO SOBRA")
     pag.fill("#cuadreOrfeo", "hola\nqué tal\nnada de esto es un radicado")
@@ -111,20 +118,24 @@ with sync_playwright() as pw:
     ok("NO se cruzó nada" in cruce3, "y deja claro que no cruzó nada")
     ok(R3 not in cruce3, "sin declarar que la lista entera sobra")
 
-    print("5) EL ARCHIVO SALE SIN FILAS REPETIDAS")
+    print("5) EL ARCHIVO NO SALE CON REPETIDOS; al borrar la fila de sobra, sale limpio")
     pag.click("#cuadreClose"); pag.wait_for_timeout(300)
-    with pag.expect_download(timeout=25000) as dl:
-        pag.click("#downloadFinalBtn"); pag.wait_for_timeout(1400)
-        if pag.locator("#preflightDialog[open]").count():
-            res = pag.locator("#preflightResumen").inner_text()
-            lista = pag.locator("#preflightLista").inner_text()
-            ok("OJO CON EL NÚMERO" in res, "la revisión previa avisa de los repetidos → "+res[:120])
-            ok(pag.locator(".preflight-repes").count()>=1, "en su propio bloque")
-            ok("SALE" in lista and "queda FUERA" in lista, "diciendo cuál sale y cuál no")
-            ok(pag.locator('.preflight-repes button[data-preflight-corregir]').count()>=4,
-               "con botón para abrir cada una de las dos filas")
-            pag.click("#preflightProceed")
-    ruta=os.path.join(os.path.dirname(__file__),"masiva_cuadre.xlsx"); dl.value.save_as(ruta)
+    pag.evaluate("()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close())"); pag.wait_for_timeout(300)
+    ok(B.descargar(pag) is None, "con las filas repetidas la masiva no sale")
+    # se borran las dos copias a medio hacer de la otra ventana (las que no tienen resolución)
+    for rad in (R1,R2):
+        pag.evaluate("()=>{const b=document.querySelector('#filterTabs button[data-filter=\"all\"]'); if(b) b.click();}")
+        pag.wait_for_timeout(200)
+        filas_r = pag.locator('#queuePanel .queue-item', has_text=rad)
+        for k in range(filas_r.count()):
+            filas_r.nth(k).click(); pag.wait_for_timeout(350); B.cerrar_alerta(pag)
+            if not pag.locator("#cc_res").input_value().strip():
+                pag.click("#cc_delete"); pag.wait_for_timeout(300)
+                pag.click("#deleteConfirmOk"); pag.wait_for_timeout(500)
+                break
+    ok(pag.locator("#queuePanel .queue-item").count()==3, "quedan 3 filas para 3 radicados")
+    ruta=B.descargar(pag, ruta=os.path.join(os.path.dirname(__file__),"masiva_cuadre.xlsx"), espera=20000)
+    ok(ruta is not None, "y ahora sí sale")
     ws=openpyxl.load_workbook(ruta).active
     rads=[str(ws.cell(row=i,column=1).value) for i in range(2,ws.max_row+1)]
     ok(len(rads)==3, "el archivo trae 3 filas, no 5 → "+str(len(rads)))
@@ -141,6 +152,7 @@ with sync_playwright() as pw:
         ok(False, "no se encontró la columna de resolución en el archivo")
 
     print("7) el cuadre de ORFEO se puede descargar como prueba")
+    pag.click("#abrirDocumentosBtn"); pag.wait_for_timeout(500)
     pag.click("#abrirCuadreBtn"); pag.wait_for_timeout(500)
     pag.fill("#cuadreOrfeo", R1+"\n"+R2+"\n"+FALTANTE)
     pag.click("#cuadreCruzar"); pag.wait_for_timeout(400)

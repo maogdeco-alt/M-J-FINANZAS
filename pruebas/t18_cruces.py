@@ -24,9 +24,8 @@ def nube_manana():
     return json.loads(m) if isinstance(m,str) else m
 def entrar_como(pag, correo, limpio=False):
     pag.goto(B.URL_MANANA, wait_until="domcontentloaded")
-    pag.wait_for_selector("#loginEmail", timeout=20000)
-    pag.fill("#loginEmail", correo); pag.fill("#loginPassword","123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(pag, correo)
+    pass
     pag.wait_for_timeout(1800)
 
 with sync_playwright() as pw:
@@ -67,9 +66,8 @@ with sync_playwright() as pw:
     flo=ctx.new_page(); ef=[]
     flo.on("pageerror", lambda x: ef.append(str(x)))
     flo.goto(B.URL_MANANA+"#flotante=1", wait_until="domcontentloaded")
-    flo.wait_for_selector("#loginEmail", timeout=20000)
-    flo.fill("#loginEmail","alejandra@gmail.com"); flo.fill("#loginPassword","123456")
-    flo.click("#loginBtn"); flo.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(flo, "alejandra@gmail.com")
+    pass
     flo.wait_for_timeout(2000)
     flo.click("#selBloqueManana"); flo.wait_for_timeout(900)
     flo.click('#manTabs button[data-mantab="ia"]'); flo.wait_for_timeout(600)
@@ -105,9 +103,8 @@ with sync_playwright() as pw:
         data=json.dumps({"manana":{"sin":[], "ia":[], "historial":[], "actualizadoEn":1}}).encode(),
         headers={"Content-Type":"application/json"}, method="PATCH"), timeout=5).read()
     pag.reload(wait_until="domcontentloaded")
-    pag.wait_for_selector("#loginEmail", timeout=20000)
-    pag.fill("#loginEmail","alejandra@gmail.com"); pag.fill("#loginPassword","123456")
-    pag.click("#loginBtn"); pag.wait_for_selector("#authDialog", state="hidden", timeout=20000)
+    B.entrar_en(pag, "alejandra@gmail.com")
+    pass
     pag.wait_for_timeout(2200)
     pag.click("#selBloqueManana"); pag.wait_for_timeout(900)
     ok(pag.locator("#manCuentaSin").inner_text().endswith("/ 65"),

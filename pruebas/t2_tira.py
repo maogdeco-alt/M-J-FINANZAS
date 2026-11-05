@@ -13,7 +13,7 @@ CORRIDA  = T.join(["11001000000046855273","D01","COMPARENDERA","19/04/2025","No"
   "","","","19/04/2025","1886999","JOSE PÉREZ CASTAÑEDA","ABC123"])
 SOLO_NUM = "11001000000046855274"
 
-BLOQUE = "\n".join("2026ER0%02d\t01/09/2026\t03/09/2026\tJOSE PEREZ CASTANEDA" % i for i in range(1,7))
+BLOQUE = "\n".join("2026700000000%02d\t01/09/2026\t03/09/2026\tJOSE PEREZ CASTANEDA" % i for i in range(1,7))
 fallos=[]
 def ok(c,m):
     print(("  OK  " if c else "  FALLA  ")+m)
@@ -24,12 +24,12 @@ with sync_playwright() as pw:
     B.entrar(pag); B.importar(pag, BLOQUE)
 
     print("1) tira BUENA: ni un aviso de la tira")
-    B.ir_a(pag,"2026ER001"); B.pegar_tira(pag, BUENA)
+    B.ir_a(pag,"202670000000001"); B.pegar_tira(pag, BUENA)
     cs=" | ".join(B.chips(pag))
     ok("R20" not in cs and "R21" not in cs and "R22" not in cs, "no inventa problemas donde no los hay\n        chips: "+cs)
 
     print("2) FECHA DE NOTIFICACIÓN VACÍA: normal, nunca un error (R23)")
-    B.ir_a(pag,"2026ER002"); B.pegar_tira(pag, SIN_NOTIF)
+    B.ir_a(pag,"202670000000002"); B.pegar_tira(pag, SIN_NOTIF)
     cs=" | ".join(B.chips(pag))
     ok("R20" not in cs and "R21" not in cs and "R22" not in cs, "no sale ningún aviso de regla")
     ok("notific" not in cs.lower() or "sin notificación en Fénix, es normal" in cs,
@@ -43,28 +43,29 @@ with sync_playwright() as pw:
     B.cerrar_alerta(pag)
 
     print("3) tira pegada SIN columnas (de un PDF o un correo)")
-    B.ir_a(pag,"2026ER003"); B.pegar_tira(pag, SIN_TABS)
+    B.ir_a(pag,"202670000000003"); B.pegar_tira(pag, SIN_TABS)
     cs=" | ".join(B.chips(pag))
     ok("R20" in cs, "avisa R20 al momento de pegarla\n        chips: "+cs)
 
     print("4) tira CORTADA a la mitad")
-    B.ir_a(pag,"2026ER004"); B.pegar_tira(pag, CORTADA)
+    B.ir_a(pag,"202670000000004"); B.pegar_tira(pag, CORTADA)
     cs=" | ".join(B.chips(pag))
     ok("R21" in cs, "avisa R21 y dice cuántas columnas llegaron\n        chips: "+cs)
 
     print("5) tira con las columnas CORRIDAS")
-    B.ir_a(pag,"2026ER005"); B.pegar_tira(pag, CORRIDA)
+    B.ir_a(pag,"202670000000005"); B.pegar_tira(pag, CORRIDA)
     cs=" | ".join(B.chips(pag))
     ok("R22" in cs, "avisa R22 (un dato en la casilla que no es)\n        chips: "+cs)
 
     print("6) solo el número: sigue siendo R19, no R20")
-    B.ir_a(pag,"2026ER006"); B.pegar_tira(pag, SOLO_NUM)
+    B.ir_a(pag,"202670000000006"); B.pegar_tira(pag, SOLO_NUM)
     B.escribir(pag,"#cc_formato","T14"); B.escribir(pag,"#cc_direccion","persona@gmail.com")
     B.escribir(pag,"#cc_res","1368706"); B.escribir(pag,"#cc_fechaRes","26/07/2024")
     pag.click("#cc_save"); pag.wait_for_timeout(400); B.confirmar_nombre(pag)
     B.avanzar(pag)
     av=" | ".join(B.avisos_alerta(pag))
-    ok("R19" in av, "R19 aparece al avanzar\n        avisos: "+av)
+    ok("solo el número" in av, "R19: dice que quedó solo el número y no deja seguir\n        avisos: "+av)
+    ok("Falta la infracción" not in av, "y no lo repite casilla por casilla")
     ok("R20" not in av, "y R20 NO se duplica con él")
     B.cerrar_alerta(pag)
 
